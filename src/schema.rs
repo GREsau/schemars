@@ -51,13 +51,13 @@ pub enum SingleOrVec<T> {
     Vec(Vec<T>),
 }
 
-impl <T> From<T> for SingleOrVec<T> {
+impl<T> From<T> for SingleOrVec<T> {
     fn from(single: T) -> Self {
         SingleOrVec::Single(single)
     }
 }
 
-impl <T> From<Vec<T>> for SingleOrVec<T> {
+impl<T> From<Vec<T>> for SingleOrVec<T> {
     fn from(mut vec: Vec<T>) -> Self {
         match vec.len() {
             1 => SingleOrVec::Single(vec.remove(0)),
@@ -66,7 +66,7 @@ impl <T> From<Vec<T>> for SingleOrVec<T> {
     }
 }
 
-impl <T> Into<Vec<T>> for SingleOrVec<T> {
+impl<T> Into<Vec<T>> for SingleOrVec<T> {
     fn into(self) -> Vec<T> {
         match self {
             SingleOrVec::Single(s) => vec![s],

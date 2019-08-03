@@ -8,19 +8,19 @@ pub trait MakeSchema {
 
 // TODO structs, enums, tuples
 
-// TODO serde json value, any other serde values?
+// TODO any other serde types other than serde_json value?
 // https://github.com/serde-rs/serde/blob/ce75418e40a593fc5c0902cbf4a45305a4178dd7/serde/src/ser/impls.rs
 // Cell<T>, RefCell<T>, Mutex<T>, RwLock<T>, Result<R,E>?, Duration, SystemTime,
 // IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV6, SocketAddrV6,
 // Path, PathBuf, OsStr, OsString, Wrapping<T>, Reverse<T>, AtomicBool, AtomixI8 etc.,
-// NonZeroU8 etc., ArcWeak, RcWeak, BTreeMap, HashMap, unit?, (!)?, Bound?, Range?, RangeInclusive?,
+// NonZeroU8 etc., ArcWeak, RcWeak, BTreeMap, HashMap, (!)?, Bound?, Range?, RangeInclusive?,
 // PhantomData?, CString?, CStr?, fmt::Arguments?
 // !map keys must be Into<String>!
 
 ////////// PRIMITIVES (except ints) //////////
 
 macro_rules! simple_impl {
-    ($type:ident => $instance_type:expr) => {
+    ($type:tt => $instance_type:expr) => {
         impl MakeSchema for $type {
             fn make_schema() -> Schema {
                 Schema {
@@ -37,6 +37,7 @@ simple_impl!(String => InstanceType::String);
 simple_impl!(bool => InstanceType::Boolean);
 simple_impl!(f32 => InstanceType::Number);
 simple_impl!(f64 => InstanceType::Number);
+simple_impl!(() => InstanceType::Null);
 
 impl MakeSchema for char {
     fn make_schema() -> Schema {
@@ -154,6 +155,35 @@ seq_impl!(<T> MakeSchema for std::collections::LinkedList<T>);
 seq_impl!(<T> MakeSchema for Vec<T>);
 seq_impl!(<T> MakeSchema for std::collections::VecDeque<T>);
 
+////////// MAPS /////////
+
+macro_rules! map_impl {
+    ($($desc:tt)+) => {
+        impl $($desc)+
+        where
+            K: Into<String>,
+            T: MakeSchema,
+        {
+            fn make_schema() -> Schema
+            {
+                let mut extra_properties = Map::new();
+                extra_properties.insert(
+                    "patternProperties".to_owned(),
+                    json!({"": T::make_schema()})
+                );
+                Schema {
+                    instance_type: Some(InstanceType::Object.into()),
+                    extra_properties,
+                    ..Default::default()
+                }
+            }
+        }
+    };
+}
+
+map_impl!(<K, T: Ord> MakeSchema for std::collections::BTreeMap<K, T>);
+map_impl!(<K, T: Eq + core::hash::Hash, H: core::hash::BuildHasher> MakeSchema for std::collections::HashMap<K, T, H>);
+
 ////////// OPTION //////////
 
 impl<T: MakeSchema> MakeSchema for Option<T> {
@@ -191,3 +221,11 @@ deref_impl!(<T> MakeSchema for Box<T>);
 deref_impl!(<T> MakeSchema for std::rc::Rc<T>);
 deref_impl!(<T> MakeSchema for std::sync::Arc<T>);
 deref_impl!(<'a, T: ToOwned> MakeSchema for std::borrow::Cow<'a, T>);
+
+////////// SERDE_JSON //////////
+
+impl MakeSchema for serde_json::Value {
+    fn make_schema() -> Schema {
+        Schema::default()
+    }
+}
