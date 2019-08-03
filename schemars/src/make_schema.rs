@@ -23,10 +23,11 @@ macro_rules! simple_impl {
     ($type:tt => $instance_type:expr) => {
         impl MakeSchema for $type {
             fn make_schema() -> Schema {
-                Schema {
+                SchemaObject {
                     instance_type: Some($instance_type.into()),
                     ..Default::default()
                 }
+                .into()
             }
         }
     };
@@ -44,11 +45,12 @@ impl MakeSchema for char {
         let mut extra_properties = Map::new();
         extra_properties.insert("minLength".to_owned(), json!(1));
         extra_properties.insert("maxLength".to_owned(), json!(1));
-        Schema {
+        SchemaObject {
             instance_type: Some(InstanceType::String.into()),
             extra_properties,
             ..Default::default()
         }
+        .into()
     }
 }
 
@@ -62,11 +64,12 @@ macro_rules! int_impl {
                 // this may be overkill...
                 extra_properties.insert("minimum".to_owned(), json!($type::min_value()));
                 extra_properties.insert("maximum".to_owned(), json!($type::max_value()));
-                Schema {
+                SchemaObject {
                     instance_type: Some(InstanceType::Integer.into()),
                     extra_properties,
                     ..Default::default()
                 }
+                .into()
             }
         }
     };
@@ -92,11 +95,12 @@ impl<T> MakeSchema for [T; 0] {
     fn make_schema() -> Schema {
         let mut extra_properties = Map::new();
         extra_properties.insert("maxItems".to_owned(), json!(0));
-        Schema {
+        SchemaObject {
             instance_type: Some(InstanceType::Array.into()),
             extra_properties,
             ..Default::default()
         }
+        .into()
     }
 }
 
@@ -109,12 +113,12 @@ macro_rules! array_impls {
                     let mut extra_properties = Map::new();
                     extra_properties.insert("minItems".to_owned(), json!($len));
                     extra_properties.insert("maxItems".to_owned(), json!($len));
-                    Schema {
+                    SchemaObject {
                         instance_type: Some(InstanceType::Array.into()),
                         items: Some(Box::from(T::make_schema())),
                         extra_properties,
                         ..Default::default()
-                    }
+                    }.into()
                 }
             }
         )+
@@ -138,11 +142,11 @@ macro_rules! seq_impl {
         {
             fn make_schema() -> Schema
             {
-                Schema {
+                SchemaObject {
                     instance_type: Some(InstanceType::Array.into()),
                     items: Some(Box::from(T::make_schema())),
                     ..Default::default()
-                }
+                }.into()
             }
         }
     };
@@ -171,11 +175,11 @@ macro_rules! map_impl {
                     "additionalProperties".to_owned(),
                     json!(T::make_schema())
                 );
-                Schema {
+                SchemaObject {
                     instance_type: Some(InstanceType::Object.into()),
                     extra_properties,
                     ..Default::default()
-                }
+                }.into()
             }
         }
     };
@@ -188,15 +192,15 @@ map_impl!(<K, T: Eq + core::hash::Hash, H: core::hash::BuildHasher> MakeSchema f
 
 impl<T: MakeSchema> MakeSchema for Option<T> {
     fn make_schema() -> Schema {
-        let mut schema = T::make_schema();
-        if let Some(instance_type) = schema.instance_type {
-            let mut vec: Vec<_> = instance_type.into();
-            if !vec.contains(&InstanceType::Null) {
-                vec.push(InstanceType::Null);
+        match T::make_schema() {
+            Schema::Bool(true) => true.into(),
+            Schema::Bool(false) => <()>::make_schema(),
+            Schema::Object(schema) => SchemaObject {
+                any_of: Some(vec![schema.into(), <()>::make_schema()]),
+                ..Default::default()
             }
-            schema.instance_type = Some(vec.into());
+            .into(),
         }
-        schema
     }
 }
 
@@ -226,6 +230,6 @@ deref_impl!(<'a, T: ToOwned> MakeSchema for std::borrow::Cow<'a, T>);
 
 impl MakeSchema for serde_json::Value {
     fn make_schema() -> Schema {
-        Schema::default()
+        true.into()
     }
 }

@@ -2,22 +2,34 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
 
+#[derive(Serialize, Deserialize, Debug)]
+#[serde(untagged)]
+pub enum Schema {
+    Bool(bool),
+    Object(SchemaObject),
+}
+
+impl From<SchemaObject> for Schema {
+    fn from(o: SchemaObject) -> Self {
+        Schema::Object(o)
+    }
+}
+
+impl From<bool> for Schema {
+    fn from(b: bool) -> Self {
+        Schema::Bool(b)
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct RootSchema {
+pub struct SchemaObject {
     #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
     pub schema: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(flatten)]
-    pub root: Schema,
-}
-
-#[derive(Serialize, Deserialize, Debug, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct Schema {
     #[serde(rename = "$id", skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
@@ -26,6 +38,14 @@ pub struct Schema {
     pub instance_enum: Option<Vec<Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub items: Option<Box<Schema>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub all_of: Option<Vec<Schema>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub any_of: Option<Vec<Schema>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub one_of: Option<Vec<Schema>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub not: Option<Box<Schema>>,
     #[serde(skip_serializing_if = "Map::is_empty")]
     pub definitions: Map<String, Schema>,
     #[serde(flatten)]
@@ -75,14 +95,14 @@ impl<T> Into<Vec<T>> for SingleOrVec<T> {
     }
 }
 
-/*pub struct Schema {
+/*pub struct SchemaObject {
     pub ref_path: Option<String>,
     pub description: Option<String>,
     pub schema_type: Option<String>,
     pub format: Option<String>,
     pub enum_values: Option<Vec<String>>,
     pub required: Option<Vec<String>>,
-    pub items: Option<Box<Schema>>,
-    pub properties: Option<std::collections::BTreeMap<String, Schema>>,
+    pub items: Option<Box<SchemaObject>>,
+    pub properties: Option<std::collections::BTreeMap<String, SchemaObject>>,
 }
 */
