@@ -168,8 +168,8 @@ macro_rules! map_impl {
             {
                 let mut extra_properties = Map::new();
                 extra_properties.insert(
-                    "patternProperties".to_owned(),
-                    json!({"": T::make_schema()})
+                    "additionalProperties".to_owned(),
+                    json!(T::make_schema())
                 );
                 Schema {
                     instance_type: Some(InstanceType::Object.into()),
