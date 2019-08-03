@@ -26,18 +26,22 @@ impl From<bool> for Schema {
 pub struct SchemaObject {
     #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
     pub schema: Option<String>,
+    #[serde(rename = "$id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    #[serde(rename = "$id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub instance_type: Option<SingleOrVec<InstanceType>>,
     #[serde(rename = "enum", skip_serializing_if = "Option::is_none")]
-    pub instance_enum: Option<Vec<Value>>,
+    pub enum_values: Option<Vec<Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub items: Option<Box<Schema>>,
+    #[serde(skip_serializing_if = "Map::is_empty")]
+    pub properties: Map<String, Schema>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub required: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub all_of: Option<Vec<Schema>>,
     #[serde(skip_serializing_if = "Option::is_none")]
