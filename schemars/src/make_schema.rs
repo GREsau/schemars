@@ -21,12 +21,18 @@ pub trait MakeSchema {
     }
 
     fn generates_ref_schema() -> bool {
-        // TODO default this to true as it's safer
-        // But this would mean every impl in this file needs to override it :(
-        false
+        true
     }
 
     fn make_schema(gen: &mut SchemaGenerator) -> Schema;
+}
+
+macro_rules! no_ref_schema {
+    () => {
+        fn generates_ref_schema() -> bool {
+            false
+        }
+    };
 }
 
 // TODO structs, enums, tuples
@@ -44,6 +50,8 @@ pub trait MakeSchema {
 macro_rules! simple_impl {
     ($type:tt => $instance_type:tt) => {
         impl MakeSchema for $type {
+            no_ref_schema!();
+
             fn make_schema(_: &mut SchemaGenerator) -> Schema {
                 SchemaObject {
                     instance_type: Some(InstanceType::$instance_type.into()),
@@ -75,6 +83,8 @@ simple_impl!(usize => Integer);
 simple_impl!(() => Null);
 
 impl MakeSchema for char {
+    no_ref_schema!();
+
     fn make_schema(_: &mut SchemaGenerator) -> Schema {
         let mut extensions = Map::new();
         extensions.insert("minLength".to_owned(), json!(1));
@@ -92,6 +102,8 @@ impl MakeSchema for char {
 
 // Does not require T: MakeSchema.
 impl<T> MakeSchema for [T; 0] {
+    no_ref_schema!();
+
     fn make_schema(_: &mut SchemaGenerator) -> Schema {
         let mut extensions = Map::new();
         extensions.insert("maxItems".to_owned(), json!(0));
@@ -107,8 +119,9 @@ impl<T> MakeSchema for [T; 0] {
 macro_rules! array_impls {
     ($($len:tt)+) => {
         $(
-            impl<T: MakeSchema> MakeSchema for [T; $len]
-            {
+            impl<T: MakeSchema> MakeSchema for [T; $len] {
+                no_ref_schema!();
+
                 fn make_schema(gen: &mut SchemaGenerator) -> Schema {
                     let mut extensions = Map::new();
                     extensions.insert("minItems".to_owned(), json!($len));
@@ -140,6 +153,8 @@ macro_rules! seq_impl {
         where
             T: MakeSchema,
         {
+            no_ref_schema!();
+
             fn make_schema(gen: &mut SchemaGenerator) -> Schema
             {
                 SchemaObject {
@@ -168,6 +183,8 @@ macro_rules! map_impl {
             K: Into<String>,
             T: MakeSchema,
         {
+            no_ref_schema!();
+
             fn make_schema(gen: &mut SchemaGenerator) -> Schema
             {
                 let mut extensions = Map::new();
@@ -191,6 +208,8 @@ map_impl!(<K, T: Eq + core::hash::Hash, H: core::hash::BuildHasher> MakeSchema f
 ////////// OPTION //////////
 
 impl<T: MakeSchema> MakeSchema for Option<T> {
+    no_ref_schema!();
+
     fn make_schema(gen: &mut SchemaGenerator) -> Schema {
         match gen.subschema_for::<T>() {
             Schema::Bool(true) => true.into(),
@@ -212,6 +231,8 @@ macro_rules! deref_impl {
         where
             T: MakeSchema,
         {
+            no_ref_schema!();
+
             fn make_schema(gen: &mut SchemaGenerator) -> Schema {
                 gen.subschema_for::<T>()
             }
@@ -229,6 +250,8 @@ deref_impl!(<'a, T: ToOwned> MakeSchema for std::borrow::Cow<'a, T>);
 ////////// SERDE_JSON //////////
 
 impl MakeSchema for serde_json::Value {
+    no_ref_schema!();
+
     fn make_schema(_: &mut SchemaGenerator) -> Schema {
         true.into()
     }
