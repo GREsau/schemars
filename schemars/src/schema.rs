@@ -52,7 +52,7 @@ pub struct SchemaObject {
     #[serde(rename = "enum", skip_serializing_if = "Option::is_none")]
     pub enum_values: Option<Vec<Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub items: Option<Box<Schema>>,
+    pub items: Option<SingleOrVec<Schema>>,
     #[serde(skip_serializing_if = "Map::is_empty")]
     pub properties: Map<String, Schema>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -86,30 +86,18 @@ pub enum InstanceType {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(untagged)]
 pub enum SingleOrVec<T> {
-    Single(T),
+    Single(Box<T>),
     Vec(Vec<T>),
 }
 
 impl<T> From<T> for SingleOrVec<T> {
     fn from(single: T) -> Self {
-        SingleOrVec::Single(single)
+        SingleOrVec::Single(Box::new(single))
     }
 }
 
 impl<T> From<Vec<T>> for SingleOrVec<T> {
-    fn from(mut vec: Vec<T>) -> Self {
-        match vec.len() {
-            1 => SingleOrVec::Single(vec.remove(0)),
-            _ => SingleOrVec::Vec(vec),
-        }
-    }
-}
-
-impl<T> Into<Vec<T>> for SingleOrVec<T> {
-    fn into(self) -> Vec<T> {
-        match self {
-            SingleOrVec::Single(s) => vec![s],
-            SingleOrVec::Vec(v) => v,
-        }
+    fn from(vec: Vec<T>) -> Self {
+        SingleOrVec::Vec(vec)
     }
 }
