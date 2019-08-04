@@ -35,8 +35,6 @@ macro_rules! no_ref_schema {
     };
 }
 
-// TODO structs, enums, tuples
-
 // TODO any other serde types other than serde_json value?
 // https://github.com/serde-rs/serde/blob/ce75418e40a593fc5c0902cbf4a45305a4178dd7/serde/src/ser/impls.rs
 // Cell<T>, RefCell<T>, Mutex<T>, RwLock<T>, Result<R,E>?, Duration, SystemTime,
