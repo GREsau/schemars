@@ -4,8 +4,8 @@ use serde_json::json;
 use std::collections::BTreeMap as Map;
 
 pub trait MakeSchema {
-    fn override_schema_name() -> Option<String> {
-        None
+    fn schema_name() -> String {
+        core::any::type_name::<Self>().to_owned()
     }
 
     fn generates_ref_schema() -> bool {

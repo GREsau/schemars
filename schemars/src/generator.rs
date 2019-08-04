@@ -47,7 +47,7 @@ impl SchemaGenerator {
         let schema = T::make_schema(self);
         if let Schema::Object(mut o) = schema {
             o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
-            o.title = Some(Self::schema_name::<T>());
+            o.title = Some(T::schema_name());
             for (_, (name, schema)) in self.definitions.iter() {
                 o.definitions.insert(name.clone(), schema.clone());
             }
@@ -60,7 +60,7 @@ impl SchemaGenerator {
         let schema = T::make_schema(&mut self);
         if let Schema::Object(mut o) = schema {
             o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
-            o.title = Some(Self::schema_name::<T>());
+            o.title = Some(T::schema_name());
             for (_, (name, schema)) in self.definitions {
                 o.definitions.insert(name, schema);
             }
@@ -69,12 +69,8 @@ impl SchemaGenerator {
         schema
     }
 
-    fn schema_name<T: MakeSchema>() -> String {
-        T::override_schema_name().unwrap_or_else(|| type_name::<T>().to_owned())
-    }
-
     fn make_unique_name<T: MakeSchema>(&mut self) -> String {
-        Self::schema_name::<T>()
+        T::schema_name()
         // TODO remove namespace, remove special chars
         // TODO enforce uniqueness
     }
