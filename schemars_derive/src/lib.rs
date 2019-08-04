@@ -4,21 +4,27 @@ extern crate quote;
 extern crate syn;
 
 extern crate proc_macro;
-extern crate proc_macro2;
 
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
+use serde_derive_internals::ast::{Container, Data, Field, Style, Variant};
+use serde_derive_internals::{Ctxt, Derive};
 use syn::spanned::Spanned;
-use syn::{Data, DeriveInput, Fields};
+use syn::DeriveInput;
 
 #[proc_macro_derive(MakeSchema, attributes(schemars, serde))]
 pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
+    let ctxt = Ctxt::new();
+    let cont = Container::from_ast(&ctxt, &input, Derive::Deserialize);
+    if let Err(e) = ctxt.check() {
+        return compile_error(input.span(), e).into();
+    }
 
-    let name = input.ident;
-    let (impl_generics, ty_generics, where_clause) = input.generics.split_for_impl();
+    let name = cont.ident;
+    let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
-    let fn_contents = match input.data {
-        Data::Struct(data) => struct_implementation(&data.fields),
+    let fn_contents = match cont.data {
+        Data::Struct(Style::Struct, ref fields) => struct_implementation(fields),
         _ => unimplemented!("Only structs work so far!"),
     };
 
@@ -37,20 +43,21 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     proc_macro::TokenStream::from(impl_block)
 }
 
-fn struct_implementation(fields: &Fields) -> TokenStream {
-    match fields {
-        Fields::Named(ref fields) => {
-            let recurse = fields.named.iter().map(|f| {
-                let name = (&f.ident).as_ref().map(ToString::to_string);
-                let ty = &f.ty;
-                quote_spanned! {f.span()=>
-                    o.properties.insert(#name.to_owned(), gen.subschema_for::<#ty>());
-                }
-            });
-            quote! {
-                #(#recurse)*
-            }
+fn compile_error(span: Span, message: String) -> TokenStream {
+    quote_spanned! {span=>
+        compile_error!(#message);
+    }
+}
+
+fn struct_implementation(fields: &[Field]) -> TokenStream {
+    let recurse = fields.into_iter().map(|f| {
+        let name = f.attrs.name().deserialize_name();
+        let ty = f.ty;
+        quote_spanned! {f.original.span()=>
+            o.properties.insert(#name.to_owned(), gen.subschema_for::<#ty>());
         }
-        _ => unimplemented!("Only named fields work so far!"),
+    });
+    quote! {
+        #(#recurse)*
     }
 }
