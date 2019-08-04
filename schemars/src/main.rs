@@ -1,9 +1,12 @@
-mod make_schema;
-mod schema;
+pub mod generator;
+pub mod make_schema;
+pub mod schema;
 
 use make_schema::MakeSchema;
+use schema::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
+use std::collections::BTreeMap as Map;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

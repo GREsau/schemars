@@ -1,5 +1,6 @@
 pub mod make_schema;
 pub mod schema;
+pub mod generator;
 
 #[cfg(test)]
 mod tests {

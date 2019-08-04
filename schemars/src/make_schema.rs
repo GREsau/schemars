@@ -1,9 +1,18 @@
+use crate::generator::SchemaGenerator;
 use crate::schema::*;
 use serde_json::json;
 use std::collections::BTreeMap as Map;
 
 pub trait MakeSchema {
-    fn make_schema() -> Schema;
+    fn override_schema_name() -> String {
+        String::new()
+    }
+
+    fn makes_ref_schema() -> bool {
+        false
+    }
+
+    fn make_schema(generator: &mut SchemaGenerator) -> Schema;
 }
 
 // TODO structs, enums, tuples
@@ -15,16 +24,15 @@ pub trait MakeSchema {
 // Path, PathBuf, OsStr, OsString, Wrapping<T>, Reverse<T>, AtomicBool, AtomixI8 etc.,
 // NonZeroU8 etc., ArcWeak, RcWeak, BTreeMap, HashMap, (!)?, Bound?, Range?, RangeInclusive?,
 // PhantomData?, CString?, CStr?, fmt::Arguments?
-// !map keys must be Into<String>!
 
-////////// PRIMITIVES (except ints) //////////
+////////// PRIMITIVES //////////
 
 macro_rules! simple_impl {
-    ($type:tt => $instance_type:expr) => {
+    ($type:tt => $instance_type:tt) => {
         impl MakeSchema for $type {
-            fn make_schema() -> Schema {
+            fn make_schema(_: &mut SchemaGenerator) -> Schema {
                 SchemaObject {
-                    instance_type: Some($instance_type.into()),
+                    instance_type: Some(InstanceType::$instance_type.into()),
                     ..Default::default()
                 }
                 .into()
@@ -33,15 +41,27 @@ macro_rules! simple_impl {
     };
 }
 
-simple_impl!(str => InstanceType::String);
-simple_impl!(String => InstanceType::String);
-simple_impl!(bool => InstanceType::Boolean);
-simple_impl!(f32 => InstanceType::Number);
-simple_impl!(f64 => InstanceType::Number);
-simple_impl!(() => InstanceType::Null);
+simple_impl!(str => String);
+simple_impl!(String => String);
+simple_impl!(bool => Boolean);
+simple_impl!(f32 => Number);
+simple_impl!(f64 => Number);
+simple_impl!(i8 => Integer);
+simple_impl!(i16 => Integer);
+simple_impl!(i32 => Integer);
+simple_impl!(i64 => Integer);
+simple_impl!(i128 => Integer);
+simple_impl!(isize => Integer);
+simple_impl!(u8 => Integer);
+simple_impl!(u16 => Integer);
+simple_impl!(u32 => Integer);
+simple_impl!(u64 => Integer);
+simple_impl!(u128 => Integer);
+simple_impl!(usize => Integer);
+simple_impl!(() => Null);
 
 impl MakeSchema for char {
-    fn make_schema() -> Schema {
+    fn make_schema(_: &mut SchemaGenerator) -> Schema {
         let mut extra_properties = Map::new();
         extra_properties.insert("minLength".to_owned(), json!(1));
         extra_properties.insert("maxLength".to_owned(), json!(1));
@@ -54,45 +74,11 @@ impl MakeSchema for char {
     }
 }
 
-////////// INTS //////////
-
-macro_rules! int_impl {
-    ($type:ident) => {
-        impl MakeSchema for $type {
-            fn make_schema() -> Schema {
-                let mut extra_properties = Map::new();
-                // this may be overkill...
-                extra_properties.insert("minimum".to_owned(), json!($type::min_value()));
-                extra_properties.insert("maximum".to_owned(), json!($type::max_value()));
-                SchemaObject {
-                    instance_type: Some(InstanceType::Integer.into()),
-                    extra_properties,
-                    ..Default::default()
-                }
-                .into()
-            }
-        }
-    };
-}
-
-int_impl!(i8);
-int_impl!(i16);
-int_impl!(i32);
-int_impl!(i64);
-int_impl!(i128);
-int_impl!(isize);
-int_impl!(u8);
-int_impl!(u16);
-int_impl!(u32);
-int_impl!(u64);
-int_impl!(u128);
-int_impl!(usize);
-
 ////////// ARRAYS //////////
 
 // Does not require T: MakeSchema.
 impl<T> MakeSchema for [T; 0] {
-    fn make_schema() -> Schema {
+    fn make_schema(_: &mut SchemaGenerator) -> Schema {
         let mut extra_properties = Map::new();
         extra_properties.insert("maxItems".to_owned(), json!(0));
         SchemaObject {
@@ -107,15 +93,15 @@ impl<T> MakeSchema for [T; 0] {
 macro_rules! array_impls {
     ($($len:tt)+) => {
         $(
-            impl<T: MakeSchema> MakeSchema for [T; $len]
+            impl<T: MakeSchema + 'static> MakeSchema for [T; $len]
             {
-                fn make_schema() -> Schema {
+                fn make_schema(gen: &mut SchemaGenerator) -> Schema {
                     let mut extra_properties = Map::new();
                     extra_properties.insert("minItems".to_owned(), json!($len));
                     extra_properties.insert("maxItems".to_owned(), json!($len));
                     SchemaObject {
                         instance_type: Some(InstanceType::Array.into()),
-                        items: Some(Box::from(T::make_schema())),
+                        items: Some(Box::from(gen.subschema_for::<T>())),
                         extra_properties,
                         ..Default::default()
                     }.into()
@@ -138,13 +124,13 @@ macro_rules! seq_impl {
     ($($desc:tt)+) => {
         impl $($desc)+
         where
-            T: MakeSchema,
+            T: MakeSchema + 'static,
         {
-            fn make_schema() -> Schema
+            fn make_schema(gen: &mut SchemaGenerator) -> Schema
             {
                 SchemaObject {
                     instance_type: Some(InstanceType::Array.into()),
-                    items: Some(Box::from(T::make_schema())),
+                    items: Some(Box::from(gen.subschema_for::<T>())),
                     ..Default::default()
                 }.into()
             }
@@ -166,14 +152,14 @@ macro_rules! map_impl {
         impl $($desc)+
         where
             K: Into<String>,
-            T: MakeSchema,
+            T: MakeSchema + 'static,
         {
-            fn make_schema() -> Schema
+            fn make_schema(gen: &mut SchemaGenerator) -> Schema
             {
                 let mut extra_properties = Map::new();
                 extra_properties.insert(
                     "additionalProperties".to_owned(),
-                    json!(T::make_schema())
+                    json!(gen.subschema_for::<T>())
                 );
                 SchemaObject {
                     instance_type: Some(InstanceType::Object.into()),
@@ -190,13 +176,13 @@ map_impl!(<K, T: Eq + core::hash::Hash, H: core::hash::BuildHasher> MakeSchema f
 
 ////////// OPTION //////////
 
-impl<T: MakeSchema> MakeSchema for Option<T> {
-    fn make_schema() -> Schema {
-        match T::make_schema() {
+impl<T: MakeSchema + 'static> MakeSchema for Option<T> {
+    fn make_schema(gen: &mut SchemaGenerator) -> Schema {
+        match gen.subschema_for::<T>() {
             Schema::Bool(true) => true.into(),
-            Schema::Bool(false) => <()>::make_schema(),
-            Schema::Object(schema) => SchemaObject {
-                any_of: Some(vec![schema.into(), <()>::make_schema()]),
+            Schema::Bool(false) => <()>::make_schema(gen),
+            schema => SchemaObject {
+                any_of: Some(vec![schema, <()>::make_schema(gen)]),
                 ..Default::default()
             }
             .into(),
@@ -210,10 +196,10 @@ macro_rules! deref_impl {
     ($($desc:tt)+) => {
         impl $($desc)+
         where
-            T: ?Sized + MakeSchema,
+            T: MakeSchema + 'static,
         {
-            fn make_schema() -> Schema {
-                T::make_schema()
+            fn make_schema(gen: &mut SchemaGenerator) -> Schema {
+                gen.subschema_for::<T>()
             }
         }
     };
@@ -229,7 +215,7 @@ deref_impl!(<'a, T: ToOwned> MakeSchema for std::borrow::Cow<'a, T>);
 ////////// SERDE_JSON //////////
 
 impl MakeSchema for serde_json::Value {
-    fn make_schema() -> Schema {
+    fn make_schema(_: &mut SchemaGenerator) -> Schema {
         true.into()
     }
 }

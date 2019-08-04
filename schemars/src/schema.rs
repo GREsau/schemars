@@ -2,10 +2,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum Schema {
     Bool(bool),
+    Ref(SchemaRef),
     Object(SchemaObject),
 }
 
@@ -21,7 +22,19 @@ impl From<bool> for Schema {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default)]
+impl From<SchemaRef> for Schema {
+    fn from(r: SchemaRef) -> Self {
+        Schema::Ref(r)
+    }
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct SchemaRef {
+    #[serde(rename = "$ref")]
+    pub reference: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct SchemaObject {
     #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
@@ -56,7 +69,7 @@ pub struct SchemaObject {
     pub extra_properties: Map<String, Value>,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
 #[serde(rename_all = "camelCase")]
 pub enum InstanceType {
     Null,
@@ -68,7 +81,7 @@ pub enum InstanceType {
     Integer,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(untagged)]
 pub enum SingleOrVec<T> {
     Single(T),
@@ -98,15 +111,3 @@ impl<T> Into<Vec<T>> for SingleOrVec<T> {
         }
     }
 }
-
-/*pub struct SchemaObject {
-    pub ref_path: Option<String>,
-    pub description: Option<String>,
-    pub schema_type: Option<String>,
-    pub format: Option<String>,
-    pub enum_values: Option<Vec<String>>,
-    pub required: Option<Vec<String>>,
-    pub items: Option<Box<SchemaObject>>,
-    pub properties: Option<std::collections::BTreeMap<String, SchemaObject>>,
-}
-*/
