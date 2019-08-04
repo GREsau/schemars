@@ -1,6 +1,5 @@
-use crate::make_schema::MakeSchema;
+use crate::make_schema::{MakeSchema, SchemaTypeId};
 use crate::schema::*;
-use core::any::TypeId;
 use std::collections::BTreeMap as Map;
 use std::collections::BTreeSet as Set;
 use std::iter::FromIterator;
@@ -8,7 +7,7 @@ use std::iter::FromIterator;
 #[derive(Debug, Default)]
 pub struct SchemaGenerator {
     names: Set<String>,
-    definitions: Map<TypeId, (String, Schema)>,
+    definitions: Map<SchemaTypeId, (String, Schema)>,
 }
 
 impl SchemaGenerator {
@@ -18,23 +17,24 @@ impl SchemaGenerator {
         }
     }
 
-    pub fn subschema_for<T: MakeSchema + 'static>(&mut self) -> Schema {
+    pub fn subschema_for<T: ?Sized + MakeSchema>(&mut self) -> Schema {
         if !T::generates_ref_schema() {
             return T::make_schema(self);
         }
 
-        let type_id = TypeId::of::<T>();
+        let type_id = T::schema_type_id();
         // TODO is there a nicer way to do this?
         if !self.definitions.contains_key(&type_id) {
             let name = self.make_unique_name::<T>();
             self.names.insert(name.clone());
             // insert into definitions BEFORE calling make_schema to avoid infinite recursion
             let dummy = Schema::Bool(false);
-            self.definitions.insert(type_id, (name.clone(), dummy));
+            self.definitions
+                .insert(type_id.clone(), (name.clone(), dummy));
 
             let schema = T::make_schema(self);
             self.definitions
-                .entry(type_id)
+                .entry(type_id.clone())
                 .and_modify(|(_, s)| *s = schema);
         }
         let ref name = self.definitions.get(&type_id).unwrap().0;
@@ -52,7 +52,7 @@ impl SchemaGenerator {
         Map::from_iter(self.definitions.into_iter().map(|(_, v)| v))
     }
 
-    pub fn root_schema_for<T: MakeSchema>(&mut self) -> Schema {
+    pub fn root_schema_for<T: ?Sized + MakeSchema>(&mut self) -> Schema {
         let schema = T::make_schema(self);
         if let Schema::Object(mut o) = schema {
             o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
@@ -63,7 +63,7 @@ impl SchemaGenerator {
         schema
     }
 
-    pub fn into_root_schema_for<T: MakeSchema>(mut self) -> Schema {
+    pub fn into_root_schema_for<T: ?Sized + MakeSchema>(mut self) -> Schema {
         let schema = T::make_schema(&mut self);
         if let Schema::Object(mut o) = schema {
             o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
@@ -74,7 +74,7 @@ impl SchemaGenerator {
         schema
     }
 
-    fn make_unique_name<T: MakeSchema>(&mut self) -> String {
+    fn make_unique_name<T: ?Sized + MakeSchema>(&mut self) -> String {
         let base_name = T::schema_name();
         // TODO remove namespace, remove special chars
         if self.names.contains(&base_name) {

@@ -35,7 +35,8 @@ struct User {
 }
 
 fn main() -> Result<()> {
-    let schema = <&str>::make_schema();
+    let gen = generator::SchemaGenerator::new();
+    let schema = gen.into_root_schema_for::<str>();
     let json = serde_json::to_string(&schema)?;
     println!("{}", json);
 

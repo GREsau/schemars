@@ -3,12 +3,26 @@ use crate::schema::*;
 use serde_json::json;
 use std::collections::BTreeMap as Map;
 
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
+pub struct SchemaTypeId(&'static str);
+
 pub trait MakeSchema {
+    fn schema_type_id() -> SchemaTypeId {
+        // FIXME schema name might not be unique!
+        SchemaTypeId(core::any::type_name::<Self>())
+    }
+
     fn schema_name() -> String {
+        // TODO this requires nightly
+        // It's probably worth removing the default implemenation,
+        //  then make every impl in this file set an explicit name
+        // Or maybe hide it under feature flag?
         core::any::type_name::<Self>().to_owned()
     }
 
     fn generates_ref_schema() -> bool {
+        // TODO default this to true as it's safer
+        // But this would mean every impl in this file needs to override it :(
         false
     }
 
@@ -93,7 +107,7 @@ impl<T> MakeSchema for [T; 0] {
 macro_rules! array_impls {
     ($($len:tt)+) => {
         $(
-            impl<T: MakeSchema + 'static> MakeSchema for [T; $len]
+            impl<T: MakeSchema> MakeSchema for [T; $len]
             {
                 fn make_schema(gen: &mut SchemaGenerator) -> Schema {
                     let mut extra_properties = Map::new();
@@ -124,7 +138,7 @@ macro_rules! seq_impl {
     ($($desc:tt)+) => {
         impl $($desc)+
         where
-            T: MakeSchema + 'static,
+            T: MakeSchema,
         {
             fn make_schema(gen: &mut SchemaGenerator) -> Schema
             {
@@ -152,7 +166,7 @@ macro_rules! map_impl {
         impl $($desc)+
         where
             K: Into<String>,
-            T: MakeSchema + 'static,
+            T: MakeSchema,
         {
             fn make_schema(gen: &mut SchemaGenerator) -> Schema
             {
@@ -176,7 +190,7 @@ map_impl!(<K, T: Eq + core::hash::Hash, H: core::hash::BuildHasher> MakeSchema f
 
 ////////// OPTION //////////
 
-impl<T: MakeSchema + 'static> MakeSchema for Option<T> {
+impl<T: MakeSchema> MakeSchema for Option<T> {
     fn make_schema(gen: &mut SchemaGenerator) -> Schema {
         match gen.subschema_for::<T>() {
             Schema::Bool(true) => true.into(),
@@ -196,7 +210,7 @@ macro_rules! deref_impl {
     ($($desc:tt)+) => {
         impl $($desc)+
         where
-            T: MakeSchema + 'static,
+            T: MakeSchema,
         {
             fn make_schema(gen: &mut SchemaGenerator) -> Schema {
                 gen.subschema_for::<T>()
