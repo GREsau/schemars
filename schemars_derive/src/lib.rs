@@ -94,7 +94,12 @@ fn schema_for_enum(variants: &[Variant]) -> TokenStream {
                     gen.subschema_for::<#ty>()
                 }
             }
-            Style::Tuple => unimplemented!("work in progress!"),
+            Style::Tuple => {
+                let types = variant.fields.iter().map(|f| f.ty);
+                quote! {
+                    gen.subschema_for::<(#(#types),*)>()
+                }
+            }
             Style::Struct => unimplemented!("work in progress!"),
             Style::Unit => unreachable!("Unit variants already filtered out"),
         };
