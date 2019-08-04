@@ -17,7 +17,7 @@ pub trait MakeSchema {
         // It's probably worth removing the default implemenation,
         //  then make every impl in this file set an explicit name
         // Or maybe hide it under feature flag?
-        core::any::type_name::<Self>().to_owned()
+        core::any::type_name::<Self>().replace(|c: char| !c.is_ascii_alphanumeric(), "_")
     }
 
     fn generates_ref_schema() -> bool {

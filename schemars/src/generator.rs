@@ -76,7 +76,6 @@ impl SchemaGenerator {
 
     fn make_unique_name<T: ?Sized + MakeSchema>(&mut self) -> String {
         let base_name = T::schema_name();
-        // TODO remove namespace, remove special chars
         if self.names.contains(&base_name) {
             for i in 2.. {
                 let name = format!("{}{}", base_name, i);

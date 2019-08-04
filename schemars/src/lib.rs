@@ -1,11 +1,8 @@
+pub mod generator;
 pub mod make_schema;
 pub mod schema;
-pub mod generator;
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+pub use generator::SchemaGenerator;
+pub use schema::{Schema, SchemaObject, SchemaRef};
+
+pub use schemars_derive::*;
