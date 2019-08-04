@@ -86,6 +86,7 @@ fn schema_for_enum(variants: &[Variant]) -> TokenStream {
     }
 
     schemas.extend(complex_variants.into_iter().map(|variant| {
+        let name = variant.attrs.name().deserialize_name();
         let sub_schema = match variant.style {
             Style::Newtype => {
                 let f = &variant.fields[0];
@@ -100,10 +101,10 @@ fn schema_for_enum(variants: &[Variant]) -> TokenStream {
                     gen.subschema_for::<(#(#types),*)>()
                 }
             }
-            Style::Struct => unimplemented!("work in progress!"),
+            Style::Struct => schema_for_struct(&variant.fields),
             Style::Unit => unreachable!("Unit variants already filtered out"),
         };
-        let name = variant.attrs.name().deserialize_name();
+
         wrap_schema_fields(quote! {
             properties: {
                 let mut props = std::collections::BTreeMap::new();
