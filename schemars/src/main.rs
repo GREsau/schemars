@@ -2,7 +2,7 @@ use schemars::MakeSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, MakeSchema)]
 #[serde(rename_all = "camelCase")]
 enum TodoStatus {
     Backlog,
@@ -17,7 +17,7 @@ struct Todo {
     id: u64,
     title: String,
     description: Option<String>,
-    // status: TodoStatus,
+    status: TodoStatus,
     assigned_to: Vec<User>,
 }
 

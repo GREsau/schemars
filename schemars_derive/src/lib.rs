@@ -25,7 +25,8 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
 
     let fn_contents = match cont.data {
         Data::Struct(Style::Struct, ref fields) => struct_implementation(fields),
-        _ => unimplemented!("Only structs work so far!"),
+        Data::Enum(ref variants) => enum_implementation(variants),
+        _ => unimplemented!("work in progress!"),
     };
 
     let impl_block = quote! {
@@ -47,6 +48,25 @@ fn compile_error(span: Span, message: String) -> TokenStream {
     quote_spanned! {span=>
         compile_error!(#message);
     }
+}
+
+fn is_unit_variant(v: &Variant) -> bool {
+    match v.style {
+        Style::Unit => true,
+        _ => false,
+    }
+}
+
+fn enum_implementation(variants: &[Variant]) -> TokenStream {
+    if variants.iter().all(is_unit_variant) {
+        let names = variants
+            .into_iter()
+            .map(|v| v.attrs.name().deserialize_name());
+        return quote! {
+            o.enum_values = Some(vec![#(#names.into()),*]);
+        };
+    }
+    unimplemented!("work in progress!")
 }
 
 fn struct_implementation(fields: &[Field]) -> TokenStream {
