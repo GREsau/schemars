@@ -79,7 +79,7 @@ impl SchemaGenerator {
         if self.names.contains(&base_name) {
             for i in 2.. {
                 let name = format!("{}{}", base_name, i);
-                if self.names.contains(&name) {
+                if !self.names.contains(&name) {
                     return name;
                 }
             }
