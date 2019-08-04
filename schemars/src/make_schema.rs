@@ -4,11 +4,11 @@ use serde_json::json;
 use std::collections::BTreeMap as Map;
 
 pub trait MakeSchema {
-    fn override_schema_name() -> String {
-        String::new()
+    fn override_schema_name() -> Option<String> {
+        None
     }
 
-    fn makes_ref_schema() -> bool {
+    fn generates_ref_schema() -> bool {
         false
     }
 

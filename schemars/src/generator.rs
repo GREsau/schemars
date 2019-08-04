@@ -18,6 +18,10 @@ impl SchemaGenerator {
     }
 
     pub fn subschema_for<T: MakeSchema + 'static>(&mut self) -> Schema {
+        if !T::generates_ref_schema() {
+            return T::make_schema(self);
+        }
+
         let type_id = TypeId::of::<T>();
         // TODO is there a nicer way to do this?
         if !self.definitions.contains_key(&type_id) {
@@ -52,13 +56,21 @@ impl SchemaGenerator {
         schema
     }
 
-    fn schema_name<T: MakeSchema>() -> String {
-        let override_name = T::override_schema_name();
-        if override_name.is_empty() {
-            type_name::<T>().to_owned()
-        } else {
-            override_name
+    pub fn into_root_schema_for<T: MakeSchema>(mut self) -> Schema {
+        let schema = T::make_schema(&mut self);
+        if let Schema::Object(mut o) = schema {
+            o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
+            o.title = Some(Self::schema_name::<T>());
+            for (_, (name, schema)) in self.definitions {
+                o.definitions.insert(name, schema);
+            }
+            return Schema::Object(o);
         }
+        schema
+    }
+
+    fn schema_name<T: MakeSchema>() -> String {
+        T::override_schema_name().unwrap_or_else(|| type_name::<T>().to_owned())
     }
 
     fn make_unique_name<T: MakeSchema>(&mut self) -> String {
