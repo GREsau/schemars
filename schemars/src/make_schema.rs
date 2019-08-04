@@ -26,7 +26,7 @@ pub trait MakeSchema {
         false
     }
 
-    fn make_schema(generator: &mut SchemaGenerator) -> Schema;
+    fn make_schema(gen: &mut SchemaGenerator) -> Schema;
 }
 
 // TODO structs, enums, tuples
@@ -76,12 +76,12 @@ simple_impl!(() => Null);
 
 impl MakeSchema for char {
     fn make_schema(_: &mut SchemaGenerator) -> Schema {
-        let mut extra_properties = Map::new();
-        extra_properties.insert("minLength".to_owned(), json!(1));
-        extra_properties.insert("maxLength".to_owned(), json!(1));
+        let mut extensions = Map::new();
+        extensions.insert("minLength".to_owned(), json!(1));
+        extensions.insert("maxLength".to_owned(), json!(1));
         SchemaObject {
             instance_type: Some(InstanceType::String.into()),
-            extra_properties,
+            extensions,
             ..Default::default()
         }
         .into()
@@ -93,11 +93,11 @@ impl MakeSchema for char {
 // Does not require T: MakeSchema.
 impl<T> MakeSchema for [T; 0] {
     fn make_schema(_: &mut SchemaGenerator) -> Schema {
-        let mut extra_properties = Map::new();
-        extra_properties.insert("maxItems".to_owned(), json!(0));
+        let mut extensions = Map::new();
+        extensions.insert("maxItems".to_owned(), json!(0));
         SchemaObject {
             instance_type: Some(InstanceType::Array.into()),
-            extra_properties,
+            extensions,
             ..Default::default()
         }
         .into()
@@ -110,13 +110,13 @@ macro_rules! array_impls {
             impl<T: MakeSchema> MakeSchema for [T; $len]
             {
                 fn make_schema(gen: &mut SchemaGenerator) -> Schema {
-                    let mut extra_properties = Map::new();
-                    extra_properties.insert("minItems".to_owned(), json!($len));
-                    extra_properties.insert("maxItems".to_owned(), json!($len));
+                    let mut extensions = Map::new();
+                    extensions.insert("minItems".to_owned(), json!($len));
+                    extensions.insert("maxItems".to_owned(), json!($len));
                     SchemaObject {
                         instance_type: Some(InstanceType::Array.into()),
                         items: Some(Box::from(gen.subschema_for::<T>())),
-                        extra_properties,
+                        extensions,
                         ..Default::default()
                     }.into()
                 }
@@ -170,14 +170,14 @@ macro_rules! map_impl {
         {
             fn make_schema(gen: &mut SchemaGenerator) -> Schema
             {
-                let mut extra_properties = Map::new();
-                extra_properties.insert(
+                let mut extensions = Map::new();
+                extensions.insert(
                     "additionalProperties".to_owned(),
                     json!(gen.subschema_for::<T>())
                 );
                 SchemaObject {
                     instance_type: Some(InstanceType::Object.into()),
-                    extra_properties,
+                    extensions,
                     ..Default::default()
                 }.into()
             }

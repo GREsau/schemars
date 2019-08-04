@@ -6,7 +6,6 @@ use make_schema::MakeSchema;
 use schema::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
-use std::collections::BTreeMap as Map;
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -34,10 +33,27 @@ struct User {
     username: String,
 }
 
+impl MakeSchema for User {
+    fn generates_ref_schema() -> bool {
+        true
+    }
+
+    fn make_schema(gen: &mut generator::SchemaGenerator) -> Schema {
+        let mut o = SchemaObject {
+            ..Default::default()
+        };
+        o.properties
+            .insert("id".to_owned(), gen.subschema_for::<u64>());
+        o.properties
+            .insert("username".to_owned(), gen.subschema_for::<String>());
+        o.into()
+    }
+}
+
 fn main() -> Result<()> {
     let gen = generator::SchemaGenerator::new();
-    let schema = gen.into_root_schema_for::<str>();
-    let json = serde_json::to_string(&schema)?;
+    let schema = gen.into_root_schema_for::<User>();
+    let json = serde_json::to_string_pretty(&schema)?;
     println!("{}", json);
 
     /*let todo = Todo {

@@ -66,7 +66,7 @@ pub struct SchemaObject {
     #[serde(skip_serializing_if = "Map::is_empty")]
     pub definitions: Map<String, Schema>,
     #[serde(flatten)]
-    pub extra_properties: Map<String, Value>,
+    pub extensions: Map<String, Value>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
