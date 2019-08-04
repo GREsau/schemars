@@ -1,8 +1,9 @@
 use crate::make_schema::MakeSchema;
 use crate::schema::*;
-use core::any::{type_name, TypeId};
-use std::collections::HashMap as Map;
-use std::collections::HashSet as Set;
+use core::any::TypeId;
+use std::collections::BTreeMap as Map;
+use std::collections::BTreeSet as Set;
+use std::iter::FromIterator;
 
 #[derive(Debug, Default)]
 pub struct SchemaGenerator {
@@ -43,14 +44,20 @@ impl SchemaGenerator {
         .into()
     }
 
+    pub fn definitions(&self) -> Map<String, Schema> {
+        Map::from_iter(self.definitions.values().cloned())
+    }
+
+    pub fn into_definitions(self) -> Map<String, Schema> {
+        Map::from_iter(self.definitions.into_iter().map(|(_, v)| v))
+    }
+
     pub fn root_schema_for<T: MakeSchema>(&mut self) -> Schema {
         let schema = T::make_schema(self);
         if let Schema::Object(mut o) = schema {
             o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
             o.title = Some(T::schema_name());
-            for (_, (name, schema)) in self.definitions.iter() {
-                o.definitions.insert(name.clone(), schema.clone());
-            }
+            o.definitions.extend(self.definitions());
             return Schema::Object(o);
         }
         schema
@@ -61,17 +68,23 @@ impl SchemaGenerator {
         if let Schema::Object(mut o) = schema {
             o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
             o.title = Some(T::schema_name());
-            for (_, (name, schema)) in self.definitions {
-                o.definitions.insert(name, schema);
-            }
+            o.definitions.extend(self.into_definitions());
             return Schema::Object(o);
         }
         schema
     }
 
     fn make_unique_name<T: MakeSchema>(&mut self) -> String {
-        T::schema_name()
+        let base_name = T::schema_name();
         // TODO remove namespace, remove special chars
-        // TODO enforce uniqueness
+        if self.names.contains(&base_name) {
+            for i in 2.. {
+                let name = format!("{}{}", base_name, i);
+                if self.names.contains(&name) {
+                    return name;
+                }
+            }
+        }
+        base_name
     }
 }
