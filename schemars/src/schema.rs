@@ -32,13 +32,13 @@ impl From<SchemaRef> for Schema {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, MakeSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, MakeSchema)]
 pub struct SchemaRef {
     #[serde(rename = "$ref")]
     pub reference: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, MakeSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, MakeSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SchemaObject {
     #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
@@ -73,7 +73,7 @@ pub struct SchemaObject {
     pub extensions: Map<String, Value>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, MakeSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, MakeSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum InstanceType {
     Null,
@@ -85,7 +85,7 @@ pub enum InstanceType {
     Integer,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, MakeSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, MakeSchema)]
 #[serde(untagged)]
 pub enum SingleOrVec<T> {
     Single(Box<T>),
