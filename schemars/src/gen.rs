@@ -23,25 +23,33 @@ impl SchemaGenerator {
         }
 
         let type_id = T::schema_type_id();
-        // TODO is there a nicer way to do this?
-        if !self.definitions.contains_key(&type_id) {
-            let name = self.make_unique_name::<T>();
-            self.names.insert(name.clone());
-            // insert into definitions BEFORE calling make_schema to avoid infinite recursion
-            let dummy = Schema::Bool(false);
-            self.definitions
-                .insert(type_id.clone(), (name.clone(), dummy));
+        let name = self
+            .definitions
+            .get(&type_id)
+            .map(|(n, _)| n.clone())
+            .unwrap_or_else(|| {
+                let name = self.make_unique_name::<T>();
+                self.names.insert(name.clone());
+                self.insert_new_subschema_for::<T>(type_id, name.clone());
+                name
+            });
+        let reference = format!("#/definitions/{}", name);
+        SchemaRef { reference }.into()
+    }
 
-            let schema = T::make_schema(self);
-            self.definitions
-                .entry(type_id.clone())
-                .and_modify(|(_, s)| *s = schema);
-        }
-        let ref name = self.definitions.get(&type_id).unwrap().0;
-        SchemaRef {
-            reference: format!("#/definitions/{}", name),
-        }
-        .into()
+    fn insert_new_subschema_for<T: ?Sized + MakeSchema>(
+        &mut self,
+        type_id: SchemaTypeId,
+        name: String,
+    ) {
+        let dummy = Schema::Bool(false);
+        // insert into definitions BEFORE calling make_schema to avoid infinite recursion
+        self.definitions.insert(type_id.clone(), (name, dummy));
+
+        let schema = T::make_schema(self);
+        self.definitions
+            .entry(type_id)
+            .and_modify(|(_, s)| *s = schema);
     }
 
     pub fn definitions(&self) -> Map<String, Schema> {
