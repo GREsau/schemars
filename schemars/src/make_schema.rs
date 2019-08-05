@@ -1,4 +1,4 @@
-use crate::generator::SchemaGenerator;
+use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use serde_json::json;
 use std::collections::BTreeMap as Map;
@@ -225,7 +225,7 @@ macro_rules! map_impl {
         impl $($desc)+
         where
             K: Into<String>,
-            T: MakeSchema,
+            V: MakeSchema,
         {
             no_ref_schema!();
 
@@ -246,8 +246,8 @@ macro_rules! map_impl {
     };
 }
 
-map_impl!(<K, T: Ord> MakeSchema for std::collections::BTreeMap<K, T>);
-map_impl!(<K, T: Eq + core::hash::Hash, H: core::hash::BuildHasher> MakeSchema for std::collections::HashMap<K, T, H>);
+map_impl!(<K: Ord, V> MakeSchema for std::collections::BTreeMap<K, V>);
+map_impl!(<K: Eq + core::hash::Hash, V, H: core::hash::BuildHasher> MakeSchema for std::collections::HashMap<K, V, H>);
 
 ////////// OPTION //////////
 

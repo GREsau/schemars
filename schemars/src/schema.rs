@@ -1,10 +1,12 @@
+use crate as schemars;
+use schemars::MakeSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
 
 // TODO use serde_json::Map (or some other wrapper) instead of BTreeMap to ensure preserve_order is possible
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, MakeSchema)]
 #[serde(untagged)]
 pub enum Schema {
     Bool(bool),
@@ -30,13 +32,13 @@ impl From<SchemaRef> for Schema {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, MakeSchema)]
 pub struct SchemaRef {
     #[serde(rename = "$ref")]
     pub reference: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, MakeSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct SchemaObject {
     #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
@@ -71,7 +73,7 @@ pub struct SchemaObject {
     pub extensions: Map<String, Value>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, MakeSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum InstanceType {
     Null,
@@ -83,7 +85,7 @@ pub enum InstanceType {
     Integer,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, MakeSchema)]
 #[serde(untagged)]
 pub enum SingleOrVec<T> {
     Single(Box<T>),

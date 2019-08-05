@@ -9,11 +9,13 @@ use proc_macro2::{Span, TokenStream};
 use serde_derive_internals::ast::{Container, Data, Field, Style, Variant};
 use serde_derive_internals::{Ctxt, Derive};
 use syn::spanned::Spanned;
-use syn::DeriveInput;
+use syn::{DeriveInput, GenericParam, Generics};
 
 #[proc_macro_derive(MakeSchema, attributes(schemars, serde))]
 pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let input = parse_macro_input!(input as DeriveInput);
+    let mut input = parse_macro_input!(input as DeriveInput);
+    // TODO is mutating the input really the best way to do this?
+    add_trait_bounds(&mut input.generics);
     let ctxt = Ctxt::new();
     let cont = Container::from_ast(&ctxt, &input, Derive::Deserialize);
     if let Err(e) = ctxt.check() {
@@ -31,13 +33,21 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
 
     let impl_block = quote! {
         #[automatically_derived]
-        impl #impl_generics schemars::make_schema::MakeSchema for #name #ty_generics #where_clause {
-            fn make_schema(gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        impl #impl_generics schemars::MakeSchema for #name #ty_generics #where_clause {
+            fn make_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::Schema {
                 #schema
             }
         };
     };
     proc_macro::TokenStream::from(impl_block)
+}
+
+fn add_trait_bounds(generics: &mut Generics) {
+    for param in &mut generics.params {
+        if let GenericParam::Type(ref mut type_param) = *param {
+            type_param.bounds.push(parse_quote!(schemars::MakeSchema));
+        }
+    }
 }
 
 fn wrap_schema_fields(schema_contents: TokenStream) -> TokenStream {
