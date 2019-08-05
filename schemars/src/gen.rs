@@ -4,16 +4,87 @@ use std::collections::BTreeMap as Map;
 use std::collections::BTreeSet as Set;
 use std::iter::FromIterator;
 
-#[derive(Debug, Default)]
+#[derive(Debug, PartialEq, Clone)]
+pub struct SchemaSettings {
+    pub option_nullable: bool,
+    pub option_any_of_null: bool,
+    pub bool_schemas: BoolSchemas,
+    pub definitions_path: String,
+}
+
+#[derive(Debug, PartialEq, Copy, Clone)]
+pub enum BoolSchemas {
+    Enable,
+    AdditionalPropertiesOnly,
+    Disable,
+}
+
+impl Default for SchemaSettings {
+    fn default() -> SchemaSettings {
+        SchemaSettings {
+            option_nullable: false,
+            option_any_of_null: true,
+            bool_schemas: BoolSchemas::Enable,
+            definitions_path: "#/definitions/".to_owned(),
+        }
+    }
+}
+
+impl SchemaSettings {
+    pub fn new() -> SchemaSettings {
+        SchemaSettings {
+            ..Default::default()
+        }
+    }
+    pub fn openapi3() -> SchemaSettings {
+        SchemaSettings {
+            option_nullable: true,
+            option_any_of_null: false,
+            bool_schemas: BoolSchemas::AdditionalPropertiesOnly,
+            definitions_path: "#/components/schemas/".to_owned(),
+        }
+    }
+
+    pub fn into_generator(self) -> SchemaGenerator {
+        SchemaGenerator::new(self)
+    }
+}
+
+#[derive(Debug, Default, Clone)]
 pub struct SchemaGenerator {
+    settings: SchemaSettings,
     names: Set<String>,
     definitions: Map<SchemaTypeId, (String, Schema)>,
 }
 
 impl SchemaGenerator {
-    pub fn new() -> SchemaGenerator {
+    pub fn new(settings: SchemaSettings) -> SchemaGenerator {
         SchemaGenerator {
+            settings,
             ..Default::default()
+        }
+    }
+
+    pub fn settings(&self) -> &SchemaSettings {
+        &self.settings
+    }
+
+    pub fn schema_for_any(&self) -> Schema {
+        if self.settings().bool_schemas == BoolSchemas::Enable {
+            true.into()
+        } else {
+            Schema::Object(Default::default())
+        }
+    }
+
+    pub fn schema_for_none(&self) -> Schema {
+        if self.settings().bool_schemas == BoolSchemas::Enable {
+            false.into()
+        } else {
+            Schema::Object(SchemaObject {
+                not: Some(Schema::Object(Default::default()).into()),
+                ..Default::default()
+            })
         }
     }
 
@@ -33,7 +104,7 @@ impl SchemaGenerator {
                 self.insert_new_subschema_for::<T>(type_id, name.clone());
                 name
             });
-        let reference = format!("#/definitions/{}", name);
+        let reference = format!("{}{}", self.settings().definitions_path, name);
         SchemaRef { reference }.into()
     }
 

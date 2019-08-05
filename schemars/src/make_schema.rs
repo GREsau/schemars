@@ -1,4 +1,4 @@
-use crate::gen::SchemaGenerator;
+use crate::gen::{BoolSchemas, SchemaGenerator};
 use crate::schema::*;
 use serde_json::json;
 use std::collections::BTreeMap as Map;
@@ -233,10 +233,17 @@ macro_rules! map_impl {
 
             fn make_schema(gen: &mut SchemaGenerator) -> Schema
             {
+                let subschema = gen.subschema_for::<V>();
+                let make_schema_bool = gen.settings().bool_schemas == BoolSchemas::AdditionalPropertiesOnly
+                    && subschema == gen.schema_for_any();
                 let mut extensions = Map::new();
                 extensions.insert(
                     "additionalProperties".to_owned(),
-                    json!(gen.subschema_for::<V>())
+                    if make_schema_bool {
+                        json!(true)
+                    } else {
+                        json!(subschema)
+                    }
                 );
                 SchemaObject {
                     instance_type: Some(InstanceType::Object.into()),
@@ -257,15 +264,31 @@ impl<T: MakeSchema> MakeSchema for Option<T> {
     no_ref_schema!();
 
     fn make_schema(gen: &mut SchemaGenerator) -> Schema {
-        match gen.subschema_for::<T>() {
+        let settings = gen.settings();
+        let make_any_of = settings.option_any_of_null;
+        let set_nullable = settings.option_nullable;
+        let mut schema = match gen.subschema_for::<T>() {
             Schema::Bool(true) => true.into(),
             Schema::Bool(false) => <()>::make_schema(gen),
-            schema => SchemaObject {
-                any_of: Some(vec![schema, <()>::make_schema(gen)]),
-                ..Default::default()
+            schema => {
+                if make_any_of {
+                    SchemaObject {
+                        any_of: Some(vec![schema, <()>::make_schema(gen)]),
+                        ..Default::default()
+                    }
+                    .into()
+                } else {
+                    schema
+                }
             }
-            .into(),
-        }
+        };
+        if set_nullable {
+            // FIXME still need to handle ref schemas here
+            if let Schema::Object(ref mut o) = schema {
+                o.extensions.insert("nullable".to_owned(), true.into());
+            }
+        };
+        schema
     }
 }
 
@@ -298,7 +321,7 @@ deref_impl!(<'a, T: ToOwned> MakeSchema for std::borrow::Cow<'a, T>);
 impl MakeSchema for serde_json::Value {
     no_ref_schema!();
 
-    fn make_schema(_: &mut SchemaGenerator) -> Schema {
-        true.into()
+    fn make_schema(gen: &mut SchemaGenerator) -> Schema {
+        gen.schema_for_any()
     }
 }
