@@ -13,6 +13,26 @@
     }
   ],
   "definitions": {
+    "core__option__Option_schemars__schema__SingleOrVec_schemars__schema__InstanceType__": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/schemars__schema__SingleOrVec_schemars__schema__InstanceType_"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "core__option__Option_schemars__schema__SingleOrVec_schemars__schema__Schema__": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/schemars__schema__SingleOrVec_schemars__schema__Schema_"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
     "schemars__schema__InstanceType": {
       "enum": [
         "null",
@@ -117,14 +137,7 @@
           "additionalProperties": true
         },
         "items": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/schemars__schema__SingleOrVec_schemars__schema__Schema_"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/definitions/core__option__Option_schemars__schema__SingleOrVec_schemars__schema__Schema__"
         },
         "not": {
           "anyOf": [
@@ -179,14 +192,7 @@
           ]
         },
         "type": {
-          "anyOf": [
-            {
-              "$ref": "#/definitions/schemars__schema__SingleOrVec_schemars__schema__InstanceType_"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/definitions/core__option__Option_schemars__schema__SingleOrVec_schemars__schema__InstanceType__"
         }
       }
     },

@@ -20,7 +20,7 @@ pub trait MakeSchema {
         core::any::type_name::<Self>().replace(|c: char| !c.is_ascii_alphanumeric(), "_")
     }
 
-    fn generates_ref_schema() -> bool {
+    fn is_referenceable() -> bool {
         true
     }
 
@@ -29,7 +29,7 @@ pub trait MakeSchema {
 
 macro_rules! no_ref_schema {
     () => {
-        fn generates_ref_schema() -> bool {
+        fn is_referenceable() -> bool {
             false
         }
     };
@@ -261,13 +261,15 @@ map_impl!(<K: Eq + core::hash::Hash, V, H: core::hash::BuildHasher> MakeSchema f
 ////////// OPTION //////////
 
 impl<T: MakeSchema> MakeSchema for Option<T> {
-    no_ref_schema!();
+    fn is_referenceable() -> bool {
+        T::is_referenceable()
+    }
 
     fn make_schema(gen: &mut SchemaGenerator) -> Schema {
         let settings = gen.settings();
         let make_any_of = settings.option_any_of_null;
         let set_nullable = settings.option_nullable;
-        let mut schema = match gen.subschema_for::<T>() {
+        let schema = match gen.subschema_for::<T>() {
             Schema::Bool(true) => true.into(),
             Schema::Bool(false) => <()>::make_schema(gen),
             schema => {
@@ -283,9 +285,11 @@ impl<T: MakeSchema> MakeSchema for Option<T> {
             }
         };
         if set_nullable {
-            // FIXME still need to handle ref schemas here
-            if let Schema::Object(ref mut o) = schema {
-                o.extensions.insert("nullable".to_owned(), true.into());
+            let deref = gen.try_get_schema_object(&schema);
+            debug_assert!(deref.is_some(), "Could not get schema object: {:?}", schema);
+            if let Some(mut schema) = deref {
+                schema.extensions.insert("nullable".to_owned(), json!(true));
+                return Schema::Object(schema);
             }
         };
         schema
