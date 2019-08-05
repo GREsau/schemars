@@ -1,5 +1,5 @@
 use crate as schemars;
-use schemars::MakeSchema;
+use crate::MakeSchema;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
@@ -39,7 +39,7 @@ pub struct SchemaRef {
 }
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone, PartialEq, MakeSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", default)]
 pub struct SchemaObject {
     #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
     pub schema: Option<String>,

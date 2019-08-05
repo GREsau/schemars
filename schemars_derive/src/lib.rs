@@ -34,7 +34,7 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let impl_block = quote! {
         #[automatically_derived]
         impl #impl_generics schemars::MakeSchema for #name #ty_generics #where_clause {
-            fn make_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::Schema {
+            fn make_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
                 #schema
             }
         };
@@ -52,7 +52,7 @@ fn add_trait_bounds(generics: &mut Generics) {
 
 fn wrap_schema_fields(schema_contents: TokenStream) -> TokenStream {
     quote! {
-        schemars::SchemaObject {
+        schemars::schema::SchemaObject {
             #schema_contents
             ..Default::default()
         }

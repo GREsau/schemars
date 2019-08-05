@@ -1,0 +1,267 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "schemars__schema__Schema",
+  "anyOf": [
+    {
+      "properties": {
+        "Bool": {
+          "type": "boolean"
+        }
+      }
+    },
+    {
+      "properties": {
+        "Ref": {
+          "$ref": "#/definitions/schemars__schema__SchemaRef"
+        }
+      }
+    },
+    {
+      "properties": {
+        "Object": {
+          "$ref": "#/definitions/schemars__schema__SchemaObject"
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "schemars__schema__InstanceType": {
+      "enum": [
+        "null",
+        "boolean",
+        "object",
+        "array",
+        "number",
+        "string",
+        "integer"
+      ]
+    },
+    "schemars__schema__Schema": {
+      "anyOf": [
+        {
+          "properties": {
+            "Bool": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "properties": {
+            "Ref": {
+              "$ref": "#/definitions/schemars__schema__SchemaRef"
+            }
+          }
+        },
+        {
+          "properties": {
+            "Object": {
+              "$ref": "#/definitions/schemars__schema__SchemaObject"
+            }
+          }
+        }
+      ]
+    },
+    "schemars__schema__SchemaObject": {
+      "properties": {
+        "$id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "$schema": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "allOf": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/schemars__schema__Schema"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "anyOf": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/schemars__schema__Schema"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "definitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/schemars__schema__Schema"
+          }
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "enum": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": true
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "extensions": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/schemars__schema__SingleOrVec_schemars__schema__Schema_"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "not": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/schemars__schema__Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "oneOf": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/schemars__schema__Schema"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/schemars__schema__Schema"
+          }
+        },
+        "required": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "type": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/schemars__schema__SingleOrVec_schemars__schema__InstanceType_"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "schemars__schema__SchemaRef": {
+      "properties": {
+        "$ref": {
+          "type": "string"
+        }
+      }
+    },
+    "schemars__schema__SingleOrVec_schemars__schema__InstanceType_": {
+      "anyOf": [
+        {
+          "properties": {
+            "Single": {
+              "$ref": "#/definitions/schemars__schema__InstanceType"
+            }
+          }
+        },
+        {
+          "properties": {
+            "Vec": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/schemars__schema__InstanceType"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "schemars__schema__SingleOrVec_schemars__schema__Schema_": {
+      "anyOf": [
+        {
+          "properties": {
+            "Single": {
+              "$ref": "#/definitions/schemars__schema__Schema"
+            }
+          }
+        },
+        {
+          "properties": {
+            "Vec": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/schemars__schema__Schema"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
