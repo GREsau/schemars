@@ -234,7 +234,7 @@ macro_rules! map_impl {
                 let mut extensions = Map::new();
                 extensions.insert(
                     "additionalProperties".to_owned(),
-                    json!(gen.subschema_for::<T>())
+                    json!(gen.subschema_for::<V>())
                 );
                 SchemaObject {
                     instance_type: Some(InstanceType::Object.into()),
