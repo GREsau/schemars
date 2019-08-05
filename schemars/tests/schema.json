@@ -3,25 +3,13 @@
   "title": "schemars__schema__Schema",
   "anyOf": [
     {
-      "properties": {
-        "Bool": {
-          "type": "boolean"
-        }
-      }
+      "type": "boolean"
     },
     {
-      "properties": {
-        "Ref": {
-          "$ref": "#/definitions/schemars__schema__SchemaRef"
-        }
-      }
+      "$ref": "#/definitions/schemars__schema__SchemaRef"
     },
     {
-      "properties": {
-        "Object": {
-          "$ref": "#/definitions/schemars__schema__SchemaObject"
-        }
-      }
+      "$ref": "#/definitions/schemars__schema__SchemaObject"
     }
   ],
   "definitions": {
@@ -39,25 +27,13 @@
     "schemars__schema__Schema": {
       "anyOf": [
         {
-          "properties": {
-            "Bool": {
-              "type": "boolean"
-            }
-          }
+          "type": "boolean"
         },
         {
-          "properties": {
-            "Ref": {
-              "$ref": "#/definitions/schemars__schema__SchemaRef"
-            }
-          }
+          "$ref": "#/definitions/schemars__schema__SchemaRef"
         },
         {
-          "properties": {
-            "Object": {
-              "$ref": "#/definitions/schemars__schema__SchemaObject"
-            }
-          }
+          "$ref": "#/definitions/schemars__schema__SchemaObject"
         }
       ]
     },
@@ -224,20 +200,12 @@
     "schemars__schema__SingleOrVec_schemars__schema__InstanceType_": {
       "anyOf": [
         {
-          "properties": {
-            "Single": {
-              "$ref": "#/definitions/schemars__schema__InstanceType"
-            }
-          }
+          "$ref": "#/definitions/schemars__schema__InstanceType"
         },
         {
-          "properties": {
-            "Vec": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/schemars__schema__InstanceType"
-              }
-            }
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/schemars__schema__InstanceType"
           }
         }
       ]
@@ -245,20 +213,12 @@
     "schemars__schema__SingleOrVec_schemars__schema__Schema_": {
       "anyOf": [
         {
-          "properties": {
-            "Single": {
-              "$ref": "#/definitions/schemars__schema__Schema"
-            }
-          }
+          "$ref": "#/definitions/schemars__schema__Schema"
         },
         {
-          "properties": {
-            "Vec": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/schemars__schema__Schema"
-              }
-            }
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/schemars__schema__Schema"
           }
         }
       ]

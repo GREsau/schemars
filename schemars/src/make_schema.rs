@@ -35,7 +35,9 @@ macro_rules! no_ref_schema {
     };
 }
 
-// TODO any other serde types other than serde_json value?
+// TODO any other serde/json types other than serde_json value?
+// TODO serde yaml value/map under feature flag
+// TODO add some inline attributes
 // https://github.com/serde-rs/serde/blob/ce75418e40a593fc5c0902cbf4a45305a4178dd7/serde/src/ser/impls.rs
 // Cell<T>, RefCell<T>, Mutex<T>, RwLock<T>, Result<R,E>?, Duration, SystemTime,
 // IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV6, SocketAddrV6,

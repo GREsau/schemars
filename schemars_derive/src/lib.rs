@@ -7,6 +7,7 @@ extern crate proc_macro;
 
 use proc_macro2::{Span, TokenStream};
 use serde_derive_internals::ast::{Container, Data, Field, Style, Variant};
+use serde_derive_internals::attr::{self, EnumTag};
 use serde_derive_internals::{Ctxt, Derive};
 use syn::spanned::Spanned;
 use syn::{DeriveInput, GenericParam, Generics};
@@ -27,7 +28,7 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
 
     let schema = match cont.data {
         Data::Struct(Style::Struct, ref fields) => schema_for_struct(fields),
-        Data::Enum(ref variants) => schema_for_enum(variants),
+        Data::Enum(ref variants) => schema_for_enum(variants, &cont.attrs),
         _ => unimplemented!("work in progress!"),
     };
 
@@ -73,8 +74,15 @@ fn is_unit_variant(v: &&Variant) -> bool {
     }
 }
 
-fn schema_for_enum(variants: &[Variant]) -> TokenStream {
-    // TODO handle untagged or adjacently tagged enums
+fn schema_for_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStream {
+    match cattrs.tag() {
+        EnumTag::External => schema_for_external_tagged_enum(variants),
+        EnumTag::None => schema_for_untagged_enum(variants),
+        _ => unimplemented!("Adjacent/internal tagged enums not yet supported."),
+    }
+}
+
+fn schema_for_external_tagged_enum(variants: &[Variant]) -> TokenStream {
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
         variants.into_iter().partition(is_unit_variant);
     let unit_count = unit_variants.len();
@@ -97,24 +105,7 @@ fn schema_for_enum(variants: &[Variant]) -> TokenStream {
 
     schemas.extend(complex_variants.into_iter().map(|variant| {
         let name = variant.attrs.name().deserialize_name();
-        let sub_schema = match variant.style {
-            Style::Newtype => {
-                let f = &variant.fields[0];
-                let ty = f.ty;
-                quote_spanned! {f.original.span()=>
-                    gen.subschema_for::<#ty>()
-                }
-            }
-            Style::Tuple => {
-                let types = variant.fields.iter().map(|f| f.ty);
-                quote! {
-                    gen.subschema_for::<(#(#types),*)>()
-                }
-            }
-            Style::Struct => schema_for_struct(&variant.fields),
-            Style::Unit => unreachable!("Unit variants already filtered out"),
-        };
-
+        let sub_schema = schema_for_untagged_enum_variant(variant);
         wrap_schema_fields(quote! {
             properties: {
                 let mut props = std::collections::BTreeMap::new();
@@ -127,6 +118,36 @@ fn schema_for_enum(variants: &[Variant]) -> TokenStream {
     wrap_schema_fields(quote! {
         any_of: Some(vec![#(#schemas),*]),
     })
+}
+
+fn schema_for_untagged_enum(variants: &[Variant]) -> TokenStream {
+    let schemas = variants.into_iter().map(schema_for_untagged_enum_variant);
+
+    wrap_schema_fields(quote! {
+        any_of: Some(vec![#(#schemas),*]),
+    })
+}
+
+fn schema_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
+    match variant.style {
+        Style::Unit => quote! {
+            gen.subschema_for::<()>()
+        },
+        Style::Newtype => {
+            let f = &variant.fields[0];
+            let ty = f.ty;
+            quote_spanned! {f.original.span()=>
+                gen.subschema_for::<#ty>()
+            }
+        }
+        Style::Tuple => {
+            let types = variant.fields.iter().map(|f| f.ty);
+            quote! {
+                gen.subschema_for::<(#(#types),*)>()
+            }
+        }
+        Style::Struct => schema_for_struct(&variant.fields),
+    }
 }
 
 fn schema_for_struct(fields: &[Field]) -> TokenStream {
