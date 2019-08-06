@@ -262,6 +262,8 @@ map_impl!(<K: Eq + core::hash::Hash, V, H: core::hash::BuildHasher> MakeSchema f
 
 impl<T: MakeSchema> MakeSchema for Option<T> {
     fn is_referenceable() -> bool {
+        // TODO only really needs to be referenceable with option_nullable enabled.
+        // TODO what if T is Box<U> and U is referenceable?
         T::is_referenceable()
     }
 
@@ -279,10 +281,11 @@ impl<T: MakeSchema> MakeSchema for Option<T> {
             }
         }
         if gen.settings().option_nullable {
-            let mut deref = gen.try_get_schema_object(&schema);
+            let deref = gen.try_get_schema_object(&schema);
             debug_assert!(deref.is_some(), "Could not get schema object: {:?}", schema);
-            if let Some(ref mut schema) = deref {
-                schema.extensions.insert("nullable".to_owned(), json!(true));
+            if let Some(mut deref) = deref {
+                deref.extensions.insert("nullable".to_owned(), json!(true));
+                schema = Schema::Object(deref);
             }
         };
         schema
