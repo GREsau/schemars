@@ -1,9 +1,7 @@
-use crate::make_schema::{MakeSchema, SchemaTypeId};
+use crate::make_schema::MakeSchema;
 use crate::schema::*;
 use crate::{MakeSchemaError, Result};
 use std::collections::BTreeMap as Map;
-use std::collections::BTreeSet as Set;
-use std::iter::FromIterator;
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct SchemaSettings {
@@ -54,8 +52,7 @@ impl SchemaSettings {
 #[derive(Debug, Default, Clone)]
 pub struct SchemaGenerator {
     settings: SchemaSettings,
-    names: Set<String>,
-    definitions: Map<SchemaTypeId, (String, Schema)>,
+    definitions: Map<String, Schema>,
 }
 
 impl SchemaGenerator {
@@ -94,52 +91,37 @@ impl SchemaGenerator {
             return T::make_schema(self);
         }
 
-        let type_id = T::schema_type_id();
-        let name = self
-            .definitions
-            .get(&type_id)
-            .map(|(n, _)| Ok(n.clone()))
-            .unwrap_or_else(|| {
-                let name = self.make_unique_name::<T>();
-                self.insert_new_subschema_for::<T>(type_id, name.clone())?;
-                Ok(name)
-            })?;
+        let name = T::schema_name();
+        if !self.definitions.contains_key(&name) {
+            self.insert_new_subschema_for::<T>(name.clone())?;
+        }
         let reference = format!("{}{}", self.settings().definitions_path, name);
         Ok(SchemaRef { reference }.into())
     }
 
-    fn insert_new_subschema_for<T: ?Sized + MakeSchema>(
-        &mut self,
-        type_id: SchemaTypeId,
-        name: String,
-    ) -> Result<String> {
-        self.names.insert(name.clone());
+    fn insert_new_subschema_for<T: ?Sized + MakeSchema>(&mut self, name: String) -> Result<()> {
         let dummy = Schema::Bool(false);
         // insert into definitions BEFORE calling make_schema to avoid infinite recursion
-        self.definitions
-            .insert(type_id.clone(), (name.clone(), dummy));
+        self.definitions.insert(name.clone(), dummy);
 
         match T::make_schema(self) {
             Ok(schema) => {
-                self.definitions
-                    .entry(type_id)
-                    .and_modify(|(_, s)| *s = schema);
-                Ok(name)
+                self.definitions.insert(name.clone(), schema);
+                Ok(())
             }
             Err(e) => {
-                self.names.remove(&name);
-                self.definitions.remove(&type_id);
+                self.definitions.remove(&name);
                 Err(e)
             }
         }
     }
 
-    pub fn definitions(&self) -> Map<String, Schema> {
-        Map::from_iter(self.definitions.values().cloned())
+    pub fn definitions(&self) -> &Map<String, Schema> {
+        &self.definitions
     }
 
     pub fn into_definitions(self) -> Map<String, Schema> {
-        Map::from_iter(self.definitions.into_iter().map(|(_, v)| v))
+        self.definitions
     }
 
     pub fn root_schema_for<T: ?Sized + MakeSchema>(&mut self) -> Result {
@@ -148,7 +130,7 @@ impl SchemaGenerator {
             Schema::Object(mut o) => {
                 o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
                 o.title = Some(T::schema_name());
-                o.definitions.extend(self.definitions());
+                o.definitions.extend(self.definitions().clone());
                 Schema::Object(o)
             }
             schema => schema,
@@ -187,34 +169,25 @@ impl SchemaGenerator {
                             Schema::Ref(r.clone()),
                         )
                     })?;
-                    // FIXME this is pretty inefficient
-                    schema = self
-                        .definitions
-                        .values()
-                        .filter(|(n, _)| n == name)
-                        .map(|(_, s)| s)
-                        .next()
-                        .ok_or_else(|| {
-                            MakeSchemaError::new(
-                                "Could not find referenced schema.",
-                                Schema::Ref(r.clone()),
-                            )
-                        })?;
-                }
-            }
-        }
-    }
 
-    fn make_unique_name<T: ?Sized + MakeSchema>(&mut self) -> String {
-        let base_name = T::schema_name();
-        if self.names.contains(&base_name) {
-            for i in 2.. {
-                let name = format!("{}{}", base_name, i);
-                if !self.names.contains(&name) {
-                    return name;
+                    schema = self.definitions.get(name).ok_or_else(|| {
+                        MakeSchemaError::new(
+                            "Could not find referenced schema.",
+                            Schema::Ref(r.clone()),
+                        )
+                    })?;
+
+                    match schema {
+                        Schema::Ref(r2) if r2 == r => {
+                            return Err(MakeSchemaError::new(
+                                "Schema is referencing itself.",
+                                schema.clone(),
+                            ));
+                        }
+                        _ => {}
+                    }
                 }
             }
         }
-        base_name
     }
 }

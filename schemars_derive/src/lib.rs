@@ -23,18 +23,29 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         return compile_error(input.span(), e).into();
     }
 
-    let name = cont.ident;
-    let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
-
     let schema = match cont.data {
         Data::Struct(Style::Struct, ref fields) => schema_for_struct(fields),
         Data::Enum(ref variants) => schema_for_enum(variants, &cont.attrs),
         _ => unimplemented!("work in progress!"),
     };
 
+    let name = cont.ident;
+    let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
+    let type_param_fmt = match type_params.len() {
+        0 => "{}".to_owned(),
+        1 => "{}_For_{}".to_owned(),
+        n => format!("{{}}_For_{{}}_And{}", "_{}".repeat(n - 1)),
+    };
+
+    let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
+
     let impl_block = quote! {
         #[automatically_derived]
         impl #impl_generics schemars::MakeSchema for #name #ty_generics #where_clause {
+            fn schema_name() -> String {
+                format!(#type_param_fmt, stringify!(#name) #(,#type_params::schema_name())*)
+            }
+
             fn make_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::Result {
                 #schema
             }

@@ -1,39 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "schemars__schema__Schema",
+  "title": "Schema",
   "anyOf": [
     {
       "type": "boolean"
     },
     {
-      "$ref": "#/definitions/schemars__schema__SchemaRef"
+      "$ref": "#/definitions/SchemaRef"
     },
     {
-      "$ref": "#/definitions/schemars__schema__SchemaObject"
+      "$ref": "#/definitions/SchemaObject"
     }
   ],
   "definitions": {
-    "core__option__Option_schemars__schema__SingleOrVec_schemars__schema__InstanceType__": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/schemars__schema__SingleOrVec_schemars__schema__InstanceType_"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "core__option__Option_schemars__schema__SingleOrVec_schemars__schema__Schema__": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/schemars__schema__SingleOrVec_schemars__schema__Schema_"
-        },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "schemars__schema__InstanceType": {
+    "InstanceType": {
       "enum": [
         "null",
         "boolean",
@@ -44,20 +24,20 @@
         "integer"
       ]
     },
-    "schemars__schema__Schema": {
+    "Schema": {
       "anyOf": [
         {
           "type": "boolean"
         },
         {
-          "$ref": "#/definitions/schemars__schema__SchemaRef"
+          "$ref": "#/definitions/SchemaRef"
         },
         {
-          "$ref": "#/definitions/schemars__schema__SchemaObject"
+          "$ref": "#/definitions/SchemaObject"
         }
       ]
     },
-    "schemars__schema__SchemaObject": {
+    "SchemaObject": {
       "properties": {
         "$id": {
           "anyOf": [
@@ -84,7 +64,7 @@
             {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/schemars__schema__Schema"
+                "$ref": "#/definitions/Schema"
               }
             },
             {
@@ -97,7 +77,7 @@
             {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/schemars__schema__Schema"
+                "$ref": "#/definitions/Schema"
               }
             },
             {
@@ -108,7 +88,7 @@
         "definitions": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/schemars__schema__Schema"
+            "$ref": "#/definitions/Schema"
           }
         },
         "description": {
@@ -137,12 +117,19 @@
           "additionalProperties": true
         },
         "items": {
-          "$ref": "#/definitions/core__option__Option_schemars__schema__SingleOrVec_schemars__schema__Schema__"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SingleOrVec_For_Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "not": {
           "anyOf": [
             {
-              "$ref": "#/definitions/schemars__schema__Schema"
+              "$ref": "#/definitions/Schema"
             },
             {
               "type": "null"
@@ -154,7 +141,7 @@
             {
               "type": "array",
               "items": {
-                "$ref": "#/definitions/schemars__schema__Schema"
+                "$ref": "#/definitions/Schema"
               }
             },
             {
@@ -165,7 +152,7 @@
         "properties": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/schemars__schema__Schema"
+            "$ref": "#/definitions/Schema"
           }
         },
         "required": {
@@ -192,39 +179,46 @@
           ]
         },
         "type": {
-          "$ref": "#/definitions/core__option__Option_schemars__schema__SingleOrVec_schemars__schema__InstanceType__"
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SingleOrVec_For_InstanceType"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       }
     },
-    "schemars__schema__SchemaRef": {
+    "SchemaRef": {
       "properties": {
         "$ref": {
           "type": "string"
         }
       }
     },
-    "schemars__schema__SingleOrVec_schemars__schema__InstanceType_": {
+    "SingleOrVec_For_InstanceType": {
       "anyOf": [
         {
-          "$ref": "#/definitions/schemars__schema__InstanceType"
+          "$ref": "#/definitions/InstanceType"
         },
         {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/schemars__schema__InstanceType"
+            "$ref": "#/definitions/InstanceType"
           }
         }
       ]
     },
-    "schemars__schema__SingleOrVec_schemars__schema__Schema_": {
+    "SingleOrVec_For_Schema": {
       "anyOf": [
         {
-          "$ref": "#/definitions/schemars__schema__Schema"
+          "$ref": "#/definitions/Schema"
         },
         {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/schemars__schema__Schema"
+            "$ref": "#/definitions/Schema"
           }
         }
       ]

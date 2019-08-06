@@ -4,36 +4,14 @@ use crate::Result;
 use serde_json::json;
 use std::collections::BTreeMap as Map;
 
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Debug, Hash)]
-pub struct SchemaTypeId(&'static str);
-
 pub trait MakeSchema {
-    fn schema_type_id() -> SchemaTypeId {
-        // FIXME schema name might not be unique!
-        SchemaTypeId(core::any::type_name::<Self>())
-    }
-
-    fn schema_name() -> String {
-        // TODO this requires nightly
-        // It's probably worth removing the default implemenation,
-        //  then make every impl in this file set an explicit name
-        // Or maybe hide it under feature flag?
-        core::any::type_name::<Self>().replace(|c: char| !c.is_ascii_alphanumeric(), "_")
-    }
-
     fn is_referenceable() -> bool {
         true
     }
 
-    fn make_schema(gen: &mut SchemaGenerator) -> Result;
-}
+    fn schema_name() -> String;
 
-macro_rules! no_ref_schema {
-    () => {
-        fn is_referenceable() -> bool {
-            false
-        }
-    };
+    fn make_schema(gen: &mut SchemaGenerator) -> Result;
 }
 
 // TODO any other serde/json types other than serde_json value?
@@ -46,12 +24,24 @@ macro_rules! no_ref_schema {
 // NonZeroU8 etc., ArcWeak, RcWeak, BTreeMap, HashMap, (!)?, Bound?, Range?, RangeInclusive?,
 // PhantomData?, CString?, CStr?, fmt::Arguments?
 
+macro_rules! no_ref_schema {
+    () => {
+        fn is_referenceable() -> bool {
+            false
+        }
+    };
+}
+
 ////////// PRIMITIVES //////////
 
 macro_rules! simple_impl {
-    ($type:tt => $instance_type:tt) => {
+    ($type:tt => $instance_type:ident) => {
         impl MakeSchema for $type {
             no_ref_schema!();
+
+            fn schema_name() -> String {
+                stringify!($instance_type).to_owned()
+            }
 
             fn make_schema(_: &mut SchemaGenerator) -> Result {
                 Ok(SchemaObject {
@@ -86,6 +76,10 @@ simple_impl!(() => Null);
 impl MakeSchema for char {
     no_ref_schema!();
 
+    fn schema_name() -> String {
+        "Character".to_owned()
+    }
+
     fn make_schema(_: &mut SchemaGenerator) -> Result {
         let mut extensions = Map::new();
         extensions.insert("minLength".to_owned(), json!(1));
@@ -105,6 +99,10 @@ impl MakeSchema for char {
 impl<T> MakeSchema for [T; 0] {
     no_ref_schema!();
 
+    fn schema_name() -> String {
+        "Empty_Array".to_owned()
+    }
+
     fn make_schema(_: &mut SchemaGenerator) -> Result {
         let mut extensions = Map::new();
         extensions.insert("maxItems".to_owned(), json!(0));
@@ -122,6 +120,10 @@ macro_rules! array_impls {
         $(
             impl<T: MakeSchema> MakeSchema for [T; $len] {
                 no_ref_schema!();
+
+                fn schema_name() -> String {
+                    format!("Array_Size_{}_Of_{}", $len, T::schema_name())
+                }
 
                 fn make_schema(gen: &mut SchemaGenerator) -> Result {
                     let mut extensions = Map::new();
@@ -153,6 +155,10 @@ macro_rules! tuple_impls {
         $(
             impl<$($name: MakeSchema),+> MakeSchema for ($($name,)+) {
                 no_ref_schema!();
+
+                fn schema_name() -> String {
+                    ["Tuple_Of".to_owned()$(, $name::schema_name())+].join("_And_")
+                }
 
                 fn make_schema(gen: &mut SchemaGenerator) -> Result {
                     let mut extensions = Map::new();
@@ -202,6 +208,10 @@ macro_rules! seq_impl {
         {
             no_ref_schema!();
 
+            fn schema_name() -> String {
+                format!("Array_Of_{}", T::schema_name())
+            }
+
             fn make_schema(gen: &mut SchemaGenerator) -> Result {
                 Ok(SchemaObject {
                     instance_type: Some(InstanceType::Array.into()),
@@ -230,6 +240,10 @@ macro_rules! map_impl {
             V: MakeSchema,
         {
             no_ref_schema!();
+
+            fn schema_name() -> String {
+                format!("Map_Of_{}", V::schema_name())
+            }
 
             fn make_schema(gen: &mut SchemaGenerator) -> Result {
                 let subschema = gen.subschema_for::<V>()?;
@@ -260,13 +274,15 @@ map_impl!(<K: Eq + core::hash::Hash, V, H: core::hash::BuildHasher> MakeSchema f
 ////////// OPTION //////////
 
 impl<T: MakeSchema> MakeSchema for Option<T> {
-    fn is_referenceable() -> bool {
-        // TODO only really needs to be referenceable with option_nullable enabled.
-        // TODO what if T is Box<U> and U is referenceable?
-        T::is_referenceable()
+    no_ref_schema!();
+
+    fn schema_name() -> String {
+        format!("Nullable_{}", T::schema_name())
     }
 
     fn make_schema(gen: &mut SchemaGenerator) -> Result {
+        // FIXME this may produce a subschema that is not referenced in the final schema,
+        // e.g. SingleOrVec_For_InstanceType in schema-openapi3.json
         let mut schema = gen.subschema_for::<T>()?;
         if gen.settings().option_add_null_type {
             schema = match schema {
@@ -296,10 +312,16 @@ macro_rules! deref_impl {
         where
             T: MakeSchema,
         {
-            no_ref_schema!();
+            fn is_referenceable() -> bool {
+                T::is_referenceable()
+            }
+
+            fn schema_name() -> String {
+                T::schema_name()
+            }
 
             fn make_schema(gen: &mut SchemaGenerator) -> Result {
-                gen.subschema_for::<T>()
+                T::make_schema(gen)
             }
         }
     };
@@ -316,6 +338,10 @@ deref_impl!(<'a, T: ToOwned> MakeSchema for std::borrow::Cow<'a, T>);
 
 impl MakeSchema for serde_json::Value {
     no_ref_schema!();
+
+    fn schema_name() -> String {
+        "Any_Value".to_owned()
+    }
 
     fn make_schema(gen: &mut SchemaGenerator) -> Result {
         Ok(gen.schema_for_any())

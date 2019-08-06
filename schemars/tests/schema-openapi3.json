@@ -1,47 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "schemars__schema__Schema",
+  "title": "Schema",
   "anyOf": [
     {
       "type": "boolean"
     },
     {
-      "$ref": "#/components/schemas/schemars__schema__SchemaRef"
+      "$ref": "#/components/schemas/SchemaRef"
     },
     {
-      "$ref": "#/components/schemas/schemars__schema__SchemaObject"
+      "$ref": "#/components/schemas/SchemaObject"
     }
   ],
   "definitions": {
-    "core__option__Option_schemars__schema__SingleOrVec_schemars__schema__InstanceType__": {
-      "anyOf": [
-        {
-          "$ref": "#/components/schemas/schemars__schema__InstanceType"
-        },
-        {
-          "type": "array",
-          "items": {
-            "$ref": "#/components/schemas/schemars__schema__InstanceType"
-          }
-        }
-      ],
-      "nullable": true
-    },
-    "core__option__Option_schemars__schema__SingleOrVec_schemars__schema__Schema__": {
-      "anyOf": [
-        {
-          "$ref": "#/components/schemas/schemars__schema__Schema"
-        },
-        {
-          "type": "array",
-          "items": {
-            "$ref": "#/components/schemas/schemars__schema__Schema"
-          }
-        }
-      ],
-      "nullable": true
-    },
-    "schemars__schema__InstanceType": {
+    "InstanceType": {
       "enum": [
         "null",
         "boolean",
@@ -52,20 +24,20 @@
         "integer"
       ]
     },
-    "schemars__schema__Schema": {
+    "Schema": {
       "anyOf": [
         {
           "type": "boolean"
         },
         {
-          "$ref": "#/components/schemas/schemars__schema__SchemaRef"
+          "$ref": "#/components/schemas/SchemaRef"
         },
         {
-          "$ref": "#/components/schemas/schemars__schema__SchemaObject"
+          "$ref": "#/components/schemas/SchemaObject"
         }
       ]
     },
-    "schemars__schema__SchemaObject": {
+    "SchemaObject": {
       "properties": {
         "$id": {
           "type": "string",
@@ -78,21 +50,21 @@
         "allOf": {
           "type": "array",
           "items": {
-            "$ref": "#/components/schemas/schemars__schema__Schema"
+            "$ref": "#/components/schemas/Schema"
           },
           "nullable": true
         },
         "anyOf": {
           "type": "array",
           "items": {
-            "$ref": "#/components/schemas/schemars__schema__Schema"
+            "$ref": "#/components/schemas/Schema"
           },
           "nullable": true
         },
         "definitions": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/components/schemas/schemars__schema__Schema"
+            "$ref": "#/components/schemas/Schema"
           }
         },
         "description": {
@@ -109,7 +81,18 @@
           "additionalProperties": true
         },
         "items": {
-          "$ref": "#/components/schemas/core__option__Option_schemars__schema__SingleOrVec_schemars__schema__Schema__"
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/Schema"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/Schema"
+              }
+            }
+          ],
+          "nullable": true
         },
         "not": {
           "anyOf": [
@@ -117,10 +100,10 @@
               "type": "boolean"
             },
             {
-              "$ref": "#/components/schemas/schemars__schema__SchemaRef"
+              "$ref": "#/components/schemas/SchemaRef"
             },
             {
-              "$ref": "#/components/schemas/schemars__schema__SchemaObject"
+              "$ref": "#/components/schemas/SchemaObject"
             }
           ],
           "nullable": true
@@ -128,14 +111,14 @@
         "oneOf": {
           "type": "array",
           "items": {
-            "$ref": "#/components/schemas/schemars__schema__Schema"
+            "$ref": "#/components/schemas/Schema"
           },
           "nullable": true
         },
         "properties": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/components/schemas/schemars__schema__Schema"
+            "$ref": "#/components/schemas/Schema"
           }
         },
         "required": {
@@ -150,39 +133,50 @@
           "nullable": true
         },
         "type": {
-          "$ref": "#/components/schemas/core__option__Option_schemars__schema__SingleOrVec_schemars__schema__InstanceType__"
+          "anyOf": [
+            {
+              "$ref": "#/components/schemas/InstanceType"
+            },
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/InstanceType"
+              }
+            }
+          ],
+          "nullable": true
         }
       }
     },
-    "schemars__schema__SchemaRef": {
+    "SchemaRef": {
       "properties": {
         "$ref": {
           "type": "string"
         }
       }
     },
-    "schemars__schema__SingleOrVec_schemars__schema__InstanceType_": {
+    "SingleOrVec_For_InstanceType": {
       "anyOf": [
         {
-          "$ref": "#/components/schemas/schemars__schema__InstanceType"
+          "$ref": "#/components/schemas/InstanceType"
         },
         {
           "type": "array",
           "items": {
-            "$ref": "#/components/schemas/schemars__schema__InstanceType"
+            "$ref": "#/components/schemas/InstanceType"
           }
         }
       ]
     },
-    "schemars__schema__SingleOrVec_schemars__schema__Schema_": {
+    "SingleOrVec_For_Schema": {
       "anyOf": [
         {
-          "$ref": "#/components/schemas/schemars__schema__Schema"
+          "$ref": "#/components/schemas/Schema"
         },
         {
           "type": "array",
           "items": {
-            "$ref": "#/components/schemas/schemars__schema__Schema"
+            "$ref": "#/components/schemas/Schema"
           }
         }
       ]
