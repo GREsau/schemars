@@ -266,30 +266,23 @@ impl<T: MakeSchema> MakeSchema for Option<T> {
     }
 
     fn make_schema(gen: &mut SchemaGenerator) -> Schema {
-        let settings = gen.settings();
-        let make_any_of = settings.option_any_of_null;
-        let set_nullable = settings.option_nullable;
-        let schema = match gen.subschema_for::<T>() {
-            Schema::Bool(true) => true.into(),
-            Schema::Bool(false) => <()>::make_schema(gen),
-            schema => {
-                if make_any_of {
-                    SchemaObject {
-                        any_of: Some(vec![schema, <()>::make_schema(gen)]),
-                        ..Default::default()
-                    }
-                    .into()
-                } else {
-                    schema
+        let mut schema = gen.subschema_for::<T>();
+        if gen.settings().option_add_null_type {
+            schema = match schema {
+                Schema::Bool(true) => Schema::Bool(true),
+                Schema::Bool(false) => <()>::make_schema(gen),
+                schema => SchemaObject {
+                    any_of: Some(vec![schema, <()>::make_schema(gen)]),
+                    ..Default::default()
                 }
+                .into(),
             }
-        };
-        if set_nullable {
-            let deref = gen.try_get_schema_object(&schema);
+        }
+        if gen.settings().option_nullable {
+            let mut deref = gen.try_get_schema_object(&schema);
             debug_assert!(deref.is_some(), "Could not get schema object: {:?}", schema);
-            if let Some(mut schema) = deref {
+            if let Some(ref mut schema) = deref {
                 schema.extensions.insert("nullable".to_owned(), json!(true));
-                return Schema::Object(schema);
             }
         };
         schema

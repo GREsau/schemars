@@ -7,7 +7,7 @@ use std::iter::FromIterator;
 #[derive(Debug, PartialEq, Clone)]
 pub struct SchemaSettings {
     pub option_nullable: bool,
-    pub option_any_of_null: bool,
+    pub option_add_null_type: bool,
     pub bool_schemas: BoolSchemas,
     pub definitions_path: String,
 }
@@ -23,7 +23,7 @@ impl Default for SchemaSettings {
     fn default() -> SchemaSettings {
         SchemaSettings {
             option_nullable: false,
-            option_any_of_null: true,
+            option_add_null_type: true,
             bool_schemas: BoolSchemas::Enable,
             definitions_path: "#/definitions/".to_owned(),
         }
@@ -39,7 +39,7 @@ impl SchemaSettings {
     pub fn openapi3() -> SchemaSettings {
         SchemaSettings {
             option_nullable: true,
-            option_any_of_null: false,
+            option_add_null_type: false,
             bool_schemas: BoolSchemas::AdditionalPropertiesOnly,
             definitions_path: "#/components/schemas/".to_owned(),
         }
