@@ -35,7 +35,7 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let impl_block = quote! {
         #[automatically_derived]
         impl #impl_generics schemars::MakeSchema for #name #ty_generics #where_clause {
-            fn make_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+            fn make_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::Result {
                 #schema
             }
         };
@@ -53,11 +53,11 @@ fn add_trait_bounds(generics: &mut Generics) {
 
 fn wrap_schema_fields(schema_contents: TokenStream) -> TokenStream {
     quote! {
-        schemars::schema::SchemaObject {
+        Ok(schemars::schema::SchemaObject {
             #schema_contents
             ..Default::default()
         }
-        .into()
+        .into())
     }
 }
 
@@ -131,19 +131,19 @@ fn schema_for_untagged_enum(variants: &[Variant]) -> TokenStream {
 fn schema_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
     match variant.style {
         Style::Unit => quote! {
-            gen.subschema_for::<()>()
+            gen.subschema_for::<()>()?
         },
         Style::Newtype => {
             let f = &variant.fields[0];
             let ty = f.ty;
             quote_spanned! {f.original.span()=>
-                gen.subschema_for::<#ty>()
+                gen.subschema_for::<#ty>()?
             }
         }
         Style::Tuple => {
             let types = variant.fields.iter().map(|f| f.ty);
             quote! {
-                gen.subschema_for::<(#(#types),*)>()
+                gen.subschema_for::<(#(#types),*)>()?
             }
         }
         Style::Struct => schema_for_struct(&variant.fields),
@@ -155,7 +155,7 @@ fn schema_for_struct(fields: &[Field]) -> TokenStream {
         let name = f.attrs.name().deserialize_name();
         let ty = f.ty;
         quote_spanned! {f.original.span()=>
-                props.insert(#name.to_owned(), gen.subschema_for::<#ty>());
+                props.insert(#name.to_owned(), gen.subschema_for::<#ty>()?);
         }
     });
     wrap_schema_fields(quote! {

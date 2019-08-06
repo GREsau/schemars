@@ -1,6 +1,7 @@
 use pretty_assertions::assert_eq;
 use schemars::{schema_for, MakeSchema};
 use serde::{Deserialize, Serialize};
+use std::error::Error;
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, MakeSchema)]
 struct Flat {
@@ -32,6 +33,7 @@ struct Deep3 {
 
 #[test]
 #[ignore = "flattening is not yet implemented"]
-fn flatten_schema() {
-    assert_eq!(schema_for!(Flat), schema_for!(Deep1));
+fn flatten_schema() -> Result<(), Box<dyn Error>> {
+    assert_eq!(schema_for!(Flat)?, schema_for!(Deep1)?);
+    Ok(())
 }

@@ -1,5 +1,6 @@
 use crate::make_schema::{MakeSchema, SchemaTypeId};
 use crate::schema::*;
+use crate::{MakeSchemaError, Result};
 use std::collections::BTreeMap as Map;
 use std::collections::BTreeSet as Set;
 use std::iter::FromIterator;
@@ -88,7 +89,7 @@ impl SchemaGenerator {
         }
     }
 
-    pub fn subschema_for<T: ?Sized + MakeSchema>(&mut self) -> Schema {
+    pub fn subschema_for<T: ?Sized + MakeSchema>(&mut self) -> Result {
         if !T::is_referenceable() {
             return T::make_schema(self);
         }
@@ -97,30 +98,40 @@ impl SchemaGenerator {
         let name = self
             .definitions
             .get(&type_id)
-            .map(|(n, _)| n.clone())
+            .map(|(n, _)| Ok(n.clone()))
             .unwrap_or_else(|| {
                 let name = self.make_unique_name::<T>();
-                self.insert_new_subschema_for::<T>(type_id, name.clone());
-                name
-            });
+                self.insert_new_subschema_for::<T>(type_id, name.clone())?;
+                Ok(name)
+            })?;
         let reference = format!("{}{}", self.settings().definitions_path, name);
-        SchemaRef { reference }.into()
+        Ok(SchemaRef { reference }.into())
     }
 
     fn insert_new_subschema_for<T: ?Sized + MakeSchema>(
         &mut self,
         type_id: SchemaTypeId,
         name: String,
-    ) {
+    ) -> Result<String> {
         self.names.insert(name.clone());
         let dummy = Schema::Bool(false);
         // insert into definitions BEFORE calling make_schema to avoid infinite recursion
-        self.definitions.insert(type_id.clone(), (name, dummy));
-
-        let schema = T::make_schema(self);
         self.definitions
-            .entry(type_id)
-            .and_modify(|(_, s)| *s = schema);
+            .insert(type_id.clone(), (name.clone(), dummy));
+
+        match T::make_schema(self) {
+            Ok(schema) => {
+                self.definitions
+                    .entry(type_id)
+                    .and_modify(|(_, s)| *s = schema);
+                Ok(name)
+            }
+            Err(e) => {
+                self.names.remove(&name);
+                self.definitions.remove(&type_id);
+                Err(e)
+            }
+        }
     }
 
     pub fn definitions(&self) -> Map<String, Schema> {
@@ -131,52 +142,64 @@ impl SchemaGenerator {
         Map::from_iter(self.definitions.into_iter().map(|(_, v)| v))
     }
 
-    pub fn root_schema_for<T: ?Sized + MakeSchema>(&mut self) -> Schema {
-        let schema = T::make_schema(self);
-        if let Schema::Object(mut o) = schema {
-            o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
-            o.title = Some(T::schema_name());
-            o.definitions.extend(self.definitions());
-            return Schema::Object(o);
-        }
-        schema
+    pub fn root_schema_for<T: ?Sized + MakeSchema>(&mut self) -> Result {
+        let schema = T::make_schema(self)?;
+        Ok(match schema {
+            Schema::Object(mut o) => {
+                o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
+                o.title = Some(T::schema_name());
+                o.definitions.extend(self.definitions());
+                Schema::Object(o)
+            }
+            schema => schema,
+        })
     }
 
-    pub fn into_root_schema_for<T: ?Sized + MakeSchema>(mut self) -> Schema {
-        let schema = T::make_schema(&mut self);
-        if let Schema::Object(mut o) = schema {
-            o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
-            o.title = Some(T::schema_name());
-            o.definitions.extend(self.into_definitions());
-            return Schema::Object(o);
-        }
-        schema
+    pub fn into_root_schema_for<T: ?Sized + MakeSchema>(mut self) -> Result {
+        let schema = T::make_schema(&mut self)?;
+        Ok(match schema {
+            Schema::Object(mut o) => {
+                o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
+                o.title = Some(T::schema_name());
+                o.definitions.extend(self.into_definitions());
+                Schema::Object(o)
+            }
+            schema => schema,
+        })
     }
 
-    pub(crate) fn try_get_schema_object<'a>(
-        &'a self,
-        mut schema: &'a Schema,
-    ) -> Option<SchemaObject> {
+    pub(crate) fn get_schema_object<'a>(&'a self, mut schema: &'a Schema) -> Result<SchemaObject> {
         loop {
             match schema {
-                Schema::Object(o) => return Some(o.clone()),
-                Schema::Bool(true) => return Some(Default::default()),
+                Schema::Object(o) => return Ok(o.clone()),
+                Schema::Bool(true) => return Ok(Default::default()),
                 Schema::Bool(false) => {
-                    return Some(SchemaObject {
+                    return Ok(SchemaObject {
                         not: Some(Schema::Bool(true).into()),
                         ..Default::default()
                     })
                 }
                 Schema::Ref(r) => {
                     let definitions_path_len = self.settings().definitions_path.len();
-                    let name = r.reference.get(definitions_path_len..)?;
+                    let name = r.reference.get(definitions_path_len..).ok_or_else(|| {
+                        MakeSchemaError::new(
+                            "Could not extract referenced schema name.",
+                            Schema::Ref(r.clone()),
+                        )
+                    })?;
                     // FIXME this is pretty inefficient
                     schema = self
                         .definitions
                         .values()
                         .filter(|(n, _)| n == name)
                         .map(|(_, s)| s)
-                        .next()?;
+                        .next()
+                        .ok_or_else(|| {
+                            MakeSchemaError::new(
+                                "Could not find referenced schema.",
+                                Schema::Ref(r.clone()),
+                            )
+                        })?;
                 }
             }
         }
