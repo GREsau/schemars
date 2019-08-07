@@ -306,6 +306,18 @@ impl<T: MakeSchema> MakeSchema for Option<T> {
     }
 }
 
+impl<T> MakeSchema for std::marker::PhantomData<T> {
+    no_ref_schema!();
+
+    fn schema_name() -> String {
+        <()>::schema_name()
+    }
+
+    fn make_schema(gen: &mut SchemaGenerator) -> Result {
+        <()>::make_schema(gen)
+    }
+}
+
 ////////// DEREF //////////
 
 macro_rules! deref_impl {

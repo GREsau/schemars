@@ -33,8 +33,7 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
     let type_param_fmt = match type_params.len() {
         0 => "{}".to_owned(),
-        1 => "{}_For_{}".to_owned(),
-        n => format!("{{}}_For_{{}}_And{}", "_{}".repeat(n - 1)),
+        n => format!("{{}}_For_{{}}{}", "_And_{}".repeat(n - 1)),
     };
 
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
