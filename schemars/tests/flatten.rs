@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use schemars::{schema_for, MakeSchema};
+use schemars::{schema::*, schema_for, MakeSchema};
 use serde::{Deserialize, Serialize};
 use std::error::Error;
 
@@ -32,8 +32,13 @@ struct Deep3 {
 }
 
 #[test]
-#[ignore = "flattening is not yet implemented"]
 fn flatten_schema() -> Result<(), Box<dyn Error>> {
-    assert_eq!(schema_for!(Flat)?, schema_for!(Deep1)?);
+    let flat = schema_for!(Flat)?;
+    let mut deep = schema_for!(Deep1)?;
+    match deep {
+        Schema::Object(ref mut o) => o.title = Some("Flat".to_owned()),
+        _ => assert!(false, "Schema was not object: {:?}", deep),
+    };
+    assert_eq!(flat, deep);
     Ok(())
 }

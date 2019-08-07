@@ -273,6 +273,8 @@ map_impl!(<K: Eq + core::hash::Hash, V, H: core::hash::BuildHasher> MakeSchema f
 
 ////////// OPTION //////////
 
+// TODO should a field with a default set also be considered nullable?
+
 impl<T: MakeSchema> MakeSchema for Option<T> {
     no_ref_schema!();
 

@@ -64,11 +64,11 @@ fn add_trait_bounds(generics: &mut Generics) {
 
 fn wrap_schema_fields(schema_contents: TokenStream) -> TokenStream {
     quote! {
-        Ok(schemars::schema::SchemaObject {
+        Ok(schemars::schema::Schema::Object(
+            schemars::schema::SchemaObject {
             #schema_contents
             ..Default::default()
-        }
-        .into())
+        }))
     }
 }
 
@@ -118,6 +118,7 @@ fn schema_for_external_tagged_enum(variants: &[Variant]) -> TokenStream {
         let name = variant.attrs.name().deserialize_name();
         let sub_schema = schema_for_untagged_enum_variant(variant);
         wrap_schema_fields(quote! {
+            instance_type: Some(schemars::schema::InstanceType::Object.into()),
             properties: {
                 let mut props = std::collections::BTreeMap::new();
                 props.insert(#name.to_owned(), #sub_schema);
@@ -162,18 +163,31 @@ fn schema_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
 }
 
 fn schema_for_struct(fields: &[Field]) -> TokenStream {
-    let recurse = fields.into_iter().map(|f| {
+    let (nested, flat): (Vec<_>, Vec<_>) = fields.iter().partition(|f| !f.attrs.flatten());
+    let recurse = nested.iter().map(|f| {
         let name = f.attrs.name().deserialize_name();
         let ty = f.ty;
         quote_spanned! {f.original.span()=>
-                props.insert(#name.to_owned(), gen.subschema_for::<#ty>()?);
+            props.insert(#name.to_owned(), gen.subschema_for::<#ty>()?);
         }
     });
-    wrap_schema_fields(quote! {
+    let schema = wrap_schema_fields(quote! {
+        instance_type: Some(schemars::schema::InstanceType::Object.into()),
         properties: {
             let mut props = std::collections::BTreeMap::new();
             #(#recurse)*
             props
         },
-    })
+    });
+
+    let flattens = flat.iter().map(|f| {
+        let ty = f.ty;
+        quote_spanned! {f.original.span()=>
+            ?.flatten(<#ty>::make_schema(gen)?)
+        }
+    });
+
+    quote! {
+        #schema #(#flattens)*
+    }
 }

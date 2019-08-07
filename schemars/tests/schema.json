@@ -38,6 +38,7 @@
       ]
     },
     "SchemaObject": {
+      "type": "object",
       "properties": {
         "$id": {
           "anyOf": [
@@ -112,10 +113,6 @@
             }
           ]
         },
-        "extensions": {
-          "type": "object",
-          "additionalProperties": true
-        },
         "items": {
           "anyOf": [
             {
@@ -156,17 +153,10 @@
           }
         },
         "required": {
-          "anyOf": [
-            {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "title": {
           "anyOf": [
@@ -188,9 +178,11 @@
             }
           ]
         }
-      }
+      },
+      "additionalProperties": true
     },
     "SchemaRef": {
+      "type": "object",
       "properties": {
         "$ref": {
           "type": "string"

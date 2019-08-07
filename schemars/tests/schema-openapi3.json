@@ -38,6 +38,7 @@
       ]
     },
     "SchemaObject": {
+      "type": "object",
       "properties": {
         "$id": {
           "type": "string",
@@ -75,10 +76,6 @@
           "type": "array",
           "items": {},
           "nullable": true
-        },
-        "extensions": {
-          "type": "object",
-          "additionalProperties": true
         },
         "items": {
           "anyOf": [
@@ -125,8 +122,7 @@
           "type": "array",
           "items": {
             "type": "string"
-          },
-          "nullable": true
+          }
         },
         "title": {
           "type": "string",
@@ -146,9 +142,11 @@
           ],
           "nullable": true
         }
-      }
+      },
+      "additionalProperties": true
     },
     "SchemaRef": {
+      "type": "object",
       "properties": {
         "$ref": {
           "type": "string"
