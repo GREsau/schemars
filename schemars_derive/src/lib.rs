@@ -15,8 +15,10 @@ use syn::{DeriveInput, GenericParam, Generics};
 #[proc_macro_derive(MakeSchema, attributes(schemars, serde))]
 pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut input = parse_macro_input!(input as DeriveInput);
+
     // TODO is mutating the input really the best way to do this?
     add_trait_bounds(&mut input.generics);
+
     let ctxt = Ctxt::new();
     let cont = Container::from_ast(&ctxt, &input, Derive::Deserialize);
     if let Err(e) = ctxt.check() {
@@ -29,20 +31,40 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         _ => unimplemented!("work in progress!"),
     };
 
-    let name = cont.ident;
+    let type_name = cont.ident;
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
-    let type_param_fmt = match type_params.len() {
-        0 => "{}".to_owned(),
-        n => format!("{{}}_For_{{}}{}", "_And_{}".repeat(n - 1)),
+
+    let schema_base_name = cont.attrs.name().deserialize_name();
+    let schema_name = if type_params.is_empty() {
+        quote! {
+            #schema_base_name.to_owned()
+        }
+    } else if schema_base_name == type_name.to_string() {
+        let mut schema_name_fmt = schema_base_name;
+        schema_name_fmt.push_str("_For_{}");
+        schema_name_fmt.push_str(&"_And_{}".repeat(type_params.len() - 1));
+        quote! {
+            format!(#schema_name_fmt #(,#type_params::schema_name())*)
+        }
+    } else {
+        let mut schema_name_fmt = schema_base_name;
+        for tp in &type_params {
+            schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
+        }
+        let fmt_param_names = &type_params;
+        let type_params = &type_params;
+        quote! {
+            format!(#schema_name_fmt #(,#fmt_param_names=#type_params::schema_name())*)
+        }
     };
 
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
     let impl_block = quote! {
         #[automatically_derived]
-        impl #impl_generics schemars::MakeSchema for #name #ty_generics #where_clause {
+        impl #impl_generics schemars::MakeSchema for #type_name #ty_generics #where_clause {
             fn schema_name() -> String {
-                format!(#type_param_fmt, stringify!(#name) #(,#type_params::schema_name())*)
+                #schema_name
             }
 
             fn make_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::Result {

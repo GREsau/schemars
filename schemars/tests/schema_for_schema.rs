@@ -1,7 +1,6 @@
+mod util;
 use schemars::gen::SchemaSettings;
 use schemars::schema::Schema;
-
-mod util;
 use util::*;
 
 #[test]
