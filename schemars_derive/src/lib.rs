@@ -135,7 +135,7 @@ fn schema_for_external_tagged_enum(variants: &[Variant], cattrs: &attr::Containe
         wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
             properties: {
-                let mut props = std::collections::BTreeMap::new();
+                let mut props = schemars::Map::new();
                 props.insert(#name.to_owned(), #sub_schema);
                 props
             },
@@ -198,12 +198,12 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
     let schema = wrap_schema_fields(quote! {
         instance_type: Some(schemars::schema::InstanceType::Object.into()),
         properties: {
-            let mut props = std::collections::BTreeMap::new();
+            let mut props = schemars::Map::new();
             #(#recurse)*
             props
         },
         required: {
-            let mut required = std::collections::BTreeSet::new();
+            let mut required = schemars::Set::new();
             #(required.insert(#required.to_owned());)*
             required
         },

@@ -1,9 +1,7 @@
 use crate as schemars;
-use crate::{MakeSchema, MakeSchemaError, Result};
+use crate::{MakeSchema, MakeSchemaError, Map, Result, Set};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::collections::BTreeMap as Map;
-use std::collections::BTreeSet as Set;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, MakeSchema)]
 #[serde(untagged)]

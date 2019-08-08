@@ -1,7 +1,6 @@
 use crate::make_schema::MakeSchema;
 use crate::schema::*;
-use crate::{MakeSchemaError, Result};
-use std::collections::BTreeMap as Map;
+use crate::{MakeSchemaError, Map, Result};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct SchemaSettings {

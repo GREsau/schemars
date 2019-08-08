@@ -1,8 +1,7 @@
 use crate::gen::{BoolSchemas, SchemaGenerator};
 use crate::schema::*;
-use crate::Result;
+use crate::{Map, Result};
 use serde_json::json;
-use std::collections::BTreeMap as Map;
 
 pub trait MakeSchema {
     fn is_referenceable() -> bool {
