@@ -187,7 +187,10 @@
         "$ref": {
           "type": "string"
         }
-      }
+      },
+      "required": [
+        "$ref"
+      ]
     },
     "SingleOrVec_For_InstanceType": {
       "anyOf": [

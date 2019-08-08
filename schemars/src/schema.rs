@@ -3,6 +3,7 @@ use crate::{MakeSchema, MakeSchemaError, Result};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::BTreeMap as Map;
+use std::collections::BTreeSet as Set;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, MakeSchema)]
 #[serde(untagged)]
@@ -30,13 +31,13 @@ impl From<SchemaRef> for Schema {
     }
 }
 
-fn extend<A, E: Extend<A>>(mut a: E, b: impl IntoIterator<Item = A>) -> E {
-    a.extend(b);
-    a
-}
-
 impl Schema {
     pub fn flatten(self, other: Self) -> Result {
+        fn extend<A, E: Extend<A>>(mut a: E, b: impl IntoIterator<Item = A>) -> E {
+            a.extend(b);
+            a
+        }
+
         let s1 = self.ensure_flattenable()?;
         let s2 = other.ensure_flattenable()?;
         Ok(Schema::Object(SchemaObject {
@@ -112,8 +113,8 @@ pub struct SchemaObject {
     pub items: Option<SingleOrVec<Schema>>,
     #[serde(skip_serializing_if = "Map::is_empty")]
     pub properties: Map<String, Schema>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    pub required: Vec<String>,
+    #[serde(skip_serializing_if = "Set::is_empty")]
+    pub required: Set<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub all_of: Option<Vec<Schema>>,
     #[serde(skip_serializing_if = "Option::is_none")]
