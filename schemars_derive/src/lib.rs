@@ -70,7 +70,7 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             }
 
             fn make_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::Result {
-                #schema
+                Ok(#schema)
             }
         };
     };
@@ -79,11 +79,11 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
 
 fn wrap_schema_fields(schema_contents: TokenStream) -> TokenStream {
     quote! {
-        Ok(schemars::schema::Schema::Object(
+        schemars::schema::Schema::Object(
             schemars::schema::SchemaObject {
             #schema_contents
             ..Default::default()
-        }))
+        })
     }
 }
 
@@ -139,7 +139,11 @@ fn schema_for_external_tagged_enum(variants: &[Variant], cattrs: &attr::Containe
                 props.insert(#name.to_owned(), #sub_schema);
                 props
             },
-            required: vec![#name.to_owned()],
+            required: {
+                let mut required = schemars::Set::new();
+                required.insert(#name.to_owned());
+                required
+            },
         })
     }));
 
@@ -212,7 +216,7 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
     let flattens = flat.iter().map(|f| {
         let ty = f.ty;
         quote_spanned! {f.original.span()=>
-            ?.flatten(<#ty>::make_schema(gen)?)
+            .flatten(<#ty>::make_schema(gen)?)?
         }
     });
 
