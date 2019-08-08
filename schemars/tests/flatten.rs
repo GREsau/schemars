@@ -12,7 +12,7 @@ struct Flat {
 }
 
 #[derive(Debug, MakeSchema)]
-#[serde(rename = "Flat")]
+#[schemars(rename = "Flat")]
 struct Deep1 {
     foo: f32,
     #[serde(flatten)]

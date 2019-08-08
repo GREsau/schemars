@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyStruct",
+  "type": "object",
+  "properties": {
+    "camelCase": {
+      "type": "integer"
+    },
+    "new_name_1": {
+      "type": "integer"
+    },
+    "new_name_2": {
+      "type": "integer"
+    }
+  }
+}
