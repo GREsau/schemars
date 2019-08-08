@@ -7,7 +7,7 @@ use serde_json::Value;
 #[serde(untagged)]
 pub enum Schema {
     Bool(bool),
-    Ref(SchemaRef),
+    Ref(Ref),
     Object(SchemaObject),
 }
 
@@ -23,8 +23,8 @@ impl From<bool> for Schema {
     }
 }
 
-impl From<SchemaRef> for Schema {
-    fn from(r: SchemaRef) -> Self {
+impl From<Ref> for Schema {
+    fn from(r: Ref) -> Self {
         Schema::Ref(r)
     }
 }
@@ -87,7 +87,7 @@ impl Schema {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, MakeSchema)]
-pub struct SchemaRef {
+pub struct Ref {
     #[serde(rename = "$ref")]
     pub reference: String,
 }

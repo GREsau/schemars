@@ -6,7 +6,7 @@
       "type": "boolean"
     },
     {
-      "$ref": "#/components/schemas/SchemaRef"
+      "$ref": "#/components/schemas/Ref"
     },
     {
       "$ref": "#/components/schemas/SchemaObject"
@@ -30,7 +30,7 @@
           "type": "boolean"
         },
         {
-          "$ref": "#/components/schemas/SchemaRef"
+          "$ref": "#/components/schemas/Ref"
         },
         {
           "$ref": "#/components/schemas/SchemaObject"
@@ -97,7 +97,7 @@
               "type": "boolean"
             },
             {
-              "$ref": "#/components/schemas/SchemaRef"
+              "$ref": "#/components/schemas/Ref"
             },
             {
               "$ref": "#/components/schemas/SchemaObject"
@@ -145,7 +145,7 @@
       },
       "additionalProperties": true
     },
-    "SchemaRef": {
+    "Ref": {
       "type": "object",
       "properties": {
         "$ref": {

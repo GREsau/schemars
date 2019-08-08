@@ -6,7 +6,7 @@
       "type": "boolean"
     },
     {
-      "$ref": "#/definitions/SchemaRef"
+      "$ref": "#/definitions/Ref"
     },
     {
       "$ref": "#/definitions/SchemaObject"
@@ -30,7 +30,7 @@
           "type": "boolean"
         },
         {
-          "$ref": "#/definitions/SchemaRef"
+          "$ref": "#/definitions/Ref"
         },
         {
           "$ref": "#/definitions/SchemaObject"
@@ -181,7 +181,7 @@
       },
       "additionalProperties": true
     },
-    "SchemaRef": {
+    "Ref": {
       "type": "object",
       "properties": {
         "$ref": {

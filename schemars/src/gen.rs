@@ -95,7 +95,7 @@ impl SchemaGenerator {
             self.insert_new_subschema_for::<T>(name.clone())?;
         }
         let reference = format!("{}{}", self.settings().definitions_path, name);
-        Ok(SchemaRef { reference }.into())
+        Ok(Ref { reference }.into())
     }
 
     fn insert_new_subschema_for<T: ?Sized + MakeSchema>(&mut self, name: String) -> Result<()> {
