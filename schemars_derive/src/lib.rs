@@ -104,6 +104,7 @@ fn schema_for_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStrea
     match cattrs.tag() {
         EnumTag::External => schema_for_external_tagged_enum(variants, cattrs),
         EnumTag::None => schema_for_untagged_enum(variants, cattrs),
+        EnumTag::Internal { tag } => schema_for_internal_tagged_enum(variants, cattrs, tag),
         _ => unimplemented!("Adjacent/internal tagged enums not yet supported."),
     }
 }
@@ -146,6 +147,45 @@ fn schema_for_external_tagged_enum(variants: &[Variant], cattrs: &attr::Containe
             },
         })
     }));
+
+    wrap_schema_fields(quote! {
+        any_of: Some(vec![#(#schemas),*]),
+    })
+}
+
+fn schema_for_internal_tagged_enum(
+    variants: &[Variant],
+    cattrs: &attr::Container,
+    tag_name: &str,
+) -> TokenStream {
+    let schemas = variants.into_iter().map(|variant| {
+        let name = variant.attrs.name().deserialize_name();
+        let type_schema = wrap_schema_fields(quote! {
+            instance_type: Some(schemars::schema::InstanceType::String.into()),
+            enum_values: Some(vec![#name.into()]),
+        });
+        let schema = wrap_schema_fields(quote! {
+            instance_type: Some(schemars::schema::InstanceType::Object.into()),
+            properties: {
+                let mut props = schemars::Map::new();
+                props.insert(#tag_name.to_owned(), #type_schema);
+                props
+            },
+            required: {
+                let mut required = schemars::Set::new();
+                required.insert(#tag_name.to_owned());
+                required
+            },
+        });
+        if is_unit_variant(&variant) {
+            schema
+        } else {
+            let sub_schema = schema_for_untagged_enum_variant(variant, cattrs);
+            quote! {
+                #schema.flatten(#sub_schema)?
+            }
+        }
+    });
 
     wrap_schema_fields(quote! {
         any_of: Some(vec![#(#schemas),*]),

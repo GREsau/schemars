@@ -11,12 +11,15 @@
     {
       "type": "object",
       "properties": {
-        "string": {
-          "type": "string"
+        "stringMap": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       },
       "required": [
-        "string"
+        "stringMap"
       ]
     },
     {
