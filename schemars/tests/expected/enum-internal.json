@@ -1,0 +1,222 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema",
+  "anyOf": [
+    {
+      "type": "boolean"
+    },
+    {
+      "$ref": "#/definitions/Ref"
+    },
+    {
+      "$ref": "#/definitions/SchemaObject"
+    }
+  ],
+  "definitions": {
+    "InstanceType": {
+      "enum": [
+        "null",
+        "boolean",
+        "object",
+        "array",
+        "number",
+        "string",
+        "integer"
+      ]
+    },
+    "Schema": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/definitions/Ref"
+        },
+        {
+          "$ref": "#/definitions/SchemaObject"
+        }
+      ]
+    },
+    "SchemaObject": {
+      "type": "object",
+      "properties": {
+        "$id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "$schema": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "allOf": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Schema"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "anyOf": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Schema"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "definitions": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Schema"
+          }
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "enum": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": true
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "items": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SingleOrVec_For_Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "not": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "oneOf": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/Schema"
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "properties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Schema"
+          }
+        },
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "type": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/SingleOrVec_For_InstanceType"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "$ref": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "$ref"
+      ]
+    },
+    "SingleOrVec_For_InstanceType": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/InstanceType"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/InstanceType"
+          }
+        }
+      ]
+    },
+    "SingleOrVec_For_Schema": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Schema"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/Schema"
+          }
+        }
+      ]
+    }
+  }
+}

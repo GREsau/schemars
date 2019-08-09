@@ -1,0 +1,27 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Untagged",
+  "anyOf": [
+    {
+      "type": "null"
+    },
+    {
+      "type": "string"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "bar": {
+          "type": "boolean"
+        },
+        "foo": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "bar",
+        "foo"
+      ]
+    }
+  ]
+}
