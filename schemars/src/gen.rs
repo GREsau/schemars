@@ -148,7 +148,7 @@ impl SchemaGenerator {
         })
     }
 
-    pub(crate) fn get_schema_object<'a>(&'a self, mut schema: &'a Schema) -> Result<SchemaObject> {
+    pub fn get_schema_object<'a>(&'a self, mut schema: &'a Schema) -> Result<SchemaObject> {
         loop {
             match schema {
                 Schema::Object(o) => return Ok(o.clone()),
