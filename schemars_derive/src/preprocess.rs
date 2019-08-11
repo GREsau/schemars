@@ -4,7 +4,7 @@ use syn::{Attribute, Data, DeriveInput, Field, GenericParam, Generics, Ident, Va
 pub fn add_trait_bounds(generics: &mut Generics) {
     for param in &mut generics.params {
         if let GenericParam::Type(ref mut type_param) = *param {
-            type_param.bounds.push(parse_quote!(schemars::MakeSchema));
+            type_param.bounds.push(parse_quote!(schemars::JsonSchema));
         }
     }
 }

@@ -1,17 +1,7 @@
 use crate::gen::{BoolSchemas, SchemaGenerator};
 use crate::schema::*;
-use crate::{Map, Result};
+use crate::{JsonSchema, Map, Result};
 use serde_json::json;
-
-pub trait MakeSchema {
-    fn is_referenceable() -> bool {
-        true
-    }
-
-    fn schema_name() -> String;
-
-    fn make_schema(gen: &mut SchemaGenerator) -> Result;
-}
 
 // TODO any other serde/json types other than serde_json value?
 // TODO serde yaml value/map under feature flag
@@ -35,14 +25,14 @@ macro_rules! no_ref_schema {
 
 macro_rules! simple_impl {
     ($type:tt => $instance_type:ident) => {
-        impl MakeSchema for $type {
+        impl JsonSchema for $type {
             no_ref_schema!();
 
             fn schema_name() -> String {
                 stringify!($instance_type).to_owned()
             }
 
-            fn make_schema(_: &mut SchemaGenerator) -> Result {
+            fn json_schema(_: &mut SchemaGenerator) -> Result {
                 Ok(SchemaObject {
                     instance_type: Some(InstanceType::$instance_type.into()),
                     ..Default::default()
@@ -72,14 +62,14 @@ simple_impl!(u128 => Integer);
 simple_impl!(usize => Integer);
 simple_impl!(() => Null);
 
-impl MakeSchema for char {
+impl JsonSchema for char {
     no_ref_schema!();
 
     fn schema_name() -> String {
         "Character".to_owned()
     }
 
-    fn make_schema(_: &mut SchemaGenerator) -> Result {
+    fn json_schema(_: &mut SchemaGenerator) -> Result {
         let mut extensions = Map::new();
         extensions.insert("minLength".to_owned(), json!(1));
         extensions.insert("maxLength".to_owned(), json!(1));
@@ -94,15 +84,15 @@ impl MakeSchema for char {
 
 ////////// ARRAYS //////////
 
-// Does not require T: MakeSchema.
-impl<T> MakeSchema for [T; 0] {
+// Does not require T: JsonSchema.
+impl<T> JsonSchema for [T; 0] {
     no_ref_schema!();
 
     fn schema_name() -> String {
         "Empty_Array".to_owned()
     }
 
-    fn make_schema(_: &mut SchemaGenerator) -> Result {
+    fn json_schema(_: &mut SchemaGenerator) -> Result {
         let mut extensions = Map::new();
         extensions.insert("maxItems".to_owned(), json!(0));
         Ok(SchemaObject {
@@ -117,14 +107,14 @@ impl<T> MakeSchema for [T; 0] {
 macro_rules! array_impls {
     ($($len:tt)+) => {
         $(
-            impl<T: MakeSchema> MakeSchema for [T; $len] {
+            impl<T: JsonSchema> JsonSchema for [T; $len] {
                 no_ref_schema!();
 
                 fn schema_name() -> String {
                     format!("Array_Size_{}_Of_{}", $len, T::schema_name())
                 }
 
-                fn make_schema(gen: &mut SchemaGenerator) -> Result {
+                fn json_schema(gen: &mut SchemaGenerator) -> Result {
                     let mut extensions = Map::new();
                     extensions.insert("minItems".to_owned(), json!($len));
                     extensions.insert("maxItems".to_owned(), json!($len));
@@ -152,14 +142,14 @@ array_impls! {
 macro_rules! tuple_impls {
     ($($len:expr => ($($name:ident)+))+) => {
         $(
-            impl<$($name: MakeSchema),+> MakeSchema for ($($name,)+) {
+            impl<$($name: JsonSchema),+> JsonSchema for ($($name,)+) {
                 no_ref_schema!();
 
                 fn schema_name() -> String {
                     ["Tuple_Of".to_owned()$(, $name::schema_name())+].join("_And_")
                 }
 
-                fn make_schema(gen: &mut SchemaGenerator) -> Result {
+                fn json_schema(gen: &mut SchemaGenerator) -> Result {
                     let mut extensions = Map::new();
                     extensions.insert("minItems".to_owned(), json!($len));
                     extensions.insert("maxItems".to_owned(), json!($len));
@@ -203,7 +193,7 @@ macro_rules! seq_impl {
     ($($desc:tt)+) => {
         impl $($desc)+
         where
-            T: MakeSchema,
+            T: JsonSchema,
         {
             no_ref_schema!();
 
@@ -211,7 +201,7 @@ macro_rules! seq_impl {
                 format!("Array_Of_{}", T::schema_name())
             }
 
-            fn make_schema(gen: &mut SchemaGenerator) -> Result {
+            fn json_schema(gen: &mut SchemaGenerator) -> Result {
                 Ok(SchemaObject {
                     instance_type: Some(InstanceType::Array.into()),
                     items: Some(gen.subschema_for::<T>()?.into()),
@@ -222,12 +212,12 @@ macro_rules! seq_impl {
     };
 }
 
-seq_impl!(<T: Ord> MakeSchema for std::collections::BinaryHeap<T>);
-seq_impl!(<T: Ord> MakeSchema for std::collections::BTreeSet<T>);
-seq_impl!(<T: Eq + core::hash::Hash, H: core::hash::BuildHasher> MakeSchema for std::collections::HashSet<T, H>);
-seq_impl!(<T> MakeSchema for std::collections::LinkedList<T>);
-seq_impl!(<T> MakeSchema for Vec<T>);
-seq_impl!(<T> MakeSchema for std::collections::VecDeque<T>);
+seq_impl!(<T: Ord> JsonSchema for std::collections::BinaryHeap<T>);
+seq_impl!(<T: Ord> JsonSchema for std::collections::BTreeSet<T>);
+seq_impl!(<T: Eq + core::hash::Hash, H: core::hash::BuildHasher> JsonSchema for std::collections::HashSet<T, H>);
+seq_impl!(<T> JsonSchema for std::collections::LinkedList<T>);
+seq_impl!(<T> JsonSchema for Vec<T>);
+seq_impl!(<T> JsonSchema for std::collections::VecDeque<T>);
 
 ////////// MAPS /////////
 
@@ -236,7 +226,7 @@ macro_rules! map_impl {
         impl $($desc)+
         where
             K: Into<String>,
-            V: MakeSchema,
+            V: JsonSchema,
         {
             no_ref_schema!();
 
@@ -244,14 +234,14 @@ macro_rules! map_impl {
                 format!("Map_Of_{}", V::schema_name())
             }
 
-            fn make_schema(gen: &mut SchemaGenerator) -> Result {
+            fn json_schema(gen: &mut SchemaGenerator) -> Result {
                 let subschema = gen.subschema_for::<V>()?;
-                let make_schema_bool = gen.settings().bool_schemas == BoolSchemas::AdditionalPropertiesOnly
+                let json_schema_bool = gen.settings().bool_schemas == BoolSchemas::AdditionalPropertiesOnly
                     && subschema == gen.schema_for_any();
                 let mut extensions = Map::new();
                 extensions.insert(
                     "additionalProperties".to_owned(),
-                    if make_schema_bool {
+                    if json_schema_bool {
                         json!(true)
                     } else {
                         json!(subschema)
@@ -267,30 +257,30 @@ macro_rules! map_impl {
     };
 }
 
-map_impl!(<K: Ord, V> MakeSchema for std::collections::BTreeMap<K, V>);
-map_impl!(<K: Eq + core::hash::Hash, V, H: core::hash::BuildHasher> MakeSchema for std::collections::HashMap<K, V, H>);
+map_impl!(<K: Ord, V> JsonSchema for std::collections::BTreeMap<K, V>);
+map_impl!(<K: Eq + core::hash::Hash, V, H: core::hash::BuildHasher> JsonSchema for std::collections::HashMap<K, V, H>);
 
 ////////// OPTION //////////
 
 // TODO should a field with a default set also be considered nullable?
 
-impl<T: MakeSchema> MakeSchema for Option<T> {
+impl<T: JsonSchema> JsonSchema for Option<T> {
     no_ref_schema!();
 
     fn schema_name() -> String {
         format!("Nullable_{}", T::schema_name())
     }
 
-    fn make_schema(gen: &mut SchemaGenerator) -> Result {
+    fn json_schema(gen: &mut SchemaGenerator) -> Result {
         // FIXME this may produce a subschema that is not referenced in the final schema,
         // e.g. SingleOrVec_For_InstanceType in schema-openapi3.json
         let mut schema = gen.subschema_for::<T>()?;
         if gen.settings().option_add_null_type {
             schema = match schema {
                 Schema::Bool(true) => Schema::Bool(true),
-                Schema::Bool(false) => <()>::make_schema(gen)?,
+                Schema::Bool(false) => <()>::json_schema(gen)?,
                 schema => SchemaObject {
-                    any_of: Some(vec![schema, <()>::make_schema(gen)?]),
+                    any_of: Some(vec![schema, <()>::json_schema(gen)?]),
                     ..Default::default()
                 }
                 .into(),
@@ -305,15 +295,15 @@ impl<T: MakeSchema> MakeSchema for Option<T> {
     }
 }
 
-impl<T> MakeSchema for std::marker::PhantomData<T> {
+impl<T> JsonSchema for std::marker::PhantomData<T> {
     no_ref_schema!();
 
     fn schema_name() -> String {
         <()>::schema_name()
     }
 
-    fn make_schema(gen: &mut SchemaGenerator) -> Result {
-        <()>::make_schema(gen)
+    fn json_schema(gen: &mut SchemaGenerator) -> Result {
+        <()>::json_schema(gen)
     }
 }
 
@@ -323,7 +313,7 @@ macro_rules! deref_impl {
     ($($desc:tt)+) => {
         impl $($desc)+
         where
-            T: MakeSchema,
+            T: JsonSchema,
         {
             fn is_referenceable() -> bool {
                 T::is_referenceable()
@@ -333,30 +323,30 @@ macro_rules! deref_impl {
                 T::schema_name()
             }
 
-            fn make_schema(gen: &mut SchemaGenerator) -> Result {
-                T::make_schema(gen)
+            fn json_schema(gen: &mut SchemaGenerator) -> Result {
+                T::json_schema(gen)
             }
         }
     };
 }
 
-deref_impl!(<'a, T> MakeSchema for &'a T);
-deref_impl!(<'a, T> MakeSchema for &'a mut T);
-deref_impl!(<T> MakeSchema for Box<T>);
-deref_impl!(<T> MakeSchema for std::rc::Rc<T>);
-deref_impl!(<T> MakeSchema for std::sync::Arc<T>);
-deref_impl!(<'a, T: ToOwned> MakeSchema for std::borrow::Cow<'a, T>);
+deref_impl!(<'a, T> JsonSchema for &'a T);
+deref_impl!(<'a, T> JsonSchema for &'a mut T);
+deref_impl!(<T> JsonSchema for Box<T>);
+deref_impl!(<T> JsonSchema for std::rc::Rc<T>);
+deref_impl!(<T> JsonSchema for std::sync::Arc<T>);
+deref_impl!(<'a, T: ToOwned> JsonSchema for std::borrow::Cow<'a, T>);
 
 ////////// SERDE_JSON //////////
 
-impl MakeSchema for serde_json::Value {
+impl JsonSchema for serde_json::Value {
     no_ref_schema!();
 
     fn schema_name() -> String {
         "Any_Value".to_owned()
     }
 
-    fn make_schema(gen: &mut SchemaGenerator) -> Result {
+    fn json_schema(gen: &mut SchemaGenerator) -> Result {
         Ok(gen.schema_for_any())
     }
 }

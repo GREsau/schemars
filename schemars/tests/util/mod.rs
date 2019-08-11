@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use schemars::{gen::SchemaSettings, schema_for, MakeSchema};
+use schemars::{gen::SchemaSettings, schema_for, JsonSchema};
 use std::error::Error;
 use std::fs;
 use std::panic;
@@ -7,7 +7,7 @@ use std::panic;
 pub type TestResult = Result<(), Box<dyn Error>>;
 
 #[allow(dead_code)] // https://github.com/rust-lang/rust/issues/46379
-pub fn test_generated_schema<T: MakeSchema>(file: &str, settings: SchemaSettings) -> TestResult {
+pub fn test_generated_schema<T: JsonSchema>(file: &str, settings: SchemaSettings) -> TestResult {
     let expected_json = fs::read_to_string(format!("tests/expected/{}.json", file))?;
     let expected = serde_json::from_str(&expected_json)?;
 
@@ -23,7 +23,7 @@ pub fn test_generated_schema<T: MakeSchema>(file: &str, settings: SchemaSettings
 }
 
 #[allow(dead_code)] // https://github.com/rust-lang/rust/issues/46379
-pub fn test_default_generated_schema<T: MakeSchema>(file: &str) -> TestResult {
+pub fn test_default_generated_schema<T: JsonSchema>(file: &str) -> TestResult {
     let expected_json = fs::read_to_string(format!("tests/expected/{}.json", file))?;
     let expected = serde_json::from_str(&expected_json)?;
 

@@ -1,9 +1,9 @@
 mod util;
 use pretty_assertions::assert_eq;
-use schemars::{schema_for, MakeSchema};
+use schemars::{schema_for, JsonSchema};
 use util::*;
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 struct Flat {
     foo: f32,
     bar: bool,
@@ -11,7 +11,7 @@ struct Flat {
     foobar: Vec<i32>,
 }
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 #[schemars(rename = "Flat")]
 struct Deep1 {
     foo: f32,
@@ -20,14 +20,14 @@ struct Deep1 {
     foobar: Vec<i32>,
 }
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 struct Deep2 {
     bar: bool,
     #[serde(flatten)]
     deep3: Deep3,
 }
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 struct Deep3 {
     baz: String,
 }

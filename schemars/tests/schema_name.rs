@@ -1,8 +1,8 @@
 mod util;
-use schemars::MakeSchema;
+use schemars::JsonSchema;
 use util::*;
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 struct MyStruct<T, U, V, W> {
     t: T,
     u: U,
@@ -11,7 +11,7 @@ struct MyStruct<T, U, V, W> {
     inner: MySimpleStruct,
 }
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 struct MySimpleStruct {}
 
 #[test]
@@ -19,7 +19,7 @@ fn default_name_multiple_type_params() -> TestResult {
     test_default_generated_schema::<MyStruct<i32, (), bool, Vec<String>>>("schema-name-default")
 }
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 #[serde(rename = "a-new-name-{W}-{T}-{T}")]
 struct MyRenamedStruct<T, U, V, W> {
     t: T,
@@ -29,7 +29,7 @@ struct MyRenamedStruct<T, U, V, W> {
     inner: MySimpleRenamedStruct,
 }
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 #[serde(rename = "this-attribute-is-ignored")]
 #[schemars(rename = "another-new-name")]
 struct MySimpleRenamedStruct {}

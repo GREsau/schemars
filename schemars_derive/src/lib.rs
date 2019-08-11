@@ -14,8 +14,8 @@ use serde_derive_internals::{Ctxt, Derive};
 use syn::spanned::Spanned;
 use syn::DeriveInput;
 
-#[proc_macro_derive(MakeSchema, attributes(schemars, serde))]
-pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+#[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
+pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut input = parse_macro_input!(input as DeriveInput);
 
     preprocess::add_trait_bounds(&mut input.generics);
@@ -64,12 +64,12 @@ pub fn derive_make_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
 
     let impl_block = quote! {
         #[automatically_derived]
-        impl #impl_generics schemars::MakeSchema for #type_name #ty_generics #where_clause {
+        impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
             fn schema_name() -> String {
                 #schema_name
             }
 
-            fn make_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::Result {
+            fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::Result {
                 Ok(#schema)
             }
         };
@@ -256,7 +256,7 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
     let flattens = flat.iter().map(|f| {
         let ty = f.ty;
         quote_spanned! {f.original.span()=>
-            .flatten(<#ty>::make_schema(gen)?)?
+            .flatten(<#ty>::json_schema(gen)?)?
         }
     });
 

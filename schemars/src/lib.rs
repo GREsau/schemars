@@ -1,15 +1,23 @@
 pub type Map<K, V> = std::collections::BTreeMap<K, V>;
 pub type Set<T> = std::collections::BTreeSet<T>;
 
-pub mod gen;
-pub mod schema;
-
 mod error;
-mod make_schema;
+mod json_schema_impls;
 #[macro_use]
 mod macros;
 
-pub use error::*;
-pub use make_schema::MakeSchema;
+pub mod gen;
+pub mod schema;
 
+pub use error::*;
 pub use schemars_derive::*;
+
+pub trait JsonSchema {
+    fn is_referenceable() -> bool {
+        true
+    }
+
+    fn schema_name() -> String;
+
+    fn json_schema(gen: &mut gen::SchemaGenerator) -> Result;
+}

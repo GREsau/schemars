@@ -1,8 +1,8 @@
 mod util;
-use schemars::{MakeSchema, Map};
+use schemars::{JsonSchema, Map};
 use util::*;
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 #[schemars(rename_all = "camelCase")]
 pub enum External {
     UnitOne,
@@ -16,7 +16,7 @@ fn enum_external_tag() -> TestResult {
     test_default_generated_schema::<External>("enum-external")
 }
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 #[schemars(tag = "typeProperty")]
 pub enum Internal {
     UnitOne,
@@ -30,7 +30,7 @@ fn enum_internal_tag() -> TestResult {
     test_default_generated_schema::<Internal>("enum-internal")
 }
 
-#[derive(Debug, MakeSchema)]
+#[derive(Debug, JsonSchema)]
 #[schemars(untagged)]
 pub enum Untagged {
     UnitOne,

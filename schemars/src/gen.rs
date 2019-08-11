@@ -1,6 +1,5 @@
-use crate::make_schema::MakeSchema;
 use crate::schema::*;
-use crate::{MakeSchemaError, Map, Result};
+use crate::{JsonSchema, JsonSchemaError, Map, Result};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct SchemaSettings {
@@ -85,9 +84,9 @@ impl SchemaGenerator {
         }
     }
 
-    pub fn subschema_for<T: ?Sized + MakeSchema>(&mut self) -> Result {
+    pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Result {
         if !T::is_referenceable() {
-            return T::make_schema(self);
+            return T::json_schema(self);
         }
 
         let name = T::schema_name();
@@ -98,12 +97,12 @@ impl SchemaGenerator {
         Ok(Ref { reference }.into())
     }
 
-    fn insert_new_subschema_for<T: ?Sized + MakeSchema>(&mut self, name: String) -> Result<()> {
+    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: String) -> Result<()> {
         let dummy = Schema::Bool(false);
-        // insert into definitions BEFORE calling make_schema to avoid infinite recursion
+        // insert into definitions BEFORE calling json_schema to avoid infinite recursion
         self.definitions.insert(name.clone(), dummy);
 
-        match T::make_schema(self) {
+        match T::json_schema(self) {
             Ok(schema) => {
                 self.definitions.insert(name.clone(), schema);
                 Ok(())
@@ -123,8 +122,8 @@ impl SchemaGenerator {
         self.definitions
     }
 
-    pub fn root_schema_for<T: ?Sized + MakeSchema>(&mut self) -> Result {
-        let schema = T::make_schema(self)?;
+    pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Result {
+        let schema = T::json_schema(self)?;
         Ok(match schema {
             Schema::Object(mut o) => {
                 o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
@@ -136,8 +135,8 @@ impl SchemaGenerator {
         })
     }
 
-    pub fn into_root_schema_for<T: ?Sized + MakeSchema>(mut self) -> Result {
-        let schema = T::make_schema(&mut self)?;
+    pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Result {
+        let schema = T::json_schema(&mut self)?;
         Ok(match schema {
             Schema::Object(mut o) => {
                 o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
@@ -163,14 +162,14 @@ impl SchemaGenerator {
                 Schema::Ref(r) => {
                     let definitions_path_len = self.settings().definitions_path.len();
                     let name = r.reference.get(definitions_path_len..).ok_or_else(|| {
-                        MakeSchemaError::new(
+                        JsonSchemaError::new(
                             "Could not extract referenced schema name.",
                             Schema::Ref(r.clone()),
                         )
                     })?;
 
                     schema = self.definitions.get(name).ok_or_else(|| {
-                        MakeSchemaError::new(
+                        JsonSchemaError::new(
                             "Could not find referenced schema.",
                             Schema::Ref(r.clone()),
                         )
@@ -178,7 +177,7 @@ impl SchemaGenerator {
 
                     match schema {
                         Schema::Ref(r2) if r2 == r => {
-                            return Err(MakeSchemaError::new(
+                            return Err(JsonSchemaError::new(
                                 "Schema is referencing itself.",
                                 schema.clone(),
                             ));

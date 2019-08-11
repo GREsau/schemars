@@ -1,9 +1,9 @@
 use crate as schemars;
-use crate::{MakeSchema, MakeSchemaError, Map, Result, Set};
+use crate::{JsonSchema, JsonSchemaError, Map, Result, Set};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, MakeSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
 #[serde(untagged)]
 pub enum Schema {
     Bool(bool),
@@ -62,7 +62,7 @@ impl Schema {
         let s = match self {
             Schema::Object(s) => s,
             s => {
-                return Err(MakeSchemaError::new(
+                return Err(JsonSchemaError::new(
                     "Only schemas with type `object` can be flattened.",
                     s,
                 ))
@@ -70,13 +70,13 @@ impl Schema {
         };
         match s.instance_type {
             Some(SingleOrVec::Single(ref t)) if **t != InstanceType::Object => {
-                Err(MakeSchemaError::new(
+                Err(JsonSchemaError::new(
                     "Only schemas with type `object` can be flattened.",
                     s.into(),
                 ))
             }
             Some(SingleOrVec::Vec(ref t)) if !t.contains(&InstanceType::Object) => {
-                Err(MakeSchemaError::new(
+                Err(JsonSchemaError::new(
                     "Only schemas with type `object` can be flattened.",
                     s.into(),
                 ))
@@ -86,13 +86,13 @@ impl Schema {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, MakeSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
 pub struct Ref {
     #[serde(rename = "$ref")]
     pub reference: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, MakeSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SchemaObject {
     #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
@@ -127,7 +127,7 @@ pub struct SchemaObject {
     pub extensions: Map<String, Value>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, MakeSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum InstanceType {
     Null,
@@ -139,7 +139,7 @@ pub enum InstanceType {
     Integer,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, MakeSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, JsonSchema)]
 #[serde(untagged)]
 pub enum SingleOrVec<T> {
     Single(Box<T>),
