@@ -295,7 +295,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
     }
 }
 
-impl<T> JsonSchema for std::marker::PhantomData<T> {
+impl<T: ?Sized> JsonSchema for std::marker::PhantomData<T> {
     no_ref_schema!();
 
     fn schema_name() -> String {
@@ -313,7 +313,7 @@ macro_rules! deref_impl {
     ($($desc:tt)+) => {
         impl $($desc)+
         where
-            T: JsonSchema,
+            T: ?Sized + JsonSchema,
         {
             fn is_referenceable() -> bool {
                 T::is_referenceable()

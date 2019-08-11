@@ -29,7 +29,7 @@ struct Deep2 {
 
 #[derive(Debug, JsonSchema)]
 struct Deep3 {
-    baz: String,
+    baz: &'static str,
 }
 
 #[test]
