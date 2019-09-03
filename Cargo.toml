@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "schemars",
+    "schemars_derive"
+]
