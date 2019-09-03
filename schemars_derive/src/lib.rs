@@ -41,7 +41,7 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         quote! {
             #schema_base_name.to_owned()
         }
-    } else if schema_base_name == type_name.to_string() {
+    } else if type_name == schema_base_name {
         let mut schema_name_fmt = schema_base_name;
         schema_name_fmt.push_str("_For_{}");
         schema_name_fmt.push_str(&"_And_{}".repeat(type_params.len() - 1));
@@ -93,7 +93,7 @@ fn compile_error(span: Span, message: String) -> TokenStream {
     }
 }
 
-fn is_unit_variant(v: &&Variant) -> bool {
+fn is_unit_variant(v: &Variant) -> bool {
     match v.style {
         Style::Unit => true,
         _ => false,
@@ -111,7 +111,7 @@ fn schema_for_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStrea
 
 fn schema_for_external_tagged_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStream {
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
-        variants.into_iter().partition(is_unit_variant);
+        variants.iter().partition(|v| is_unit_variant(v));
     let unit_count = unit_variants.len();
 
     let unit_names = unit_variants
@@ -158,7 +158,7 @@ fn schema_for_internal_tagged_enum(
     cattrs: &attr::Container,
     tag_name: &str,
 ) -> TokenStream {
-    let schemas = variants.into_iter().map(|variant| {
+    let schemas = variants.iter().map(|variant| {
         let name = variant.attrs.name().deserialize_name();
         let type_schema = wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::String.into()),
@@ -194,7 +194,7 @@ fn schema_for_internal_tagged_enum(
 
 fn schema_for_untagged_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStream {
     let schemas = variants
-        .into_iter()
+        .iter()
         .map(|v| schema_for_untagged_enum_variant(v, cattrs));
 
     wrap_schema_fields(quote! {

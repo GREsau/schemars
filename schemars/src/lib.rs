@@ -1,3 +1,5 @@
+#![allow(clippy::large_enum_variant)]
+
 pub type Map<K, V> = std::collections::BTreeMap<K, V>;
 pub type Set<T> = std::collections::BTreeSet<T>;
 
