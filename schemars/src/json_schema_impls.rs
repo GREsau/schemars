@@ -272,9 +272,11 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Result {
-        // FIXME this may produce a subschema that is not referenced in the final schema,
-        // e.g. SingleOrVec_For_InstanceType in schema-openapi3.json
-        let mut schema = gen.subschema_for::<T>()?;
+        let mut schema = if gen.settings().option_nullable {
+            T::json_schema(gen)?
+        } else {
+            gen.subschema_for::<T>()?
+        };
         if gen.settings().option_add_null_type {
             schema = match schema {
                 Schema::Bool(true) => Schema::Bool(true),

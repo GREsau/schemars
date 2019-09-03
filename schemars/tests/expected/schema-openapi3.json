@@ -24,6 +24,17 @@
         "integer"
       ]
     },
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "$ref": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "$ref"
+      ]
+    },
     "Schema": {
       "anyOf": [
         {
@@ -144,43 +155,6 @@
         }
       },
       "additionalProperties": true
-    },
-    "Ref": {
-      "type": "object",
-      "properties": {
-        "$ref": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "$ref"
-      ]
-    },
-    "SingleOrVec_For_InstanceType": {
-      "anyOf": [
-        {
-          "$ref": "#/components/schemas/InstanceType"
-        },
-        {
-          "type": "array",
-          "items": {
-            "$ref": "#/components/schemas/InstanceType"
-          }
-        }
-      ]
-    },
-    "SingleOrVec_For_Schema": {
-      "anyOf": [
-        {
-          "$ref": "#/components/schemas/Schema"
-        },
-        {
-          "type": "array",
-          "items": {
-            "$ref": "#/components/schemas/Schema"
-          }
-        }
-      ]
     }
   }
 }
