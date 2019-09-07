@@ -28,8 +28,22 @@ pub trait JsonSchema {
 pub mod tests {
     use super::*;
 
+    pub fn schema_object_for<T: JsonSchema>() -> schema::SchemaObject {
+        schema_object(schema_for::<T>())
+    }
+
+    pub fn custom_schema_object_for<T: JsonSchema>(
+        settings: gen::SchemaSettings,
+    ) -> schema::SchemaObject {
+        schema_object(custom_schema_for::<T>(settings))
+    }
+
     pub fn schema_for<T: JsonSchema>() -> schema::Schema {
-        match T::json_schema(&mut gen::SchemaGenerator::default()) {
+        custom_schema_for::<T>(Default::default())
+    }
+
+    pub fn custom_schema_for<T: JsonSchema>(settings: gen::SchemaSettings) -> schema::Schema {
+        match T::json_schema(&mut gen::SchemaGenerator::new(settings)) {
             Ok(s) => s,
             Err(e) => panic!(
                 "Couldn't generate schema object for {}: {}",
@@ -39,10 +53,10 @@ pub mod tests {
         }
     }
 
-    pub fn schema_object_for<T: JsonSchema>() -> schema::SchemaObject {
-        match schema_for::<T>() {
+    pub fn schema_object(schema: schema::Schema) -> schema::SchemaObject {
+        match schema {
             schema::Schema::Object(o) => o,
-            s => panic!("Schema for {} was not an object: {:?}", T::schema_name(), s),
+            s => panic!("Schema was not an object: {:?}", s),
         }
     }
 }

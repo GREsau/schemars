@@ -73,4 +73,17 @@ mod tests {
         assert_eq!(schema.extensions.get("maxItems"), Some(&json!(8)));
         assert_eq!(schema.items, Some(SingleOrVec::from(schema_for::<i32>())));
     }
+
+    // SomeStruct does not implement JsonSchema
+    struct SomeStruct;
+
+    #[test]
+    fn schema_for_empty_array() {
+        let schema = schema_object_for::<[SomeStruct; 0]>();
+        assert_eq!(
+            schema.instance_type,
+            Some(SingleOrVec::from(InstanceType::Array))
+        );
+        assert_eq!(schema.extensions.get("maxItems"), Some(&json!(0)));
+    }
 }
