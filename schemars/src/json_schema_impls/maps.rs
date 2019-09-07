@@ -41,3 +41,71 @@ macro_rules! map_impl {
 
 map_impl!(<K: Ord, V> JsonSchema for std::collections::BTreeMap<K, V>);
 map_impl!(<K: Eq + core::hash::Hash, V, H: core::hash::BuildHasher> JsonSchema for std::collections::HashMap<K, V, H>);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::gen::*;
+    use crate::tests::{custom_schema_object_for, schema_for};
+    use pretty_assertions::assert_eq;
+    use std::collections::BTreeMap;
+
+    #[test]
+    fn schema_for_map_any_value() {
+        for bool_schemas in &[BoolSchemas::Enable, BoolSchemas::AdditionalPropertiesOnly] {
+            let settings = SchemaSettings {
+                bool_schemas: *bool_schemas,
+                ..Default::default()
+            };
+            let schema = custom_schema_object_for::<BTreeMap<String, serde_json::Value>>(settings);
+            assert_eq!(
+                schema.instance_type,
+                Some(SingleOrVec::from(InstanceType::Object))
+            );
+            assert_eq!(
+                schema.extensions.get("additionalProperties"),
+                Some(&json!(true))
+            );
+        }
+    }
+
+    #[test]
+    fn schema_for_map_any_value_no_bool_schema() {
+        let settings = SchemaSettings {
+            bool_schemas: BoolSchemas::Disable,
+            ..Default::default()
+        };
+        let schema = custom_schema_object_for::<BTreeMap<String, serde_json::Value>>(settings);
+        assert_eq!(
+            schema.instance_type,
+            Some(SingleOrVec::from(InstanceType::Object))
+        );
+        assert_eq!(
+            schema.extensions.get("additionalProperties"),
+            Some(&json!(Schema::Object(Default::default())))
+        );
+    }
+
+    #[test]
+    fn schema_for_map_int_value() {
+        for bool_schemas in &[
+            BoolSchemas::Enable,
+            BoolSchemas::Disable,
+            BoolSchemas::AdditionalPropertiesOnly,
+        ] {
+            let settings = SchemaSettings {
+                bool_schemas: *bool_schemas,
+                ..Default::default()
+            };
+            let schema = custom_schema_object_for::<BTreeMap<String, i32>>(settings);
+            assert_eq!(
+                schema.instance_type,
+                Some(SingleOrVec::from(InstanceType::Object))
+            );
+            assert_eq!(
+                schema.extensions.get("additionalProperties"),
+                Some(&json!(schema_for::<i32>()))
+            );
+        }
+    }
+}
