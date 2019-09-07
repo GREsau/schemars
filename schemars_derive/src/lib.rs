@@ -28,9 +28,11 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     }
 
     let schema = match cont.data {
+        Data::Struct(Style::Unit, _) => schema_for_unit_struct(),
+        Data::Struct(Style::Newtype, ref fields) => schema_for_newtype_struct(&fields[0]),
+        Data::Struct(Style::Tuple, ref fields) => schema_for_tuple_struct(fields),
         Data::Struct(Style::Struct, ref fields) => schema_for_struct(fields, &cont.attrs),
         Data::Enum(ref variants) => schema_for_enum(variants, &cont.attrs),
-        _ => unimplemented!("work in progress!"),
     };
 
     let type_name = cont.ident;
@@ -105,7 +107,7 @@ fn schema_for_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStrea
         EnumTag::External => schema_for_external_tagged_enum(variants, cattrs),
         EnumTag::None => schema_for_untagged_enum(variants, cattrs),
         EnumTag::Internal { tag } => schema_for_internal_tagged_enum(variants, cattrs, tag),
-        EnumTag::Adjacent => unimplemented!("Adjacent tagged enums not yet supported."),
+        EnumTag::Adjacent { .. } => unimplemented!("Adjacent tagged enums not yet supported."),
     }
 }
 
@@ -204,23 +206,30 @@ fn schema_for_untagged_enum(variants: &[Variant], cattrs: &attr::Container) -> T
 
 fn schema_for_untagged_enum_variant(variant: &Variant, cattrs: &attr::Container) -> TokenStream {
     match variant.style {
-        Style::Unit => quote! {
-            gen.subschema_for::<()>()?
-        },
-        Style::Newtype => {
-            let f = &variant.fields[0];
-            let ty = f.ty;
-            quote_spanned! {f.original.span()=>
-                gen.subschema_for::<#ty>()?
-            }
-        }
-        Style::Tuple => {
-            let types = variant.fields.iter().map(|f| f.ty);
-            quote! {
-                gen.subschema_for::<(#(#types),*)>()?
-            }
-        }
+        Style::Unit => schema_for_unit_struct(),
+        Style::Newtype => schema_for_newtype_struct(&variant.fields[0]),
+        Style::Tuple => schema_for_tuple_struct(&variant.fields),
         Style::Struct => schema_for_struct(&variant.fields, cattrs),
+    }
+}
+
+fn schema_for_unit_struct() -> TokenStream {
+    quote! {
+        gen.subschema_for::<()>()?
+    }
+}
+
+fn schema_for_newtype_struct(field: &Field) -> TokenStream {
+    let ty = field.ty;
+    quote_spanned! {field.original.span()=>
+        gen.subschema_for::<#ty>()?
+    }
+}
+
+fn schema_for_tuple_struct(fields: &[Field]) -> TokenStream {
+    let types = fields.iter().map(|f| f.ty);
+    quote! {
+        gen.subschema_for::<(#(#types),*)>()?
     }
 }
 
