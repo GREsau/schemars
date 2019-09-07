@@ -50,3 +50,28 @@ tuple_impls! {
     15 => (T0 T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12 T13 T14)
     16 => (T0 T1 T2 T3 T4 T5 T6 T7 T8 T9 T10 T11 T12 T13 T14 T15)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::tests::{schema_for, schema_object_for};
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn schema_for_map_any_value() {
+        let schema = schema_object_for::<(i32, bool)>();
+        assert_eq!(
+            schema.instance_type,
+            Some(SingleOrVec::from(InstanceType::Array))
+        );
+        assert_eq!(schema.extensions.get("minItems"), Some(&json!(2)));
+        assert_eq!(schema.extensions.get("maxItems"), Some(&json!(2)));
+        assert_eq!(
+            schema.items,
+            Some(SingleOrVec::Vec(vec![
+                schema_for::<i32>(),
+                schema_for::<bool>()
+            ]))
+        );
+    }
+}
