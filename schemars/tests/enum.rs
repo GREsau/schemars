@@ -7,8 +7,9 @@ use util::*;
 pub enum External {
     UnitOne,
     StringMap(Map<String, String>),
-    Struct{ foo: i32, bar: bool },
+    Struct { foo: i32, bar: bool },
     UnitTwo,
+    Tuple(i32, bool),
 }
 
 #[test]
@@ -21,7 +22,7 @@ fn enum_external_tag() -> TestResult {
 pub enum Internal {
     UnitOne,
     StringMap(Map<String, String>),
-    Struct{ foo: i32, bar: bool },
+    Struct { foo: i32, bar: bool },
     UnitTwo,
 }
 
@@ -35,7 +36,8 @@ fn enum_internal_tag() -> TestResult {
 pub enum Untagged {
     UnitOne,
     StringMap(Map<String, String>),
-    Struct{ foo: i32, bar: bool }
+    Struct { foo: i32, bar: bool },
+    Tuple(i32, bool),
 }
 
 #[test]

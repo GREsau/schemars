@@ -44,6 +44,27 @@
       "required": [
         "struct"
       ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "tuple": {
+          "type": "array",
+          "items": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2
+        }
+      },
+      "required": [
+        "tuple"
+      ]
     }
   ]
 }

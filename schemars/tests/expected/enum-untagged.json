@@ -25,6 +25,19 @@
         "bar",
         "foo"
       ]
+    },
+    {
+      "type": "array",
+      "items": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "boolean"
+        }
+      ],
+      "maxItems": 2,
+      "minItems": 2
     }
   ]
 }

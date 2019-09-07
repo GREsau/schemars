@@ -105,7 +105,7 @@ fn schema_for_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStrea
         EnumTag::External => schema_for_external_tagged_enum(variants, cattrs),
         EnumTag::None => schema_for_untagged_enum(variants, cattrs),
         EnumTag::Internal { tag } => schema_for_internal_tagged_enum(variants, cattrs, tag),
-        _ => unimplemented!("Adjacent/internal tagged enums not yet supported."),
+        EnumTag::Adjacent => unimplemented!("Adjacent tagged enums not yet supported."),
     }
 }
 
