@@ -19,7 +19,9 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let mut input = parse_macro_input!(input as DeriveInput);
 
     preprocess::add_trait_bounds(&mut input.generics);
-    preprocess::rename_schemars_attrs(&mut input);
+    if let Err(e) = preprocess::process_serde_attrs(&mut input) {
+        return e.into();
+    }
 
     let ctxt = Ctxt::new();
     let cont = Container::from_ast(&ctxt, &input, Derive::Deserialize);
@@ -237,13 +239,13 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
     let (nested, flat): (Vec<_>, Vec<_>) = fields.iter().partition(|f| !f.attrs.flatten());
     let container_has_default = has_default(cattrs.default());
     let mut required = Vec::new();
-    let recurse = nested.iter().map(|f| {
-        let name = f.attrs.name().deserialize_name();
-        if !container_has_default && !has_default(f.attrs.default()) {
+    let recurse = nested.iter().map(|field| {
+        let name = field.attrs.name().deserialize_name();
+        if !container_has_default && !has_default(field.attrs.default()) {
             required.push(name.clone());
         }
-        let ty = f.ty;
-        quote_spanned! {f.original.span()=>
+        let ty = field.ty;
+        quote_spanned! {field.original.span()=>
             props.insert(#name.to_owned(), gen.subschema_for::<#ty>()?);
         }
     });

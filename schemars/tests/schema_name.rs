@@ -21,6 +21,7 @@ fn default_name_multiple_type_params() -> TestResult {
 
 #[derive(Debug, JsonSchema)]
 #[serde(rename = "a-new-name-{W}-{T}-{T}")]
+#[schemars(rename_all = "camelCase")]
 struct MyRenamedStruct<T, U, V, W> {
     t: T,
     u: U,
@@ -36,5 +37,7 @@ struct MySimpleRenamedStruct {}
 
 #[test]
 fn overriden_with_rename_multiple_type_params() -> TestResult {
-    test_default_generated_schema::<MyRenamedStruct<i32, (), bool, Vec<String>>>("schema-name-custom")
+    test_default_generated_schema::<MyRenamedStruct<i32, (), bool, Vec<String>>>(
+        "schema-name-custom",
+    )
 }
