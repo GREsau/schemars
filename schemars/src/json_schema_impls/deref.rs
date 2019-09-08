@@ -27,4 +27,8 @@ deref_impl!(<'a, T> JsonSchema for &'a mut T);
 deref_impl!(<T> JsonSchema for Box<T>);
 deref_impl!(<T> JsonSchema for std::rc::Rc<T>);
 deref_impl!(<T> JsonSchema for std::sync::Arc<T>);
+deref_impl!(<T> JsonSchema for std::sync::Mutex<T>);
+deref_impl!(<T> JsonSchema for std::sync::RwLock<T>);
+deref_impl!(<T> JsonSchema for std::cell::Cell<T>);
+deref_impl!(<T> JsonSchema for std::cell::RefCell<T>);
 deref_impl!(<'a, T: ToOwned> JsonSchema for std::borrow::Cow<'a, T>);
