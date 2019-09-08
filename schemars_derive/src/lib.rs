@@ -20,7 +20,7 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
 
     preprocess::add_trait_bounds(&mut input.generics);
     if let Err(e) = preprocess::process_serde_attrs(&mut input) {
-        return e.into();
+        return compile_error(input.span(), e).into();
     }
 
     let ctxt = Ctxt::new();
