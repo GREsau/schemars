@@ -88,6 +88,10 @@
           "items": {},
           "nullable": true
         },
+        "format": {
+          "type": "string",
+          "nullable": true
+        },
         "items": {
           "anyOf": [
             {

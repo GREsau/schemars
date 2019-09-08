@@ -50,6 +50,7 @@ impl Schema {
             extensions: extend(s1.extensions, s2.extensions),
             // TODO do the following make sense?
             instance_type: s1.instance_type.or(s2.instance_type),
+            format: s1.format.or(s2.format),
             enum_values: s1.enum_values.or(s2.enum_values),
             all_of: s1.all_of.or(s2.all_of),
             any_of: s1.any_of.or(s2.any_of),
@@ -105,6 +106,8 @@ pub struct SchemaObject {
     pub description: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub instance_type: Option<SingleOrVec<InstanceType>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub format: Option<String>,
     #[serde(rename = "enum", skip_serializing_if = "Option::is_none")]
     pub enum_values: Option<Vec<Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -7,6 +7,8 @@ macro_rules! no_ref_schema {
 }
 
 mod array;
+#[cfg(feature = "chrono")]
+mod chrono;
 mod core;
 mod deref;
 mod maps;

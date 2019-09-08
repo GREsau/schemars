@@ -24,6 +24,17 @@
         "integer"
       ]
     },
+    "Ref": {
+      "type": "object",
+      "properties": {
+        "$ref": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "$ref"
+      ]
+    },
     "Schema": {
       "anyOf": [
         {
@@ -113,6 +124,16 @@
             }
           ]
         },
+        "format": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "items": {
           "anyOf": [
             {
@@ -180,17 +201,6 @@
         }
       },
       "additionalProperties": true
-    },
-    "Ref": {
-      "type": "object",
-      "properties": {
-        "$ref": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "$ref"
-      ]
     },
     "SingleOrVec_For_InstanceType": {
       "anyOf": [
