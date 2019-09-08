@@ -4,13 +4,16 @@
   "type": "object",
   "properties": {
     "camelCase": {
-      "type": "integer"
+      "type": "integer",
+      "format": "int32"
     },
     "new_name_1": {
-      "type": "integer"
+      "type": "integer",
+      "format": "int32"
     },
     "new_name_2": {
-      "type": "integer"
+      "type": "integer",
+      "format": "int32"
     }
   },
   "required": [

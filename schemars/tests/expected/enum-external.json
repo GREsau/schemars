@@ -32,7 +32,8 @@
               "type": "boolean"
             },
             "foo": {
-              "type": "integer"
+              "type": "integer",
+              "format": "int32"
             }
           },
           "required": [
@@ -52,7 +53,8 @@
           "type": "array",
           "items": [
             {
-              "type": "integer"
+              "type": "integer",
+              "format": "int32"
             },
             {
               "type": "boolean"

@@ -36,17 +36,18 @@
     {
       "type": "object",
       "properties": {
+        "bar": {
+          "type": "boolean"
+        },
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        },
         "typeProperty": {
           "type": "string",
           "enum": [
             "Struct"
           ]
-        },
-        "bar": {
-          "type": "boolean"
-        },
-        "foo": {
-          "type": "integer"
         }
       },
       "required": [

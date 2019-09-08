@@ -7,7 +7,8 @@
       "type": "boolean"
     },
     "foo": {
-      "type": "integer"
+      "type": "integer",
+      "format": "int32"
     }
   },
   "required": [
