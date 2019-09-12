@@ -17,7 +17,10 @@ macro_rules! seq_impl {
             fn json_schema(gen: &mut SchemaGenerator) -> Result {
                 Ok(SchemaObject {
                     instance_type: Some(InstanceType::Array.into()),
-                    items: Some(gen.subschema_for::<T>()?.into()),
+                    array: ArrayValidation {
+                        items: Some(gen.subschema_for::<T>()?.into()),
+                        ..Default::default()
+                    },
                     ..Default::default()
                 }.into())
             }

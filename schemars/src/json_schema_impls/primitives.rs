@@ -1,7 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
-use crate::{JsonSchema, Map, Result};
-use serde_json::json;
+use crate::{JsonSchema, Result};
 
 macro_rules! simple_impl {
     ($type:tt => $instance_type:ident) => {
@@ -57,12 +56,13 @@ impl JsonSchema for char {
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Result {
-        let mut extensions = Map::new();
-        extensions.insert("minLength".to_owned(), json!(1));
-        extensions.insert("maxLength".to_owned(), json!(1));
         Ok(SchemaObject {
             instance_type: Some(InstanceType::String.into()),
-            extensions,
+            string: StringValidation {
+                min_length: Some(1),
+                max_length: Some(1),
+                ..Default::default()
+            },
             ..Default::default()
         }
         .into())

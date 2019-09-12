@@ -1,7 +1,6 @@
 use crate::gen::{BoolSchemas, SchemaGenerator};
 use crate::schema::*;
-use crate::{JsonSchema, Map, Result};
-use serde_json::json;
+use crate::{JsonSchema, Result};
 
 macro_rules! map_impl {
     ($($desc:tt)+) => {
@@ -20,18 +19,18 @@ macro_rules! map_impl {
                 let subschema = gen.subschema_for::<V>()?;
                 let json_schema_bool = gen.settings().bool_schemas == BoolSchemas::AdditionalPropertiesOnly
                     && subschema == gen.schema_for_any();
-                let mut extensions = Map::new();
-                extensions.insert(
-                    "additionalProperties".to_owned(),
+                let additional_properties =
                     if json_schema_bool {
-                        json!(true)
+                        true.into()
                     } else {
-                        json!(subschema)
-                    }
-                );
+                        subschema.into()
+                    };
                 Ok(SchemaObject {
                     instance_type: Some(InstanceType::Object.into()),
-                    extensions,
+                    object: ObjectValidation {
+                        additional_properties: Some(Box::new(additional_properties)),
+                        ..Default::default()
+                    },
                     ..Default::default()
                 }.into())
             }
@@ -62,10 +61,10 @@ mod tests {
                 schema.instance_type,
                 Some(SingleOrVec::from(InstanceType::Object))
             );
-            assert_eq!(
-                schema.extensions.get("additionalProperties"),
-                Some(&json!(true))
-            );
+            let additional_properties = schema.object
+                .additional_properties
+                .expect("additionalProperties field present");
+            assert_eq!(*additional_properties, Schema::Bool(true));
         }
     }
 
@@ -80,10 +79,10 @@ mod tests {
             schema.instance_type,
             Some(SingleOrVec::from(InstanceType::Object))
         );
-        assert_eq!(
-            schema.extensions.get("additionalProperties"),
-            Some(&json!(Schema::Object(Default::default())))
-        );
+        let additional_properties = schema.object
+            .additional_properties
+            .expect("additionalProperties field present");
+        assert_eq!(*additional_properties, Schema::Object(Default::default()));
     }
 
     #[test]
@@ -102,10 +101,10 @@ mod tests {
                 schema.instance_type,
                 Some(SingleOrVec::from(InstanceType::Object))
             );
-            assert_eq!(
-                schema.extensions.get("additionalProperties"),
-                Some(&json!(schema_for::<i32>()))
-            );
+            let additional_properties = schema.object
+                .additional_properties
+                .expect("additionalProperties field present");
+            assert_eq!(*additional_properties, schema_for::<i32>());
         }
     }
 }

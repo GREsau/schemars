@@ -1,7 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
-use crate::{JsonSchema, Map, Result};
-use serde_json::json;
+use crate::{JsonSchema, Result};
 
 macro_rules! tuple_impls {
     ($($len:expr => ($($name:ident)+))+) => {
@@ -14,16 +13,17 @@ macro_rules! tuple_impls {
                 }
 
                 fn json_schema(gen: &mut SchemaGenerator) -> Result {
-                    let mut extensions = Map::new();
-                    extensions.insert("minItems".to_owned(), json!($len));
-                    extensions.insert("maxItems".to_owned(), json!($len));
                     let items = vec![
                         $(gen.subschema_for::<$name>()?),+
                     ];
                     Ok(SchemaObject {
                         instance_type: Some(InstanceType::Array.into()),
-                        items: Some(items.into()),
-                        extensions,
+                        array: ArrayValidation {
+                            items: Some(items.into()),
+                            max_items: Some($len),
+                            min_items: Some($len),
+                            ..Default::default()
+                        },
                         ..Default::default()
                     }.into())
                 }
@@ -64,14 +64,14 @@ mod tests {
             schema.instance_type,
             Some(SingleOrVec::from(InstanceType::Array))
         );
-        assert_eq!(schema.extensions.get("minItems"), Some(&json!(2)));
-        assert_eq!(schema.extensions.get("maxItems"), Some(&json!(2)));
         assert_eq!(
-            schema.items,
+            schema.array.items,
             Some(SingleOrVec::Vec(vec![
                 schema_for::<i32>(),
                 schema_for::<bool>()
             ]))
         );
+        assert_eq!(schema.array.max_items, Some(2));
+        assert_eq!(schema.array.min_items, Some(2));
     }
 }

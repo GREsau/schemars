@@ -26,14 +26,14 @@
     },
     "Ref": {
       "type": "object",
+      "required": [
+        "$ref"
+      ],
       "properties": {
         "$ref": {
           "type": "string"
         }
-      },
-      "required": [
-        "$ref"
-      ]
+      }
     },
     "Schema": {
       "anyOf": [
@@ -71,6 +71,26 @@
             }
           ]
         },
+        "additionalItems": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "allOf": {
           "anyOf": [
             {
@@ -97,6 +117,16 @@
             }
           ]
         },
+        "contains": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "definitions": {
           "type": "object",
           "additionalProperties": {
@@ -107,6 +137,16 @@
           "anyOf": [
             {
               "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "else": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Schema"
             },
             {
               "type": "null"
@@ -124,6 +164,28 @@
             }
           ]
         },
+        "exclusiveMaximum": {
+          "anyOf": [
+            {
+              "type": "number",
+              "format": "double"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "exclusiveMinimum": {
+          "anyOf": [
+            {
+              "type": "number",
+              "format": "double"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "format": {
           "anyOf": [
             {
@@ -134,10 +196,119 @@
             }
           ]
         },
+        "if": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "items": {
           "anyOf": [
             {
               "$ref": "#/definitions/SingleOrVec_For_Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maxItems": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "format": "uint32"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maxLength": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "format": "uint32"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maxProperties": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "format": "uint32"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "maximum": {
+          "anyOf": [
+            {
+              "type": "number",
+              "format": "double"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minItems": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "format": "uint32"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minLength": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "format": "uint32"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minProperties": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "format": "uint32"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "minimum": {
+          "anyOf": [
+            {
+              "type": "number",
+              "format": "double"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "multipleOf": {
+          "anyOf": [
+            {
+              "type": "number",
+              "format": "double"
             },
             {
               "type": "null"
@@ -167,17 +338,53 @@
             }
           ]
         },
+        "pattern": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "patternProperties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/Schema"
+          }
+        },
         "properties": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/Schema"
           }
         },
+        "propertyNames": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "required": {
           "type": "array",
           "items": {
             "type": "string"
           }
+        },
+        "then": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/Schema"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "title": {
           "anyOf": [
@@ -193,6 +400,16 @@
           "anyOf": [
             {
               "$ref": "#/definitions/SingleOrVec_For_InstanceType"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "uniqueItems": {
+          "anyOf": [
+            {
+              "type": "boolean"
             },
             {
               "type": "null"

@@ -26,14 +26,14 @@
     },
     "Ref": {
       "type": "object",
+      "required": [
+        "$ref"
+      ],
       "properties": {
         "$ref": {
           "type": "string"
         }
-      },
-      "required": [
-        "$ref"
-      ]
+      }
     },
     "Schema": {
       "anyOf": [
@@ -59,6 +59,34 @@
           "type": "string",
           "nullable": true
         },
+        "additionalItems": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/components/schemas/Ref"
+            },
+            {
+              "$ref": "#/components/schemas/SchemaObject"
+            }
+          ],
+          "nullable": true
+        },
+        "additionalProperties": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/components/schemas/Ref"
+            },
+            {
+              "$ref": "#/components/schemas/SchemaObject"
+            }
+          ],
+          "nullable": true
+        },
         "allOf": {
           "type": "array",
           "items": {
@@ -73,6 +101,20 @@
           },
           "nullable": true
         },
+        "contains": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/components/schemas/Ref"
+            },
+            {
+              "$ref": "#/components/schemas/SchemaObject"
+            }
+          ],
+          "nullable": true
+        },
         "definitions": {
           "type": "object",
           "additionalProperties": {
@@ -83,13 +125,51 @@
           "type": "string",
           "nullable": true
         },
+        "else": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/components/schemas/Ref"
+            },
+            {
+              "$ref": "#/components/schemas/SchemaObject"
+            }
+          ],
+          "nullable": true
+        },
         "enum": {
           "type": "array",
           "items": {},
           "nullable": true
         },
+        "exclusiveMaximum": {
+          "type": "number",
+          "format": "double",
+          "nullable": true
+        },
+        "exclusiveMinimum": {
+          "type": "number",
+          "format": "double",
+          "nullable": true
+        },
         "format": {
           "type": "string",
+          "nullable": true
+        },
+        "if": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/components/schemas/Ref"
+            },
+            {
+              "$ref": "#/components/schemas/SchemaObject"
+            }
+          ],
           "nullable": true
         },
         "items": {
@@ -104,6 +184,51 @@
               }
             }
           ],
+          "nullable": true
+        },
+        "maxItems": {
+          "type": "integer",
+          "format": "uint32",
+          "nullable": true
+        },
+        "maxLength": {
+          "type": "integer",
+          "format": "uint32",
+          "nullable": true
+        },
+        "maxProperties": {
+          "type": "integer",
+          "format": "uint32",
+          "nullable": true
+        },
+        "maximum": {
+          "type": "number",
+          "format": "double",
+          "nullable": true
+        },
+        "minItems": {
+          "type": "integer",
+          "format": "uint32",
+          "nullable": true
+        },
+        "minLength": {
+          "type": "integer",
+          "format": "uint32",
+          "nullable": true
+        },
+        "minProperties": {
+          "type": "integer",
+          "format": "uint32",
+          "nullable": true
+        },
+        "minimum": {
+          "type": "number",
+          "format": "double",
+          "nullable": true
+        },
+        "multipleOf": {
+          "type": "number",
+          "format": "double",
           "nullable": true
         },
         "not": {
@@ -127,17 +252,55 @@
           },
           "nullable": true
         },
+        "pattern": {
+          "type": "string",
+          "nullable": true
+        },
+        "patternProperties": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/components/schemas/Schema"
+          }
+        },
         "properties": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/components/schemas/Schema"
           }
         },
+        "propertyNames": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/components/schemas/Ref"
+            },
+            {
+              "$ref": "#/components/schemas/SchemaObject"
+            }
+          ],
+          "nullable": true
+        },
         "required": {
           "type": "array",
           "items": {
             "type": "string"
           }
+        },
+        "then": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/components/schemas/Ref"
+            },
+            {
+              "$ref": "#/components/schemas/SchemaObject"
+            }
+          ],
+          "nullable": true
         },
         "title": {
           "type": "string",
@@ -155,6 +318,10 @@
               }
             }
           ],
+          "nullable": true
+        },
+        "uniqueItems": {
+          "type": "boolean",
           "nullable": true
         }
       },

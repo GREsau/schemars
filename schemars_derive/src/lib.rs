@@ -142,15 +142,18 @@ fn schema_for_external_tagged_enum<'a>(
         let sub_schema = schema_for_untagged_enum_variant(variant, cattrs);
         wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
-            properties: {
-                let mut props = schemars::Map::new();
-                props.insert(#name.to_owned(), #sub_schema);
-                props
-            },
-            required: {
-                let mut required = schemars::Set::new();
-                required.insert(#name.to_owned());
-                required
+            object: schemars::schema::ObjectValidation {
+                properties: {
+                    let mut props = schemars::Map::new();
+                    props.insert(#name.to_owned(), #sub_schema);
+                    props
+                },
+                required: {
+                    let mut required = schemars::Set::new();
+                    required.insert(#name.to_owned());
+                    required
+                },
+                ..Default::default()
             },
         })
     }));
@@ -173,15 +176,18 @@ fn schema_for_internal_tagged_enum<'a>(
         });
         let schema = wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
-            properties: {
-                let mut props = schemars::Map::new();
-                props.insert(#tag_name.to_owned(), #type_schema);
-                props
-            },
-            required: {
-                let mut required = schemars::Set::new();
-                required.insert(#tag_name.to_owned());
-                required
+            object: schemars::schema::ObjectValidation {
+                properties: {
+                    let mut props = schemars::Map::new();
+                    props.insert(#tag_name.to_owned(), #type_schema);
+                    props
+                },
+                required: {
+                    let mut required = schemars::Set::new();
+                    required.insert(#tag_name.to_owned());
+                    required
+                },
+                ..Default::default()
             },
         });
         if is_unit_variant(&variant) {
@@ -262,15 +268,18 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
 
     let schema = wrap_schema_fields(quote! {
         instance_type: Some(schemars::schema::InstanceType::Object.into()),
-        properties: {
-            let mut props = schemars::Map::new();
-            #(#recurse)*
-            props
-        },
-        required: {
-            let mut required = schemars::Set::new();
-            #(required.insert(#required.to_owned());)*
-            required
+        object: schemars::schema::ObjectValidation {
+            properties: {
+                let mut props = schemars::Map::new();
+                #(#recurse)*
+                props
+            },
+            required: {
+                let mut required = schemars::Set::new();
+                #(required.insert(#required.to_owned());)*
+                required
+            },
+            ..Default::default()
         },
     });
 
@@ -300,10 +309,10 @@ fn get_json_schema_type(field: &Field) -> Box<dyn ToTokens> {
     let se_with_segments = without_last_element(field.attrs.serialize_with(), "serialize");
     if de_with_segments == se_with_segments {
         if let Some(expr_path) = de_with_segments {
-            return Box::from(expr_path);
+            return Box::new(expr_path);
         }
     }
-    Box::from(field.ty.clone())
+    Box::new(field.ty.clone())
 }
 
 fn without_last_element(path: Option<&syn::ExprPath>, last: &str) -> Option<syn::ExprPath> {

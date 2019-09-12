@@ -1,7 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
-use crate::{JsonSchema, Map, Result};
-use serde_json::json;
+use crate::{JsonSchema, Result};
 
 // Does not require T: JsonSchema.
 impl<T> JsonSchema for [T; 0] {
@@ -12,11 +11,12 @@ impl<T> JsonSchema for [T; 0] {
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Result {
-        let mut extensions = Map::new();
-        extensions.insert("maxItems".to_owned(), json!(0));
         Ok(SchemaObject {
             instance_type: Some(InstanceType::Array.into()),
-            extensions,
+            array: ArrayValidation {
+                max_items: Some(0),
+                ..Default::default()
+            },
             ..Default::default()
         }
         .into())
@@ -34,13 +34,14 @@ macro_rules! array_impls {
                 }
 
                 fn json_schema(gen: &mut SchemaGenerator) -> Result {
-                    let mut extensions = Map::new();
-                    extensions.insert("minItems".to_owned(), json!($len));
-                    extensions.insert("maxItems".to_owned(), json!($len));
                     Ok(SchemaObject {
                         instance_type: Some(InstanceType::Array.into()),
-                        items: Some(gen.subschema_for::<T>()?.into()),
-                        extensions,
+                        array: ArrayValidation {
+                            items: Some(gen.subschema_for::<T>()?.into()),
+                            max_items: Some($len),
+                            min_items: Some($len),
+                            ..Default::default()
+                        },
                         ..Default::default()
                     }.into())
                 }
@@ -69,9 +70,12 @@ mod tests {
             schema.instance_type,
             Some(SingleOrVec::from(InstanceType::Array))
         );
-        assert_eq!(schema.extensions.get("minItems"), Some(&json!(8)));
-        assert_eq!(schema.extensions.get("maxItems"), Some(&json!(8)));
-        assert_eq!(schema.items, Some(SingleOrVec::from(schema_for::<i32>())));
+        assert_eq!(
+            schema.array.items,
+            Some(SingleOrVec::from(schema_for::<i32>()))
+        );
+        assert_eq!(schema.array.max_items, Some(8));
+        assert_eq!(schema.array.min_items, Some(8));
     }
 
     // SomeStruct does not implement JsonSchema
@@ -84,6 +88,6 @@ mod tests {
             schema.instance_type,
             Some(SingleOrVec::from(InstanceType::Array))
         );
-        assert_eq!(schema.extensions.get("maxItems"), Some(&json!(0)));
+        assert_eq!(schema.array.max_items, Some(0));
     }
 }
