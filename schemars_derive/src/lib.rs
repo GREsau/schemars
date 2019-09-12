@@ -2,21 +2,20 @@
 extern crate quote;
 #[macro_use]
 extern crate syn;
-
 extern crate proc_macro;
 
 mod preprocess;
 
 use proc_macro2::{Span, TokenStream};
+use quote::ToTokens;
 use serde_derive_internals::ast::{Container, Data, Field, Style, Variant};
 use serde_derive_internals::attr::{self, Default as SerdeDefault, EnumTag};
 use serde_derive_internals::{Ctxt, Derive};
 use syn::spanned::Spanned;
-use syn::DeriveInput;
 
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
 pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    let mut input = parse_macro_input!(input as DeriveInput);
+    let mut input = parse_macro_input!(input as syn::DeriveInput);
 
     preprocess::add_trait_bounds(&mut input.generics);
     if let Err(e) = preprocess::process_serde_attrs(&mut input) {
@@ -222,14 +221,14 @@ fn schema_for_unit_struct() -> TokenStream {
 }
 
 fn schema_for_newtype_struct(field: &Field) -> TokenStream {
-    let ty = field.ty;
+    let ty = get_json_schema_type(field);
     quote_spanned! {field.original.span()=>
         gen.subschema_for::<#ty>()?
     }
 }
 
 fn schema_for_tuple_struct(fields: &[Field]) -> TokenStream {
-    let types = fields.iter().map(|f| f.ty);
+    let types = fields.iter().map(get_json_schema_type);
     quote! {
         gen.subschema_for::<(#(#types),*)>()?
     }
@@ -244,7 +243,7 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
         if !container_has_default && !has_default(field.attrs.default()) {
             required.push(name.clone());
         }
-        let ty = field.ty;
+        let ty = get_json_schema_type(field);
         quote_spanned! {field.original.span()=>
             props.insert(#name.to_owned(), gen.subschema_for::<#ty>()?);
         }
@@ -264,9 +263,9 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
         },
     });
 
-    let flattens = flat.iter().map(|f| {
-        let ty = f.ty;
-        quote_spanned! {f.original.span()=>
+    let flattens = flat.iter().map(|field| {
+        let ty = get_json_schema_type(field);
+        quote_spanned! {field.original.span()=>
             .flatten(<#ty>::json_schema(gen)?)?
         }
     });
@@ -280,5 +279,39 @@ fn has_default(d: &SerdeDefault) -> bool {
     match d {
         SerdeDefault::None => false,
         _ => true,
+    }
+}
+
+fn get_json_schema_type(field: &Field) -> Box<dyn ToTokens> {
+    // TODO it would probably be simpler to parse attributes manually here, instead of
+    // using the serde-parsed attributes
+    let de_with_segments = without_last_element(field.attrs.deserialize_with(), "deserialize");
+    let se_with_segments = without_last_element(field.attrs.serialize_with(), "serialize");
+    if de_with_segments == se_with_segments {
+        if let Some(expr_path) = de_with_segments {
+            return Box::from(expr_path);
+        }
+    }
+    Box::from(field.ty.clone())
+}
+
+fn without_last_element(path: Option<&syn::ExprPath>, last: &str) -> Option<syn::ExprPath> {
+    match path {
+        Some(expr_path)
+            if expr_path
+                .path
+                .segments
+                .last()
+                .map(|p| p.value().ident == last)
+                .unwrap_or(false) =>
+        {
+            let mut expr_path = expr_path.clone();
+            expr_path.path.segments.pop();
+            if let Some(segment) = expr_path.path.segments.pop() {
+                expr_path.path.segments.push(segment.into_value())
+            }
+            Some(expr_path)
+        }
+        _ => None,
     }
 }

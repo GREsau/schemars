@@ -58,16 +58,21 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
             .push(Ident::new("serde", schemars_ident.span()).into());
     }
 
-    let schemars_meta_names: BTreeSet<Ident> = attrs
+    let mut schemars_meta_names: BTreeSet<String> = attrs
         .iter()
         .flat_map(|attr| get_meta_items(&ctxt, attr))
         .flatten()
         .flat_map(|m| get_meta_ident(&ctxt, &m))
+        .map(|i| i.to_string())
         .collect();
+    if schemars_meta_names.contains("with") {
+        schemars_meta_names.insert("serialize_with".to_string());
+        schemars_meta_names.insert("deserialize_with".to_string());
+    }
 
     serde_meta.retain(|m| {
         get_meta_ident(&ctxt, m)
-            .map(|i| !schemars_meta_names.contains(&i))
+            .map(|i| !schemars_meta_names.contains(&i.to_string()))
             .unwrap_or(false)
     });
 
@@ -129,8 +134,8 @@ mod tests {
             struct MyStruct {
                 #[serde(field, field2)]
                 field1: i32,
-                #[serde(field, field2)]
-                #[schemars(field = "overridden")]
+                #[serde(field, field2, serialize_with = "se", deserialize_with = "de")]
+                #[schemars(field = "overridden", with = "with")]
                 field2: i32,
                 #[schemars(field)]
                 field3: i32,
@@ -142,7 +147,7 @@ mod tests {
             struct MyStruct {
                 #[serde(field, field2)]
                 field1: i32,
-                #[serde(field = "overridden")]
+                #[serde(field = "overridden", with = "with")]
                 #[serde(field2)]
                 field2: i32,
                 #[serde(field)]
