@@ -104,6 +104,7 @@ fn is_unit_variant(v: &Variant) -> bool {
 }
 
 fn schema_for_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStream {
+    let variants = variants.iter().filter(|v| !v.attrs.skip_deserializing());
     match cattrs.tag() {
         EnumTag::External => schema_for_external_tagged_enum(variants, cattrs),
         EnumTag::None => schema_for_untagged_enum(variants, cattrs),
@@ -112,9 +113,12 @@ fn schema_for_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStrea
     }
 }
 
-fn schema_for_external_tagged_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStream {
+fn schema_for_external_tagged_enum<'a>(
+    variants: impl Iterator<Item = &'a Variant<'a>>,
+    cattrs: &attr::Container,
+) -> TokenStream {
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
-        variants.iter().partition(|v| is_unit_variant(v));
+        variants.partition(|v| is_unit_variant(v));
     let unit_count = unit_variants.len();
 
     let unit_names = unit_variants
@@ -156,12 +160,12 @@ fn schema_for_external_tagged_enum(variants: &[Variant], cattrs: &attr::Containe
     })
 }
 
-fn schema_for_internal_tagged_enum(
-    variants: &[Variant],
+fn schema_for_internal_tagged_enum<'a>(
+    variants: impl Iterator<Item = &'a Variant<'a>>,
     cattrs: &attr::Container,
     tag_name: &str,
 ) -> TokenStream {
-    let schemas = variants.iter().map(|variant| {
+    let schemas = variants.map(|variant| {
         let name = variant.attrs.name().deserialize_name();
         let type_schema = wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::String.into()),
@@ -195,10 +199,11 @@ fn schema_for_internal_tagged_enum(
     })
 }
 
-fn schema_for_untagged_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStream {
-    let schemas = variants
-        .iter()
-        .map(|v| schema_for_untagged_enum_variant(v, cattrs));
+fn schema_for_untagged_enum<'a>(
+    variants: impl Iterator<Item = &'a Variant<'a>>,
+    cattrs: &attr::Container,
+) -> TokenStream {
+    let schemas = variants.map(|v| schema_for_untagged_enum_variant(v, cattrs));
 
     wrap_schema_fields(quote! {
         any_of: Some(vec![#(#schemas),*]),
@@ -228,14 +233,20 @@ fn schema_for_newtype_struct(field: &Field) -> TokenStream {
 }
 
 fn schema_for_tuple_struct(fields: &[Field]) -> TokenStream {
-    let types = fields.iter().map(get_json_schema_type);
+    let types = fields
+        .iter()
+        .filter(|f| !f.attrs.skip_deserializing())
+        .map(get_json_schema_type);
     quote! {
         gen.subschema_for::<(#(#types),*)>()?
     }
 }
 
 fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream {
-    let (nested, flat): (Vec<_>, Vec<_>) = fields.iter().partition(|f| !f.attrs.flatten());
+    let (flat, nested): (Vec<_>, Vec<_>) = fields
+        .iter()
+        .filter(|f| !f.attrs.skip_deserializing())
+        .partition(|f| f.attrs.flatten());
     let container_has_default = has_default(cattrs.default());
     let mut required = Vec::new();
     let recurse = nested.iter().map(|field| {

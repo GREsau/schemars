@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyEnum",
+  "anyOf": [
+    {
+      "enum": [
+        "Included2"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "Included1": {
+          "type": "number",
+          "format": "float"
+        }
+      },
+      "required": [
+        "Included1"
+      ]
+    }
+  ]
+}
