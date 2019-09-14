@@ -90,10 +90,10 @@ impl SchemaGenerator {
         }
 
         let name = T::schema_name();
-        if !self.definitions.contains_key(&name) {
-            self.insert_new_subschema_for::<T>(name.clone())?;
-        }
         let reference = format!("{}{}", self.settings().definitions_path, name);
+        if !self.definitions.contains_key(&name) {
+            self.insert_new_subschema_for::<T>(name)?;
+        }
         Ok(Ref { reference }.into())
     }
 
@@ -104,7 +104,7 @@ impl SchemaGenerator {
 
         match T::json_schema(self) {
             Ok(schema) => {
-                self.definitions.insert(name.clone(), schema);
+                self.definitions.insert(name, schema);
                 Ok(())
             }
             Err(e) => {
@@ -148,11 +148,10 @@ impl SchemaGenerator {
         })
     }
 
-    pub fn get_schema_object(&self, schema: &Schema) -> Result<SchemaObject> {
-        let mut schema = schema;
+    pub fn get_schema_object(&self, mut schema: Schema) -> Result<SchemaObject> {
         loop {
             match schema {
-                Schema::Object(o) => return Ok(o.clone()),
+                Schema::Object(obj) => return Ok(obj),
                 Schema::Bool(true) => return Ok(Default::default()),
                 Schema::Bool(false) => {
                     return Ok(SchemaObject {
@@ -160,30 +159,32 @@ impl SchemaGenerator {
                         ..Default::default()
                     })
                 }
-                Schema::Ref(r) => {
-                    let definitions_path_len = self.settings().definitions_path.len();
-                    let name = r.reference.get(definitions_path_len..).ok_or_else(|| {
-                        JsonSchemaError::new(
+                Schema::Ref(schema_ref) => {
+                    let definitions_path = &self.settings().definitions_path;
+                    if !schema_ref.reference.starts_with(definitions_path) {
+                        return Err(JsonSchemaError::new(
                             "Could not extract referenced schema name.",
-                            Schema::Ref(r.clone()),
-                        )
-                    })?;
+                            Schema::Ref(schema_ref),
+                        ));
+                    }
 
-                    schema = self.definitions.get(name).ok_or_else(|| {
-                        JsonSchemaError::new(
-                            "Could not find referenced schema.",
-                            Schema::Ref(r.clone()),
-                        )
-                    })?;
+                    let name = &schema_ref.reference[definitions_path.len()..];
+                    schema = self
+                        .definitions
+                        .get(name)
+                        .ok_or_else(|| {
+                            JsonSchemaError::new(
+                                "Could not find referenced schema.",
+                                Schema::Ref(schema_ref.clone()),
+                            )
+                        })?
+                        .clone();
 
-                    match schema {
-                        Schema::Ref(r2) if r2 == r => {
-                            return Err(JsonSchemaError::new(
-                                "Schema is referencing itself.",
-                                schema.clone(),
-                            ));
-                        }
-                        _ => {}
+                    if schema == Schema::Ref(schema_ref) {
+                        return Err(JsonSchemaError::new(
+                            "Schema is referencing itself.",
+                            schema,
+                        ));
                     }
                 }
             }

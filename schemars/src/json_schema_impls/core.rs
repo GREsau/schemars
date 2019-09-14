@@ -28,7 +28,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             }
         }
         if gen.settings().option_nullable {
-            let mut deref = gen.get_schema_object(&schema)?;
+            let mut deref = gen.get_schema_object(schema)?;
             deref.extensions.insert("nullable".to_owned(), json!(true));
             schema = Schema::Object(deref);
         };
