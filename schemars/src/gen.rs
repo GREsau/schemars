@@ -149,7 +149,7 @@ impl SchemaGenerator {
     }
 
     pub fn get_schema_object(&self, mut schema: Schema) -> Result<SchemaObject> {
-        loop {
+        for _ in 0..100 {
             match schema {
                 Schema::Object(obj) => return Ok(obj),
                 Schema::Bool(true) => return Ok(Default::default()),
@@ -189,5 +189,9 @@ impl SchemaGenerator {
                 }
             }
         }
+        Err(JsonSchemaError::new(
+            "Failed to dereference schema after 100 iterations - reference may be cyclic.",
+            schema,
+        ))
     }
 }
