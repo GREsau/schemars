@@ -20,6 +20,12 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             schema = match schema {
                 Schema::Bool(true) => Schema::Bool(true),
                 Schema::Bool(false) => <()>::json_schema(gen)?,
+                Schema::Object(
+                    obj @ SchemaObject {
+                        instance_type: Some(_),
+                        ..
+                    },
+                ) => Schema::Object(with_null_type(obj)),
                 schema => SchemaObject {
                     any_of: Some(vec![schema, <()>::json_schema(gen)?]),
                     ..Default::default()
@@ -34,6 +40,20 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         };
         Ok(schema)
     }
+}
+
+fn with_null_type(mut obj: SchemaObject) -> SchemaObject {
+    match obj
+        .instance_type
+        .as_mut()
+        .expect("checked in calling function")
+    {
+        SingleOrVec::Single(ty) if **ty == InstanceType::Null => {}
+        SingleOrVec::Vec(ty) if ty.contains(&InstanceType::Null) => {}
+        SingleOrVec::Single(ty) => obj.instance_type = Some(vec![**ty, InstanceType::Null].into()),
+        SingleOrVec::Vec(ref mut ty) => ty.push(InstanceType::Null),
+    };
+    obj
 }
 
 impl<T: ?Sized> JsonSchema for std::marker::PhantomData<T> {
@@ -70,12 +90,32 @@ mod tests {
     #[test]
     fn schema_for_option() {
         let schema = schema_object_for::<Option<i32>>();
+        assert_eq!(
+            schema.instance_type,
+            Some(vec![InstanceType::Integer, InstanceType::Null].into())
+        );
+        assert_eq!(schema.extensions.get("nullable"), None);
+        assert_eq!(schema.any_of.is_none(), true);
+    }
+
+    #[test]
+    fn schema_for_option_with_ref() {
+        use crate as schemars;
+        #[derive(JsonSchema)]
+        struct Foo;
+
+        let schema = schema_object_for::<Option<Foo>>();
         assert_eq!(schema.instance_type, None);
         assert_eq!(schema.extensions.get("nullable"), None);
         assert_eq!(schema.any_of.is_some(), true);
         let any_of = schema.any_of.unwrap();
         assert_eq!(any_of.len(), 2);
-        assert_eq!(any_of[0], schema_for::<i32>());
+        assert_eq!(
+            any_of[0],
+            Schema::Ref(Ref {
+                reference: "#/definitions/Foo".to_string()
+            })
+        );
         assert_eq!(any_of[1], schema_for::<()>());
     }
 

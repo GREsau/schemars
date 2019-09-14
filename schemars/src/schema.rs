@@ -144,7 +144,7 @@ pub struct ObjectValidation {
     pub property_names: Option<Box<Schema>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, JsonSchema)]
+#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub enum InstanceType {
     Null,
