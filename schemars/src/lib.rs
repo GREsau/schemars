@@ -4,6 +4,7 @@ pub type Map<K, V> = std::collections::BTreeMap<K, V>;
 pub type Set<T> = std::collections::BTreeSet<T>;
 
 mod error;
+mod flatten;
 mod json_schema_impls;
 #[macro_use]
 mod macros;

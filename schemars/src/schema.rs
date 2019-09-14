@@ -1,5 +1,5 @@
 use crate as schemars;
-use crate::{JsonSchema, JsonSchemaError, Map, Result, Set};
+use crate::{JsonSchema, Map, Set};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
@@ -29,93 +29,6 @@ impl From<Ref> for Schema {
     }
 }
 
-impl Schema {
-    pub fn flatten(self, other: Self) -> Result {
-        fn extend<A, E: Extend<A>>(mut a: E, b: impl IntoIterator<Item = A>) -> E {
-            a.extend(b);
-            a
-        }
-
-        let s1 = self.ensure_flattenable()?;
-        let s2 = other.ensure_flattenable()?;
-        Ok(Schema::Object(SchemaObject {
-            schema: s1.schema.or(s2.schema),
-            id: s1.id.or(s2.id),
-            title: s1.title.or(s2.title),
-            description: s1.description.or(s2.description),
-            definitions: extend(s1.definitions, s2.definitions),
-            extensions: extend(s1.extensions, s2.extensions),
-            // TODO do the following make sense?
-            instance_type: s1.instance_type.or(s2.instance_type),
-            format: s1.format.or(s2.format),
-            enum_values: s1.enum_values.or(s2.enum_values),
-            all_of: s1.all_of.or(s2.all_of),
-            any_of: s1.any_of.or(s2.any_of),
-            one_of: s1.one_of.or(s2.one_of),
-            not: s1.not.or(s2.not),
-            if_schema: s1.if_schema.or(s2.if_schema),
-            then_schema: s1.then_schema.or(s2.then_schema),
-            else_schema: s1.else_schema.or(s2.else_schema),
-            number: NumberValidation {
-                multiple_of: s1.number.multiple_of.or(s2.number.multiple_of),
-                maximum: s1.number.maximum.or(s2.number.maximum),
-                exclusive_maximum: s1.number.exclusive_maximum.or(s2.number.exclusive_maximum),
-                minimum: s1.number.minimum.or(s2.number.minimum),
-                exclusive_minimum: s1.number.exclusive_minimum.or(s2.number.exclusive_minimum),
-            },
-            string: StringValidation {
-                max_length: s1.string.max_length.or(s2.string.max_length),
-                min_length: s1.string.min_length.or(s2.string.min_length),
-                pattern: s1.string.pattern.or(s2.string.pattern),
-            },
-            array: ArrayValidation {
-                items: s1.array.items.or(s2.array.items),
-                additional_items: s1.array.additional_items.or(s2.array.additional_items),
-                max_items: s1.array.max_items.or(s2.array.max_items),
-                min_items: s1.array.min_items.or(s2.array.min_items),
-                unique_items: s1.array.unique_items.or(s2.array.unique_items),
-                contains: s1.array.contains.or(s2.array.contains),
-            },
-            object: ObjectValidation {
-                max_properties: s1.object.max_properties.or(s2.object.max_properties),
-                min_properties: s1.object.min_properties.or(s2.object.min_properties),
-                required: extend(s1.object.required, s2.object.required),
-                properties: extend(s1.object.properties, s2.object.properties),
-                pattern_properties: extend(s1.object.pattern_properties, s2.object.pattern_properties),
-                additional_properties: s1.object.additional_properties.or(s2.object.additional_properties),
-                property_names: s1.object.property_names.or(s2.object.property_names),
-            },
-        }))
-    }
-
-    fn ensure_flattenable(self) -> Result<SchemaObject> {
-        let s = match self {
-            Schema::Object(s) => s,
-            s => {
-                return Err(JsonSchemaError::new(
-                    "Only schemas with type `object` can be flattened.",
-                    s,
-                ))
-            }
-        };
-        match s.instance_type {
-            Some(SingleOrVec::Single(ref t)) if **t != InstanceType::Object => {
-                Err(JsonSchemaError::new(
-                    "Only schemas with type `object` can be flattened.",
-                    s.into(),
-                ))
-            }
-            Some(SingleOrVec::Vec(ref t)) if !t.contains(&InstanceType::Object) => {
-                Err(JsonSchemaError::new(
-                    "Only schemas with type `object` can be flattened.",
-                    s.into(),
-                ))
-            }
-            _ => Ok(s),
-        }
-    }
-}
-
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
 pub struct Ref {
     #[serde(rename = "$ref")]
@@ -134,10 +47,12 @@ pub struct SchemaObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
+    // TODO Set instead of Vec
     pub instance_type: Option<SingleOrVec<InstanceType>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<String>,
     #[serde(rename = "enum", skip_serializing_if = "Option::is_none")]
+    // TODO Set instead of Vec
     pub enum_values: Option<Vec<Value>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub all_of: Option<Vec<Schema>>,
