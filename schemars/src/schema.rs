@@ -47,13 +47,13 @@ pub struct SchemaObject {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
-    // TODO Set instead of Vec
     pub instance_type: Option<SingleOrVec<InstanceType>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<String>,
     #[serde(rename = "enum", skip_serializing_if = "Option::is_none")]
-    // TODO Set instead of Vec
     pub enum_values: Option<Vec<Value>>,
+    #[serde(rename = "const", skip_serializing_if = "Option::is_none")]
+    pub const_value: Option<Value>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub all_of: Option<Vec<Schema>>,
     #[serde(skip_serializing_if = "Option::is_none")]

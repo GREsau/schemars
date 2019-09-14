@@ -32,7 +32,7 @@ macro_rules! impl_merge {
 impl_merge!(SchemaObject {
     merge: definitions extensions instance_type enum_values
         number string array object,
-    or: schema id title description format all_of any_of one_of not
+    or: schema id title description format const_value all_of any_of one_of not
         if_schema then_schema else_schema,
 });
 

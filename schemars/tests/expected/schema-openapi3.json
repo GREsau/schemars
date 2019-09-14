@@ -101,6 +101,9 @@
           },
           "nullable": true
         },
+        "const": {
+          "nullable": true
+        },
         "contains": {
           "anyOf": [
             {
