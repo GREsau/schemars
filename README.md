@@ -96,3 +96,10 @@ This outputs the following:
 ```
 
 Note that the `#[serde(...)]` attributes are respected.
+
+## TODO
+- Documentation
+- Benchmark/optimise memory usage and allocations
+  - Note to self: https://crates.io/crates/graphannis-malloc_size_of looks useful
+- Implement `JsonSchema` for more standard library types
+- Allow deriving `JsonSchema` for adjacent tagged enums
