@@ -3,10 +3,21 @@ use schemars::{JsonSchema, Map};
 use util::*;
 
 #[derive(Debug, JsonSchema)]
+pub struct UnitStruct;
+
+#[derive(Debug, JsonSchema)]
+pub struct Struct {
+    foo: i32,
+    bar: bool,
+}
+
+#[derive(Debug, JsonSchema)]
 #[schemars(rename_all = "camelCase")]
 pub enum External {
     UnitOne,
     StringMap(Map<String, String>),
+    UnitStructNewType(UnitStruct),
+    StructNewType(Struct),
     Struct { foo: i32, bar: bool },
     UnitTwo,
     Tuple(i32, bool),
@@ -22,6 +33,8 @@ fn enum_external_tag() -> TestResult {
 pub enum Internal {
     UnitOne,
     StringMap(Map<String, String>),
+    UnitStructNewType(UnitStruct),
+    StructNewType(Struct),
     Struct { foo: i32, bar: bool },
     UnitTwo,
 }
@@ -36,6 +49,8 @@ fn enum_internal_tag() -> TestResult {
 pub enum Untagged {
     UnitOne,
     StringMap(Map<String, String>),
+    UnitStructNewType(UnitStruct),
+    StructNewType(Struct),
     Struct { foo: i32, bar: bool },
     Tuple(i32, bool),
 }

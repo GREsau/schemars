@@ -174,7 +174,7 @@ fn schema_for_internal_tagged_enum<'a>(
             instance_type: Some(schemars::schema::InstanceType::String.into()),
             enum_values: Some(vec![#name.into()]),
         });
-        let schema = wrap_schema_fields(quote! {
+        let tag_schema = wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
             object: schemars::schema::ObjectValidation {
                 properties: {
@@ -190,13 +190,20 @@ fn schema_for_internal_tagged_enum<'a>(
                 ..Default::default()
             },
         });
-        if is_unit_variant(&variant) {
-            schema
-        } else {
-            let sub_schema = schema_for_untagged_enum_variant(variant, cattrs);
-            quote! {
-                #schema.flatten(#sub_schema)?
+        let variant_schema = match variant.style {
+            Style::Unit => return tag_schema,
+            Style::Newtype => {
+                let field = &variant.fields[0];
+                let ty = get_json_schema_type(field);
+                quote_spanned! {field.original.span()=>
+                    <#ty>::json_schema(gen)?
+                }
             }
+            Style::Struct => schema_for_struct(&variant.fields, cattrs),
+            Style::Tuple => unreachable!("Internal tagged enum tuple variants will have caused serde_derive_internals to output a compile error already."),
+        };
+        quote! {
+            #tag_schema.flatten(#variant_schema)?
         }
     });
 

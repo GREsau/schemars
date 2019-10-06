@@ -12,7 +12,17 @@
       }
     },
     {
+      "$ref": "#/definitions/UnitStruct"
+    },
+    {
+      "$ref": "#/definitions/Struct"
+    },
+    {
       "type": "object",
+      "required": [
+        "bar",
+        "foo"
+      ],
       "properties": {
         "bar": {
           "type": "boolean"
@@ -21,11 +31,7 @@
           "type": "integer",
           "format": "int32"
         }
-      },
-      "required": [
-        "bar",
-        "foo"
-      ]
+      }
     },
     {
       "type": "array",
@@ -41,5 +47,26 @@
       "maxItems": 2,
       "minItems": 2
     }
-  ]
+  ],
+  "definitions": {
+    "Struct": {
+      "type": "object",
+      "required": [
+        "bar",
+        "foo"
+      ],
+      "properties": {
+        "bar": {
+          "type": "boolean"
+        },
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "UnitStruct": {
+      "type": "null"
+    }
+  }
 }

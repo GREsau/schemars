@@ -3,8 +3,13 @@ use crate::{JsonSchemaError, Map, Result, Set};
 
 impl Schema {
     pub fn flatten(self, other: Self) -> Result {
-        let s1 = ensure_flattenable(self)?;
-        let s2 = ensure_flattenable(other)?;
+        if is_null_type(&self) {
+            return Ok(other)
+        } else if is_null_type(&other) {
+            return Ok(self)
+        }
+        let s1 = ensure_object_type(self)?;
+        let s2 = ensure_object_type(other)?;
         Ok(Schema::Object(s1.merge(s2)))
     }
 }
@@ -111,12 +116,23 @@ impl Merge for SingleOrVec<InstanceType> {
     }
 }
 
-fn ensure_flattenable(schema: Schema) -> Result<SchemaObject> {
+fn is_null_type(schema: &Schema) -> bool {
+    let s = match schema {
+        Schema::Object(s) => s,
+        _ => return false,
+    };
+    match &s.instance_type {
+        Some(SingleOrVec::Single(t)) if **t == InstanceType::Null => true,
+        _ => false,
+    }
+}
+
+fn ensure_object_type(schema: Schema) -> Result<SchemaObject> {
     let s = match schema {
         Schema::Object(s) => s,
         s => {
             return Err(JsonSchemaError::new(
-                "Only schemas with type `object` can be flattened.",
+                "Only schemas with type `object` or `null` can be flattened.",
                 s,
             ))
         }
@@ -124,13 +140,13 @@ fn ensure_flattenable(schema: Schema) -> Result<SchemaObject> {
     match s.instance_type {
         Some(SingleOrVec::Single(ref t)) if **t != InstanceType::Object => {
             Err(JsonSchemaError::new(
-                "Only schemas with type `object` can be flattened.",
+                "Only schemas with type `object` or `null` can be flattened.",
                 s.into(),
             ))
         }
         Some(SingleOrVec::Vec(ref t)) if !t.contains(&InstanceType::Object) => {
             Err(JsonSchemaError::new(
-                "Only schemas with type `object` can be flattened.",
+                "Only schemas with type `object` or `null` can be flattened.",
                 s.into(),
             ))
         }

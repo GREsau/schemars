@@ -4,6 +4,9 @@
   "anyOf": [
     {
       "type": "object",
+      "required": [
+        "typeProperty"
+      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -11,13 +14,13 @@
             "UnitOne"
           ]
         }
-      },
-      "required": [
-        "typeProperty"
-      ]
+      }
     },
     {
       "type": "object",
+      "required": [
+        "typeProperty"
+      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -26,15 +29,54 @@
           ]
         }
       },
-      "required": [
-        "typeProperty"
-      ],
       "additionalProperties": {
         "type": "string"
       }
     },
     {
       "type": "object",
+      "required": [
+        "typeProperty"
+      ],
+      "properties": {
+        "typeProperty": {
+          "type": "string",
+          "enum": [
+            "UnitStructNewType"
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "bar",
+        "foo",
+        "typeProperty"
+      ],
+      "properties": {
+        "bar": {
+          "type": "boolean"
+        },
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "typeProperty": {
+          "type": "string",
+          "enum": [
+            "StructNewType"
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "bar",
+        "foo",
+        "typeProperty"
+      ],
       "properties": {
         "bar": {
           "type": "boolean"
@@ -49,15 +91,13 @@
             "Struct"
           ]
         }
-      },
-      "required": [
-        "bar",
-        "foo",
-        "typeProperty"
-      ]
+      }
     },
     {
       "type": "object",
+      "required": [
+        "typeProperty"
+      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -65,10 +105,7 @@
             "UnitTwo"
           ]
         }
-      },
-      "required": [
-        "typeProperty"
-      ]
+      }
     }
   ]
 }

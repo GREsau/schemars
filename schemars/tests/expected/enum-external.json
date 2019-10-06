@@ -10,6 +10,9 @@
     },
     {
       "type": "object",
+      "required": [
+        "stringMap"
+      ],
       "properties": {
         "stringMap": {
           "type": "object",
@@ -17,16 +20,42 @@
             "type": "string"
           }
         }
-      },
-      "required": [
-        "stringMap"
-      ]
+      }
     },
     {
       "type": "object",
+      "required": [
+        "unitStructNewType"
+      ],
+      "properties": {
+        "unitStructNewType": {
+          "$ref": "#/definitions/UnitStruct"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "structNewType"
+      ],
+      "properties": {
+        "structNewType": {
+          "$ref": "#/definitions/Struct"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "struct"
+      ],
       "properties": {
         "struct": {
           "type": "object",
+          "required": [
+            "bar",
+            "foo"
+          ],
           "properties": {
             "bar": {
               "type": "boolean"
@@ -35,19 +64,15 @@
               "type": "integer",
               "format": "int32"
             }
-          },
-          "required": [
-            "bar",
-            "foo"
-          ]
+          }
         }
-      },
-      "required": [
-        "struct"
-      ]
+      }
     },
     {
       "type": "object",
+      "required": [
+        "tuple"
+      ],
       "properties": {
         "tuple": {
           "type": "array",
@@ -63,10 +88,28 @@
           "maxItems": 2,
           "minItems": 2
         }
-      },
-      "required": [
-        "tuple"
-      ]
+      }
     }
-  ]
+  ],
+  "definitions": {
+    "Struct": {
+      "type": "object",
+      "required": [
+        "bar",
+        "foo"
+      ],
+      "properties": {
+        "bar": {
+          "type": "boolean"
+        },
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "UnitStruct": {
+      "type": "null"
+    }
+  }
 }
