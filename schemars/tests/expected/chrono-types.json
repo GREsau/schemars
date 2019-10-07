@@ -2,6 +2,13 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ChronoTypes",
   "type": "object",
+  "required": [
+    "date_time",
+    "naive_date",
+    "naive_date_time",
+    "naive_time",
+    "weekday"
+  ],
   "properties": {
     "date_time": {
       "type": "string",
@@ -31,12 +38,5 @@
         "Sun"
       ]
     }
-  },
-  "required": [
-    "date_time",
-    "naive_date",
-    "naive_date_time",
-    "naive_time",
-    "weekday"
-  ]
+  }
 }

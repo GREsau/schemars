@@ -9,15 +9,15 @@
     },
     {
       "type": "object",
+      "required": [
+        "Included1"
+      ],
       "properties": {
         "Included1": {
           "type": "number",
           "format": "float"
         }
-      },
-      "required": [
-        "Included1"
-      ]
+      }
     }
   ]
 }
