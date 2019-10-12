@@ -16,7 +16,7 @@ pub fn add_trait_bounds(generics: &mut Generics) {
 
 // If a struct/variant/field has any #[schemars] attributes, then rename them
 // to #[serde] so that serde_derive_internals will parse them for us.
-pub fn process_serde_attrs(input: &mut DeriveInput) -> Result<(), String> {
+pub fn process_serde_attrs(input: &mut DeriveInput) -> Result<(), Vec<syn::Error>> {
     let ctxt = Ctxt::new();
     process_attrs(&ctxt, &mut input.attrs);
     match input.data {
@@ -63,7 +63,6 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         .flat_map(|attr| get_meta_items(&ctxt, attr))
         .flatten()
         .flat_map(|m| get_meta_ident(&ctxt, &m))
-        .map(|i| i.to_string())
         .collect();
     if schemars_meta_names.contains("with") {
         schemars_meta_names.insert("serialize_with".to_string());
@@ -87,32 +86,43 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
     let parser = Attribute::parse_outer;
     match parser.parse2(new_serde_attr) {
         Ok(ref mut parsed) => attrs.append(parsed),
-        Err(e) => ctxt.error(e),
+        Err(e) => ctxt.error_spanned_by(to_tokens(attrs), e),
     }
+}
+
+fn to_tokens(attrs: &[Attribute]) -> impl ToTokens {
+    let mut tokens = proc_macro2::TokenStream::new();
+    for attr in attrs {
+        attr.to_tokens(&mut tokens);
+    }
+    tokens
 }
 
 fn get_meta_items(ctxt: &Ctxt, attr: &Attribute) -> Result<Vec<NestedMeta>, ()> {
     match attr.parse_meta() {
         Ok(Meta::List(meta)) => Ok(meta.nested.into_iter().collect()),
         Ok(_) => {
-            ctxt.error("expected #[schemars(...)] or #[serde(...)]");
+            ctxt.error_spanned_by(attr, "expected #[schemars(...)] or #[serde(...)]");
             Err(())
         }
         Err(err) => {
-            ctxt.error(err);
+            ctxt.error_spanned_by(attr, err);
             Err(())
         }
     }
 }
 
-fn get_meta_ident(ctxt: &Ctxt, meta: &NestedMeta) -> Result<Ident, ()> {
+fn get_meta_ident(ctxt: &Ctxt, meta: &NestedMeta) -> Result<String, ()> {
     match meta {
-        NestedMeta::Meta(m) => Ok(m.name()),
-        NestedMeta::Literal(lit) => {
-            ctxt.error(format!(
-                "unexpected literal in attribute: {}",
-                lit.into_token_stream()
-            ));
+        NestedMeta::Meta(m) => m.path().get_ident().map(|i| i.to_string()).ok_or(()),
+        NestedMeta::Lit(lit) => {
+            ctxt.error_spanned_by(
+                meta,
+                format!(
+                    "unexpected literal in attribute: {}",
+                    lit.into_token_stream()
+                ),
+            );
             Err(())
         }
     }
@@ -156,7 +166,7 @@ mod tests {
         };
 
         if let Err(e) = process_serde_attrs(&mut input) {
-            panic!("process_serde_attrs returned error: {}", e)
+            panic!("process_serde_attrs returned error: {}", e[0])
         };
 
         assert_eq!(input, expected);

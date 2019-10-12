@@ -6,10 +6,10 @@ extern crate proc_macro;
 
 mod preprocess;
 
-use proc_macro2::{Span, TokenStream};
+use proc_macro2::TokenStream;
 use quote::ToTokens;
 use serde_derive_internals::ast::{Container, Data, Field, Style, Variant};
-use serde_derive_internals::attr::{self, Default as SerdeDefault, EnumTag};
+use serde_derive_internals::attr::{self, Default as SerdeDefault, TagType};
 use serde_derive_internals::{Ctxt, Derive};
 use syn::spanned::Spanned;
 
@@ -19,14 +19,15 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
 
     preprocess::add_trait_bounds(&mut input.generics);
     if let Err(e) = preprocess::process_serde_attrs(&mut input) {
-        return compile_error(input.span(), e).into();
+        return compile_error(e).into();
     }
 
     let ctxt = Ctxt::new();
     let cont = Container::from_ast(&ctxt, &input, Derive::Deserialize);
     if let Err(e) = ctxt.check() {
-        return compile_error(input.span(), e).into();
+        return compile_error(e).into();
     }
+    let cont = cont.expect("from_ast set no errors on Ctxt, so should have returned Some");
 
     let schema = match cont.data {
         Data::Struct(Style::Unit, _) => schema_for_unit_struct(),
@@ -56,10 +57,8 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         for tp in &type_params {
             schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
         }
-        let fmt_param_names = &type_params;
-        let type_params = &type_params;
         quote! {
-            format!(#schema_name_fmt #(,#fmt_param_names=#type_params::schema_name())*)
+            format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())*)
         }
     };
 
@@ -90,9 +89,10 @@ fn wrap_schema_fields(schema_contents: TokenStream) -> TokenStream {
     }
 }
 
-fn compile_error(span: Span, message: String) -> TokenStream {
-    quote_spanned! {span=>
-        compile_error!(#message);
+fn compile_error(errors: Vec<syn::Error>) -> TokenStream {
+    let compile_errors = errors.iter().map(syn::Error::to_compile_error);
+    quote! {
+        #(#compile_errors)*
     }
 }
 
@@ -106,10 +106,10 @@ fn is_unit_variant(v: &Variant) -> bool {
 fn schema_for_enum(variants: &[Variant], cattrs: &attr::Container) -> TokenStream {
     let variants = variants.iter().filter(|v| !v.attrs.skip_deserializing());
     match cattrs.tag() {
-        EnumTag::External => schema_for_external_tagged_enum(variants, cattrs),
-        EnumTag::None => schema_for_untagged_enum(variants, cattrs),
-        EnumTag::Internal { tag } => schema_for_internal_tagged_enum(variants, cattrs, tag),
-        EnumTag::Adjacent { .. } => unimplemented!("Adjacent tagged enums not yet supported."),
+        TagType::External => schema_for_external_tagged_enum(variants, cattrs),
+        TagType::None => schema_for_untagged_enum(variants, cattrs),
+        TagType::Internal { tag } => schema_for_internal_tagged_enum(variants, cattrs, tag),
+        TagType::Adjacent { .. } => unimplemented!("Adjacent tagged enums not yet supported."),
     }
 }
 
@@ -329,7 +329,7 @@ fn without_last_element(path: Option<&syn::ExprPath>, last: &str) -> Option<syn:
                 .path
                 .segments
                 .last()
-                .map(|p| p.value().ident == last)
+                .map(|p| p.ident == last)
                 .unwrap_or(false) =>
         {
             let mut expr_path = expr_path.clone();
