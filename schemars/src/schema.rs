@@ -7,8 +7,20 @@ use serde_json::Value;
 #[serde(untagged)]
 pub enum Schema {
     Bool(bool),
-    Ref(Ref),
     Object(SchemaObject),
+}
+
+impl Schema {
+    pub fn new_ref(reference: String) -> Self {
+        SchemaObject::new_ref(reference).into()
+    }
+
+    pub fn is_ref(&self) -> bool {
+        match self {
+            Schema::Object(o) => o.is_ref(),
+            _ => false,
+        }
+    }
 }
 
 impl From<SchemaObject> for Schema {
@@ -21,18 +33,6 @@ impl From<bool> for Schema {
     fn from(b: bool) -> Self {
         Schema::Bool(b)
     }
-}
-
-impl From<Ref> for Schema {
-    fn from(r: Ref) -> Self {
-        Schema::Ref(r)
-    }
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
-pub struct Ref {
-    #[serde(rename = "$ref")]
-    pub reference: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]
@@ -68,7 +68,7 @@ pub struct SchemaObject {
     pub then_schema: Option<Box<Schema>>,
     #[serde(rename = "else", skip_serializing_if = "Option::is_none")]
     pub else_schema: Option<Box<Schema>>,
-    #[serde(skip_serializing_if = "Map::is_empty")]
+    #[serde(alias = "$defs", skip_serializing_if = "Map::is_empty")]
     pub definitions: Map<String, Schema>,
     #[serde(flatten)]
     pub number: NumberValidation,
@@ -78,8 +78,43 @@ pub struct SchemaObject {
     pub array: ArrayValidation,
     #[serde(flatten)]
     pub object: ObjectValidation,
+    #[serde(rename = "$ref", skip_serializing_if = "Option::is_none")]
+    pub reference: Option<String>,
     #[serde(flatten)]
     pub extensions: Map<String, Value>,
+}
+
+impl SchemaObject {
+    pub fn new_ref(reference: String) -> Self {
+        SchemaObject {
+            reference: Some(reference),
+            ..Default::default()
+        }
+    }
+
+    pub fn is_ref(&self) -> bool {
+        if self.reference.is_none() {
+            return false;
+        }
+        let only_ref = SchemaObject {
+            reference: self.reference.clone(),
+            ..Default::default()
+        };
+        *self == only_ref
+    }
+}
+
+impl From<Schema> for SchemaObject {
+    fn from(schema: Schema) -> Self {
+        match schema {
+            Schema::Object(o) => o,
+            Schema::Bool(true) => SchemaObject::default(),
+            Schema::Bool(false) => SchemaObject {
+                not: Some(Schema::Object(Default::default()).into()),
+                ..Default::default()
+            },
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]
@@ -144,7 +179,9 @@ pub struct ObjectValidation {
     pub property_names: Option<Box<Schema>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, JsonSchema)]
+#[derive(
+    Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, JsonSchema,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum InstanceType {
     Null,

@@ -34,7 +34,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             }
         }
         if gen.settings().option_nullable {
-            let mut deref = gen.get_schema_object(schema)?;
+            let mut deref: SchemaObject = gen.dereference(schema)?.into();
             deref.extensions.insert("nullable".to_owned(), json!(true));
             schema = Schema::Object(deref);
         };
@@ -110,12 +110,7 @@ mod tests {
         assert_eq!(schema.any_of.is_some(), true);
         let any_of = schema.any_of.unwrap();
         assert_eq!(any_of.len(), 2);
-        assert_eq!(
-            any_of[0],
-            Schema::Ref(Ref {
-                reference: "#/definitions/Foo".to_string()
-            })
-        );
+        assert_eq!(any_of[0], Schema::new_ref("#/definitions/Foo".to_string()));
         assert_eq!(any_of[1], schema_for::<()>());
     }
 

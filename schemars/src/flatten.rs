@@ -4,9 +4,9 @@ use crate::{JsonSchemaError, Map, Result, Set};
 impl Schema {
     pub fn flatten(self, other: Self) -> Result {
         if is_null_type(&self) {
-            return Ok(other)
+            return Ok(other);
         } else if is_null_type(&other) {
-            return Ok(self)
+            return Ok(self);
         }
         let s1 = ensure_object_type(self)?;
         let s2 = ensure_object_type(other)?;
@@ -38,7 +38,7 @@ impl_merge!(SchemaObject {
     merge: definitions extensions instance_type enum_values
         number string array object,
     or: schema id title description format const_value all_of any_of one_of not
-        if_schema then_schema else_schema,
+        if_schema then_schema else_schema reference,
 });
 
 impl_merge!(NumberValidation {

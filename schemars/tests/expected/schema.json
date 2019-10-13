@@ -6,9 +6,6 @@
       "type": "boolean"
     },
     {
-      "$ref": "#/definitions/Ref"
-    },
-    {
       "$ref": "#/definitions/SchemaObject"
     }
   ],
@@ -24,24 +21,10 @@
         "integer"
       ]
     },
-    "Ref": {
-      "type": "object",
-      "required": [
-        "$ref"
-      ],
-      "properties": {
-        "$ref": {
-          "type": "string"
-        }
-      }
-    },
     "Schema": {
       "anyOf": [
         {
           "type": "boolean"
-        },
-        {
-          "$ref": "#/definitions/Ref"
         },
         {
           "$ref": "#/definitions/SchemaObject"
@@ -52,6 +35,12 @@
       "type": "object",
       "properties": {
         "$id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "$ref": {
           "type": [
             "string",
             "null"

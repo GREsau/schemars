@@ -18,6 +18,16 @@ pub enum BoolSchemas {
 
 impl Default for SchemaSettings {
     fn default() -> SchemaSettings {
+        SchemaSettings::new()
+    }
+}
+
+impl SchemaSettings {
+    pub fn new() -> SchemaSettings {
+        Self::draft07()
+    }
+
+    pub fn draft07() -> SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
@@ -25,14 +35,7 @@ impl Default for SchemaSettings {
             definitions_path: "#/definitions/".to_owned(),
         }
     }
-}
 
-impl SchemaSettings {
-    pub fn new() -> SchemaSettings {
-        SchemaSettings {
-            ..Default::default()
-        }
-    }
     pub fn openapi3() -> SchemaSettings {
         SchemaSettings {
             option_nullable: true,
@@ -66,21 +69,20 @@ impl SchemaGenerator {
     }
 
     pub fn schema_for_any(&self) -> Schema {
+        let schema: Schema = true.into();
         if self.settings().bool_schemas == BoolSchemas::Enable {
-            true.into()
+            schema
         } else {
-            Schema::Object(Default::default())
+            Schema::Object(schema.into())
         }
     }
 
     pub fn schema_for_none(&self) -> Schema {
+        let schema: Schema = false.into();
         if self.settings().bool_schemas == BoolSchemas::Enable {
-            false.into()
+            schema
         } else {
-            Schema::Object(SchemaObject {
-                not: Some(Schema::Object(Default::default()).into()),
-                ..Default::default()
-            })
+            Schema::Object(schema.into())
         }
     }
 
@@ -94,7 +96,7 @@ impl SchemaGenerator {
         if !self.definitions.contains_key(&name) {
             self.insert_new_subschema_for::<T>(name)?;
         }
-        Ok(Ref { reference }.into())
+        Ok(Schema::new_ref(reference))
     }
 
     fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: String) -> Result<()> {
@@ -148,49 +150,41 @@ impl SchemaGenerator {
         })
     }
 
-    pub fn get_schema_object(&self, mut schema: Schema) -> Result<SchemaObject> {
+    pub fn dereference_once(&self, schema: Schema) -> Result<Schema> {
+        match schema {
+            Schema::Object(SchemaObject {
+                reference: Some(ref schema_ref),
+                ..
+            }) => {
+                let definitions_path = &self.settings().definitions_path;
+                if !schema_ref.starts_with(definitions_path) {
+                    return Err(JsonSchemaError::new(
+                        "Could not extract referenced schema name.",
+                        schema,
+                    ));
+                }
+
+                let name = &schema_ref[definitions_path.len()..];
+                self.definitions.get(name).cloned().ok_or_else(|| {
+                    JsonSchemaError::new("Could not find referenced schema.", schema)
+                })
+            }
+            s => Ok(s),
+        }
+    }
+
+    pub fn dereference(&self, mut schema: Schema) -> Result<Schema> {
+        if !schema.is_ref() {
+            return Ok(schema);
+        }
         for _ in 0..100 {
-            match schema {
-                Schema::Object(obj) => return Ok(obj),
-                Schema::Bool(true) => return Ok(Default::default()),
-                Schema::Bool(false) => {
-                    return Ok(SchemaObject {
-                        not: Some(Schema::Bool(true).into()),
-                        ..Default::default()
-                    })
-                }
-                Schema::Ref(schema_ref) => {
-                    let definitions_path = &self.settings().definitions_path;
-                    if !schema_ref.reference.starts_with(definitions_path) {
-                        return Err(JsonSchemaError::new(
-                            "Could not extract referenced schema name.",
-                            Schema::Ref(schema_ref),
-                        ));
-                    }
-
-                    let name = &schema_ref.reference[definitions_path.len()..];
-                    schema = self
-                        .definitions
-                        .get(name)
-                        .ok_or_else(|| {
-                            JsonSchemaError::new(
-                                "Could not find referenced schema.",
-                                Schema::Ref(schema_ref.clone()),
-                            )
-                        })?
-                        .clone();
-
-                    if schema == Schema::Ref(schema_ref) {
-                        return Err(JsonSchemaError::new(
-                            "Schema is referencing itself.",
-                            schema,
-                        ));
-                    }
-                }
+            schema = self.dereference_once(schema)?;
+            if !schema.is_ref() {
+                return Ok(schema);
             }
         }
         Err(JsonSchemaError::new(
-            "Failed to dereference schema after 100 iterations - reference may be cyclic.",
+            "Failed to dereference schema after 100 iterations - references may be cyclic.",
             schema,
         ))
     }

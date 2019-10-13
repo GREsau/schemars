@@ -6,9 +6,6 @@
       "type": "boolean"
     },
     {
-      "$ref": "#/components/schemas/Ref"
-    },
-    {
       "$ref": "#/components/schemas/SchemaObject"
     }
   ],
@@ -24,24 +21,10 @@
         "integer"
       ]
     },
-    "Ref": {
-      "type": "object",
-      "required": [
-        "$ref"
-      ],
-      "properties": {
-        "$ref": {
-          "type": "string"
-        }
-      }
-    },
     "Schema": {
       "anyOf": [
         {
           "type": "boolean"
-        },
-        {
-          "$ref": "#/components/schemas/Ref"
         },
         {
           "$ref": "#/components/schemas/SchemaObject"
@@ -55,6 +38,10 @@
           "type": "string",
           "nullable": true
         },
+        "$ref": {
+          "type": "string",
+          "nullable": true
+        },
         "$schema": {
           "type": "string",
           "nullable": true
@@ -63,9 +50,6 @@
           "anyOf": [
             {
               "type": "boolean"
-            },
-            {
-              "$ref": "#/components/schemas/Ref"
             },
             {
               "$ref": "#/components/schemas/SchemaObject"
@@ -77,9 +61,6 @@
           "anyOf": [
             {
               "type": "boolean"
-            },
-            {
-              "$ref": "#/components/schemas/Ref"
             },
             {
               "$ref": "#/components/schemas/SchemaObject"
@@ -110,9 +91,6 @@
               "type": "boolean"
             },
             {
-              "$ref": "#/components/schemas/Ref"
-            },
-            {
               "$ref": "#/components/schemas/SchemaObject"
             }
           ],
@@ -132,9 +110,6 @@
           "anyOf": [
             {
               "type": "boolean"
-            },
-            {
-              "$ref": "#/components/schemas/Ref"
             },
             {
               "$ref": "#/components/schemas/SchemaObject"
@@ -165,9 +140,6 @@
           "anyOf": [
             {
               "type": "boolean"
-            },
-            {
-              "$ref": "#/components/schemas/Ref"
             },
             {
               "$ref": "#/components/schemas/SchemaObject"
@@ -240,9 +212,6 @@
               "type": "boolean"
             },
             {
-              "$ref": "#/components/schemas/Ref"
-            },
-            {
               "$ref": "#/components/schemas/SchemaObject"
             }
           ],
@@ -277,9 +246,6 @@
               "type": "boolean"
             },
             {
-              "$ref": "#/components/schemas/Ref"
-            },
-            {
               "$ref": "#/components/schemas/SchemaObject"
             }
           ],
@@ -295,9 +261,6 @@
           "anyOf": [
             {
               "type": "boolean"
-            },
-            {
-              "$ref": "#/components/schemas/Ref"
             },
             {
               "$ref": "#/components/schemas/SchemaObject"
