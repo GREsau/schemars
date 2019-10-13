@@ -27,7 +27,10 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
                     },
                 ) => Schema::Object(with_null_type(obj)),
                 schema => SchemaObject {
-                    any_of: Some(vec![schema, <()>::json_schema(gen)?]),
+                    subschemas: Some(Box::new(SubschemaValidation {
+                        any_of: Some(vec![schema, <()>::json_schema(gen)?]),
+                        ..Default::default()
+                    })),
                     ..Default::default()
                 }
                 .into(),
@@ -99,7 +102,7 @@ mod tests {
             Some(vec![InstanceType::Integer, InstanceType::Null].into())
         );
         assert_eq!(schema.extensions.get("nullable"), None);
-        assert_eq!(schema.any_of.is_none(), true);
+        assert_eq!(schema.subschemas.is_none(), true);
     }
 
     #[test]
@@ -111,8 +114,8 @@ mod tests {
         let schema = schema_object_for::<Option<Foo>>();
         assert_eq!(schema.instance_type, None);
         assert_eq!(schema.extensions.get("nullable"), None);
-        assert_eq!(schema.any_of.is_some(), true);
-        let any_of = schema.any_of.unwrap();
+        assert_eq!(schema.subschemas.is_some(), true);
+        let any_of = schema.subschemas.unwrap().any_of.unwrap();
         assert_eq!(any_of.len(), 2);
         assert_eq!(any_of[0], Schema::new_ref("#/definitions/Foo".to_string()));
         assert_eq!(any_of[1], schema_for::<()>());
@@ -131,6 +134,6 @@ mod tests {
             Some(SingleOrVec::from(InstanceType::Integer))
         );
         assert_eq!(schema.extensions.get("nullable"), Some(&json!(true)));
-        assert_eq!(schema.any_of.is_none(), true);
+        assert_eq!(schema.subschemas.is_none(), true);
     }
 }

@@ -124,30 +124,22 @@ impl SchemaGenerator {
         self.definitions
     }
 
-    pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Result {
-        let schema = T::json_schema(self)?;
-        Ok(match schema {
-            Schema::Object(mut o) => {
-                o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
-                o.title = Some(T::schema_name());
-                o.definitions.extend(self.definitions().clone());
-                Schema::Object(o)
-            }
-            schema => schema,
-        })
+    pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Result<SchemaObject> {
+        let mut schema: SchemaObject = T::json_schema(self)?.into();
+        let metadata = schema.metadata.get_or_insert_with(Default::default);
+        metadata.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
+        metadata.title = Some(T::schema_name());
+        schema.definitions.extend(self.definitions().clone());
+        Ok(schema)
     }
 
-    pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Result {
-        let schema = T::json_schema(&mut self)?;
-        Ok(match schema {
-            Schema::Object(mut o) => {
-                o.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
-                o.title = Some(T::schema_name());
-                o.definitions.extend(self.into_definitions());
-                Schema::Object(o)
-            }
-            schema => schema,
-        })
+    pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Result<SchemaObject> {
+        let mut schema: SchemaObject = T::json_schema(&mut self)?.into();
+        let metadata = schema.metadata.get_or_insert_with(Default::default);
+        metadata.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
+        metadata.title = Some(T::schema_name());
+        schema.definitions.extend(self.into_definitions());
+        Ok(schema)
     }
 
     pub fn dereference_once(&self, schema: Schema) -> Result<Schema> {

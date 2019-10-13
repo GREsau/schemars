@@ -159,7 +159,10 @@ fn schema_for_external_tagged_enum<'a>(
     }));
 
     wrap_schema_fields(quote! {
-        any_of: Some(vec![#(#schemas),*]),
+        subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
+            any_of: Some(vec![#(#schemas),*]),
+            ..Default::default()
+        })),
     })
 }
 
@@ -208,7 +211,10 @@ fn schema_for_internal_tagged_enum<'a>(
     });
 
     wrap_schema_fields(quote! {
-        any_of: Some(vec![#(#schemas),*]),
+        subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
+            any_of: Some(vec![#(#schemas),*]),
+            ..Default::default()
+        })),
     })
 }
 
@@ -219,7 +225,10 @@ fn schema_for_untagged_enum<'a>(
     let schemas = variants.map(|v| schema_for_untagged_enum_variant(v, cattrs));
 
     wrap_schema_fields(quote! {
-        any_of: Some(vec![#(#schemas),*]),
+        subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
+            any_of: Some(vec![#(#schemas),*]),
+            ..Default::default()
+        })),
     })
 }
 

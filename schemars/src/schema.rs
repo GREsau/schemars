@@ -38,14 +38,8 @@ impl From<bool> for Schema {
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SchemaObject {
-    #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
-    pub schema: Option<String>,
-    #[serde(rename = "$id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub title: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
+    #[serde(flatten, deserialize_with = "skip_if_default")]
+    pub metadata: Option<Box<Metadata>>,
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub instance_type: Option<SingleOrVec<InstanceType>>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -54,22 +48,10 @@ pub struct SchemaObject {
     pub enum_values: Option<Vec<Value>>,
     #[serde(rename = "const", skip_serializing_if = "Option::is_none")]
     pub const_value: Option<Value>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub all_of: Option<Vec<Schema>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub any_of: Option<Vec<Schema>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub one_of: Option<Vec<Schema>>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub not: Option<Box<Schema>>,
-    #[serde(rename = "if", skip_serializing_if = "Option::is_none")]
-    pub if_schema: Option<Box<Schema>>,
-    #[serde(rename = "then", skip_serializing_if = "Option::is_none")]
-    pub then_schema: Option<Box<Schema>>,
-    #[serde(rename = "else", skip_serializing_if = "Option::is_none")]
-    pub else_schema: Option<Box<Schema>>,
     #[serde(alias = "$defs", skip_serializing_if = "Map::is_empty")]
     pub definitions: Map<String, Schema>,
+    #[serde(flatten, deserialize_with = "skip_if_default")]
+    pub subschemas: Option<Box<SubschemaValidation>>,
     #[serde(flatten, deserialize_with = "skip_if_default")]
     pub number: Option<Box<NumberValidation>>,
     #[serde(flatten, deserialize_with = "skip_if_default")]
@@ -123,11 +105,46 @@ impl From<Schema> for SchemaObject {
             Schema::Object(o) => o,
             Schema::Bool(true) => SchemaObject::default(),
             Schema::Bool(false) => SchemaObject {
-                not: Some(Schema::Object(Default::default()).into()),
+                subschemas: Some(Box::new(SubschemaValidation {
+                    not: Some(Schema::Object(Default::default()).into()),
+                    ..Default::default()
+                })),
                 ..Default::default()
             },
         }
     }
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct Metadata {
+    #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
+    pub schema: Option<String>,
+    #[serde(rename = "$id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub title: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]
+#[serde(rename_all = "camelCase", default)]
+pub struct SubschemaValidation {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub all_of: Option<Vec<Schema>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub any_of: Option<Vec<Schema>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub one_of: Option<Vec<Schema>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub not: Option<Box<Schema>>,
+    #[serde(rename = "if", skip_serializing_if = "Option::is_none")]
+    pub if_schema: Option<Box<Schema>>,
+    #[serde(rename = "then", skip_serializing_if = "Option::is_none")]
+    pub then_schema: Option<Box<Schema>>,
+    #[serde(rename = "else", skip_serializing_if = "Option::is_none")]
+    pub else_schema: Option<Box<Schema>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]

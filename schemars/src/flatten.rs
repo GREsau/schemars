@@ -36,9 +36,16 @@ macro_rules! impl_merge {
 
 impl_merge!(SchemaObject {
     merge: definitions extensions instance_type enum_values
-        number string array object,
-    or: schema id title description format const_value all_of any_of one_of not
-        if_schema then_schema else_schema reference,
+        metadata subschemas number string array object,
+    or: format const_value reference,
+});
+
+impl_merge!(Metadata {
+    or: schema id title description,
+});
+
+impl_merge!(SubschemaValidation {
+    or: all_of any_of one_of not if_schema then_schema else_schema,
 });
 
 impl_merge!(NumberValidation {
