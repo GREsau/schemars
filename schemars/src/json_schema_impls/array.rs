@@ -13,10 +13,10 @@ impl<T> JsonSchema for [T; 0] {
     fn json_schema(_: &mut SchemaGenerator) -> Result {
         Ok(SchemaObject {
             instance_type: Some(InstanceType::Array.into()),
-            array: ArrayValidation {
+            array: Some(Box::new(ArrayValidation {
                 max_items: Some(0),
                 ..Default::default()
-            },
+            })),
             ..Default::default()
         }
         .into())
@@ -36,12 +36,12 @@ macro_rules! array_impls {
                 fn json_schema(gen: &mut SchemaGenerator) -> Result {
                     Ok(SchemaObject {
                         instance_type: Some(InstanceType::Array.into()),
-                        array: ArrayValidation {
+                        array: Some(Box::new(ArrayValidation {
                             items: Some(gen.subschema_for::<T>()?.into()),
                             max_items: Some($len),
                             min_items: Some($len),
                             ..Default::default()
-                        },
+                        })),
                         ..Default::default()
                     }.into())
                 }
@@ -70,12 +70,13 @@ mod tests {
             schema.instance_type,
             Some(SingleOrVec::from(InstanceType::Array))
         );
+        let array_validation = schema.array.unwrap();
         assert_eq!(
-            schema.array.items,
+            array_validation.items,
             Some(SingleOrVec::from(schema_for::<i32>()))
         );
-        assert_eq!(schema.array.max_items, Some(8));
-        assert_eq!(schema.array.min_items, Some(8));
+        assert_eq!(array_validation.max_items, Some(8));
+        assert_eq!(array_validation.min_items, Some(8));
     }
 
     // SomeStruct does not implement JsonSchema
@@ -88,6 +89,7 @@ mod tests {
             schema.instance_type,
             Some(SingleOrVec::from(InstanceType::Array))
         );
-        assert_eq!(schema.array.max_items, Some(0));
+        let array_validation = schema.array.unwrap();
+        assert_eq!(array_validation.max_items, Some(0));
     }
 }

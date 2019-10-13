@@ -27,10 +27,10 @@ macro_rules! map_impl {
                     };
                 Ok(SchemaObject {
                     instance_type: Some(InstanceType::Object.into()),
-                    object: ObjectValidation {
+                    object: Some(Box::new(ObjectValidation {
                         additional_properties: Some(Box::new(additional_properties)),
                         ..Default::default()
-                    },
+                    })),
                     ..Default::default()
                 }.into())
             }
@@ -62,6 +62,7 @@ mod tests {
                 Some(SingleOrVec::from(InstanceType::Object))
             );
             let additional_properties = schema.object
+                .unwrap()
                 .additional_properties
                 .expect("additionalProperties field present");
             assert_eq!(*additional_properties, Schema::Bool(true));
@@ -80,6 +81,7 @@ mod tests {
             Some(SingleOrVec::from(InstanceType::Object))
         );
         let additional_properties = schema.object
+            .unwrap()
             .additional_properties
             .expect("additionalProperties field present");
         assert_eq!(*additional_properties, Schema::Object(Default::default()));
@@ -102,6 +104,7 @@ mod tests {
                 Some(SingleOrVec::from(InstanceType::Object))
             );
             let additional_properties = schema.object
+                .unwrap()
                 .additional_properties
                 .expect("additionalProperties field present");
             assert_eq!(*additional_properties, schema_for::<i32>());

@@ -4,7 +4,16 @@
   "type": "object",
   "definitions": {
     "MySimpleStruct": {
-      "type": "object"
+      "type": "object",
+      "required": [
+        "foo"
+      ],
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
     }
   },
   "required": [

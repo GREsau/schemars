@@ -12,7 +12,9 @@ struct MyStruct<T, U, V, W> {
 }
 
 #[derive(Debug, JsonSchema)]
-struct MySimpleStruct {}
+struct MySimpleStruct {
+    foo: i32,
+}
 
 #[test]
 fn default_name_multiple_type_params() -> TestResult {
@@ -33,7 +35,9 @@ struct MyRenamedStruct<T, U, V, W> {
 #[derive(Debug, JsonSchema)]
 #[serde(rename = "this-attribute-is-ignored")]
 #[schemars(rename = "another-new-name")]
-struct MySimpleRenamedStruct {}
+struct MySimpleRenamedStruct {
+    foo: i32,
+}
 
 #[test]
 fn overriden_with_rename_multiple_type_params() -> TestResult {

@@ -40,6 +40,10 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         };
         Ok(schema)
     }
+
+    fn json_schema_non_null(gen: &mut SchemaGenerator) -> Result {
+        T::json_schema_non_null(gen)
+    }
 }
 
 fn with_null_type(mut obj: SchemaObject) -> SchemaObject {

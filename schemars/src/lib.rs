@@ -23,6 +23,10 @@ pub trait JsonSchema {
     fn schema_name() -> String;
 
     fn json_schema(gen: &mut gen::SchemaGenerator) -> Result;
+
+    fn json_schema_non_null(gen: &mut gen::SchemaGenerator) -> Result {
+        Self::json_schema(gen)
+    }
 }
 
 #[cfg(test)]

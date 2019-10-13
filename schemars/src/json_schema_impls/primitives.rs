@@ -58,11 +58,11 @@ impl JsonSchema for char {
     fn json_schema(_: &mut SchemaGenerator) -> Result {
         Ok(SchemaObject {
             instance_type: Some(InstanceType::String.into()),
-            string: StringValidation {
+            string: Some(Box::new(StringValidation {
                 min_length: Some(1),
                 max_length: Some(1),
                 ..Default::default()
-            },
+            })),
             ..Default::default()
         }
         .into())

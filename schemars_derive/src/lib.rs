@@ -142,7 +142,7 @@ fn schema_for_external_tagged_enum<'a>(
         let sub_schema = schema_for_untagged_enum_variant(variant, cattrs);
         wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
-            object: schemars::schema::ObjectValidation {
+            object: Some(Box::new(schemars::schema::ObjectValidation {
                 properties: {
                     let mut props = schemars::Map::new();
                     props.insert(#name.to_owned(), #sub_schema);
@@ -154,7 +154,7 @@ fn schema_for_external_tagged_enum<'a>(
                     required
                 },
                 ..Default::default()
-            },
+            })),
         })
     }));
 
@@ -176,7 +176,7 @@ fn schema_for_internal_tagged_enum<'a>(
         });
         let tag_schema = wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
-            object: schemars::schema::ObjectValidation {
+            object: Some(Box::new(schemars::schema::ObjectValidation {
                 properties: {
                     let mut props = schemars::Map::new();
                     props.insert(#tag_name.to_owned(), #type_schema);
@@ -188,7 +188,7 @@ fn schema_for_internal_tagged_enum<'a>(
                     required
                 },
                 ..Default::default()
-            },
+            })),
         });
         let variant_schema = match variant.style {
             Style::Unit => return tag_schema,
@@ -275,7 +275,7 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
 
     let schema = wrap_schema_fields(quote! {
         instance_type: Some(schemars::schema::InstanceType::Object.into()),
-        object: schemars::schema::ObjectValidation {
+        object: Some(Box::new(schemars::schema::ObjectValidation {
             properties: {
                 let mut props = schemars::Map::new();
                 #(#recurse)*
@@ -287,13 +287,13 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
                 required
             },
             ..Default::default()
-        },
+        })),
     });
 
     let flattens = flat.iter().map(|field| {
         let ty = get_json_schema_type(field);
         quote_spanned! {field.original.span()=>
-            .flatten(<#ty>::json_schema(gen)?)?
+            .flatten(<#ty>::json_schema_non_null(gen)?)?
         }
     });
 

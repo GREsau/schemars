@@ -70,18 +70,31 @@ pub struct SchemaObject {
     pub else_schema: Option<Box<Schema>>,
     #[serde(alias = "$defs", skip_serializing_if = "Map::is_empty")]
     pub definitions: Map<String, Schema>,
-    #[serde(flatten)]
-    pub number: NumberValidation,
-    #[serde(flatten)]
-    pub string: StringValidation,
-    #[serde(flatten)]
-    pub array: ArrayValidation,
-    #[serde(flatten)]
-    pub object: ObjectValidation,
+    #[serde(flatten, deserialize_with = "skip_if_default")]
+    pub number: Option<Box<NumberValidation>>,
+    #[serde(flatten, deserialize_with = "skip_if_default")]
+    pub string: Option<Box<StringValidation>>,
+    #[serde(flatten, deserialize_with = "skip_if_default")]
+    pub array: Option<Box<ArrayValidation>>,
+    #[serde(flatten, deserialize_with = "skip_if_default")]
+    pub object: Option<Box<ObjectValidation>>,
     #[serde(rename = "$ref", skip_serializing_if = "Option::is_none")]
     pub reference: Option<String>,
     #[serde(flatten)]
     pub extensions: Map<String, Value>,
+}
+
+fn skip_if_default<'de, D, T>(deserializer: D) -> Result<Option<Box<T>>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+    T: Deserialize<'de> + Default + PartialEq,
+{
+    let value = T::deserialize(deserializer)?;
+    if value == T::default() {
+        Ok(None)
+    } else {
+        Ok(Some(Box::new(value)))
+    }
 }
 
 impl SchemaObject {

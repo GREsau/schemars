@@ -18,12 +18,12 @@ macro_rules! tuple_impls {
                     ];
                     Ok(SchemaObject {
                         instance_type: Some(InstanceType::Array.into()),
-                        array: ArrayValidation {
+                        array: Some(Box::new(ArrayValidation {
                             items: Some(items.into()),
                             max_items: Some($len),
                             min_items: Some($len),
                             ..Default::default()
-                        },
+                        })),
                         ..Default::default()
                     }.into())
                 }
@@ -64,14 +64,15 @@ mod tests {
             schema.instance_type,
             Some(SingleOrVec::from(InstanceType::Array))
         );
+        let array_validation = schema.array.unwrap();
         assert_eq!(
-            schema.array.items,
+            array_validation.items,
             Some(SingleOrVec::Vec(vec![
                 schema_for::<i32>(),
                 schema_for::<bool>()
             ]))
         );
-        assert_eq!(schema.array.max_items, Some(2));
-        assert_eq!(schema.array.min_items, Some(2));
+        assert_eq!(array_validation.max_items, Some(2));
+        assert_eq!(array_validation.min_items, Some(2));
     }
 }
