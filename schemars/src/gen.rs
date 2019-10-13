@@ -129,7 +129,7 @@ impl SchemaGenerator {
         let metadata = schema.metadata.get_or_insert_with(Default::default);
         metadata.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
         metadata.title = Some(T::schema_name());
-        schema.definitions.extend(self.definitions().clone());
+        metadata.definitions.extend(self.definitions().clone());
         Ok(schema)
     }
 
@@ -138,7 +138,7 @@ impl SchemaGenerator {
         let metadata = schema.metadata.get_or_insert_with(Default::default);
         metadata.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
         metadata.title = Some(T::schema_name());
-        schema.definitions.extend(self.into_definitions());
+        metadata.definitions.extend(self.into_definitions());
         Ok(schema)
     }
 

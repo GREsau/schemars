@@ -48,8 +48,6 @@ pub struct SchemaObject {
     pub enum_values: Option<Vec<Value>>,
     #[serde(rename = "const", skip_serializing_if = "Option::is_none")]
     pub const_value: Option<Value>,
-    #[serde(alias = "$defs", skip_serializing_if = "Map::is_empty")]
-    pub definitions: Map<String, Schema>,
     #[serde(flatten, deserialize_with = "skip_if_default")]
     pub subschemas: Option<Box<SubschemaValidation>>,
     #[serde(flatten, deserialize_with = "skip_if_default")]
@@ -126,6 +124,8 @@ pub struct Metadata {
     pub title: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
+    #[serde(alias = "$defs", skip_serializing_if = "Map::is_empty")]
+    pub definitions: Map<String, Schema>,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]

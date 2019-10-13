@@ -35,12 +35,13 @@ macro_rules! impl_merge {
 }
 
 impl_merge!(SchemaObject {
-    merge: definitions extensions instance_type enum_values
+    merge: extensions instance_type enum_values
         metadata subschemas number string array object,
     or: format const_value reference,
 });
 
 impl_merge!(Metadata {
+    merge: definitions,
     or: schema id title description,
 });
 
