@@ -40,10 +40,21 @@ impl_merge!(SchemaObject {
     or: format const_value reference,
 });
 
-impl_merge!(Metadata {
-    merge: definitions,
-    or: schema id title description,
-});
+impl Merge for Metadata {
+    fn merge(self, other: Self) -> Self {
+        Metadata {
+            definitions: self.definitions.merge(other.definitions),
+            schema: self.schema.or(other.schema),
+            id: self.id.or(other.id),
+            title: self.title.or(other.title),
+            description: self.description.or(other.description),
+            default: self.default.or(other.default),
+            deprecated: self.deprecated || other.deprecated,
+            read_only: self.read_only || other.read_only,
+            write_only: self.write_only || other.write_only,
+        }
+    }
+}
 
 impl_merge!(SubschemaValidation {
     or: all_of any_of one_of not if_schema then_schema else_schema,

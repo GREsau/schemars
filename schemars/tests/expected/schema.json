@@ -1,14 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Schema",
-  "anyOf": [
-    {
-      "type": "boolean"
-    },
-    {
-      "$ref": "#/definitions/SchemaObject"
-    }
-  ],
   "definitions": {
     "InstanceType": {
       "enum": [
@@ -101,11 +93,15 @@
             }
           ]
         },
+        "default": true,
         "definitions": {
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/Schema"
           }
+        },
+        "deprecated": {
+          "type": "boolean"
         },
         "description": {
           "type": [
@@ -280,6 +276,9 @@
             }
           ]
         },
+        "readOnly": {
+          "type": "boolean"
+        },
         "required": {
           "type": "array",
           "items": {
@@ -317,6 +316,9 @@
             "boolean",
             "null"
           ]
+        },
+        "writeOnly": {
+          "type": "boolean"
         }
       },
       "additionalProperties": true
@@ -347,5 +349,13 @@
         }
       ]
     }
-  }
+  },
+  "anyOf": [
+    {
+      "type": "boolean"
+    },
+    {
+      "$ref": "#/definitions/SchemaObject"
+    }
+  ]
 }

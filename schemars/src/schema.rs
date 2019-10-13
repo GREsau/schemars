@@ -126,6 +126,19 @@ pub struct Metadata {
     pub description: Option<String>,
     #[serde(alias = "$defs", skip_serializing_if = "Map::is_empty")]
     pub definitions: Map<String, Schema>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub default: Option<Value>,
+    #[serde(skip_serializing_if = "is_false")]
+    pub deprecated: bool,
+    #[serde(skip_serializing_if = "is_false")]
+    pub read_only: bool,
+    #[serde(skip_serializing_if = "is_false")]
+    pub write_only: bool,
+}
+
+#[allow(clippy::trivially_copy_pass_by_ref)]
+fn is_false(b: &bool) -> bool {
+    !b
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]
