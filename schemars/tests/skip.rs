@@ -9,10 +9,10 @@ struct MyStruct {
     #[serde(skip)]
     skipped2: bool,
     #[serde(skip_deserializing)]
-    skipped3: String,
+    readable: String,
     #[serde(skip_serializing)]
-    included1: f32,
-    included2: (),
+    writable: f32,
+    included: (),
 }
 
 #[test]
@@ -21,15 +21,11 @@ fn skip_struct_fields() -> TestResult {
 }
 
 #[derive(Debug, JsonSchema)]
-struct TupleStruct (
-    #[schemars(skip)]
-    i32,
-    #[serde(skip)]
-    bool,
-    #[serde(skip_deserializing)]
-    String,
-    #[serde(skip_serializing)]
-    f32,
+struct TupleStruct(
+    #[schemars(skip)] i32,
+    #[serde(skip)] bool,
+    #[serde(skip_deserializing)] String,
+    #[serde(skip_serializing)] f32,
     (),
 );
 
@@ -55,4 +51,3 @@ pub enum MyEnum {
 fn skip_enum_variants() -> TestResult {
     test_default_generated_schema::<MyEnum>("skip_enum_variants")
 }
-

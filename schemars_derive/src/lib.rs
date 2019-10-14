@@ -267,8 +267,9 @@ fn schema_for_tuple_struct(fields: &[Field]) -> TokenStream {
 fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream {
     let (flat, nested): (Vec<_>, Vec<_>) = fields
         .iter()
-        .filter(|f| !f.attrs.skip_deserializing())
+        .filter(|f| !f.attrs.skip_deserializing() || !f.attrs.skip_serializing())
         .partition(|f| f.attrs.flatten());
+
     let container_has_default = has_default(cattrs.default());
     let mut required = Vec::new();
     let recurse = nested.iter().map(|field| {
@@ -277,8 +278,23 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
             required.push(name.clone());
         }
         let ty = get_json_schema_type(field);
-        quote_spanned! {field.original.span()=>
-            props.insert(#name.to_owned(), gen.subschema_for::<#ty>()?);
+
+        if field.attrs.skip_deserializing() {
+            quote_spanned! {field.original.span()=>
+                let mut schema: schemars::schema::SchemaObject = gen.subschema_for::<#ty>()?.into();
+                schema.metadata().read_only = true;
+                props.insert(#name.to_owned(), schema.into());
+            }
+        } else if field.attrs.skip_serializing() {
+            quote_spanned! {field.original.span()=>
+                let mut schema: schemars::schema::SchemaObject = gen.subschema_for::<#ty>()?.into();
+                schema.metadata().write_only = true;
+                props.insert(#name.to_owned(), schema.into());
+            }
+        } else {
+            quote_spanned! {field.original.span()=>
+                props.insert(#name.to_owned(), gen.subschema_for::<#ty>()?);
+            }
         }
     });
 

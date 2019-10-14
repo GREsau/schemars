@@ -126,7 +126,7 @@ impl SchemaGenerator {
 
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Result<SchemaObject> {
         let mut schema: SchemaObject = T::json_schema(self)?.into();
-        let metadata = schema.metadata.get_or_insert_with(Default::default);
+        let metadata = schema.metadata();
         metadata.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
         metadata.title = Some(T::schema_name());
         metadata.definitions.extend(self.definitions().clone());
@@ -135,7 +135,7 @@ impl SchemaGenerator {
 
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Result<SchemaObject> {
         let mut schema: SchemaObject = T::json_schema(&mut self)?.into();
-        let metadata = schema.metadata.get_or_insert_with(Default::default);
+        let metadata = schema.metadata();
         metadata.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
         metadata.title = Some(T::schema_name());
         metadata.definitions.extend(self.into_definitions());

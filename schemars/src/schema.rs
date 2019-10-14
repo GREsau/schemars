@@ -77,6 +77,14 @@ where
     }
 }
 
+macro_rules! get_or_insert_default_fn {
+    ($name:ident, $ret:path) => {
+        pub fn $name(&mut self) -> &mut $ret {
+            self.$name.get_or_insert_with(Default::default)
+        }
+    };
+}
+
 impl SchemaObject {
     pub fn new_ref(reference: String) -> Self {
         SchemaObject {
@@ -95,6 +103,13 @@ impl SchemaObject {
         };
         *self == only_ref
     }
+
+    get_or_insert_default_fn!(metadata, Metadata);
+    get_or_insert_default_fn!(subschemas, SubschemaValidation);
+    get_or_insert_default_fn!(number, NumberValidation);
+    get_or_insert_default_fn!(string, StringValidation);
+    get_or_insert_default_fn!(array, ArrayValidation);
+    get_or_insert_default_fn!(object, ObjectValidation);
 }
 
 impl From<Schema> for SchemaObject {
