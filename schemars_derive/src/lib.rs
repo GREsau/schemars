@@ -318,7 +318,7 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
     let flattens = flat.iter().map(|field| {
         let ty = get_json_schema_type(field);
         quote_spanned! {field.original.span()=>
-            .flatten(<#ty>::json_schema_non_null(gen))
+            .flatten(<#ty>::json_schema_optional(gen))
         }
     });
 

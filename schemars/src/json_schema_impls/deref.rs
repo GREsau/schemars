@@ -19,6 +19,10 @@ macro_rules! deref_impl {
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
                 T::json_schema(gen)
             }
+
+            fn json_schema_optional(gen: &mut SchemaGenerator) -> Schema {
+                T::json_schema_optional(gen)
+            }
         }
     };
 }

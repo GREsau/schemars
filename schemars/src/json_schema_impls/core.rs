@@ -46,8 +46,16 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         schema
     }
 
-    fn json_schema_non_null(gen: &mut SchemaGenerator) -> Schema {
-        T::json_schema_non_null(gen)
+    fn json_schema_optional(gen: &mut SchemaGenerator) -> Schema {
+        let mut schema = T::json_schema_optional(gen);
+        if let Schema::Object(SchemaObject {
+            object: Some(ref mut object_validation),
+            ..
+        }) = schema
+        {
+            object_validation.required.clear();
+        }
+        schema
     }
 }
 

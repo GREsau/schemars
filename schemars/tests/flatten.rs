@@ -4,31 +4,40 @@ use schemars::{schema_for, JsonSchema};
 
 #[derive(Debug, JsonSchema)]
 struct Flat {
-    foo: f32,
-    bar: bool,
-    baz: String,
-    foobar: Vec<i32>,
+    f: f32,
+    b: bool,
+    s: String,
+    #[serde(default)]
+    os: String,
+    v: Vec<i32>,
 }
 
 #[derive(Debug, JsonSchema)]
 #[schemars(rename = "Flat")]
 struct Deep1 {
-    foo: f32,
-    #[serde(flatten)]
+    f: f32,
+    #[schemars(flatten)]
     deep2: Deep2,
-    foobar: Vec<i32>,
+    v: Vec<i32>,
 }
 
 #[derive(Debug, JsonSchema)]
 struct Deep2 {
-    bar: bool,
+    b: bool,
     #[serde(flatten)]
     deep3: Deep3,
+    #[serde(flatten)]
+    deep4: Box<Option<Option<Box<Deep4>>>>,
 }
 
 #[derive(Debug, JsonSchema)]
 struct Deep3 {
-    baz: &'static str,
+    s: &'static str,
+}
+
+#[derive(Debug, JsonSchema)]
+struct Deep4 {
+    os: &'static str,
 }
 
 #[test]

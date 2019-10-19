@@ -27,7 +27,7 @@ pub trait JsonSchema {
     fn json_schema(gen: &mut gen::SchemaGenerator) -> Schema;
 
     #[doc(hidden)]
-    fn json_schema_non_null(gen: &mut gen::SchemaGenerator) -> Schema {
+    fn json_schema_optional(gen: &mut gen::SchemaGenerator) -> Schema {
         Self::json_schema(gen)
     }
 }
