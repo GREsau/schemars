@@ -86,7 +86,7 @@ impl SchemaGenerator {
         }
     }
 
-    pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Result {
+    pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
         if !T::is_referenceable() {
             return T::json_schema(self);
         }
@@ -94,26 +94,17 @@ impl SchemaGenerator {
         let name = T::schema_name();
         let reference = format!("{}{}", self.settings().definitions_path, name);
         if !self.definitions.contains_key(&name) {
-            self.insert_new_subschema_for::<T>(name)?;
+            self.insert_new_subschema_for::<T>(name);
         }
-        Ok(Schema::new_ref(reference))
+        Schema::new_ref(reference)
     }
 
-    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: String) -> Result<()> {
+    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: String) {
         let dummy = Schema::Bool(false);
         // insert into definitions BEFORE calling json_schema to avoid infinite recursion
         self.definitions.insert(name.clone(), dummy);
-
-        match T::json_schema(self) {
-            Ok(schema) => {
-                self.definitions.insert(name, schema);
-                Ok(())
-            }
-            Err(e) => {
-                self.definitions.remove(&name);
-                Err(e)
-            }
-        }
+        let schema = T::json_schema(self);
+        self.definitions.insert(name, schema);
     }
 
     pub fn definitions(&self) -> &Map<String, Schema> {
@@ -124,25 +115,25 @@ impl SchemaGenerator {
         self.definitions
     }
 
-    pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Result<SchemaObject> {
-        let mut schema: SchemaObject = T::json_schema(self)?.into();
+    pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> SchemaObject {
+        let mut schema: SchemaObject = T::json_schema(self).into();
         let metadata = schema.metadata();
         metadata.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
         metadata.title = Some(T::schema_name());
         metadata.definitions.extend(self.definitions().clone());
-        Ok(schema)
+        schema
     }
 
-    pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Result<SchemaObject> {
-        let mut schema: SchemaObject = T::json_schema(&mut self)?.into();
+    pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> SchemaObject {
+        let mut schema: SchemaObject = T::json_schema(&mut self).into();
         let metadata = schema.metadata();
         metadata.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
         metadata.title = Some(T::schema_name());
         metadata.definitions.extend(self.into_definitions());
-        Ok(schema)
+        schema
     }
 
-    pub fn dereference_once(&self, schema: Schema) -> Result<Schema> {
+    pub fn dereference_once<'a>(&'a self, schema: &'a Schema) -> Result<&'a Schema> {
         match schema {
             Schema::Object(SchemaObject {
                 reference: Some(ref schema_ref),
@@ -152,20 +143,20 @@ impl SchemaGenerator {
                 if !schema_ref.starts_with(definitions_path) {
                     return Err(JsonSchemaError::new(
                         "Could not extract referenced schema name.",
-                        schema,
+                        schema.clone(),
                     ));
                 }
 
                 let name = &schema_ref[definitions_path.len()..];
-                self.definitions.get(name).cloned().ok_or_else(|| {
-                    JsonSchemaError::new("Could not find referenced schema.", schema)
+                self.definitions.get(name).ok_or_else(|| {
+                    JsonSchemaError::new("Could not find referenced schema.", schema.clone())
                 })
             }
             s => Ok(s),
         }
     }
 
-    pub fn dereference(&self, mut schema: Schema) -> Result<Schema> {
+    pub fn dereference<'a>(&'a self, mut schema: &'a Schema) -> Result<&'a Schema> {
         if !schema.is_ref() {
             return Ok(schema);
         }
@@ -177,7 +168,7 @@ impl SchemaGenerator {
         }
         Err(JsonSchemaError::new(
             "Failed to dereference schema after 100 iterations - references may be cyclic.",
-            schema,
+            schema.clone(),
         ))
     }
 }

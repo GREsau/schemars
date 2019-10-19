@@ -15,6 +15,8 @@ pub mod schema;
 pub use error::*;
 pub use schemars_derive::*;
 
+use schema::Schema;
+
 pub trait JsonSchema {
     fn is_referenceable() -> bool {
         true
@@ -22,9 +24,10 @@ pub trait JsonSchema {
 
     fn schema_name() -> String;
 
-    fn json_schema(gen: &mut gen::SchemaGenerator) -> Result;
+    fn json_schema(gen: &mut gen::SchemaGenerator) -> Schema;
 
-    fn json_schema_non_null(gen: &mut gen::SchemaGenerator) -> Result {
+    #[doc(hidden)]
+    fn json_schema_non_null(gen: &mut gen::SchemaGenerator) -> Schema {
         Self::json_schema(gen)
     }
 }
@@ -48,14 +51,7 @@ pub mod tests {
     }
 
     pub fn custom_schema_for<T: JsonSchema>(settings: gen::SchemaSettings) -> schema::Schema {
-        match T::json_schema(&mut gen::SchemaGenerator::new(settings)) {
-            Ok(s) => s,
-            Err(e) => panic!(
-                "Couldn't generate schema object for {}: {}",
-                T::schema_name(),
-                e
-            ),
-        }
+        T::json_schema(&mut gen::SchemaGenerator::new(settings))
     }
 
     pub fn schema_object(schema: schema::Schema) -> schema::SchemaObject {

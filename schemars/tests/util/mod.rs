@@ -8,13 +8,13 @@ pub type TestResult = Result<(), Box<dyn Error>>;
 
 #[allow(dead_code)] // https://github.com/rust-lang/rust/issues/46379
 pub fn test_generated_schema<T: JsonSchema>(file: &str, settings: SchemaSettings) -> TestResult {
-    let actual = settings.into_generator().into_root_schema_for::<T>()?;
+    let actual = settings.into_generator().into_root_schema_for::<T>();
     test_schema(&actual, file)
 }
 
 #[allow(dead_code)] // https://github.com/rust-lang/rust/issues/46379
 pub fn test_default_generated_schema<T: JsonSchema>(file: &str) -> TestResult {
-    let actual = schema_for!(T)?;
+    let actual = schema_for!(T);
     test_schema(&actual, file)
 }
 

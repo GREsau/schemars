@@ -1,6 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
-use crate::{JsonSchema, Result};
+use crate::JsonSchema;
 
 macro_rules! simple_impl {
     ($type:tt => $instance_type:ident) => {
@@ -17,13 +17,13 @@ macro_rules! simple_impl {
                 stringify!($instance_type).to_owned()
             }
 
-            fn json_schema(_: &mut SchemaGenerator) -> Result {
-                Ok(SchemaObject {
+            fn json_schema(_: &mut SchemaGenerator) -> Schema {
+                SchemaObject {
                     instance_type: Some(InstanceType::$instance_type.into()),
                     format: $($format)+,
                     ..Default::default()
                 }
-                .into())
+                .into()
             }
         }
     };
@@ -55,8 +55,8 @@ impl JsonSchema for char {
         "Character".to_owned()
     }
 
-    fn json_schema(_: &mut SchemaGenerator) -> Result {
-        Ok(SchemaObject {
+    fn json_schema(_: &mut SchemaGenerator) -> Schema {
+        SchemaObject {
             instance_type: Some(InstanceType::String.into()),
             string: Some(Box::new(StringValidation {
                 min_length: Some(1),
@@ -65,6 +65,6 @@ impl JsonSchema for char {
             })),
             ..Default::default()
         }
-        .into())
+        .into()
     }
 }

@@ -1,6 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
-use crate::{JsonSchema, Result};
+use crate::JsonSchema;
 use serde_json::{Map, Number, Value};
 use std::collections::BTreeMap;
 
@@ -11,8 +11,8 @@ impl JsonSchema for Value {
         "Any_Value".to_owned()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Result {
-        Ok(gen.schema_for_any())
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        gen.schema_for_any()
     }
 }
 
@@ -23,7 +23,7 @@ impl JsonSchema for Map<String, Value> {
         BTreeMap::<String, Value>::schema_name()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Result {
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         BTreeMap::<String, Value>::json_schema(gen)
     }
 }
@@ -35,11 +35,11 @@ impl JsonSchema for Number {
         "Number".to_owned()
     }
 
-    fn json_schema(_: &mut SchemaGenerator) -> Result {
-        Ok(SchemaObject {
+    fn json_schema(_: &mut SchemaGenerator) -> Schema {
+        SchemaObject {
             instance_type: Some(InstanceType::Number.into()),
             ..Default::default()
         }
-        .into())
+        .into()
     }
 }

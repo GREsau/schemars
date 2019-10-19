@@ -1,6 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
-use crate::{JsonSchema, Result};
+use crate::JsonSchema;
 
 macro_rules! tuple_impls {
     ($($len:expr => ($($name:ident)+))+) => {
@@ -12,11 +12,11 @@ macro_rules! tuple_impls {
                     ["Tuple_Of".to_owned()$(, $name::schema_name())+].join("_And_")
                 }
 
-                fn json_schema(gen: &mut SchemaGenerator) -> Result {
+                fn json_schema(gen: &mut SchemaGenerator) -> Schema {
                     let items = vec![
-                        $(gen.subschema_for::<$name>()?),+
+                        $(gen.subschema_for::<$name>()),+
                     ];
-                    Ok(SchemaObject {
+                    SchemaObject {
                         instance_type: Some(InstanceType::Array.into()),
                         array: Some(Box::new(ArrayValidation {
                             items: Some(items.into()),
@@ -25,7 +25,8 @@ macro_rules! tuple_impls {
                             ..Default::default()
                         })),
                         ..Default::default()
-                    }.into())
+                    }
+                    .into()
                 }
             }
         )+

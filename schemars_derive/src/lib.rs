@@ -71,8 +71,8 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
                 #schema_name
             }
 
-            fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::Result {
-                Ok(#schema)
+            fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                #schema
             }
         };
     };
@@ -199,14 +199,14 @@ fn schema_for_internal_tagged_enum<'a>(
                 let field = &variant.fields[0];
                 let ty = get_json_schema_type(field);
                 quote_spanned! {field.original.span()=>
-                    <#ty>::json_schema(gen)?
+                    <#ty>::json_schema(gen)
                 }
             }
             Style::Struct => schema_for_struct(&variant.fields, cattrs),
             Style::Tuple => unreachable!("Internal tagged enum tuple variants will have caused serde_derive_internals to output a compile error already."),
         };
         quote! {
-            #tag_schema.flatten(#variant_schema)?
+            #tag_schema.flatten(#variant_schema)
         }
     });
 
@@ -243,14 +243,14 @@ fn schema_for_untagged_enum_variant(variant: &Variant, cattrs: &attr::Container)
 
 fn schema_for_unit_struct() -> TokenStream {
     quote! {
-        gen.subschema_for::<()>()?
+        gen.subschema_for::<()>()
     }
 }
 
 fn schema_for_newtype_struct(field: &Field) -> TokenStream {
     let ty = get_json_schema_type(field);
     quote_spanned! {field.original.span()=>
-        gen.subschema_for::<#ty>()?
+        gen.subschema_for::<#ty>()
     }
 }
 
@@ -260,7 +260,7 @@ fn schema_for_tuple_struct(fields: &[Field]) -> TokenStream {
         .filter(|f| !f.attrs.skip_deserializing())
         .map(get_json_schema_type);
     quote! {
-        gen.subschema_for::<(#(#types),*)>()?
+        gen.subschema_for::<(#(#types),*)>()
     }
 }
 
@@ -281,19 +281,19 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
 
         if field.attrs.skip_deserializing() {
             quote_spanned! {field.original.span()=>
-                let mut schema: schemars::schema::SchemaObject = gen.subschema_for::<#ty>()?.into();
+                let mut schema: schemars::schema::SchemaObject = gen.subschema_for::<#ty>().into();
                 schema.metadata().read_only = true;
                 props.insert(#name.to_owned(), schema.into());
             }
         } else if field.attrs.skip_serializing() {
             quote_spanned! {field.original.span()=>
-                let mut schema: schemars::schema::SchemaObject = gen.subschema_for::<#ty>()?.into();
+                let mut schema: schemars::schema::SchemaObject = gen.subschema_for::<#ty>().into();
                 schema.metadata().write_only = true;
                 props.insert(#name.to_owned(), schema.into());
             }
         } else {
             quote_spanned! {field.original.span()=>
-                props.insert(#name.to_owned(), gen.subschema_for::<#ty>()?);
+                props.insert(#name.to_owned(), gen.subschema_for::<#ty>());
             }
         }
     });
@@ -318,7 +318,7 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
     let flattens = flat.iter().map(|field| {
         let ty = get_json_schema_type(field);
         quote_spanned! {field.original.span()=>
-            .flatten(<#ty>::json_schema_non_null(gen)?)?
+            .flatten(<#ty>::json_schema_non_null(gen))
         }
     });
 

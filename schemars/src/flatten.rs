@@ -1,16 +1,16 @@
 use crate::schema::*;
-use crate::{JsonSchemaError, Map, Result, Set};
+use crate::{Map, Set};
 
 impl Schema {
-    pub fn flatten(self, other: Self) -> Result {
+    pub fn flatten(self, other: Self) -> Schema {
         if is_null_type(&self) {
-            return Ok(other);
+            return other;
         } else if is_null_type(&other) {
-            return Ok(self);
+            return self;
         }
-        let s1 = ensure_object_type(self)?;
-        let s2 = ensure_object_type(other)?;
-        Ok(Schema::Object(s1.merge(s2)))
+        let s1: SchemaObject = self.into();
+        let s2: SchemaObject = other.into();
+        Schema::Object(s1.merge(s2))
     }
 }
 
@@ -143,32 +143,5 @@ fn is_null_type(schema: &Schema) -> bool {
     match &s.instance_type {
         Some(SingleOrVec::Single(t)) if **t == InstanceType::Null => true,
         _ => false,
-    }
-}
-
-fn ensure_object_type(schema: Schema) -> Result<SchemaObject> {
-    let s = match schema {
-        Schema::Object(s) => s,
-        s => {
-            return Err(JsonSchemaError::new(
-                "Only schemas with type `object` or `null` can be flattened.",
-                s,
-            ))
-        }
-    };
-    match s.instance_type {
-        Some(SingleOrVec::Single(ref t)) if **t != InstanceType::Object => {
-            Err(JsonSchemaError::new(
-                "Only schemas with type `object` or `null` can be flattened.",
-                s.into(),
-            ))
-        }
-        Some(SingleOrVec::Vec(ref t)) if !t.contains(&InstanceType::Object) => {
-            Err(JsonSchemaError::new(
-                "Only schemas with type `object` or `null` can be flattened.",
-                s.into(),
-            ))
-        }
-        _ => Ok(s),
     }
 }

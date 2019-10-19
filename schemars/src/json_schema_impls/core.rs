@@ -1,6 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
-use crate::{JsonSchema, Result};
+use crate::JsonSchema;
 use serde_json::json;
 
 impl<T: JsonSchema> JsonSchema for Option<T> {
@@ -10,16 +10,16 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         format!("Nullable_{}", T::schema_name())
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Result {
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         let mut schema = if gen.settings().option_nullable {
-            T::json_schema(gen)?
+            T::json_schema(gen)
         } else {
-            gen.subschema_for::<T>()?
+            gen.subschema_for::<T>()
         };
         if gen.settings().option_add_null_type {
             schema = match schema {
                 Schema::Bool(true) => Schema::Bool(true),
-                Schema::Bool(false) => <()>::json_schema(gen)?,
+                Schema::Bool(false) => <()>::json_schema(gen),
                 Schema::Object(
                     obj @ SchemaObject {
                         instance_type: Some(_),
@@ -28,7 +28,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
                 ) => Schema::Object(with_null_type(obj)),
                 schema => SchemaObject {
                     subschemas: Some(Box::new(SubschemaValidation {
-                        any_of: Some(vec![schema, <()>::json_schema(gen)?]),
+                        any_of: Some(vec![schema, <()>::json_schema(gen)]),
                         ..Default::default()
                     })),
                     ..Default::default()
@@ -37,14 +37,16 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             }
         }
         if gen.settings().option_nullable {
-            let mut deref: SchemaObject = gen.dereference(schema)?.into();
-            deref.extensions.insert("nullable".to_owned(), json!(true));
-            schema = Schema::Object(deref);
+            let mut schema_obj: SchemaObject = schema.into();
+            schema_obj
+                .extensions
+                .insert("nullable".to_owned(), json!(true));
+            schema = Schema::Object(schema_obj);
         };
-        Ok(schema)
+        schema
     }
 
-    fn json_schema_non_null(gen: &mut SchemaGenerator) -> Result {
+    fn json_schema_non_null(gen: &mut SchemaGenerator) -> Schema {
         T::json_schema_non_null(gen)
     }
 }
@@ -70,7 +72,7 @@ impl<T: ?Sized> JsonSchema for std::marker::PhantomData<T> {
         <()>::schema_name()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Result {
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         <()>::json_schema(gen)
     }
 }
@@ -82,8 +84,8 @@ impl JsonSchema for std::convert::Infallible {
         "Never".to_owned()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Result {
-        Ok(gen.schema_for_none())
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        gen.schema_for_none()
     }
 }
 

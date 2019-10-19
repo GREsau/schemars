@@ -1,18 +1,22 @@
-use std::fmt;
-use std::error::Error;
 use crate::schema::Schema;
+use std::error::Error;
+use std::fmt;
 
-pub type Result<T = Schema> = std::result::Result<T, JsonSchemaError>;
+pub type Result<T> = std::result::Result<T, JsonSchemaError>;
 
 #[derive(Debug, Clone)]
 pub struct JsonSchemaError {
     msg: &'static str,
-    schema: Schema
+    schema: Schema,
 }
 
 impl JsonSchemaError {
     pub fn new(msg: &'static str, schema: Schema) -> JsonSchemaError {
         JsonSchemaError { msg, schema }
+    }
+
+    pub fn schema(&self) -> &Schema {
+        &self.schema
     }
 }
 
@@ -22,5 +26,4 @@ impl fmt::Display for JsonSchemaError {
     }
 }
 
-impl Error for JsonSchemaError {
-}
+impl Error for JsonSchemaError {}

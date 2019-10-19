@@ -1,6 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
-use crate::{JsonSchema, Result};
+use crate::JsonSchema;
 
 macro_rules! seq_impl {
     ($($desc:tt)+) => {
@@ -14,15 +14,16 @@ macro_rules! seq_impl {
                 format!("Array_Of_{}", T::schema_name())
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Result {
-                Ok(SchemaObject {
+            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+                SchemaObject {
                     instance_type: Some(InstanceType::Array.into()),
                     array: Some(Box::new(ArrayValidation {
-                        items: Some(gen.subschema_for::<T>()?.into()),
+                        items: Some(gen.subschema_for::<T>().into()),
                         ..Default::default()
                     })),
                     ..Default::default()
-                }.into())
+                }
+                .into()
             }
         }
     };

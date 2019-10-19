@@ -1,6 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
-use crate::{JsonSchema, Result};
+use crate::JsonSchema;
 
 // Does not require T: JsonSchema.
 impl<T> JsonSchema for [T; 0] {
@@ -10,8 +10,8 @@ impl<T> JsonSchema for [T; 0] {
         "Empty_Array".to_owned()
     }
 
-    fn json_schema(_: &mut SchemaGenerator) -> Result {
-        Ok(SchemaObject {
+    fn json_schema(_: &mut SchemaGenerator) -> Schema {
+        SchemaObject {
             instance_type: Some(InstanceType::Array.into()),
             array: Some(Box::new(ArrayValidation {
                 max_items: Some(0),
@@ -19,7 +19,7 @@ impl<T> JsonSchema for [T; 0] {
             })),
             ..Default::default()
         }
-        .into())
+        .into()
     }
 }
 
@@ -33,17 +33,18 @@ macro_rules! array_impls {
                     format!("Array_Size_{}_Of_{}", $len, T::schema_name())
                 }
 
-                fn json_schema(gen: &mut SchemaGenerator) -> Result {
-                    Ok(SchemaObject {
+                fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+                    SchemaObject {
                         instance_type: Some(InstanceType::Array.into()),
                         array: Some(Box::new(ArrayValidation {
-                            items: Some(gen.subschema_for::<T>()?.into()),
+                            items: Some(gen.subschema_for::<T>().into()),
                             max_items: Some($len),
                             min_items: Some($len),
                             ..Default::default()
                         })),
                         ..Default::default()
-                    }.into())
+                    }
+                    .into()
                 }
             }
         )+

@@ -1,6 +1,6 @@
 use crate::gen::{BoolSchemas, SchemaGenerator};
 use crate::schema::*;
-use crate::{JsonSchema, Result};
+use crate::JsonSchema;
 
 macro_rules! map_impl {
     ($($desc:tt)+) => {
@@ -15,8 +15,8 @@ macro_rules! map_impl {
                 format!("Map_Of_{}", V::schema_name())
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Result {
-                let subschema = gen.subschema_for::<V>()?;
+            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+                let subschema = gen.subschema_for::<V>();
                 let json_schema_bool = gen.settings().bool_schemas == BoolSchemas::AdditionalPropertiesOnly
                     && subschema == gen.schema_for_any();
                 let additional_properties =
@@ -25,14 +25,15 @@ macro_rules! map_impl {
                     } else {
                         subschema.into()
                     };
-                Ok(SchemaObject {
+                SchemaObject {
                     instance_type: Some(InstanceType::Object.into()),
                     object: Some(Box::new(ObjectValidation {
                         additional_properties: Some(Box::new(additional_properties)),
                         ..Default::default()
                     })),
                     ..Default::default()
-                }.into())
+                }
+                .into()
             }
         }
     };
@@ -61,7 +62,8 @@ mod tests {
                 schema.instance_type,
                 Some(SingleOrVec::from(InstanceType::Object))
             );
-            let additional_properties = schema.object
+            let additional_properties = schema
+                .object
                 .unwrap()
                 .additional_properties
                 .expect("additionalProperties field present");
@@ -80,7 +82,8 @@ mod tests {
             schema.instance_type,
             Some(SingleOrVec::from(InstanceType::Object))
         );
-        let additional_properties = schema.object
+        let additional_properties = schema
+            .object
             .unwrap()
             .additional_properties
             .expect("additionalProperties field present");
@@ -103,7 +106,8 @@ mod tests {
                 schema.instance_type,
                 Some(SingleOrVec::from(InstanceType::Object))
             );
-            let additional_properties = schema.object
+            let additional_properties = schema
+                .object
                 .unwrap()
                 .additional_properties
                 .expect("additionalProperties field present");

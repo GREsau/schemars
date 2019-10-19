@@ -1,5 +1,6 @@
 use crate::gen::SchemaGenerator;
-use crate::{JsonSchema, Result};
+use crate::schema::Schema;
+use crate::JsonSchema;
 
 macro_rules! deref_impl {
     ($($desc:tt)+) => {
@@ -15,7 +16,7 @@ macro_rules! deref_impl {
                 T::schema_name()
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Result {
+            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
                 T::json_schema(gen)
             }
         }
