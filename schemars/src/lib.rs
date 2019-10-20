@@ -3,7 +3,6 @@
 pub type Map<K, V> = std::collections::BTreeMap<K, V>;
 pub type Set<T> = std::collections::BTreeSet<T>;
 
-mod error;
 mod flatten;
 mod json_schema_impls;
 #[macro_use]
@@ -12,7 +11,6 @@ mod macros;
 pub mod gen;
 pub mod schema;
 
-pub use error::*;
 pub use schemars_derive::*;
 
 use schema::Schema;

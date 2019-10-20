@@ -1,5 +1,5 @@
 use crate::schema::*;
-use crate::{JsonSchema, JsonSchemaError, Map, Result};
+use crate::{JsonSchema, Map};
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct SchemaSettings {
@@ -133,42 +133,21 @@ impl SchemaGenerator {
         schema
     }
 
-    pub fn dereference_once<'a>(&'a self, schema: &'a Schema) -> Result<&'a Schema> {
+    pub fn dereference<'a>(&'a self, schema: &Schema) -> Option<&'a Schema> {
         match schema {
             Schema::Object(SchemaObject {
                 reference: Some(ref schema_ref),
                 ..
             }) => {
                 let definitions_path = &self.settings().definitions_path;
-                if !schema_ref.starts_with(definitions_path) {
-                    return Err(JsonSchemaError::new(
-                        "Could not extract referenced schema name.",
-                        schema.clone(),
-                    ));
-                }
-
-                let name = &schema_ref[definitions_path.len()..];
-                self.definitions.get(name).ok_or_else(|| {
-                    JsonSchemaError::new("Could not find referenced schema.", schema.clone())
-                })
+                let name = if schema_ref.starts_with(definitions_path) {
+                    &schema_ref[definitions_path.len()..]
+                } else {
+                    schema_ref
+                };
+                self.definitions.get(name)
             }
-            s => Ok(s),
+            _ => None,
         }
-    }
-
-    pub fn dereference<'a>(&'a self, mut schema: &'a Schema) -> Result<&'a Schema> {
-        if !schema.is_ref() {
-            return Ok(schema);
-        }
-        for _ in 0..100 {
-            schema = self.dereference_once(schema)?;
-            if !schema.is_ref() {
-                return Ok(schema);
-            }
-        }
-        Err(JsonSchemaError::new(
-            "Failed to dereference schema after 100 iterations - references may be cyclic.",
-            schema.clone(),
-        ))
     }
 }

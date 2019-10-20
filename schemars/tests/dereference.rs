@@ -1,19 +1,5 @@
-mod util;
 use schemars::{gen::SchemaGenerator, JsonSchema};
 use std::ptr;
-
-#[test]
-fn dereference_i32() -> util::TestResult {
-    let mut gen = SchemaGenerator::default();
-    let i32_schema = gen.subschema_for::<i32>();
-
-    let dereferenced_once = gen.dereference_once(&i32_schema)?;
-    assert!(ptr::eq(dereferenced_once, &i32_schema));
-
-    let dereferenced = gen.dereference(&i32_schema)?;
-    assert!(ptr::eq(dereferenced, &i32_schema));
-    Ok(())
-}
 
 #[derive(Debug, JsonSchema)]
 pub struct Struct {
@@ -22,15 +8,15 @@ pub struct Struct {
 }
 
 #[test]
-fn dereference_struct() -> util::TestResult {
+fn dereference_struct() {
     let mut gen = SchemaGenerator::default();
     let struct_ref_schema = gen.subschema_for::<Struct>();
     let struct_schema = gen.definitions().get(&<Struct>::schema_name()).unwrap();
 
-    let dereferenced_once = gen.dereference_once(&struct_ref_schema)?;
-    assert!(ptr::eq(dereferenced_once, struct_schema));
+    assert!(struct_ref_schema.is_ref());
+    assert!(!struct_schema.is_ref());
 
-    let dereferenced = gen.dereference(&struct_ref_schema)?;
-    assert!(ptr::eq(dereferenced, struct_schema));
-    Ok(())
+    let dereferenced = gen.dereference(&struct_ref_schema);
+    assert!(dereferenced.is_some());
+    assert!(ptr::eq(dereferenced.unwrap(), struct_schema));
 }
