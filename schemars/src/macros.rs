@@ -2,6 +2,7 @@
 ///
 /// The type must implement [`JsonSchema`].
 ///
+/// # Example
 /// ```
 /// use schemars::{schema_for, JsonSchema};
 ///

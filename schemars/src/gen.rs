@@ -1,19 +1,38 @@
 use crate::schema::*;
 use crate::{JsonSchema, Map};
 
+/// Settings to customize how a Schema is generated.
 #[derive(Debug, PartialEq, Clone)]
 pub struct SchemaSettings {
+    /// If `true`, schemas for [`Option<T>`](Option) will include a `nullable` property.
+    ///
+    /// This is not part of the JSON Schema spec, but is used in Swagger/OpenAPI schemas.
+    ///
+    /// Defaults to `false`.
     pub option_nullable: bool,
+    /// If `true`, schemas for [`Option<T>`](Option) will have `null` added to their [`type`](../schema/struct.SchemaObject.html#structfield.instance_type).
+    ///
+    /// Defaults to `true`.
     pub option_add_null_type: bool,
+    /// Controls whether trivial [`Bool`](../schema/enum.Schema.html#variant.Bool) schemas may be generated.
+    ///
+    /// Defaults to [`BoolSchemas::Enabled`].
     pub bool_schemas: BoolSchemas,
+    /// A JSON pointer to the expected location of referenceable subschemas within the resulting root schema.
+    ///
+    /// Defaults to `"#/definitions/"`.
     pub definitions_path: String,
 }
 
+/// Controls whether trivial [`Bool`](../schema/enum.Schema.html#variant.Bool) schemas may be generated.
 #[derive(Debug, PartialEq, Copy, Clone)]
 pub enum BoolSchemas {
-    Enable,
+    /// `Bool` schemas may be used.
+    Enabled,
+    /// `Bool` schemas may only be used in a schema's [`additionalProperties`](../sschema/struct.ObjectValidation.html#structfield.additional_properties) field.
     AdditionalPropertiesOnly,
-    Disable,
+    /// `Bool` schemas will never be used.
+    Disabled,
 }
 
 impl Default for SchemaSettings {
@@ -23,19 +42,22 @@ impl Default for SchemaSettings {
 }
 
 impl SchemaSettings {
+    /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7).
     pub fn new() -> SchemaSettings {
         Self::draft07()
     }
 
+    /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7).
     pub fn draft07() -> SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
-            bool_schemas: BoolSchemas::Enable,
+            bool_schemas: BoolSchemas::Enabled,
             definitions_path: "#/definitions/".to_owned(),
         }
     }
 
+    /// Creates `SchemaSettings` that conform to [OpenAPI 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schemaObject).
     pub fn openapi3() -> SchemaSettings {
         SchemaSettings {
             option_nullable: true,
@@ -45,11 +67,26 @@ impl SchemaSettings {
         }
     }
 
+    /// Creates a new [`SchemaGenerator`] using these settings.
     pub fn into_generator(self) -> SchemaGenerator {
         SchemaGenerator::new(self)
     }
 }
 
+/// The main type used to generate JSON Schemas.
+///
+/// # Example
+/// ```
+/// use schemars::{schema_for, JsonSchema};
+///
+/// #[derive(JsonSchema)]
+/// struct MyStruct {
+///     foo: i32,
+/// }
+///
+/// let gen = SchemaGenerator::new(SchemaSettings::new());
+/// let schema = gen.into_root_schema_for::<MyStruct>();
+/// ```
 #[derive(Debug, Default, Clone)]
 pub struct SchemaGenerator {
     settings: SchemaSettings,
@@ -57,6 +94,7 @@ pub struct SchemaGenerator {
 }
 
 impl SchemaGenerator {
+    /// Creates a new `SchemaGenerator` using the given settings.
     pub fn new(settings: SchemaSettings) -> SchemaGenerator {
         SchemaGenerator {
             settings,
@@ -64,28 +102,42 @@ impl SchemaGenerator {
         }
     }
 
+    /// Borrows the [`SchemaSettings`] being used by this `SchemaGenerator`.
     pub fn settings(&self) -> &SchemaSettings {
         &self.settings
     }
 
+    /// Returns a `Schema` that matches everything, such as the empty schema `{}`.
+    ///
+    /// The exact value returned depends on this generator's [`BoolSchemas`](struct.SchemaSettings.html#structfield.bool_schemas) setting.
     pub fn schema_for_any(&self) -> Schema {
         let schema: Schema = true.into();
-        if self.settings().bool_schemas == BoolSchemas::Enable {
+        if self.settings().bool_schemas == BoolSchemas::Enabled {
             schema
         } else {
             Schema::Object(schema.into())
         }
     }
 
+    /// Returns a `Schema` that matches nothing, such as the schema `{ "not":{} }`.
+    ///
+    /// The exact value returned depends on this generator's [`BoolSchemas`](struct.SchemaSettings.html#structfield.bool_schemas) setting.
     pub fn schema_for_none(&self) -> Schema {
         let schema: Schema = false.into();
-        if self.settings().bool_schemas == BoolSchemas::Enable {
+        if self.settings().bool_schemas == BoolSchemas::Enabled {
             schema
         } else {
             Schema::Object(schema.into())
         }
     }
 
+    /// Generates a JSON Schema for the type `T`, and returns either the schema itself or a `$ref` schema referencing `T`'s schema.
+    ///
+    /// If `T` is [referenceable](JsonSchema::is_referenceable), this will add `T`'s schema to this generator's definitions, and
+    /// return a `$ref` schema referencing that schema. Otherwise, this method behaves identically to [`JsonSchema::json_schema`].
+    ///
+    /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
+    /// add them to the `SchemaGenerator`'s schema definitions.
     pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
         if !T::is_referenceable() {
             return T::json_schema(self);
@@ -107,10 +159,18 @@ impl SchemaGenerator {
         self.definitions.insert(name, schema);
     }
 
+    /// Returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
+    ///
+    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
+    /// themselves.
     pub fn definitions(&self) -> &Map<String, Schema> {
         &self.definitions
     }
 
+    /// Consumes the generator and returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
+    ///
+    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
+    /// themselves.
     pub fn into_definitions(self) -> Map<String, Schema> {
         self.definitions
     }
@@ -140,12 +200,12 @@ impl SchemaGenerator {
                 ..
             }) => {
                 let definitions_path = &self.settings().definitions_path;
-                let name = if schema_ref.starts_with(definitions_path) {
-                    &schema_ref[definitions_path.len()..]
+                if schema_ref.starts_with(definitions_path) {
+                    let name = &schema_ref[definitions_path.len()..];
+                    self.definitions.get(name)
                 } else {
-                    schema_ref
-                };
-                self.definitions.get(name)
+                    None
+                }
             }
             _ => None,
         }

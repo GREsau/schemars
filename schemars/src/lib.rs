@@ -21,6 +21,7 @@ use schema::Schema;
 ///
 /// This can also be automatically derived on most custom types with `#[derive(JsonSchema)]`.
 ///
+/// # Example
 /// ```
 /// use schemars::{schema_for, JsonSchema};
 ///
@@ -48,6 +49,9 @@ pub trait JsonSchema {
     fn schema_name() -> String;
 
     /// Generates a JSON Schema for this type.
+    ///
+    /// If the returned schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
+    /// add them to the [`SchemaGenerator`](gen::SchemaGenerator)'s schema definitions.
     ///
     /// This should not return a `$ref` schema.
     fn json_schema(gen: &mut gen::SchemaGenerator) -> Schema;
