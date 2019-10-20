@@ -77,14 +77,14 @@ impl SchemaSettings {
 ///
 /// # Example
 /// ```
-/// use schemars::{schema_for, JsonSchema};
+/// use schemars::{JsonSchema, gen::SchemaGenerator};
 ///
 /// #[derive(JsonSchema)]
 /// struct MyStruct {
 ///     foo: i32,
 /// }
 ///
-/// let gen = SchemaGenerator::new(SchemaSettings::new());
+/// let gen = SchemaGenerator::default();
 /// let schema = gen.into_root_schema_for::<MyStruct>();
 /// ```
 #[derive(Debug, Default, Clone)]
@@ -103,6 +103,16 @@ impl SchemaGenerator {
     }
 
     /// Borrows the [`SchemaSettings`] being used by this `SchemaGenerator`.
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::gen::SchemaGenerator;
+    ///
+    /// let gen = SchemaGenerator::default();
+    /// let settings = gen.settings();
+    ///
+    /// assert_eq!(settings.option_add_null_type, true);
+    /// ```
     pub fn settings(&self) -> &SchemaSettings {
         &self.settings
     }
@@ -167,7 +177,7 @@ impl SchemaGenerator {
         &self.definitions
     }
 
-    /// Consumes the generator and returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
+    /// Consumes `self` and returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
@@ -175,6 +185,11 @@ impl SchemaGenerator {
         self.definitions
     }
 
+    /// Generates a root JSON Schema for the type `T`.
+    ///
+    /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
+    /// add them to the `SchemaGenerator`'s schema definitions and include them in the returned `SchemaObject`'s
+    /// [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> SchemaObject {
         let mut schema: SchemaObject = T::json_schema(self).into();
         let metadata = schema.metadata();
@@ -184,6 +199,10 @@ impl SchemaGenerator {
         schema
     }
 
+    /// Consumes `self` and generates a root JSON Schema for the type `T`.
+    ///
+    /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
+    /// include them in the returned `SchemaObject`'s [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> SchemaObject {
         let mut schema: SchemaObject = T::json_schema(&mut self).into();
         let metadata = schema.metadata();
@@ -193,6 +212,30 @@ impl SchemaGenerator {
         schema
     }
 
+    /// Attemps to find the schema that the given `schema` is referencing.
+    ///
+    /// If the given `schema` has a [`$ref`](../schema/struct.SchemaObject.html#structfield.reference) property which refers
+    /// to another schema in `self`'s schema definitions, the referenced schema will be returned. Otherwise, returns `None`.
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::{JsonSchema, gen::SchemaGenerator};
+    ///
+    /// #[derive(JsonSchema)]
+    /// struct MyStruct {
+    ///     foo: i32,
+    /// }
+    ///
+    /// let mut gen = SchemaGenerator::default();
+    /// let ref_schema = gen.subschema_for::<MyStruct>();
+    ///
+    /// assert!(ref_schema.is_ref());
+    ///
+    /// let dereferenced = gen.dereference(&ref_schema);
+    ///
+    /// assert!(dereferenced.is_some());
+    /// assert!(!dereferenced.unwrap().is_ref());
+    /// ```
     pub fn dereference<'a>(&'a self, schema: &Schema) -> Option<&'a Schema> {
         match schema {
             Schema::Object(SchemaObject {

@@ -2,6 +2,7 @@ use crate::schema::*;
 use crate::{Map, Set};
 
 impl Schema {
+    #[doc(hidden)]
     pub fn flatten(self, other: Self) -> Schema {
         if is_null_type(&self) {
             return other;
