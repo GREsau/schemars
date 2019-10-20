@@ -6,7 +6,7 @@ Work in progress!
 ## Basic Usage
 
 ```rust
-use schemars::{JsonSchema, schema_for};
+use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, JsonSchema)]
@@ -28,7 +28,7 @@ struct Nested {
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let schema = schema_for!(MyStruct)?;
+    let schema = schema_for!(MyStruct);
     println!("{}", serde_json::to_string_pretty(&schema)?);
     Ok(())
 }
