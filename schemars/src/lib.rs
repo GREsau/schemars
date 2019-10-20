@@ -1,5 +1,3 @@
-#![allow(clippy::large_enum_variant)]
-
 pub type Map<K, V> = std::collections::BTreeMap<K, V>;
 pub type Set<T> = std::collections::BTreeSet<T>;
 
@@ -8,22 +6,55 @@ mod json_schema_impls;
 #[macro_use]
 mod macros;
 
+/// JSON Schema generator and settings.
 pub mod gen;
+/// JSON Schema types.
 pub mod schema;
 
 pub use schemars_derive::*;
 
 use schema::Schema;
 
+/// A type which can be described as a JSON Schema document.
+///
+/// This is implemented for many Rust primitive and standard library types.
+///
+/// This can also be automatically derived on most custom types with `#[derive(JsonSchema)]`.
+///
+/// ```
+/// use schemars::{schema_for, JsonSchema};
+///
+/// #[derive(JsonSchema)]
+/// struct MyStruct {
+///     foo: i32,
+/// }
+///
+/// let my_schema = schema_for!(MyStruct);
+/// ```
 pub trait JsonSchema {
+    /// Whether JSON Schemas generated for this type should be re-used where possible using the `$ref` keyword.
+    ///
+    /// For trivial types (such as primitives), this should return `false`. For more complex types, it should return `true`.
+    /// For recursive types, this *must* return `true` to prevent infinite cycles when generating schemas.
+    ///
+    /// By default, this returns `true`.
     fn is_referenceable() -> bool {
         true
     }
 
+    /// The name of the generated JSON Schema.
+    ///
+    /// This is used as the title for root schemas, and the key within the `definitions` property for subschemas.
     fn schema_name() -> String;
 
+    /// Generates a JSON Schema for this type.
+    ///
+    /// This should not return a `$ref` schema.
     fn json_schema(gen: &mut gen::SchemaGenerator) -> Schema;
 
+    /// Helper for generating schemas for flattened `Option` fields.
+    ///
+    /// This should not need to be called or implemented by code outside of `schemars`.
     #[doc(hidden)]
     fn json_schema_optional(gen: &mut gen::SchemaGenerator) -> Schema {
         Self::json_schema(gen)

@@ -21,6 +21,7 @@ struct Deep1 {
     v: Vec<i32>,
 }
 
+#[allow(clippy::option_option)]
 #[derive(Debug, JsonSchema)]
 struct Deep2 {
     b: bool,

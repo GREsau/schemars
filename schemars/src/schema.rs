@@ -3,6 +3,7 @@ use crate::{JsonSchema, Map, Set};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
+#[allow(clippy::large_enum_variant)]
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, JsonSchema)]
 #[serde(untagged)]
 pub enum Schema {
