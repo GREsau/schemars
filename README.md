@@ -1,4 +1,8 @@
 # schemars
+
+[![Travis (.org)](https://img.shields.io/travis/GREsau/schemars?logo=travis)](https://travis-ci.org/GREsau/schemars)
+[![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
+
 Generate JSON Schema documents from Rust code
 
 Work in progress!
