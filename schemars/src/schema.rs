@@ -50,31 +50,55 @@ impl From<bool> for Schema {
     }
 }
 
+/// A JSON Schema object.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default, JsonSchema)]
 #[serde(rename_all = "camelCase", default)]
 pub struct SchemaObject {
+    /// Properties which annotate the [`SchemaObject`] which typically have no effect when an object is being validated against the schema.
     #[serde(flatten, deserialize_with = "skip_if_default")]
     pub metadata: Option<Box<Metadata>>,
+    /// The `type` keyword.
+    ///
+    /// See [JSON Schema Validation 6.1.1. "type"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.1)
+    /// and [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).
     #[serde(rename = "type", skip_serializing_if = "Option::is_none")]
     pub instance_type: Option<SingleOrVec<InstanceType>>,
+    /// The `format` keyword.
+    ///
+    /// See [JSON Schema Validation 7. A Vocabulary for Semantic Content With "format"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-7).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub format: Option<String>,
+    /// The `enum` keyword.
+    ///
+    /// See [JSON Schema Validation 6.1.2. "enum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.2)
     #[serde(rename = "enum", skip_serializing_if = "Option::is_none")]
     pub enum_values: Option<Vec<Value>>,
+    /// The `const` keyword.
+    ///
+    /// See [JSON Schema Validation 6.1.3. "const"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.3)
     #[serde(rename = "const", skip_serializing_if = "Option::is_none")]
     pub const_value: Option<Value>,
+    /// Properties of the [`SchemaObject`] which define validation assertions in terms of other schemas.
     #[serde(flatten, deserialize_with = "skip_if_default")]
     pub subschemas: Option<Box<SubschemaValidation>>,
+    /// Properties of the [`SchemaObject`] which define validation assertions for numbers.
     #[serde(flatten, deserialize_with = "skip_if_default")]
     pub number: Option<Box<NumberValidation>>,
+    /// Properties of the [`SchemaObject`] which define validation assertions for strings.
     #[serde(flatten, deserialize_with = "skip_if_default")]
     pub string: Option<Box<StringValidation>>,
+    /// Properties of the [`SchemaObject`] which define validation assertions for arrays.
     #[serde(flatten, deserialize_with = "skip_if_default")]
     pub array: Option<Box<ArrayValidation>>,
+    /// Properties of the [`SchemaObject`] which define validation assertions for objects.
     #[serde(flatten, deserialize_with = "skip_if_default")]
     pub object: Option<Box<ObjectValidation>>,
+    /// The `$ref` keyword.
+    ///
+    /// See [JSON Schema 8.2.4.1. Direct References with "$ref"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.4.1).
     #[serde(rename = "$ref", skip_serializing_if = "Option::is_none")]
     pub reference: Option<String>,
+    /// Arbitrary extra properties which are not part of the JSON Schema specification, or which `schemars` does not support.
     #[serde(flatten)]
     pub extensions: Map<String, Value>,
 }
@@ -382,6 +406,9 @@ pub struct ObjectValidation {
     pub property_names: Option<Box<Schema>>,
 }
 
+/// The possible types of values in JSON Schema documents.
+///
+/// See [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).
 #[derive(
     Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, JsonSchema,
 )]
@@ -396,6 +423,9 @@ pub enum InstanceType {
     Integer,
 }
 
+/// A type which can be serialized as a single item, or multiple items.
+///
+/// In some contexts, a `Single` may be semantically distinct from a `Vec` containing only item.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord, JsonSchema)]
 #[serde(untagged)]
 pub enum SingleOrVec<T> {
