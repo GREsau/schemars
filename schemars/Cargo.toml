@@ -19,9 +19,16 @@ chrono = { version = "0.4", default-features = false, optional = true }
 [dev-dependencies]
 pretty_assertions = "0.6.1"
 
+[features]
+derive_json_schema = []
+
 [[test]]
 name = "chrono"
 required-features = ["chrono"]
+
+[[test]]
+name = "schema_for_schema"
+required-features = ["derive_json_schema"]
 
 [package.metadata.docs.rs]
 all-features = true
