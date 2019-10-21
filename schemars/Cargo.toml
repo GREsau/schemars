@@ -6,7 +6,9 @@ version = "0.3.0"
 authors = ["Graham Esau <gesau@hotmail.co.uk>"]
 edition = "2018"
 license = "MIT"
+readme = "README.md"
 keywords = ["rust", "json-schema", "serde"]
+categories = ["encoding"]
 
 [dependencies]
 schemars_derive = { version = "0.3.0", path = "../schemars_derive" }
