@@ -1,3 +1,4 @@
+#[cfg(feature = "derive_json_schema")]
 use crate as schemars;
 #[cfg(feature = "derive_json_schema")]
 use crate::JsonSchema;

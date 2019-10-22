@@ -199,7 +199,7 @@ fn schema_for_internal_tagged_enum<'a>(
                 let field = &variant.fields[0];
                 let ty = get_json_schema_type(field);
                 quote_spanned! {field.original.span()=>
-                    <#ty>::json_schema(gen)
+                    gen.subschema_for::<#ty>()
                 }
             }
             Style::Struct => schema_for_struct(&variant.fields, cattrs),

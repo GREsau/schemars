@@ -1,7 +1,7 @@
 use crate::schema::*;
 use crate::{JsonSchema, Map};
 
-/// Settings to customize how a Schema is generated.
+/// Settings to customize how Schemas are generated.
 #[derive(Debug, PartialEq, Clone)]
 pub struct SchemaSettings {
     /// If `true`, schemas for [`Option<T>`](Option) will include a `nullable` property.
@@ -37,16 +37,11 @@ pub enum BoolSchemas {
 
 impl Default for SchemaSettings {
     fn default() -> SchemaSettings {
-        SchemaSettings::new()
+        SchemaSettings::draft07()
     }
 }
 
 impl SchemaSettings {
-    /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7).
-    pub fn new() -> SchemaSettings {
-        Self::draft07()
-    }
-
     /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7).
     pub fn draft07() -> SchemaSettings {
         SchemaSettings {
@@ -57,7 +52,7 @@ impl SchemaSettings {
         }
     }
 
-    /// Creates `SchemaSettings` that conform to [OpenAPI 3](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schemaObject).
+    /// Creates `SchemaSettings` that conform to [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schemaObject).
     pub fn openapi3() -> SchemaSettings {
         SchemaSettings {
             option_nullable: true,
