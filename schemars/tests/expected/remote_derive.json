@@ -2,25 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Process",
   "type": "object",
-  "definitions": {
-    "DurationDef": {
-      "type": "object",
-      "required": [
-        "nanos",
-        "secs"
-      ],
-      "properties": {
-        "nanos": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "secs": {
-          "type": "integer",
-          "format": "int64"
-        }
-      }
-    }
-  },
   "required": [
     "command_line",
     "system_cpu_time",
@@ -39,6 +20,25 @@
     },
     "wall_time": {
       "$ref": "#/definitions/DurationDef"
+    }
+  },
+  "definitions": {
+    "DurationDef": {
+      "type": "object",
+      "required": [
+        "nanos",
+        "secs"
+      ],
+      "properties": {
+        "nanos": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "secs": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
     }
   }
 }

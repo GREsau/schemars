@@ -2,20 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyStruct_For_Integer_And_Null_And_Boolean_And_Array_Of_String",
   "type": "object",
-  "definitions": {
-    "MySimpleStruct": {
-      "type": "object",
-      "required": [
-        "foo"
-      ],
-      "properties": {
-        "foo": {
-          "type": "integer",
-          "format": "int32"
-        }
-      }
-    }
-  },
   "required": [
     "inner",
     "t",
@@ -41,6 +27,20 @@
       "type": "array",
       "items": {
         "type": "string"
+      }
+    }
+  },
+  "definitions": {
+    "MySimpleStruct": {
+      "type": "object",
+      "required": [
+        "foo"
+      ],
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        }
       }
     }
   }

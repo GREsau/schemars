@@ -2,20 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "a-new-name-Array_Of_String-Integer-Integer",
   "type": "object",
-  "definitions": {
-    "another-new-name": {
-      "type": "object",
-      "required": [
-        "foo"
-      ],
-      "properties": {
-        "foo": {
-          "type": "integer",
-          "format": "int32"
-        }
-      }
-    }
-  },
   "required": [
     "inner",
     "t",
@@ -41,6 +27,20 @@
       "type": "array",
       "items": {
         "type": "string"
+      }
+    }
+  },
+  "definitions": {
+    "another-new-name": {
+      "type": "object",
+      "required": [
+        "foo"
+      ],
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        }
       }
     }
   }
