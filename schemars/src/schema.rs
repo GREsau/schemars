@@ -54,6 +54,28 @@ impl From<bool> for Schema {
     }
 }
 
+/// The root object of a JSON Schema document.
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+#[cfg_attr(feature = "derive_json_schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase", default)]
+pub struct RootSchema {
+    /// The `$schema` keyword.
+    ///
+    /// See [JSON Schema 8.1.1. The "$schema" Keyword](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.1.1).
+    #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
+    pub meta_schema: Option<String>,
+    /// The root schema itself.
+    #[serde(flatten)]
+    pub schema: SchemaObject,
+    /// The `$defs` keyword.
+    ///
+    /// This is currently serialized as `definitions` for backwards compatibility.
+    ///
+    /// See [JSON Schema 8.2.5. Schema Re-Use With "$defs"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5).
+    #[serde(alias = "$defs", skip_serializing_if = "Map::is_empty")]
+    pub definitions: Map<String, Schema>,
+}
+
 /// A JSON Schema object.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 #[cfg_attr(feature = "derive_json_schema", derive(JsonSchema))]
@@ -186,21 +208,11 @@ impl From<Schema> for SchemaObject {
 #[cfg_attr(feature = "derive_json_schema", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", default)]
 pub struct Metadata {
-    /// The `$schema` keyword.
-    ///
-    /// This should be `Some` on a root schema, and `None` on subschemas.
-    ///
-    /// See [JSON Schema 8.1.1. The "$schema" Keyword](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.1.1).
-    #[serde(rename = "$schema", skip_serializing_if = "Option::is_none")]
-    pub schema: Option<String>,
     /// The `$id` keyword.
     ///
     /// See [JSON Schema 8.2.2. The "$id" Keyword](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2).
     #[serde(rename = "$id", skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
-    /// The `title` keyword.
-    ///
-    /// See [JSON Schema Validation 9.1. "title" and "description"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.1).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     /// The `description` keyword.
@@ -208,13 +220,6 @@ pub struct Metadata {
     /// See [JSON Schema Validation 9.1. "title" and "description"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.1).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
-    /// The `$defs` keyword.
-    ///
-    /// This is currently serialized as `definitions` for backwards compatibility.
-    ///
-    /// See [JSON Schema 8.2.5. Schema Re-Use With "$defs"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5).
-    #[serde(alias = "$defs", skip_serializing_if = "Map::is_empty")]
-    pub definitions: Map<String, Schema>,
     /// The `default` keyword.
     ///
     /// See [JSON Schema Validation 9.2. "default"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.2).

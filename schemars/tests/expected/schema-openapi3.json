@@ -1,6 +1,278 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Schema",
+  "title": "RootSchema",
+  "type": "object",
+  "properties": {
+    "$id": {
+      "type": "string",
+      "nullable": true
+    },
+    "$ref": {
+      "type": "string",
+      "nullable": true
+    },
+    "$schema": {
+      "type": "string",
+      "nullable": true
+    },
+    "additionalItems": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/components/schemas/SchemaObject"
+        }
+      ],
+      "nullable": true
+    },
+    "additionalProperties": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/components/schemas/SchemaObject"
+        }
+      ],
+      "nullable": true
+    },
+    "allOf": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/Schema"
+      },
+      "nullable": true
+    },
+    "anyOf": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/Schema"
+      },
+      "nullable": true
+    },
+    "const": {
+      "nullable": true
+    },
+    "contains": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/components/schemas/SchemaObject"
+        }
+      ],
+      "nullable": true
+    },
+    "default": {
+      "nullable": true
+    },
+    "definitions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/components/schemas/Schema"
+      }
+    },
+    "deprecated": {
+      "type": "boolean"
+    },
+    "description": {
+      "type": "string",
+      "nullable": true
+    },
+    "else": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/components/schemas/SchemaObject"
+        }
+      ],
+      "nullable": true
+    },
+    "enum": {
+      "type": "array",
+      "items": {},
+      "nullable": true
+    },
+    "exclusiveMaximum": {
+      "type": "number",
+      "format": "double",
+      "nullable": true
+    },
+    "exclusiveMinimum": {
+      "type": "number",
+      "format": "double",
+      "nullable": true
+    },
+    "format": {
+      "type": "string",
+      "nullable": true
+    },
+    "if": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/components/schemas/SchemaObject"
+        }
+      ],
+      "nullable": true
+    },
+    "items": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/Schema"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Schema"
+          }
+        }
+      ],
+      "nullable": true
+    },
+    "maxItems": {
+      "type": "integer",
+      "format": "uint32",
+      "nullable": true
+    },
+    "maxLength": {
+      "type": "integer",
+      "format": "uint32",
+      "nullable": true
+    },
+    "maxProperties": {
+      "type": "integer",
+      "format": "uint32",
+      "nullable": true
+    },
+    "maximum": {
+      "type": "number",
+      "format": "double",
+      "nullable": true
+    },
+    "minItems": {
+      "type": "integer",
+      "format": "uint32",
+      "nullable": true
+    },
+    "minLength": {
+      "type": "integer",
+      "format": "uint32",
+      "nullable": true
+    },
+    "minProperties": {
+      "type": "integer",
+      "format": "uint32",
+      "nullable": true
+    },
+    "minimum": {
+      "type": "number",
+      "format": "double",
+      "nullable": true
+    },
+    "multipleOf": {
+      "type": "number",
+      "format": "double",
+      "nullable": true
+    },
+    "not": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/components/schemas/SchemaObject"
+        }
+      ],
+      "nullable": true
+    },
+    "oneOf": {
+      "type": "array",
+      "items": {
+        "$ref": "#/components/schemas/Schema"
+      },
+      "nullable": true
+    },
+    "pattern": {
+      "type": "string",
+      "nullable": true
+    },
+    "patternProperties": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/components/schemas/Schema"
+      }
+    },
+    "properties": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/components/schemas/Schema"
+      }
+    },
+    "propertyNames": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/components/schemas/SchemaObject"
+        }
+      ],
+      "nullable": true
+    },
+    "readOnly": {
+      "type": "boolean"
+    },
+    "required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "then": {
+      "anyOf": [
+        {
+          "type": "boolean"
+        },
+        {
+          "$ref": "#/components/schemas/SchemaObject"
+        }
+      ],
+      "nullable": true
+    },
+    "title": {
+      "type": "string",
+      "nullable": true
+    },
+    "type": {
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/InstanceType"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/InstanceType"
+          }
+        }
+      ],
+      "nullable": true
+    },
+    "uniqueItems": {
+      "type": "boolean",
+      "nullable": true
+    },
+    "writeOnly": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": true,
   "definitions": {
     "InstanceType": {
       "enum": [
@@ -31,10 +303,6 @@
           "nullable": true
         },
         "$ref": {
-          "type": "string",
-          "nullable": true
-        },
-        "$schema": {
           "type": "string",
           "nullable": true
         },
@@ -90,12 +358,6 @@
         },
         "default": {
           "nullable": true
-        },
-        "definitions": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/components/schemas/Schema"
-          }
         },
         "deprecated": {
           "type": "boolean"
@@ -297,13 +559,5 @@
       },
       "additionalProperties": true
     }
-  },
-  "anyOf": [
-    {
-      "type": "boolean"
-    },
-    {
-      "$ref": "#/components/schemas/SchemaObject"
-    }
-  ]
+  }
 }

@@ -44,8 +44,6 @@ impl_merge!(SchemaObject {
 impl Merge for Metadata {
     fn merge(self, other: Self) -> Self {
         Metadata {
-            definitions: self.definitions.merge(other.definitions),
-            schema: self.schema.or(other.schema),
             id: self.id.or(other.id),
             title: self.title.or(other.title),
             description: self.description.or(other.description),

@@ -1,6 +1,304 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Schema",
+  "title": "RootSchema",
+  "type": "object",
+  "properties": {
+    "$id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "$ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "$schema": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "additionalItems": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Schema"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "additionalProperties": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Schema"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "allOf": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/definitions/Schema"
+      }
+    },
+    "anyOf": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/definitions/Schema"
+      }
+    },
+    "const": true,
+    "contains": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Schema"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "default": true,
+    "definitions": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/Schema"
+      }
+    },
+    "deprecated": {
+      "type": "boolean"
+    },
+    "description": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "else": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Schema"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "enum": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": true
+    },
+    "exclusiveMaximum": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "exclusiveMinimum": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "format": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "if": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Schema"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "items": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/SingleOrVec_For_Schema"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "maxItems": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32"
+    },
+    "maxLength": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32"
+    },
+    "maxProperties": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32"
+    },
+    "maximum": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "minItems": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32"
+    },
+    "minLength": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32"
+    },
+    "minProperties": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "format": "uint32"
+    },
+    "minimum": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "multipleOf": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "format": "double"
+    },
+    "not": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Schema"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "oneOf": {
+      "type": [
+        "array",
+        "null"
+      ],
+      "items": {
+        "$ref": "#/definitions/Schema"
+      }
+    },
+    "pattern": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "patternProperties": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/Schema"
+      }
+    },
+    "properties": {
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/definitions/Schema"
+      }
+    },
+    "propertyNames": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Schema"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "readOnly": {
+      "type": "boolean"
+    },
+    "required": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "then": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/Schema"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "title": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "type": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/SingleOrVec_For_InstanceType"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "uniqueItems": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "writeOnly": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": true,
   "definitions": {
     "InstanceType": {
       "enum": [
@@ -33,12 +331,6 @@
           ]
         },
         "$ref": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "$schema": {
           "type": [
             "string",
             "null"
@@ -94,12 +386,6 @@
           ]
         },
         "default": true,
-        "definitions": {
-          "type": "object",
-          "additionalProperties": {
-            "$ref": "#/definitions/Schema"
-          }
-        },
         "deprecated": {
           "type": "boolean"
         },
@@ -349,13 +635,5 @@
         }
       ]
     }
-  },
-  "anyOf": [
-    {
-      "type": "boolean"
-    },
-    {
-      "$ref": "#/definitions/SchemaObject"
-    }
-  ]
+  }
 }

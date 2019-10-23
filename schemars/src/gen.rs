@@ -185,26 +185,28 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
     /// add them to the `SchemaGenerator`'s schema definitions and include them in the returned `SchemaObject`'s
     /// [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
-    pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> SchemaObject {
+    pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> RootSchema {
         let mut schema: SchemaObject = T::json_schema(self).into();
-        let metadata = schema.metadata();
-        metadata.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
-        metadata.title = Some(T::schema_name());
-        metadata.definitions.extend(self.definitions().clone());
-        schema
+        schema.metadata().title = Some(T::schema_name());
+        RootSchema {
+            meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
+            definitions: self.definitions().clone(),
+            schema,
+        }
     }
 
     /// Consumes `self` and generates a root JSON Schema for the type `T`.
     ///
     /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
     /// include them in the returned `SchemaObject`'s [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
-    pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> SchemaObject {
+    pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> RootSchema {
         let mut schema: SchemaObject = T::json_schema(&mut self).into();
-        let metadata = schema.metadata();
-        metadata.schema = Some("http://json-schema.org/draft-07/schema#".to_owned());
-        metadata.title = Some(T::schema_name());
-        metadata.definitions.extend(self.into_definitions());
-        schema
+        schema.metadata().title = Some(T::schema_name());
+        RootSchema {
+            meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
+            definitions: self.into_definitions(),
+            schema,
+        }
     }
 
     /// Attemps to find the schema that the given `schema` is referencing.
