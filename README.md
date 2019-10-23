@@ -40,28 +40,6 @@ fn main() {
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyStruct",
-  "definitions": {
-    "MyEnum": {
-      "anyOf": [
-        {
-          "enum": [
-            "Unit"
-          ]
-        },
-        {
-          "type": "object",
-          "required": [
-            "StringNewType"
-          ],
-          "properties": {
-            "StringNewType": {
-              "type": "string"
-            }
-          }
-        }
-      ]
-    }
-  },
   "type": "object",
   "required": [
     "my_bool",
@@ -83,6 +61,28 @@ fn main() {
         },
         {
           "type": "null"
+        }
+      ]
+    }
+  },
+  "definitions": {
+    "MyEnum": {
+      "anyOf": [
+        {
+          "enum": [
+            "Unit"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "StringNewType"
+          ],
+          "properties": {
+            "StringNewType": {
+              "type": "string"
+            }
+          }
         }
       ]
     }
@@ -130,18 +130,6 @@ fn main() {
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyStruct",
-  "definitions": {
-    "MyEnum": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "string"
-        }
-      ]
-    }
-  },
   "type": "object",
   "required": [
     "myBool",
@@ -164,6 +152,18 @@ fn main() {
     "myNumber": {
       "type": "integer",
       "format": "int32"
+    }
+  },
+  "definitions": {
+    "MyEnum": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "string"
+        }
+      ]
     }
   }
 }
