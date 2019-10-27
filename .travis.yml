@@ -1,5 +1,6 @@
 language: rust
 rust:
+  - 1.13.0
   - stable
   - beta
   - nightly
@@ -8,5 +9,6 @@ jobs:
     - rust: nightly
   fast_finish: true
 script:
+  - cargo check --verbose --all --no-default-features
   - cargo build --verbose --all --all-features
-  - cargo test --verbose --all --all-features
+  - cargo test --verbose --all --all-features --no-fail-fast
