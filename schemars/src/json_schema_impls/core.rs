@@ -73,6 +73,37 @@ fn with_null_type(mut obj: SchemaObject) -> SchemaObject {
     obj
 }
 
+impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
+    no_ref_schema!();
+
+    fn schema_name() -> String {
+        format!("Result_Of_{}_Or_{}", T::schema_name(), E::schema_name())
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        let mut ok_schema = SchemaObject::default();
+        ok_schema.instance_type = Some(InstanceType::Object.into());
+        ok_schema.object().required.insert("Ok".to_owned());
+        ok_schema
+            .object()
+            .properties
+            .insert("Ok".to_owned(), gen.subschema_for::<T>());
+
+        let mut err_schema = SchemaObject::default();
+        err_schema.instance_type = Some(InstanceType::Object.into());
+        err_schema.object().required.insert("Err".to_owned());
+        err_schema
+            .object()
+            .properties
+            .insert("Err".to_owned(), gen.subschema_for::<E>());
+
+        let mut schema = SchemaObject::default();
+        schema.instance_type = Some(InstanceType::Object.into());
+        schema.subschemas().any_of = Some(vec![ok_schema.into(), err_schema.into()]);
+        schema.into()
+    }
+}
+
 impl<T: ?Sized> JsonSchema for std::marker::PhantomData<T> {
     no_ref_schema!();
 
@@ -133,5 +164,22 @@ mod tests {
         );
         assert_eq!(schema.extensions.get("nullable"), Some(&json!(true)));
         assert_eq!(schema.subschemas.is_none(), true);
+    }
+
+    #[test]
+    fn schema_for_result() {
+        let schema = schema_object_for::<Result<bool, String>>();
+        let any_of = schema.subschemas.unwrap().any_of.unwrap();
+        assert_eq!(any_of.len(), 2);
+
+        let ok_schema: SchemaObject = any_of[0].clone().into();
+        let obj = ok_schema.object.unwrap();
+        assert!(obj.required.contains("Ok"));
+        assert_eq!(obj.properties["Ok"], schema_for::<bool>());
+
+        let err_schema: SchemaObject = any_of[1].clone().into();
+        let obj = err_schema.object.unwrap();
+        assert!(obj.required.contains("Err"));
+        assert_eq!(obj.properties["Err"], schema_for::<String>());
     }
 }

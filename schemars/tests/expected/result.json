@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Result_Of_MyStruct_Or_Array_Of_String",
+  "type": "object",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "Ok"
+      ],
+      "properties": {
+        "Ok": {
+          "$ref": "#/definitions/MyStruct"
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "Err"
+      ],
+      "properties": {
+        "Err": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "MyStruct": {
+      "type": "object",
+      "required": [
+        "foo"
+      ],
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    }
+  }
+}
