@@ -1,7 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
-use std::ffi::{OsStr, OsString};
+use std::ffi::{CStr, CString, OsStr, OsString};
 
 impl JsonSchema for OsString {
     fn schema_name() -> String {
@@ -38,5 +38,29 @@ impl JsonSchema for OsStr {
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         <OsString>::json_schema(gen)
+    }
+}
+
+impl JsonSchema for CString {
+    no_ref_schema!();
+
+    fn schema_name() -> String {
+        <Vec<u8>>::schema_name()
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        <Vec<u8>>::json_schema(gen)
+    }
+}
+
+impl JsonSchema for CStr {
+    no_ref_schema!();
+
+    fn schema_name() -> String {
+        <Vec<u8>>::schema_name()
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        <Vec<u8>>::json_schema(gen)
     }
 }
