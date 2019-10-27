@@ -3,6 +3,7 @@
 [![Travis (.org)](https://img.shields.io/travis/GREsau/schemars?logo=travis)](https://travis-ci.org/GREsau/schemars)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
 [![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
+[![rustc 1.32+](https://img.shields.io/badge/schemars-rustc_1.32+-lightgray.svg)](https://blog.rust-lang.org/2019/01/17/Rust-1.32.0.html)
 
 Generate JSON Schema documents from Rust code
 
