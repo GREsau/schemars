@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OsStrings",
+  "type": "object",
+  "required": [
+    "borrowed",
+    "owned"
+  ],
+  "properties": {
+    "borrowed": {
+      "$ref": "#/definitions/OS_String"
+    },
+    "owned": {
+      "$ref": "#/definitions/OS_String"
+    }
+  },
+  "definitions": {
+    "OS_String": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "Unix"
+          ],
+          "properties": {
+            "Unix": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "uint8"
+              }
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "Windows"
+          ],
+          "properties": {
+            "Windows": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "format": "uint16"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

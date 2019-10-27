@@ -98,8 +98,7 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
             .insert("Err".to_owned(), gen.subschema_for::<E>());
 
         let mut schema = SchemaObject::default();
-        schema.instance_type = Some(InstanceType::Object.into());
-        schema.subschemas().any_of = Some(vec![ok_schema.into(), err_schema.into()]);
+        schema.subschemas().one_of = Some(vec![ok_schema.into(), err_schema.into()]);
         schema.into()
     }
 }
@@ -169,15 +168,15 @@ mod tests {
     #[test]
     fn schema_for_result() {
         let schema = schema_object_for::<Result<bool, String>>();
-        let any_of = schema.subschemas.unwrap().any_of.unwrap();
-        assert_eq!(any_of.len(), 2);
+        let one_of = schema.subschemas.unwrap().one_of.unwrap();
+        assert_eq!(one_of.len(), 2);
 
-        let ok_schema: SchemaObject = any_of[0].clone().into();
+        let ok_schema: SchemaObject = one_of[0].clone().into();
         let obj = ok_schema.object.unwrap();
         assert!(obj.required.contains("Ok"));
         assert_eq!(obj.properties["Ok"], schema_for::<bool>());
 
-        let err_schema: SchemaObject = any_of[1].clone().into();
+        let err_schema: SchemaObject = one_of[1].clone().into();
         let obj = err_schema.object.unwrap();
         assert!(obj.required.contains("Err"));
         assert_eq!(obj.properties["Err"], schema_for::<String>());

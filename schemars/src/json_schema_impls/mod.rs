@@ -10,10 +10,11 @@ mod array;
 #[cfg(feature = "chrono")]
 mod chrono;
 mod core;
-mod wrapper;
 mod maps;
+mod os;
 mod primitives;
 mod sequences;
 mod serdejson;
 mod time;
 mod tuple;
+mod wrapper;
