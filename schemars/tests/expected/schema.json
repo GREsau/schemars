@@ -136,7 +136,7 @@
     "items": {
       "anyOf": [
         {
-          "$ref": "#/definitions/SingleOrVec_For_Schema"
+          "$ref": "#/definitions/SingleOrVec_for_Schema"
         },
         {
           "type": "null"
@@ -281,7 +281,7 @@
     "type": {
       "anyOf": [
         {
-          "$ref": "#/definitions/SingleOrVec_For_InstanceType"
+          "$ref": "#/definitions/SingleOrVec_for_InstanceType"
         },
         {
           "type": "null"
@@ -445,7 +445,7 @@
         "items": {
           "anyOf": [
             {
-              "$ref": "#/definitions/SingleOrVec_For_Schema"
+              "$ref": "#/definitions/SingleOrVec_for_Schema"
             },
             {
               "type": "null"
@@ -590,7 +590,7 @@
         "type": {
           "anyOf": [
             {
-              "$ref": "#/definitions/SingleOrVec_For_InstanceType"
+              "$ref": "#/definitions/SingleOrVec_for_InstanceType"
             },
             {
               "type": "null"
@@ -609,7 +609,7 @@
       },
       "additionalProperties": true
     },
-    "SingleOrVec_For_InstanceType": {
+    "SingleOrVec_for_InstanceType": {
       "anyOf": [
         {
           "$ref": "#/definitions/InstanceType"
@@ -622,7 +622,7 @@
         }
       ]
     },
-    "SingleOrVec_For_Schema": {
+    "SingleOrVec_for_Schema": {
       "anyOf": [
         {
           "$ref": "#/definitions/Schema"

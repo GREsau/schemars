@@ -12,7 +12,7 @@ macro_rules! map_impl {
             no_ref_schema!();
 
             fn schema_name() -> String {
-                format!("Map_Of_{}", V::schema_name())
+                format!("Map_of_{}", V::schema_name())
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {

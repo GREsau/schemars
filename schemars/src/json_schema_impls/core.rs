@@ -76,7 +76,7 @@ fn with_null_type(mut obj: SchemaObject) -> SchemaObject {
 
 impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
     fn schema_name() -> String {
-        format!("Result_Of_{}_Or_{}", T::schema_name(), E::schema_name())
+        format!("Result_of_{}_or_{}", T::schema_name(), E::schema_name())
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
@@ -102,7 +102,7 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
 
 impl<T: JsonSchema> JsonSchema for Range<T> {
     fn schema_name() -> String {
-        format!("Range_Of_{}", T::schema_name())
+        format!("Range_of_{}", T::schema_name())
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {

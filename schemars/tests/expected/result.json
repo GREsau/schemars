@@ -8,10 +8,10 @@
   ],
   "properties": {
     "result1": {
-      "$ref": "#/definitions/Result_Of_MyStruct_Or_Array_Of_String"
+      "$ref": "#/definitions/Result_of_MyStruct_or_Array_of_String"
     },
     "result2": {
-      "$ref": "#/definitions/Result_Of_Boolean_Or_Null"
+      "$ref": "#/definitions/Result_of_Boolean_or_Null"
     }
   },
   "definitions": {
@@ -27,7 +27,7 @@
         }
       }
     },
-    "Result_Of_Boolean_Or_Null": {
+    "Result_of_Boolean_or_Null": {
       "oneOf": [
         {
           "type": "object",
@@ -53,7 +53,7 @@
         }
       ]
     },
-    "Result_Of_MyStruct_Or_Array_Of_String": {
+    "Result_of_MyStruct_or_Array_of_String": {
       "oneOf": [
         {
           "type": "object",

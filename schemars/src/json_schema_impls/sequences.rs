@@ -11,7 +11,7 @@ macro_rules! seq_impl {
             no_ref_schema!();
 
             fn schema_name() -> String {
-                format!("Array_Of_{}", T::schema_name())
+                format!("Array_of_{}", T::schema_name())
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {

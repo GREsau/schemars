@@ -7,7 +7,7 @@ impl<T> JsonSchema for [T; 0] {
     no_ref_schema!();
 
     fn schema_name() -> String {
-        "Empty_Array".to_owned()
+        "EmptyArray".to_owned()
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -30,7 +30,7 @@ macro_rules! array_impls {
                 no_ref_schema!();
 
                 fn schema_name() -> String {
-                    format!("Array_Size_{}_Of_{}", $len, T::schema_name())
+                    format!("Array_size_{}_of_{}", $len, T::schema_name())
                 }
 
                 fn json_schema(gen: &mut SchemaGenerator) -> Schema {

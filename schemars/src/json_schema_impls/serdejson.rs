@@ -8,7 +8,7 @@ impl JsonSchema for Value {
     no_ref_schema!();
 
     fn schema_name() -> String {
-        "Any_Value".to_owned()
+        "AnyValue".to_owned()
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {

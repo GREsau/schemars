@@ -9,7 +9,7 @@ macro_rules! tuple_impls {
                 no_ref_schema!();
 
                 fn schema_name() -> String {
-                    ["Tuple_Of".to_owned()$(, $name::schema_name())+].join("_And_")
+                    ["Tuple_of".to_owned()$(, $name::schema_name())+].join("_and_")
                 }
 
                 fn json_schema(gen: &mut SchemaGenerator) -> Schema {

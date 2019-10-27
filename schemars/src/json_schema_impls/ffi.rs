@@ -5,7 +5,7 @@ use std::ffi::{CStr, CString, OsStr, OsString};
 
 impl JsonSchema for OsString {
     fn schema_name() -> String {
-        "OS_String".to_owned()
+        "OsString".to_owned()
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {

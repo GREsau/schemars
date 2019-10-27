@@ -47,8 +47,8 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         }
     } else if type_name == schema_base_name {
         let mut schema_name_fmt = schema_base_name;
-        schema_name_fmt.push_str("_For_{}");
-        schema_name_fmt.push_str(&"_And_{}".repeat(type_params.len() - 1));
+        schema_name_fmt.push_str("_for_{}");
+        schema_name_fmt.push_str(&"_and_{}".repeat(type_params.len() - 1));
         quote! {
             format!(#schema_name_fmt #(,#type_params::schema_name())*)
         }

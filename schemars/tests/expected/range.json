@@ -8,14 +8,14 @@
   ],
   "properties": {
     "inclusive": {
-      "$ref": "#/definitions/Range_Of_double"
+      "$ref": "#/definitions/Range_of_double"
     },
     "range": {
-      "$ref": "#/definitions/Range_Of_uint"
+      "$ref": "#/definitions/Range_of_uint"
     }
   },
   "definitions": {
-    "Range_Of_double": {
+    "Range_of_double": {
       "type": "object",
       "required": [
         "end",
@@ -32,7 +32,7 @@
         }
       }
     },
-    "Range_Of_uint": {
+    "Range_of_uint": {
       "type": "object",
       "required": [
         "end",

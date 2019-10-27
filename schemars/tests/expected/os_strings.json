@@ -8,14 +8,14 @@
   ],
   "properties": {
     "borrowed": {
-      "$ref": "#/definitions/OS_String"
+      "$ref": "#/definitions/OsString"
     },
     "owned": {
-      "$ref": "#/definitions/OS_String"
+      "$ref": "#/definitions/OsString"
     }
   },
   "definitions": {
-    "OS_String": {
+    "OsString": {
       "oneOf": [
         {
           "type": "object",
