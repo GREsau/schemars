@@ -2,6 +2,7 @@ use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use serde_json::json;
+use std::ops::{Range, RangeInclusive};
 
 impl<T: JsonSchema> JsonSchema for Option<T> {
     no_ref_schema!();
@@ -74,8 +75,6 @@ fn with_null_type(mut obj: SchemaObject) -> SchemaObject {
 }
 
 impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
-    no_ref_schema!();
-
     fn schema_name() -> String {
         format!("Result_Of_{}_Or_{}", T::schema_name(), E::schema_name())
     }
@@ -83,23 +82,50 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         let mut ok_schema = SchemaObject::default();
         ok_schema.instance_type = Some(InstanceType::Object.into());
-        ok_schema.object().required.insert("Ok".to_owned());
-        ok_schema
-            .object()
-            .properties
+        let obj = ok_schema.object();
+        obj.required.insert("Ok".to_owned());
+        obj.properties
             .insert("Ok".to_owned(), gen.subschema_for::<T>());
 
         let mut err_schema = SchemaObject::default();
         err_schema.instance_type = Some(InstanceType::Object.into());
-        err_schema.object().required.insert("Err".to_owned());
-        err_schema
-            .object()
-            .properties
+        let obj = err_schema.object();
+        obj.required.insert("Err".to_owned());
+        obj.properties
             .insert("Err".to_owned(), gen.subschema_for::<E>());
 
         let mut schema = SchemaObject::default();
         schema.subschemas().one_of = Some(vec![ok_schema.into(), err_schema.into()]);
         schema.into()
+    }
+}
+
+impl<T: JsonSchema> JsonSchema for Range<T> {
+    fn schema_name() -> String {
+        format!("Range_Of_{}", T::schema_name())
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        let mut schema = SchemaObject::default();
+        schema.instance_type = Some(InstanceType::Object.into());
+        let obj = schema.object();
+        obj.required.insert("start".to_owned());
+        obj.required.insert("end".to_owned());
+        obj.properties
+            .insert("start".to_owned(), gen.subschema_for::<T>());
+        obj.properties
+            .insert("end".to_owned(), gen.subschema_for::<T>());
+        schema.into()
+    }
+}
+
+impl<T: JsonSchema> JsonSchema for RangeInclusive<T> {
+    fn schema_name() -> String {
+        <Range<T>>::schema_name()
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        <Range<T>>::json_schema(gen)
     }
 }
 

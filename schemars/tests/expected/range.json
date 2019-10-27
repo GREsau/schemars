@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyStruct",
+  "type": "object",
+  "required": [
+    "inclusive",
+    "range"
+  ],
+  "properties": {
+    "inclusive": {
+      "$ref": "#/definitions/Range_Of_Number"
+    },
+    "range": {
+      "$ref": "#/definitions/Range_Of_Integer"
+    }
+  },
+  "definitions": {
+    "Range_Of_Integer": {
+      "type": "object",
+      "required": [
+        "end",
+        "start"
+      ],
+      "properties": {
+        "end": {
+          "type": "integer",
+          "format": "uint"
+        },
+        "start": {
+          "type": "integer",
+          "format": "uint"
+        }
+      }
+    },
+    "Range_Of_Number": {
+      "type": "object",
+      "required": [
+        "end",
+        "start"
+      ],
+      "properties": {
+        "end": {
+          "type": "number",
+          "format": "double"
+        },
+        "start": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    }
+  }
+}

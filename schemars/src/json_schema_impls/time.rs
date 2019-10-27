@@ -11,9 +11,11 @@ impl JsonSchema for Duration {
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         let mut schema = SchemaObject::default();
         schema.instance_type = Some(InstanceType::Object.into());
-        let properties = &mut schema.object().properties;
-        properties.insert("secs".to_owned(), <u64>::json_schema(gen));
-        properties.insert("nanos".to_owned(), <u32>::json_schema(gen));
+        let obj = schema.object();
+        obj.required.insert("secs".to_owned());
+        obj.required.insert("nanos".to_owned());
+        obj.properties.insert("secs".to_owned(), <u64>::json_schema(gen));
+        obj.properties.insert("nanos".to_owned(), <u32>::json_schema(gen));
         schema.into()
     }
 }
@@ -26,9 +28,11 @@ impl JsonSchema for SystemTime {
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         let mut schema = SchemaObject::default();
         schema.instance_type = Some(InstanceType::Object.into());
-        let properties = &mut schema.object().properties;
-        properties.insert("secs_since_epoch".to_owned(), <u64>::json_schema(gen));
-        properties.insert("nanos_since_epoch".to_owned(), <u32>::json_schema(gen));
+        let obj = schema.object();
+        obj.required.insert("secs_since_epoch".to_owned());
+        obj.required.insert("nanos_since_epoch".to_owned());
+        obj.properties.insert("secs_since_epoch".to_owned(), <u64>::json_schema(gen));
+        obj.properties.insert("nanos_since_epoch".to_owned(), <u32>::json_schema(gen));
         schema.into()
     }
 }

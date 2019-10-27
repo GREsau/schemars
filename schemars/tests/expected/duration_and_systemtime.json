@@ -17,6 +17,10 @@
   "definitions": {
     "Duration": {
       "type": "object",
+      "required": [
+        "nanos",
+        "secs"
+      ],
       "properties": {
         "nanos": {
           "type": "integer",
@@ -30,6 +34,10 @@
     },
     "SystemTime": {
       "type": "object",
+      "required": [
+        "nanos_since_epoch",
+        "secs_since_epoch"
+      ],
       "properties": {
         "nanos_since_epoch": {
           "type": "integer",

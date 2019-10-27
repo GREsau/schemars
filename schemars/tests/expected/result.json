@@ -1,33 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Result_Of_MyStruct_Or_Array_Of_String",
-  "oneOf": [
-    {
-      "type": "object",
-      "required": [
-        "Ok"
-      ],
-      "properties": {
-        "Ok": {
-          "$ref": "#/definitions/MyStruct"
-        }
-      }
-    },
-    {
-      "type": "object",
-      "required": [
-        "Err"
-      ],
-      "properties": {
-        "Err": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      }
-    }
+  "title": "Container",
+  "type": "object",
+  "required": [
+    "result1",
+    "result2"
   ],
+  "properties": {
+    "result1": {
+      "$ref": "#/definitions/Result_Of_MyStruct_Or_Array_Of_String"
+    },
+    "result2": {
+      "$ref": "#/definitions/Result_Of_Boolean_Or_Null"
+    }
+  },
   "definitions": {
     "MyStruct": {
       "type": "object",
@@ -40,6 +26,61 @@
           "format": "int32"
         }
       }
+    },
+    "Result_Of_Boolean_Or_Null": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "Ok"
+          ],
+          "properties": {
+            "Ok": {
+              "type": "boolean"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "Err"
+          ],
+          "properties": {
+            "Err": {
+              "type": "null"
+            }
+          }
+        }
+      ]
+    },
+    "Result_Of_MyStruct_Or_Array_Of_String": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "Ok"
+          ],
+          "properties": {
+            "Ok": {
+              "$ref": "#/definitions/MyStruct"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "Err"
+          ],
+          "properties": {
+            "Err": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

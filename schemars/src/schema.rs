@@ -144,14 +144,14 @@ where
 }
 
 macro_rules! get_or_insert_default_fn {
-    ($name:ident, $ret:path) => {
+    ($name:ident, $ret:ty) => {
         get_or_insert_default_fn!(
             concat!("Returns a mutable reference to this schema's [`", stringify!($ret), "`](#structfield.", stringify!($name), "), creating it if it was `None`."),
             $name,
             $ret
         );
     };
-    ($doc:expr, $name:ident, $ret:path) => {
+    ($doc:expr, $name:ident, $ret:ty) => {
         #[doc = $doc]
         pub fn $name(&mut self) -> &mut $ret {
             self.$name.get_or_insert_with(Default::default)

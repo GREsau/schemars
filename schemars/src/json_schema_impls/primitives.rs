@@ -5,13 +5,13 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV
 use std::path::{Path, PathBuf};
 
 macro_rules! simple_impl {
-    ($type:tt => $instance_type:ident) => {
+    ($type:ty => $instance_type:ident) => {
         simple_impl!($type => $instance_type, None);
     };
-    ($type:tt => $instance_type:ident, $format: literal) => {
+    ($type:ty => $instance_type:ident, $format: literal) => {
         simple_impl!($type => $instance_type, Some($format.to_owned()));
     };
-    ($type:tt => $instance_type:ident, $($format:tt)+) => {
+    ($type:ty => $instance_type:ident, $($format:tt)+) => {
         impl JsonSchema for $type {
             no_ref_schema!();
 
