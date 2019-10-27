@@ -85,18 +85,6 @@ impl<T: ?Sized> JsonSchema for std::marker::PhantomData<T> {
     }
 }
 
-impl JsonSchema for std::convert::Infallible {
-    no_ref_schema!();
-
-    fn schema_name() -> String {
-        "Never".to_owned()
-    }
-
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        gen.schema_for_none()
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
