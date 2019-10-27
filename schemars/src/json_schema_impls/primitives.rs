@@ -1,6 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::path::{Path, PathBuf};
 
 macro_rules! simple_impl {
@@ -32,8 +33,6 @@ macro_rules! simple_impl {
 
 simple_impl!(str => String);
 simple_impl!(String => String);
-simple_impl!(Path => String);
-simple_impl!(PathBuf => String);
 simple_impl!(bool => Boolean);
 simple_impl!(f32 => Number, "float");
 simple_impl!(f64 => Number, "double");
@@ -50,6 +49,17 @@ simple_impl!(u64 => Integer, "uint64");
 simple_impl!(u128 => Integer, "uint128");
 simple_impl!(usize => Integer, "uint");
 simple_impl!(() => Null);
+
+simple_impl!(Path => String);
+simple_impl!(PathBuf => String);
+
+simple_impl!(Ipv4Addr => String, "ipv4");
+simple_impl!(Ipv6Addr => String, "ipv6");
+simple_impl!(IpAddr => String, "ip");
+
+simple_impl!(SocketAddr => String);
+simple_impl!(SocketAddrV4 => String);
+simple_impl!(SocketAddrV6 => String);
 
 impl JsonSchema for char {
     no_ref_schema!();
@@ -69,17 +79,5 @@ impl JsonSchema for char {
             ..Default::default()
         }
         .into()
-    }
-}
-
-impl<'a> JsonSchema for std::fmt::Arguments<'a> {
-    no_ref_schema!();
-
-    fn schema_name() -> String {
-        <String>::schema_name()
-    }
-
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        <String>::json_schema(gen)
     }
 }
