@@ -6,23 +6,23 @@ use std::path::{Path, PathBuf};
 
 macro_rules! simple_impl {
     ($type:ty => $instance_type:ident) => {
-        simple_impl!($type => $instance_type, None);
+        simple_impl!($type => $instance_type, stringify!($instance_type), None);
     };
-    ($type:ty => $instance_type:ident, $format: literal) => {
-        simple_impl!($type => $instance_type, Some($format.to_owned()));
+    ($type:ty => $instance_type:ident, $format:literal) => {
+        simple_impl!($type => $instance_type, $format, Some($format.to_owned()));
     };
-    ($type:ty => $instance_type:ident, $($format:tt)+) => {
+    ($type:ty => $instance_type:ident, $name:expr, $format:expr) => {
         impl JsonSchema for $type {
             no_ref_schema!();
 
             fn schema_name() -> String {
-                stringify!($instance_type).to_owned()
+                $name.to_owned()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
                 SchemaObject {
                     instance_type: Some(InstanceType::$instance_type.into()),
-                    format: $($format)+,
+                    format: $format,
                     ..Default::default()
                 }
                 .into()

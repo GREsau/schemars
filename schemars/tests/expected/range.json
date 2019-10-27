@@ -8,14 +8,14 @@
   ],
   "properties": {
     "inclusive": {
-      "$ref": "#/definitions/Range_Of_Number"
+      "$ref": "#/definitions/Range_Of_double"
     },
     "range": {
-      "$ref": "#/definitions/Range_Of_Integer"
+      "$ref": "#/definitions/Range_Of_uint"
     }
   },
   "definitions": {
-    "Range_Of_Integer": {
+    "Range_Of_double": {
       "type": "object",
       "required": [
         "end",
@@ -23,16 +23,16 @@
       ],
       "properties": {
         "end": {
-          "type": "integer",
-          "format": "uint"
+          "type": "number",
+          "format": "double"
         },
         "start": {
-          "type": "integer",
-          "format": "uint"
+          "type": "number",
+          "format": "double"
         }
       }
     },
-    "Range_Of_Number": {
+    "Range_Of_uint": {
       "type": "object",
       "required": [
         "end",
@@ -40,12 +40,12 @@
       ],
       "properties": {
         "end": {
-          "type": "number",
-          "format": "double"
+          "type": "integer",
+          "format": "uint"
         },
         "start": {
-          "type": "number",
-          "format": "double"
+          "type": "integer",
+          "format": "uint"
         }
       }
     }
