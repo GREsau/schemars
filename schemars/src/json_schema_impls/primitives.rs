@@ -1,6 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::path::{Path, PathBuf};
 
 macro_rules! simple_impl {
     ($type:tt => $instance_type:ident) => {
@@ -31,6 +32,8 @@ macro_rules! simple_impl {
 
 simple_impl!(str => String);
 simple_impl!(String => String);
+simple_impl!(Path => String);
+simple_impl!(PathBuf => String);
 simple_impl!(bool => Boolean);
 simple_impl!(f32 => Number, "float");
 simple_impl!(f64 => Number, "double");
