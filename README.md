@@ -2,6 +2,7 @@
 
 [![Travis (.org)](https://img.shields.io/travis/GREsau/schemars?logo=travis)](https://travis-ci.org/GREsau/schemars)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
+[![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
 
 Generate JSON Schema documents from Rust code
 
@@ -176,5 +177,3 @@ fn main() {
 - `chrono` - implements `JsonSchema` for all [Chrono](https://github.com/chronotope/chrono) types which are serializable by Serde.
 - `derive_json_schema` - implements `JsonSchema` for Schemars types themselves
 
-## Customizing Schema Generation
-TODO document this!
