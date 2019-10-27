@@ -71,3 +71,15 @@ impl JsonSchema for char {
         .into()
     }
 }
+
+impl<'a> JsonSchema for std::fmt::Arguments<'a> {
+    no_ref_schema!();
+
+    fn schema_name() -> String {
+        <String>::schema_name()
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        <String>::json_schema(gen)
+    }
+}
