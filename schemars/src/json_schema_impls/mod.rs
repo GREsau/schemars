@@ -15,4 +15,5 @@ mod maps;
 mod primitives;
 mod sequences;
 mod serdejson;
+mod time;
 mod tuple;
