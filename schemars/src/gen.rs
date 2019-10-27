@@ -22,6 +22,10 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `"#/definitions/"`.
     pub definitions_path: String,
+    /// The URI of the meta-schema describing the structure of the generated schemas.
+    ///
+    /// Defaults to `"http://json-schema.org/draft-07/schema#"`.
+    pub meta_schema: Option<String>,
 }
 
 /// Controls whether trivial [`Bool`](../schema/enum.Schema.html#variant.Bool) schemas may be generated.
@@ -49,6 +53,7 @@ impl SchemaSettings {
             option_add_null_type: true,
             bool_schemas: BoolSchemas::Enabled,
             definitions_path: "#/definitions/".to_owned(),
+            meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
         }
     }
 
@@ -59,6 +64,10 @@ impl SchemaSettings {
             option_add_null_type: false,
             bool_schemas: BoolSchemas::AdditionalPropertiesOnly,
             definitions_path: "#/components/schemas/".to_owned(),
+            meta_schema: Some(
+                "https://spec.openapis.org/oas/3.0/schema/2019-04-02#/definitions/Schema"
+                    .to_owned(),
+            ),
         }
     }
 
@@ -189,8 +198,8 @@ impl SchemaGenerator {
         let mut schema: SchemaObject = T::json_schema(self).into();
         schema.metadata().title = Some(T::schema_name());
         RootSchema {
-            meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            definitions: self.definitions().clone(),
+            meta_schema: self.settings.meta_schema.clone(),
+            definitions: self.definitions.clone(),
             schema,
         }
     }
@@ -203,8 +212,8 @@ impl SchemaGenerator {
         let mut schema: SchemaObject = T::json_schema(&mut self).into();
         schema.metadata().title = Some(T::schema_name());
         RootSchema {
-            meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            definitions: self.into_definitions(),
+            meta_schema: self.settings.meta_schema,
+            definitions: self.definitions,
             schema,
         }
     }
@@ -232,6 +241,7 @@ impl SchemaGenerator {
     ///
     /// assert!(dereferenced.is_some());
     /// assert!(!dereferenced.unwrap().is_ref());
+    /// assert_eq!(dereferenced, gen.definitions().get("MyStruct"));
     /// ```
     pub fn dereference<'a>(&'a self, schema: &Schema) -> Option<&'a Schema> {
         match schema {
