@@ -10,6 +10,6 @@ jobs:
   fast_finish: true
 script:
   - cd "${TRAVIS_BUILD_DIR}/schemars"
-  - cargo check --verbose --all --no-default-features
-  - cargo build --verbose --all --all-features
-  - cargo test --verbose --all --all-features --no-fail-fast
+  - cargo check --verbose --no-default-features
+  - cargo build --verbose --all-features
+  - cargo test --verbose --all-features --no-fail-fast

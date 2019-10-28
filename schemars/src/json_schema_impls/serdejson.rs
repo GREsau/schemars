@@ -16,17 +16,7 @@ impl JsonSchema for Value {
     }
 }
 
-impl JsonSchema for Map<String, Value> {
-    no_ref_schema!();
-
-    fn schema_name() -> String {
-        BTreeMap::<String, Value>::schema_name()
-    }
-
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        BTreeMap::<String, Value>::json_schema(gen)
-    }
-}
+forward_impl!(Map<String, Value> => BTreeMap::<String, Value>);
 
 impl JsonSchema for Number {
     no_ref_schema!();

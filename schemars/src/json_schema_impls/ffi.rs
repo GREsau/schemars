@@ -31,36 +31,7 @@ impl JsonSchema for OsString {
     }
 }
 
-impl JsonSchema for OsStr {
-    fn schema_name() -> String {
-        <OsString>::schema_name()
-    }
+forward_impl!(OsStr => OsString);
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        <OsString>::json_schema(gen)
-    }
-}
-
-impl JsonSchema for CString {
-    no_ref_schema!();
-
-    fn schema_name() -> String {
-        <Vec<u8>>::schema_name()
-    }
-
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        <Vec<u8>>::json_schema(gen)
-    }
-}
-
-impl JsonSchema for CStr {
-    no_ref_schema!();
-
-    fn schema_name() -> String {
-        <Vec<u8>>::schema_name()
-    }
-
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        <Vec<u8>>::json_schema(gen)
-    }
-}
+forward_impl!(CString => Vec<u8>);
+forward_impl!(CStr => Vec<u8>);

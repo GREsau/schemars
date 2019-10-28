@@ -119,39 +119,11 @@ impl<T: JsonSchema> JsonSchema for Range<T> {
     }
 }
 
-impl<T: JsonSchema> JsonSchema for RangeInclusive<T> {
-    fn schema_name() -> String {
-        <Range<T>>::schema_name()
-    }
+forward_impl!((<T: JsonSchema> JsonSchema for RangeInclusive<T>) => Range<T>);
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        <Range<T>>::json_schema(gen)
-    }
-}
+forward_impl!((<T: ?Sized> JsonSchema for std::marker::PhantomData<T>) => ());
 
-impl<T: ?Sized> JsonSchema for std::marker::PhantomData<T> {
-    no_ref_schema!();
-
-    fn schema_name() -> String {
-        <()>::schema_name()
-    }
-
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        <()>::json_schema(gen)
-    }
-}
-
-impl<'a> JsonSchema for std::fmt::Arguments<'a> {
-    no_ref_schema!();
-
-    fn schema_name() -> String {
-        <String>::schema_name()
-    }
-
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        <String>::json_schema(gen)
-    }
-}
+forward_impl!((<'a> JsonSchema for std::fmt::Arguments<'a>) => String);
 
 #[cfg(test)]
 mod tests {
