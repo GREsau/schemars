@@ -35,7 +35,7 @@ mod tests {
     use pretty_assertions::assert_eq;
 
     #[test]
-    fn schema_for_atomics() {
+    fn schema_for_nonzero_u32() {
         let schema = schema_object_for::<NonZeroU32>();
         assert_eq!(schema.number.unwrap().minimum, Some(1.0));
         assert_eq!(schema.instance_type, Some(InstanceType::Integer.into()));

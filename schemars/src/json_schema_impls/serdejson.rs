@@ -16,7 +16,7 @@ impl JsonSchema for Value {
     }
 }
 
-forward_impl!(Map<String, Value> => BTreeMap::<String, Value>);
+forward_impl!(Map<String, Value> => BTreeMap<String, Value>);
 
 impl JsonSchema for Number {
     no_ref_schema!();
