@@ -32,16 +32,17 @@ macro_rules! forward_impl {
 }
 
 mod array;
+#[cfg(std_atomic)]
+mod atomic;
 #[cfg(feature = "chrono")]
 mod chrono;
 mod core;
 mod ffi;
 mod maps;
+mod nonzero_unsigned;
 mod primitives;
 mod sequences;
 mod serdejson;
 mod time;
 mod tuple;
 mod wrapper;
-#[cfg(std_atomic)]
-mod atomic;
