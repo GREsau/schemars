@@ -2,7 +2,7 @@ use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use serde_json::json;
-use std::ops::{Range, RangeInclusive};
+use std::ops::{Bound, Range, RangeInclusive};
 
 impl<T: JsonSchema> JsonSchema for Option<T> {
     no_ref_schema!();
@@ -96,6 +96,38 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
 
         let mut schema = SchemaObject::default();
         schema.subschemas().one_of = Some(vec![ok_schema.into(), err_schema.into()]);
+        schema.into()
+    }
+}
+
+impl<T: JsonSchema> JsonSchema for Bound<T> {
+    fn schema_name() -> String {
+        format!("Bound_of_{}", T::schema_name())
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        let mut included_schema = SchemaObject::default();
+        included_schema.instance_type = Some(InstanceType::Object.into());
+        included_schema.object().required.insert("Included".to_owned());
+        included_schema
+            .object()
+            .properties
+            .insert("Included".to_owned(), gen.subschema_for::<T>());
+
+        let mut excluded_schema = SchemaObject::default();
+        excluded_schema.instance_type = Some(InstanceType::Object.into());
+        excluded_schema.object().required.insert("Excluded".to_owned());
+        excluded_schema
+            .object()
+            .properties
+            .insert("Excluded".to_owned(), gen.subschema_for::<T>());
+
+        let mut unbounded_schema = SchemaObject::default();
+        unbounded_schema.instance_type = Some(InstanceType::String.into());
+        unbounded_schema.const_value = Some(json!("Unbounded"));
+
+        let mut schema = SchemaObject::default();
+        schema.subschemas().one_of = Some(vec![included_schema.into(), excluded_schema.into(), unbounded_schema.into()]);
         schema.into()
     }
 }

@@ -1,12 +1,13 @@
 mod util;
 use schemars::JsonSchema;
+use std::ops::{Bound, Range, RangeInclusive};
 use util::*;
-use std::ops::{Range, RangeInclusive};
 
 #[derive(Debug, JsonSchema)]
 struct MyStruct {
     range: Range<usize>,
     inclusive: RangeInclusive<f64>,
+    bound: Bound<String>
 }
 
 #[test]

@@ -3,10 +3,14 @@
   "title": "MyStruct",
   "type": "object",
   "required": [
+    "bound",
     "inclusive",
     "range"
   ],
   "properties": {
+    "bound": {
+      "$ref": "#/definitions/Bound_of_String"
+    },
     "inclusive": {
       "$ref": "#/definitions/Range_of_double"
     },
@@ -15,6 +19,36 @@
     }
   },
   "definitions": {
+    "Bound_of_String": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "Included"
+          ],
+          "properties": {
+            "Included": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "Excluded"
+          ],
+          "properties": {
+            "Excluded": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "string",
+          "const": "Unbounded"
+        }
+      ]
+    },
     "Range_of_double": {
       "type": "object",
       "required": [
