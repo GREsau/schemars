@@ -139,16 +139,19 @@
     "maxItems": {
       "type": "integer",
       "format": "uint32",
+      "minimum": 0.0,
       "nullable": true
     },
     "maxLength": {
       "type": "integer",
       "format": "uint32",
+      "minimum": 0.0,
       "nullable": true
     },
     "maxProperties": {
       "type": "integer",
       "format": "uint32",
+      "minimum": 0.0,
       "nullable": true
     },
     "maximum": {
@@ -159,16 +162,19 @@
     "minItems": {
       "type": "integer",
       "format": "uint32",
+      "minimum": 0.0,
       "nullable": true
     },
     "minLength": {
       "type": "integer",
       "format": "uint32",
+      "minimum": 0.0,
       "nullable": true
     },
     "minProperties": {
       "type": "integer",
       "format": "uint32",
+      "minimum": 0.0,
       "nullable": true
     },
     "minimum": {
@@ -424,16 +430,19 @@
         "maxItems": {
           "type": "integer",
           "format": "uint32",
+          "minimum": 0.0,
           "nullable": true
         },
         "maxLength": {
           "type": "integer",
           "format": "uint32",
+          "minimum": 0.0,
           "nullable": true
         },
         "maxProperties": {
           "type": "integer",
           "format": "uint32",
+          "minimum": 0.0,
           "nullable": true
         },
         "maximum": {
@@ -444,16 +453,19 @@
         "minItems": {
           "type": "integer",
           "format": "uint32",
+          "minimum": 0.0,
           "nullable": true
         },
         "minLength": {
           "type": "integer",
           "format": "uint32",
+          "minimum": 0.0,
           "nullable": true
         },
         "minProperties": {
           "type": "integer",
           "format": "uint32",
+          "minimum": 0.0,
           "nullable": true
         },
         "minimum": {

@@ -148,21 +148,24 @@
         "integer",
         "null"
       ],
-      "format": "uint32"
+      "format": "uint32",
+      "minimum": 0.0
     },
     "maxLength": {
       "type": [
         "integer",
         "null"
       ],
-      "format": "uint32"
+      "format": "uint32",
+      "minimum": 0.0
     },
     "maxProperties": {
       "type": [
         "integer",
         "null"
       ],
-      "format": "uint32"
+      "format": "uint32",
+      "minimum": 0.0
     },
     "maximum": {
       "type": [
@@ -176,21 +179,24 @@
         "integer",
         "null"
       ],
-      "format": "uint32"
+      "format": "uint32",
+      "minimum": 0.0
     },
     "minLength": {
       "type": [
         "integer",
         "null"
       ],
-      "format": "uint32"
+      "format": "uint32",
+      "minimum": 0.0
     },
     "minProperties": {
       "type": [
         "integer",
         "null"
       ],
-      "format": "uint32"
+      "format": "uint32",
+      "minimum": 0.0
     },
     "minimum": {
       "type": [
@@ -457,21 +463,24 @@
             "integer",
             "null"
           ],
-          "format": "uint32"
+          "format": "uint32",
+          "minimum": 0.0
         },
         "maxLength": {
           "type": [
             "integer",
             "null"
           ],
-          "format": "uint32"
+          "format": "uint32",
+          "minimum": 0.0
         },
         "maxProperties": {
           "type": [
             "integer",
             "null"
           ],
-          "format": "uint32"
+          "format": "uint32",
+          "minimum": 0.0
         },
         "maximum": {
           "type": [
@@ -485,21 +494,24 @@
             "integer",
             "null"
           ],
-          "format": "uint32"
+          "format": "uint32",
+          "minimum": 0.0
         },
         "minLength": {
           "type": [
             "integer",
             "null"
           ],
-          "format": "uint32"
+          "format": "uint32",
+          "minimum": 0.0
         },
         "minProperties": {
           "type": [
             "integer",
             "null"
           ],
-          "format": "uint32"
+          "format": "uint32",
+          "minimum": 0.0
         },
         "minimum": {
           "type": [
