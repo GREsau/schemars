@@ -1,8 +1,6 @@
 /*!
 Generate JSON Schema documents from Rust code
 
-Work in progress!
-
 ## Basic Usage
 
 If you don't really care about the specifics, the easiest way to generate a JSON schema for your types is to `#[derive(JsonSchema)]` and use the `schema_for!` macro. All fields of the type must also implement `JsonSchema` - Schemars implements this for many standard library types.
