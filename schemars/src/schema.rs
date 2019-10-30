@@ -213,6 +213,9 @@ pub struct Metadata {
     /// See [JSON Schema 8.2.2. The "$id" Keyword](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2).
     #[serde(rename = "$id", skip_serializing_if = "Option::is_none")]
     pub id: Option<String>,
+    /// The `title` keyword.
+    ///
+    /// See [JSON Schema Validation 9.1. "title" and "description"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.1).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub title: Option<String>,
     /// The `description` keyword.
