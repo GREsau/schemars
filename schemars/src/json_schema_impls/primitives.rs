@@ -42,12 +42,6 @@ simple_impl!(i32 => Integer, "int32");
 simple_impl!(i64 => Integer, "int64");
 simple_impl!(i128 => Integer, "int128");
 simple_impl!(isize => Integer, "int");
-simple_impl!(u8 => Integer, "uint8");
-simple_impl!(u16 => Integer, "uint16");
-simple_impl!(u32 => Integer, "uint32");
-simple_impl!(u64 => Integer, "uint64");
-simple_impl!(u128 => Integer, "uint128");
-simple_impl!(usize => Integer, "uint");
 simple_impl!(() => Null);
 
 simple_impl!(Path => String);
@@ -60,6 +54,35 @@ simple_impl!(IpAddr => String, "ip");
 simple_impl!(SocketAddr => String);
 simple_impl!(SocketAddrV4 => String);
 simple_impl!(SocketAddrV6 => String);
+
+macro_rules! unsigned_impl {
+    ($type:ty => $instance_type:ident, $format:expr) => {
+        impl JsonSchema for $type {
+            no_ref_schema!();
+
+            fn schema_name() -> String {
+                $format.to_owned()
+            }
+
+            fn json_schema(_: &mut SchemaGenerator) -> Schema {
+                let mut schema = SchemaObject {
+                    instance_type: Some(InstanceType::$instance_type.into()),
+                    format: Some($format.to_owned()),
+                    ..Default::default()
+                };
+                schema.number().minimum = Some(0.0);
+                schema.into()
+            }
+        }
+    };
+}
+
+unsigned_impl!(u8 => Integer, "uint8");
+unsigned_impl!(u16 => Integer, "uint16");
+unsigned_impl!(u32 => Integer, "uint32");
+unsigned_impl!(u64 => Integer, "uint64");
+unsigned_impl!(u128 => Integer, "uint128");
+unsigned_impl!(usize => Integer, "uint");
 
 impl JsonSchema for char {
     no_ref_schema!();

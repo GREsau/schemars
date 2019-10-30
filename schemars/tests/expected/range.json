@@ -41,11 +41,13 @@
       "properties": {
         "end": {
           "type": "integer",
-          "format": "uint"
+          "format": "uint",
+          "minimum": 0.0
         },
         "start": {
           "type": "integer",
-          "format": "uint"
+          "format": "uint",
+          "minimum": 0.0
         }
       }
     }
