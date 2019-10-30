@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.5.1] - 2019-10-30
+### Fixed:
+- Added missing doc comment for "title" schema property
+
 ## [0.5.0] - 2019-10-30
 ### Added:
 - Implemented `JsonSchema` for more standard library types (https://github.com/GREsau/schemars/issues/3)

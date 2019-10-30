@@ -2,7 +2,7 @@
 name = "schemars"
 description = "Generate JSON Schemas from Rust code"
 repository = "https://github.com/GREsau/schemars"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["Graham Esau <gesau@hotmail.co.uk>"]
 edition = "2018"
 license = "MIT"
