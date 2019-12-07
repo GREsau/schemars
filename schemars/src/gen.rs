@@ -121,6 +121,22 @@ impl SchemaGenerator {
         &self.settings
     }
 
+    // TODO document/rename
+    #[doc(hidden)]
+    pub fn objectify(&self, schema: SchemaObject) -> SchemaObject {
+        if schema.is_ref() {
+            SchemaObject {
+                subschemas: Some(Box::new(SubschemaValidation {
+                    all_of: Some(vec![schema.into()]),
+                    ..Default::default()
+                })),
+                ..Default::default()
+            }
+        } else {
+            schema
+        }
+    }
+
     /// Returns a `Schema` that matches everything, such as the empty schema `{}`.
     ///
     /// The exact value returned depends on this generator's [`BoolSchemas`](struct.SchemaSettings.html#structfield.bool_schemas) setting.
@@ -196,7 +212,7 @@ impl SchemaGenerator {
     /// [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> RootSchema {
         let mut schema: SchemaObject = T::json_schema(self).into();
-        schema.metadata().title = Some(T::schema_name());
+        schema.metadata().title.get_or_insert_with(T::schema_name);
         RootSchema {
             meta_schema: self.settings.meta_schema.clone(),
             definitions: self.definitions.clone(),
@@ -210,7 +226,7 @@ impl SchemaGenerator {
     /// include them in the returned `SchemaObject`'s [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> RootSchema {
         let mut schema: SchemaObject = T::json_schema(&mut self).into();
-        schema.metadata().title = Some(T::schema_name());
+        schema.metadata().title.get_or_insert_with(T::schema_name);
         RootSchema {
             meta_schema: self.settings.meta_schema,
             definitions: self.definitions,

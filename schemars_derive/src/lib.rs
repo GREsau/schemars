@@ -4,6 +4,8 @@ extern crate quote;
 extern crate syn;
 extern crate proc_macro;
 
+mod doc_attrs;
+mod metadata;
 mod preprocess;
 
 use proc_macro2::TokenStream;
@@ -13,7 +15,7 @@ use serde_derive_internals::attr::{self, Default as SerdeDefault, TagType};
 use serde_derive_internals::{Ctxt, Derive};
 use syn::spanned::Spanned;
 
-#[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
+#[proc_macro_derive(JsonSchema, attributes(schemars, serde, doc))]
 pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut input = parse_macro_input!(input as syn::DeriveInput);
 
@@ -29,13 +31,14 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     }
     let cont = cont.expect("from_ast set no errors on Ctxt, so should have returned Some");
 
-    let schema = match cont.data {
+    let schema_expr = match cont.data {
         Data::Struct(Style::Unit, _) => schema_for_unit_struct(),
         Data::Struct(Style::Newtype, ref fields) => schema_for_newtype_struct(&fields[0]),
         Data::Struct(Style::Tuple, ref fields) => schema_for_tuple_struct(fields),
         Data::Struct(Style::Struct, ref fields) => schema_for_struct(fields, &cont.attrs),
         Data::Enum(ref variants) => schema_for_enum(variants, &cont.attrs),
     };
+    let schema_expr = metadata::set_metadata_on_schema_from_docs(schema_expr, &cont.original.attrs);
 
     let type_name = cont.ident;
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
@@ -72,7 +75,7 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             }
 
             fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-                #schema
+                #schema_expr
             }
         };
     };
@@ -277,24 +280,22 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
         if !container_has_default && !has_default(field.attrs.default()) {
             required.push(name.clone());
         }
-        let ty = get_json_schema_type(field);
 
-        if field.attrs.skip_deserializing() {
-            quote_spanned! {field.original.span()=>
-                let mut schema: schemars::schema::SchemaObject = gen.subschema_for::<#ty>().into();
-                schema.metadata().read_only = true;
-                props.insert(#name.to_owned(), schema.into());
-            }
-        } else if field.attrs.skip_serializing() {
-            quote_spanned! {field.original.span()=>
-                let mut schema: schemars::schema::SchemaObject = gen.subschema_for::<#ty>().into();
-                schema.metadata().write_only = true;
-                props.insert(#name.to_owned(), schema.into());
-            }
-        } else {
-            quote_spanned! {field.original.span()=>
-                props.insert(#name.to_owned(), gen.subschema_for::<#ty>());
-            }
+        let ty = get_json_schema_type(field);
+        let span = field.original.span();
+        let schema_expr = quote_spanned! {span=>
+            gen.subschema_for::<#ty>()
+        };
+
+        let metadata = metadata::SchemaMetadata {
+            read_only: field.attrs.skip_deserializing(),
+            write_only: field.attrs.skip_serializing(),
+            ..metadata::get_metadata_from_docs(&field.original.attrs)
+        };
+        let schema_expr = metadata::set_metadata_on_schema(schema_expr, &metadata);
+
+        quote_spanned! {span=>
+            props.insert(#name.to_owned(), #schema_expr);
         }
     });
 
