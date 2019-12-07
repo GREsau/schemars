@@ -143,7 +143,7 @@ fn schema_for_external_tagged_enum<'a>(
     schemas.extend(complex_variants.into_iter().map(|variant| {
         let name = variant.attrs.name().deserialize_name();
         let sub_schema = schema_for_untagged_enum_variant(variant, cattrs);
-        wrap_schema_fields(quote! {
+        let schema_expr = wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
             object: Some(Box::new(schemars::schema::ObjectValidation {
                 properties: {
@@ -158,7 +158,8 @@ fn schema_for_external_tagged_enum<'a>(
                 },
                 ..Default::default()
             })),
-        })
+        });
+        metadata::set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
     }));
 
     wrap_schema_fields(quote! {
@@ -180,6 +181,7 @@ fn schema_for_internal_tagged_enum<'a>(
             instance_type: Some(schemars::schema::InstanceType::String.into()),
             enum_values: Some(vec![#name.into()]),
         });
+
         let tag_schema = wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
             object: Some(Box::new(schemars::schema::ObjectValidation {
@@ -196,6 +198,8 @@ fn schema_for_internal_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
+        let tag_schema = metadata::set_metadata_on_schema_from_docs(tag_schema, &variant.original.attrs);
+
         let variant_schema = match variant.style {
             Style::Unit => return tag_schema,
             Style::Newtype => {
@@ -225,7 +229,10 @@ fn schema_for_untagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
     cattrs: &attr::Container,
 ) -> TokenStream {
-    let schemas = variants.map(|v| schema_for_untagged_enum_variant(v, cattrs));
+    let schemas = variants.map(|variant| {
+        let schema_expr = schema_for_untagged_enum_variant(variant, cattrs);
+        metadata::set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
+    });
 
     wrap_schema_fields(quote! {
         subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
@@ -251,6 +258,7 @@ fn schema_for_unit_struct() -> TokenStream {
 }
 
 fn schema_for_newtype_struct(field: &Field) -> TokenStream {
+    // TODO metadata from docs?
     let ty = get_json_schema_type(field);
     quote_spanned! {field.original.span()=>
         gen.subschema_for::<#ty>()
@@ -258,6 +266,7 @@ fn schema_for_newtype_struct(field: &Field) -> TokenStream {
 }
 
 fn schema_for_tuple_struct(fields: &[Field]) -> TokenStream {
+    // TODO metadata from docs?
     let types = fields
         .iter()
         .filter(|f| !f.attrs.skip_deserializing())
