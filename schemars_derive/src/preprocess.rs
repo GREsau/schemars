@@ -42,23 +42,28 @@ fn process_serde_field_attrs<'a>(ctxt: &Ctxt, fields: impl Iterator<Item = &'a m
 }
 
 fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
-    let mut serde_meta: Vec<NestedMeta> = attrs
-        .iter()
-        .filter(|a| a.path.is_ident("serde"))
-        .flat_map(|attr| get_meta_items(&ctxt, attr))
-        .flatten()
-        .collect();
+    let mut schemars_attrs = Vec::<Attribute>::new();
+    let mut serde_attrs = Vec::<Attribute>::new();
+    let mut misc_attrs = Vec::<Attribute>::new();
 
-    attrs.retain(|a| a.path.is_ident("schemars"));
+    for attr in attrs.drain(..) {
+        if attr.path.is_ident("schemars") {
+            schemars_attrs.push(attr)
+        } else if attr.path.is_ident("serde") {
+            serde_attrs.push(attr)
+        } else {
+            misc_attrs.push(attr)
+        }
+    }
 
-    for attr in attrs.iter_mut() {
+    for attr in schemars_attrs.iter_mut() {
         let schemars_ident = attr.path.segments.pop().unwrap().into_value().ident;
         attr.path
             .segments
             .push(Ident::new("serde", schemars_ident.span()).into());
     }
 
-    let mut schemars_meta_names: BTreeSet<String> = attrs
+    let mut schemars_meta_names: BTreeSet<String> = schemars_attrs
         .iter()
         .flat_map(|attr| get_meta_items(&ctxt, attr))
         .flatten()
@@ -69,25 +74,32 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         schemars_meta_names.insert("deserialize_with".to_string());
     }
 
-    serde_meta.retain(|m| {
-        get_meta_ident(&ctxt, m)
-            .map(|i| !schemars_meta_names.contains(&i.to_string()))
-            .unwrap_or(false)
-    });
+    let mut serde_meta = serde_attrs
+        .iter()
+        .flat_map(|attr| get_meta_items(&ctxt, attr))
+        .flatten()
+        .filter(|m| {
+            get_meta_ident(&ctxt, m)
+                .map(|i| !schemars_meta_names.contains(&i))
+                .unwrap_or(false)
+        })
+        .peekable();
 
-    if serde_meta.is_empty() {
-        return;
+    *attrs = schemars_attrs;
+
+    if serde_meta.peek().is_some() {
+        let new_serde_attr = quote! {
+            #[serde(#(#serde_meta),*)]
+        };
+
+        let parser = Attribute::parse_outer;
+        match parser.parse2(new_serde_attr) {
+            Ok(ref mut parsed) => attrs.append(parsed),
+            Err(e) => ctxt.error_spanned_by(to_tokens(attrs), e),
+        }
     }
 
-    let new_serde_attr = quote! {
-        #[serde(#(#serde_meta),*)]
-    };
-
-    let parser = Attribute::parse_outer;
-    match parser.parse2(new_serde_attr) {
-        Ok(ref mut parsed) => attrs.append(parsed),
-        Err(e) => ctxt.error_spanned_by(to_tokens(attrs), e),
-    }
+    attrs.extend(misc_attrs)
 }
 
 fn to_tokens(attrs: &[Attribute]) -> impl ToTokens {
@@ -142,6 +154,7 @@ mod tests {
             #[schemars(container2 = "overridden", container4)]
             #[misc]
             struct MyStruct {
+                /// blah blah blah
                 #[serde(field, field2)]
                 field1: i32,
                 #[serde(field, field2, serialize_with = "se", deserialize_with = "de")]
@@ -154,8 +167,10 @@ mod tests {
         let expected: DeriveInput = parse_quote! {
             #[serde(container2 = "overridden", container4)]
             #[serde(container, container3(foo, bar))]
+            #[misc]
             struct MyStruct {
                 #[serde(field, field2)]
+                #[doc = r" blah blah blah"]
                 field1: i32,
                 #[serde(field = "overridden", with = "with")]
                 #[serde(field2)]
