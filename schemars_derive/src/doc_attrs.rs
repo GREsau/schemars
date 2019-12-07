@@ -14,23 +14,25 @@ pub fn get_title_and_desc_from_docs(attrs: &[Attribute]) -> (Option<String>, Opt
             .trim_start_matches('#')
             .trim()
             .to_owned();
-        let maybe_desc = split.next().map(|s| s.trim().to_owned());
+        let maybe_desc = split.next().and_then(get_description);
         (none_if_empty(title), maybe_desc)
     } else {
-        (None, none_if_empty(docs))
+        (None, get_description(&docs))
     }
 }
 
-fn none_if_empty(s: String) -> Option<String> {
-    if s.is_empty() {
-        None
-    } else {
-        Some(s)
-    }
+fn get_description(docs: &str) -> Option<String> {
+    let desc = docs
+        .trim()
+        .split("\n\n")
+        .filter_map(|line| none_if_empty(line.trim().replace('\n', " ")))
+        .collect::<Vec<_>>()
+        .join("\n\n");
+    none_if_empty(desc)
 }
 
 fn get_docs(attrs: &[Attribute]) -> Option<String> {
-    let doc_attrs = attrs
+    let docs = attrs
         .iter()
         .filter_map(|attr| {
             if !attr.path.is_ident("doc") {
@@ -44,20 +46,20 @@ fn get_docs(attrs: &[Attribute]) -> Option<String> {
 
             None
         })
-        .collect::<Vec<_>>();
-
-    if doc_attrs.is_empty() {
-        return None;
-    }
-
-    let mut docs = doc_attrs
+        .collect::<Vec<_>>()
         .iter()
         .flat_map(|a| a.split('\n'))
         .map(str::trim)
         .skip_while(|s| *s == "")
         .collect::<Vec<_>>()
         .join("\n");
+    none_if_empty(docs)
+}
 
-    docs.truncate(docs.trim_end().len());
-    Some(docs)
+fn none_if_empty(s: String) -> Option<String> {
+    if s.is_empty() {
+        None
+    } else {
+        Some(s)
+    }
 }
