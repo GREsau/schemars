@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.0] - TBD
+### Added:
+- When deriving `JsonSchema`, the schema's `title` and `description` are now set from `#[doc]` comments (https://github.com/GREsau/schemars/issues/7)
+
 ## [0.5.1] - 2019-10-30
 ### Fixed:
 - Added missing doc comment for "title" schema property
