@@ -19,13 +19,14 @@ pub struct MyStruct {
 }
 
 /// # A Unit
+///
 #[derive(Debug, JsonSchema)]
 pub struct MyUnitStruct;
 
 #[doc = " # This is the enum's title "]
-#[doc = " This is..."]
+#[doc = " This is "]
 #[derive(Debug, JsonSchema)]
-#[doc = "...the enum's description. "]
+#[doc = " the enum's description."]
 pub enum MyEnum {
     UndocumentedUnit,
     /// This comment is not included in the generated schema :(
@@ -37,7 +38,15 @@ pub enum MyEnum {
         ///
         /// This field is a nullable string.
         ///
-        /// This is another line!
+        /// This
+        ///is
+        ///   the second
+        ///  line!
+        ///
+        ///
+        ///
+        ///
+        /// And this is the third!
         my_nullable_string: Option<String>,
     },
 }
