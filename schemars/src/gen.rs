@@ -121,9 +121,29 @@ impl SchemaGenerator {
         &self.settings
     }
 
-    // TODO document/rename
-    #[doc(hidden)]
-    pub fn objectify(&self, schema: SchemaObject) -> SchemaObject {
+    /// Returns a `SchemaObject` equivalent to the given `schema` which may have validation, metadata or other properties set on it.
+    ///
+    /// If `schema` is not a `$ref` schema, then this returns `schema` unmodified. Otherwise, depending on this generator's settings,
+    /// this may wrap the `$ref` in another schema. This is required because in many JSON Schema implementations, a schema with `$ref`
+    /// set may not include other properties.
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::{gen::SchemaGenerator, schema::SchemaObject};
+    ///
+    /// let gen = SchemaGenerator::default();
+    ///
+    /// let ref_schema = SchemaObject::new_ref("foo".to_owned());
+    /// assert!(ref_schema.is_ref());
+    ///
+    /// let extensible_schema = gen.make_extensible(ref_schema.clone());
+    /// assert_ne!(ref_schema, extensible_schema);
+    /// assert!(!extensible_schema.is_ref());
+    ///
+    /// let extensible_schema2 = gen.make_extensible(extensible_schema.clone());
+    /// assert_eq!(extensible_schema, extensible_schema2);
+    /// ```
+    pub fn make_extensible(&self, schema: SchemaObject) -> SchemaObject {
         if schema.is_ref() {
             SchemaObject {
                 subschemas: Some(Box::new(SubschemaValidation {

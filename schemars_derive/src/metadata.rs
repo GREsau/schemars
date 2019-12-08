@@ -58,7 +58,7 @@ pub fn set_metadata_on_schema(schema_expr: TokenStream, metadata: &SchemaMetadat
     quote! {
         {
             let schema = #schema_expr.into();
-            let mut schema_obj = gen.objectify(schema);
+            let mut schema_obj = gen.make_extensible(schema);
             let mut metadata = schema_obj.metadata();
             #(#setters)*
             schemars::schema::Schema::Object(schema_obj)

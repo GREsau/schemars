@@ -34,7 +34,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             }
         }
         if gen.settings().option_nullable {
-            let mut schema_obj = gen.objectify(schema.into());
+            let mut schema_obj = gen.make_extensible(schema.into());
             schema_obj
                 .extensions
                 .insert("nullable".to_owned(), json!(true));
