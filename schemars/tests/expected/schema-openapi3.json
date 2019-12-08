@@ -21,36 +21,18 @@
     },
     "additionalItems": {
       "description": "The `additionalItems` keyword.\n\nSee [JSON Schema 9.3.1.2. \"additionalItems\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.2).",
-      "anyOf": [
+      "allOf": [
         {
-          "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-          "type": "boolean"
-        },
-        {
-          "description": "A JSON Schema object.",
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/SchemaObject"
-            }
-          ]
+          "$ref": "#/components/schemas/Schema"
         }
       ],
       "nullable": true
     },
     "additionalProperties": {
       "description": "The `additionalProperties` keyword.\n\nSee [JSON Schema 9.3.2.3. \"additionalProperties\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.3).",
-      "anyOf": [
+      "allOf": [
         {
-          "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-          "type": "boolean"
-        },
-        {
-          "description": "A JSON Schema object.",
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/SchemaObject"
-            }
-          ]
+          "$ref": "#/components/schemas/Schema"
         }
       ],
       "nullable": true
@@ -77,18 +59,9 @@
     },
     "contains": {
       "description": "The `contains` keyword.\n\nSee [JSON Schema 9.3.1.4. \"contains\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.4).",
-      "anyOf": [
+      "allOf": [
         {
-          "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-          "type": "boolean"
-        },
-        {
-          "description": "A JSON Schema object.",
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/SchemaObject"
-            }
-          ]
+          "$ref": "#/components/schemas/Schema"
         }
       ],
       "nullable": true
@@ -115,18 +88,9 @@
     },
     "else": {
       "description": "The `else` keyword.\n\nSee [JSON Schema 9.2.2.3. \"else\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.3).",
-      "anyOf": [
+      "allOf": [
         {
-          "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-          "type": "boolean"
-        },
-        {
-          "description": "A JSON Schema object.",
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/SchemaObject"
-            }
-          ]
+          "$ref": "#/components/schemas/Schema"
         }
       ],
       "nullable": true
@@ -156,33 +120,18 @@
     },
     "if": {
       "description": "The `if` keyword.\n\nSee [JSON Schema 9.2.2.1. \"if\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.1).",
-      "anyOf": [
+      "allOf": [
         {
-          "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-          "type": "boolean"
-        },
-        {
-          "description": "A JSON Schema object.",
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/SchemaObject"
-            }
-          ]
+          "$ref": "#/components/schemas/Schema"
         }
       ],
       "nullable": true
     },
     "items": {
       "description": "The `items` keyword.\n\nSee [JSON Schema 9.3.1.1. \"items\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.1).",
-      "anyOf": [
+      "allOf": [
         {
-          "$ref": "#/components/schemas/Schema"
-        },
-        {
-          "type": "array",
-          "items": {
-            "$ref": "#/components/schemas/Schema"
-          }
+          "$ref": "#/components/schemas/SingleOrVec_for_Schema"
         }
       ],
       "nullable": true
@@ -249,18 +198,9 @@
     },
     "not": {
       "description": "The `not` keyword.\n\nSee [JSON Schema 9.2.1.4. \"not\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.1.4).",
-      "anyOf": [
+      "allOf": [
         {
-          "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-          "type": "boolean"
-        },
-        {
-          "description": "A JSON Schema object.",
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/SchemaObject"
-            }
-          ]
+          "$ref": "#/components/schemas/Schema"
         }
       ],
       "nullable": true
@@ -294,18 +234,9 @@
     },
     "propertyNames": {
       "description": "The `propertyNames` keyword.\n\nSee [JSON Schema 9.3.2.5. \"propertyNames\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.5).",
-      "anyOf": [
+      "allOf": [
         {
-          "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-          "type": "boolean"
-        },
-        {
-          "description": "A JSON Schema object.",
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/SchemaObject"
-            }
-          ]
+          "$ref": "#/components/schemas/Schema"
         }
       ],
       "nullable": true
@@ -323,18 +254,9 @@
     },
     "then": {
       "description": "The `then` keyword.\n\nSee [JSON Schema 9.2.2.2. \"then\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.2).",
-      "anyOf": [
+      "allOf": [
         {
-          "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-          "type": "boolean"
-        },
-        {
-          "description": "A JSON Schema object.",
-          "allOf": [
-            {
-              "$ref": "#/components/schemas/SchemaObject"
-            }
-          ]
+          "$ref": "#/components/schemas/Schema"
         }
       ],
       "nullable": true
@@ -346,15 +268,9 @@
     },
     "type": {
       "description": "The `type` keyword.\n\nSee [JSON Schema Validation 6.1.1. \"type\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.1) and [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).",
-      "anyOf": [
+      "allOf": [
         {
-          "$ref": "#/components/schemas/InstanceType"
-        },
-        {
-          "type": "array",
-          "items": {
-            "$ref": "#/components/schemas/InstanceType"
-          }
+          "$ref": "#/components/schemas/SingleOrVec_for_InstanceType"
         }
       ],
       "nullable": true
@@ -416,36 +332,18 @@
         },
         "additionalItems": {
           "description": "The `additionalItems` keyword.\n\nSee [JSON Schema 9.3.1.2. \"additionalItems\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.2).",
-          "anyOf": [
+          "allOf": [
             {
-              "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-              "type": "boolean"
-            },
-            {
-              "description": "A JSON Schema object.",
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/SchemaObject"
-                }
-              ]
+              "$ref": "#/components/schemas/Schema"
             }
           ],
           "nullable": true
         },
         "additionalProperties": {
           "description": "The `additionalProperties` keyword.\n\nSee [JSON Schema 9.3.2.3. \"additionalProperties\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.3).",
-          "anyOf": [
+          "allOf": [
             {
-              "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-              "type": "boolean"
-            },
-            {
-              "description": "A JSON Schema object.",
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/SchemaObject"
-                }
-              ]
+              "$ref": "#/components/schemas/Schema"
             }
           ],
           "nullable": true
@@ -472,18 +370,9 @@
         },
         "contains": {
           "description": "The `contains` keyword.\n\nSee [JSON Schema 9.3.1.4. \"contains\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.4).",
-          "anyOf": [
+          "allOf": [
             {
-              "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-              "type": "boolean"
-            },
-            {
-              "description": "A JSON Schema object.",
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/SchemaObject"
-                }
-              ]
+              "$ref": "#/components/schemas/Schema"
             }
           ],
           "nullable": true
@@ -503,18 +392,9 @@
         },
         "else": {
           "description": "The `else` keyword.\n\nSee [JSON Schema 9.2.2.3. \"else\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.3).",
-          "anyOf": [
+          "allOf": [
             {
-              "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-              "type": "boolean"
-            },
-            {
-              "description": "A JSON Schema object.",
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/SchemaObject"
-                }
-              ]
+              "$ref": "#/components/schemas/Schema"
             }
           ],
           "nullable": true
@@ -544,33 +424,18 @@
         },
         "if": {
           "description": "The `if` keyword.\n\nSee [JSON Schema 9.2.2.1. \"if\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.1).",
-          "anyOf": [
+          "allOf": [
             {
-              "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-              "type": "boolean"
-            },
-            {
-              "description": "A JSON Schema object.",
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/SchemaObject"
-                }
-              ]
+              "$ref": "#/components/schemas/Schema"
             }
           ],
           "nullable": true
         },
         "items": {
           "description": "The `items` keyword.\n\nSee [JSON Schema 9.3.1.1. \"items\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.1.1).",
-          "anyOf": [
+          "allOf": [
             {
-              "$ref": "#/components/schemas/Schema"
-            },
-            {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/Schema"
-              }
+              "$ref": "#/components/schemas/SingleOrVec_for_Schema"
             }
           ],
           "nullable": true
@@ -637,18 +502,9 @@
         },
         "not": {
           "description": "The `not` keyword.\n\nSee [JSON Schema 9.2.1.4. \"not\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.1.4).",
-          "anyOf": [
+          "allOf": [
             {
-              "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-              "type": "boolean"
-            },
-            {
-              "description": "A JSON Schema object.",
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/SchemaObject"
-                }
-              ]
+              "$ref": "#/components/schemas/Schema"
             }
           ],
           "nullable": true
@@ -682,18 +538,9 @@
         },
         "propertyNames": {
           "description": "The `propertyNames` keyword.\n\nSee [JSON Schema 9.3.2.5. \"propertyNames\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.5).",
-          "anyOf": [
+          "allOf": [
             {
-              "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-              "type": "boolean"
-            },
-            {
-              "description": "A JSON Schema object.",
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/SchemaObject"
-                }
-              ]
+              "$ref": "#/components/schemas/Schema"
             }
           ],
           "nullable": true
@@ -711,18 +558,9 @@
         },
         "then": {
           "description": "The `then` keyword.\n\nSee [JSON Schema 9.2.2.2. \"then\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.2.2.2).",
-          "anyOf": [
+          "allOf": [
             {
-              "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
-              "type": "boolean"
-            },
-            {
-              "description": "A JSON Schema object.",
-              "allOf": [
-                {
-                  "$ref": "#/components/schemas/SchemaObject"
-                }
-              ]
+              "$ref": "#/components/schemas/Schema"
             }
           ],
           "nullable": true
@@ -734,15 +572,9 @@
         },
         "type": {
           "description": "The `type` keyword.\n\nSee [JSON Schema Validation 6.1.1. \"type\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.1) and [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).",
-          "anyOf": [
+          "allOf": [
             {
-              "$ref": "#/components/schemas/InstanceType"
-            },
-            {
-              "type": "array",
-              "items": {
-                "$ref": "#/components/schemas/InstanceType"
-              }
+              "$ref": "#/components/schemas/SingleOrVec_for_InstanceType"
             }
           ],
           "nullable": true
@@ -758,6 +590,34 @@
         }
       },
       "additionalProperties": true
+    },
+    "SingleOrVec_for_InstanceType": {
+      "description": "A type which can be serialized as a single item, or multiple items.\n\nIn some contexts, a `Single` may be semantically distinct from a `Vec` containing only item.",
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/InstanceType"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/InstanceType"
+          }
+        }
+      ]
+    },
+    "SingleOrVec_for_Schema": {
+      "description": "A type which can be serialized as a single item, or multiple items.\n\nIn some contexts, a `Single` may be semantically distinct from a `Vec` containing only item.",
+      "anyOf": [
+        {
+          "$ref": "#/components/schemas/Schema"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/components/schemas/Schema"
+          }
+        }
+      ]
     }
   }
 }
