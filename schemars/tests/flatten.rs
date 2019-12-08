@@ -38,6 +38,7 @@ struct Deep3 {
 
 #[derive(Debug, JsonSchema)]
 struct Deep4 {
+    #[serde(default)]
     os: &'static str,
 }
 

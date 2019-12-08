@@ -31,7 +31,6 @@ pub struct MyStruct2 {
 }
 
 #[test]
-#[ignore] // not yet implemented (https://github.com/GREsau/schemars/issues/6)
 fn schema_default_values() -> TestResult {
     test_default_generated_schema::<MyStruct>("default")
 }

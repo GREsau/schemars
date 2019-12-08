@@ -86,6 +86,7 @@
     },
     "definitions": {
       "description": "The `$defs` keyword.\n\nThis is currently serialized as `definitions` for backwards compatibility.\n\nSee [JSON Schema 8.2.5. Schema Re-Use With \"$defs\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5).",
+      "default": {},
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/Schema"
@@ -93,6 +94,7 @@
     },
     "deprecated": {
       "description": "The `deprecated` keyword.\n\nSee [JSON Schema Validation 9.3. \"deprecated\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.3).",
+      "default": false,
       "type": "boolean"
     },
     "description": {
@@ -274,6 +276,7 @@
     },
     "patternProperties": {
       "description": "The `patternProperties` keyword.\n\nSee [JSON Schema 9.3.2.2. \"patternProperties\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.2).",
+      "default": {},
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/Schema"
@@ -281,6 +284,7 @@
     },
     "properties": {
       "description": "The `properties` keyword.\n\nSee [JSON Schema 9.3.2.1. \"properties\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.1).",
+      "default": {},
       "type": "object",
       "additionalProperties": {
         "$ref": "#/definitions/Schema"
@@ -299,10 +303,12 @@
     },
     "readOnly": {
       "description": "The `readOnly` keyword.\n\nSee [JSON Schema Validation 9.4. \"readOnly\" and \"writeOnly\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.4).",
+      "default": false,
       "type": "boolean"
     },
     "required": {
       "description": "The `required` keyword.\n\nSee [JSON Schema Validation 6.5.3. \"required\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.3).",
+      "default": [],
       "type": "array",
       "items": {
         "type": "string"
@@ -346,6 +352,7 @@
     },
     "writeOnly": {
       "description": "The `writeOnly` keyword.\n\nSee [JSON Schema Validation 9.4. \"readOnly\" and \"writeOnly\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.4).",
+      "default": false,
       "type": "boolean"
     }
   },
@@ -459,6 +466,7 @@
         },
         "deprecated": {
           "description": "The `deprecated` keyword.\n\nSee [JSON Schema Validation 9.3. \"deprecated\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.3).",
+          "default": false,
           "type": "boolean"
         },
         "description": {
@@ -640,6 +648,7 @@
         },
         "patternProperties": {
           "description": "The `patternProperties` keyword.\n\nSee [JSON Schema 9.3.2.2. \"patternProperties\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.2).",
+          "default": {},
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/Schema"
@@ -647,6 +656,7 @@
         },
         "properties": {
           "description": "The `properties` keyword.\n\nSee [JSON Schema 9.3.2.1. \"properties\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.1).",
+          "default": {},
           "type": "object",
           "additionalProperties": {
             "$ref": "#/definitions/Schema"
@@ -665,10 +675,12 @@
         },
         "readOnly": {
           "description": "The `readOnly` keyword.\n\nSee [JSON Schema Validation 9.4. \"readOnly\" and \"writeOnly\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.4).",
+          "default": false,
           "type": "boolean"
         },
         "required": {
           "description": "The `required` keyword.\n\nSee [JSON Schema Validation 6.5.3. \"required\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.3).",
+          "default": [],
           "type": "array",
           "items": {
             "type": "string"
@@ -712,6 +724,7 @@
         },
         "writeOnly": {
           "description": "The `writeOnly` keyword.\n\nSee [JSON Schema Validation 9.4. \"readOnly\" and \"writeOnly\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.4).",
+          "default": false,
           "type": "boolean"
         }
       },

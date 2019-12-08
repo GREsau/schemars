@@ -11,6 +11,7 @@
       "type": "null"
     },
     "readable": {
+      "default": "",
       "readOnly": true,
       "type": "string"
     },

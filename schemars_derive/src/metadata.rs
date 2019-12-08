@@ -2,12 +2,13 @@ use crate::doc_attrs;
 use proc_macro2::TokenStream;
 use syn::Attribute;
 
-#[derive(Debug, Clone, PartialEq, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct SchemaMetadata {
     pub title: Option<String>,
     pub description: Option<String>,
     pub read_only: bool,
     pub write_only: bool,
+    pub default: Option<TokenStream>,
 }
 
 pub fn set_metadata_on_schema_from_docs(
@@ -40,6 +41,7 @@ pub fn set_metadata_on_schema(schema_expr: TokenStream, metadata: &SchemaMetadat
             metadata.description = Some(#description.to_owned());
         })
     }
+
     if metadata.read_only {
         setters.push(quote! {
             metadata.read_only = true;
@@ -48,6 +50,15 @@ pub fn set_metadata_on_schema(schema_expr: TokenStream, metadata: &SchemaMetadat
     if metadata.write_only {
         setters.push(quote! {
             metadata.write_only = true;
+        })
+    }
+
+    if let Some(default) = &metadata.default {
+        setters.push(quote! {
+            metadata.default = match serde_json::json!(#default) {
+                serde_json::value::Value::Null => None,
+                d => Some(d),
+            };
         })
     }
 

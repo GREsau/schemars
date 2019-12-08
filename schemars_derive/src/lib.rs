@@ -281,11 +281,33 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
         .filter(|f| !f.attrs.skip_deserializing() || !f.attrs.skip_serializing())
         .partition(|f| f.attrs.flatten());
 
-    let container_has_default = has_default(cattrs.default());
+    let set_container_default = match cattrs.default() {
+        SerdeDefault::None => None,
+        SerdeDefault::Default => Some(quote!(let cdefault = Self::default();)),
+        SerdeDefault::Path(path) => Some(quote!(let cdefault = #path();)),
+    };
+
     let mut required = Vec::new();
     let recurse = nested.iter().map(|field| {
         let name = field.attrs.name().deserialize_name();
-        if !container_has_default && !has_default(field.attrs.default()) {
+        let ty = field.ty;
+
+        // TODO respect serialize_with on field
+        let default = match field.attrs.default() {
+            SerdeDefault::None if set_container_default.is_some() => {
+                let field_ident = field
+                    .original
+                    .ident
+                    .as_ref()
+                    .expect("This is not a tuple struct, so field should be named");
+                Some(quote!(cdefault.#field_ident))
+            }
+            SerdeDefault::None => None,
+            SerdeDefault::Default => Some(quote!(<#ty>::default())),
+            SerdeDefault::Path(path) => Some(quote!(#path())),
+        };
+
+        if default.is_none() {
             required.push(name.clone());
         }
 
@@ -298,6 +320,7 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
         let metadata = SchemaMetadata {
             read_only: field.attrs.skip_deserializing(),
             write_only: field.attrs.skip_serializing(),
+            default,
             ..get_metadata_from_docs(&field.original.attrs)
         };
         let schema_expr = set_metadata_on_schema(schema_expr, &metadata);
@@ -332,14 +355,10 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
     });
 
     quote! {
-        #schema #(#flattens)*
-    }
-}
-
-fn has_default(d: &SerdeDefault) -> bool {
-    match d {
-        SerdeDefault::None => false,
-        _ => true,
+        {
+            #set_container_default
+            #schema #(#flattens)*
+        }
     }
 }
 
