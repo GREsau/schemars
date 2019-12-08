@@ -3,6 +3,8 @@
 ## [0.6.0] - TBD
 ### Added:
 - When deriving `JsonSchema`, the schema's `title` and `description` are now set from `#[doc]` comments (https://github.com/GREsau/schemars/issues/7)
+### Changed:
+- When the `option_nullable` setting is enabled (e.g. for openapi 3), schemas for `Option<T>` will no longer inline `T`'s schema when it should be referenceable.
 
 ## [0.5.1] - 2019-10-30
 ### Fixed:

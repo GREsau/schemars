@@ -12,11 +12,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = if gen.settings().option_nullable {
-            T::json_schema(gen)
-        } else {
-            gen.subschema_for::<T>()
-        };
+        let mut schema = gen.subschema_for::<T>();
         if gen.settings().option_add_null_type {
             schema = match schema {
                 Schema::Bool(true) => Schema::Bool(true),
@@ -38,7 +34,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             }
         }
         if gen.settings().option_nullable {
-            let mut schema_obj: SchemaObject = schema.into();
+            let mut schema_obj = gen.objectify(schema.into());
             schema_obj
                 .extensions
                 .insert("nullable".to_owned(), json!(true));
@@ -108,7 +104,10 @@ impl<T: JsonSchema> JsonSchema for Bound<T> {
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         let mut included_schema = SchemaObject::default();
         included_schema.instance_type = Some(InstanceType::Object.into());
-        included_schema.object().required.insert("Included".to_owned());
+        included_schema
+            .object()
+            .required
+            .insert("Included".to_owned());
         included_schema
             .object()
             .properties
@@ -116,7 +115,10 @@ impl<T: JsonSchema> JsonSchema for Bound<T> {
 
         let mut excluded_schema = SchemaObject::default();
         excluded_schema.instance_type = Some(InstanceType::Object.into());
-        excluded_schema.object().required.insert("Excluded".to_owned());
+        excluded_schema
+            .object()
+            .required
+            .insert("Excluded".to_owned());
         excluded_schema
             .object()
             .properties
@@ -127,7 +129,11 @@ impl<T: JsonSchema> JsonSchema for Bound<T> {
         unbounded_schema.const_value = Some(json!("Unbounded"));
 
         let mut schema = SchemaObject::default();
-        schema.subschemas().one_of = Some(vec![included_schema.into(), excluded_schema.into(), unbounded_schema.into()]);
+        schema.subschemas().one_of = Some(vec![
+            included_schema.into(),
+            excluded_schema.into(),
+            unbounded_schema.into(),
+        ]);
         schema.into()
     }
 }
