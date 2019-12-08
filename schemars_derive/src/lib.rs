@@ -8,6 +8,7 @@ mod doc_attrs;
 mod metadata;
 mod preprocess;
 
+use metadata::*;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use serde_derive_internals::ast::{Container, Data, Field, Style, Variant};
@@ -38,7 +39,7 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         Data::Struct(Style::Struct, ref fields) => schema_for_struct(fields, &cont.attrs),
         Data::Enum(ref variants) => schema_for_enum(variants, &cont.attrs),
     };
-    let schema_expr = metadata::set_metadata_on_schema_from_docs(schema_expr, &cont.original.attrs);
+    let schema_expr = set_metadata_on_schema_from_docs(schema_expr, &cont.original.attrs);
 
     let type_name = cont.ident;
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
@@ -159,7 +160,7 @@ fn schema_for_external_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
-        metadata::set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
+        set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
     }));
 
     wrap_schema_fields(quote! {
@@ -198,7 +199,7 @@ fn schema_for_internal_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
-        let tag_schema = metadata::set_metadata_on_schema_from_docs(tag_schema, &variant.original.attrs);
+        let tag_schema = set_metadata_on_schema_from_docs(tag_schema, &variant.original.attrs);
 
         let variant_schema = match variant.style {
             Style::Unit => return tag_schema,
@@ -231,7 +232,7 @@ fn schema_for_untagged_enum<'a>(
 ) -> TokenStream {
     let schemas = variants.map(|variant| {
         let schema_expr = schema_for_untagged_enum_variant(variant, cattrs);
-        metadata::set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
+        set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
     });
 
     wrap_schema_fields(quote! {
@@ -258,7 +259,6 @@ fn schema_for_unit_struct() -> TokenStream {
 }
 
 fn schema_for_newtype_struct(field: &Field) -> TokenStream {
-    // TODO metadata from docs?
     let ty = get_json_schema_type(field);
     quote_spanned! {field.original.span()=>
         gen.subschema_for::<#ty>()
@@ -266,7 +266,6 @@ fn schema_for_newtype_struct(field: &Field) -> TokenStream {
 }
 
 fn schema_for_tuple_struct(fields: &[Field]) -> TokenStream {
-    // TODO metadata from docs?
     let types = fields
         .iter()
         .filter(|f| !f.attrs.skip_deserializing())
@@ -296,12 +295,12 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
             gen.subschema_for::<#ty>()
         };
 
-        let metadata = metadata::SchemaMetadata {
+        let metadata = SchemaMetadata {
             read_only: field.attrs.skip_deserializing(),
             write_only: field.attrs.skip_serializing(),
-            ..metadata::get_metadata_from_docs(&field.original.attrs)
+            ..get_metadata_from_docs(&field.original.attrs)
         };
-        let schema_expr = metadata::set_metadata_on_schema(schema_expr, &metadata);
+        let schema_expr = set_metadata_on_schema(schema_expr, &metadata);
 
         quote_spanned! {span=>
             props.insert(#name.to_owned(), #schema_expr);
