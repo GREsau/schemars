@@ -1,0 +1,43 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyStruct",
+  "type": "object",
+  "properties": {
+    "my_bool": {
+      "type": "boolean",
+      "default": false
+    },
+    "my_int": {
+      "type": "integer",
+      "format": "int32",
+      "default": 0
+    },
+    "my_struct2": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/MyStruct2"
+        }
+      ],
+      "default": {
+        "my_bool": false,
+        "my_int": 0
+      }
+    }
+  },
+  "definitions": {
+    "MyStruct2": {
+      "type": "object",
+      "properties": {
+        "my_bool": {
+          "type": "boolean",
+          "default": true
+        },
+        "my_int": {
+          "type": "integer",
+          "format": "int32",
+          "default": 6
+        }
+      }
+    }
+  }
+}
