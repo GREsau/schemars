@@ -9,11 +9,12 @@ mod metadata;
 mod preprocess;
 
 use metadata::*;
-use proc_macro2::TokenStream;
+use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use serde_derive_internals::ast::{Container, Data, Field, Style, Variant};
 use serde_derive_internals::attr::{self, Default as SerdeDefault, TagType};
 use serde_derive_internals::{Ctxt, Derive};
+use syn::parse::{self, Parse};
 use syn::spanned::Spanned;
 
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde, doc))]
@@ -382,35 +383,70 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
 }
 
 fn get_json_schema_type(field: &Field) -> Box<dyn ToTokens> {
-    // TODO it would probably be simpler to parse attributes manually here, instead of
-    // using the serde-parsed attributes
-    let de_with_segments = without_last_element(field.attrs.deserialize_with(), "deserialize");
-    let se_with_segments = without_last_element(field.attrs.serialize_with(), "serialize");
-    if de_with_segments == se_with_segments {
-        if let Some(expr_path) = de_with_segments {
-            return Box::new(expr_path);
-        }
+    // TODO support [schemars(schema_with= "...")] or equivalent
+    match field
+        .original
+        .attrs
+        .iter()
+        .filter(|at| match at.path.get_ident() {
+            // FIXME this is relying on order of attributes (schemars before serde) from preprocess.rs
+            Some(i) => i == "schemars" || i == "serde",
+            None => false,
+        })
+        .filter_map(get_with_from_attr)
+        .next()
+    {
+        Some(with) => match parse_lit_str::<syn::ExprPath>(&with) {
+            Ok(expr_path) => Box::new(expr_path),
+            Err(e) => Box::new(compile_error(vec![e])),
+        },
+        None => Box::new(field.ty.clone()),
     }
-    Box::new(field.ty.clone())
 }
 
-fn without_last_element(path: Option<&syn::ExprPath>, last: &str) -> Option<syn::ExprPath> {
-    match path {
-        Some(expr_path)
-            if expr_path
-                .path
-                .segments
-                .last()
-                .map(|p| p.ident == last)
-                .unwrap_or(false) =>
-        {
-            let mut expr_path = expr_path.clone();
-            expr_path.path.segments.pop();
-            if let Some(segment) = expr_path.path.segments.pop() {
-                expr_path.path.segments.push(segment.into_value())
-            }
-            Some(expr_path)
+fn get_with_from_attr(attr: &syn::Attribute) -> Option<syn::LitStr> {
+    use syn::*;
+    let nested_metas = match attr.parse_meta() {
+        Ok(Meta::List(meta)) => meta.nested,
+        _ => return None,
+    };
+    for nm in nested_metas {
+        match nm {
+            NestedMeta::Meta(Meta::NameValue(MetaNameValue {
+                path,
+                lit: Lit::Str(with),
+                ..
+            })) if path.is_ident("with") => return Some(with),
+            _ => {}
         }
-        _ => None,
     }
+    None
+}
+
+fn parse_lit_str<T>(s: &syn::LitStr) -> parse::Result<T>
+where
+    T: Parse,
+{
+    let tokens = spanned_tokens(s)?;
+    syn::parse2(tokens)
+}
+
+fn spanned_tokens(s: &syn::LitStr) -> parse::Result<TokenStream> {
+    let stream = syn::parse_str(&s.value())?;
+    Ok(respan_token_stream(stream, s.span()))
+}
+
+fn respan_token_stream(stream: TokenStream, span: Span) -> TokenStream {
+    stream
+        .into_iter()
+        .map(|token| respan_token_tree(token, span))
+        .collect()
+}
+
+fn respan_token_tree(mut token: TokenTree, span: Span) -> TokenTree {
+    if let TokenTree::Group(g) = &mut token {
+        *g = Group::new(g.delimiter(), respan_token_stream(g.stream(), span));
+    }
+    token.set_span(span);
+    token
 }

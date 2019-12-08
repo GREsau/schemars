@@ -34,7 +34,6 @@ struct Process {
     wall_time: Duration,
     #[serde(default, with = "DurationDef")]
     user_cpu_time: Duration,
-    // FIXME this should serialize the default as "0.000000000s"
     #[serde(default, serialize_with = "custom_serialize")]
     #[schemars(with = "DurationDef")]
     system_cpu_time: Duration,

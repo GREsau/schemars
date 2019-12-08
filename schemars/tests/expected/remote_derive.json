@@ -11,10 +11,7 @@
       "type": "string"
     },
     "system_cpu_time": {
-      "default": {
-        "nanos": 0,
-        "secs": 0
-      },
+      "default": "0.000000000s",
       "allOf": [
         {
           "$ref": "#/definitions/DurationDef"

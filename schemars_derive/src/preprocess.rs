@@ -2,9 +2,30 @@ use quote::ToTokens;
 use serde_derive_internals::Ctxt;
 use std::collections::BTreeSet;
 use syn::parse::Parser;
-use syn::{
-    Attribute, Data, DeriveInput, Field, GenericParam, Generics, Ident, Meta, NestedMeta, Variant,
-};
+use syn::{Attribute, Data, DeriveInput, Field, GenericParam, Generics, Meta, NestedMeta, Variant};
+
+// List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes, which we want serde to parse for us.
+static SERDE_KEYWORDS: &[&str] = &[
+    "rename",
+    "rename_all",
+    "deny_unknown_fields",
+    "tag",
+    "content",
+    "untagged",
+    "bound",
+    "default",
+    "remote",
+    "alias",
+    "skip",
+    "skip_serializing",
+    "skip_deserializing",
+    "other",
+    "flatten",
+    // special cases - these keywords are not copied from schemars attrs to serde attrs
+    "serialize_with",
+    "deserialize_with",
+    "with",
+];
 
 pub fn add_trait_bounds(generics: &mut Generics) {
     for param in &mut generics.params {
@@ -42,52 +63,48 @@ fn process_serde_field_attrs<'a>(ctxt: &Ctxt, fields: impl Iterator<Item = &'a m
 }
 
 fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
-    let mut schemars_attrs = Vec::<Attribute>::new();
-    let mut serde_attrs = Vec::<Attribute>::new();
-    let mut misc_attrs = Vec::<Attribute>::new();
+    let (serde_attrs, other_attrs): (Vec<_>, Vec<_>) =
+        attrs.drain(..).partition(|at| at.path.is_ident("serde"));
 
-    for attr in attrs.drain(..) {
-        if attr.path.is_ident("schemars") {
-            schemars_attrs.push(attr)
-        } else if attr.path.is_ident("serde") {
-            serde_attrs.push(attr)
-        } else {
-            misc_attrs.push(attr)
+    *attrs = other_attrs;
+
+    let schemars_attrs: Vec<_> = attrs
+        .iter()
+        .filter(|at| at.path.is_ident("schemars"))
+        .collect();
+
+    let (mut serde_meta, mut schemars_meta_names): (Vec<_>, BTreeSet<_>) = schemars_attrs
+        .iter()
+        .flat_map(|at| get_meta_items(&ctxt, at))
+        .flatten()
+        .filter_map(|meta| {
+            let keyword = get_meta_ident(&ctxt, &meta).ok()?;
+            if keyword.ends_with("with") || !SERDE_KEYWORDS.contains(&keyword.as_ref()) {
+                None
+            } else {
+                Some((meta, keyword))
+            }
+        })
+        .unzip();
+
+    if schemars_meta_names.contains("skip") {
+        schemars_meta_names.insert("skip_serializing".to_string());
+        schemars_meta_names.insert("skip_deserializing".to_string());
+    }
+
+    for meta in serde_attrs
+        .into_iter()
+        .flat_map(|at| get_meta_items(&ctxt, &at))
+        .flatten()
+    {
+        if let Ok(i) = get_meta_ident(&ctxt, &meta) {
+            if !schemars_meta_names.contains(&i) && SERDE_KEYWORDS.contains(&i.as_ref()) {
+                serde_meta.push(meta);
+            }
         }
     }
 
-    for attr in schemars_attrs.iter_mut() {
-        let schemars_ident = attr.path.segments.pop().unwrap().into_value().ident;
-        attr.path
-            .segments
-            .push(Ident::new("serde", schemars_ident.span()).into());
-    }
-
-    let mut schemars_meta_names: BTreeSet<String> = schemars_attrs
-        .iter()
-        .flat_map(|attr| get_meta_items(&ctxt, attr))
-        .flatten()
-        .flat_map(|m| get_meta_ident(&ctxt, &m))
-        .collect();
-    if schemars_meta_names.contains("with") {
-        schemars_meta_names.insert("serialize_with".to_string());
-        schemars_meta_names.insert("deserialize_with".to_string());
-    }
-
-    let mut serde_meta = serde_attrs
-        .iter()
-        .flat_map(|attr| get_meta_items(&ctxt, attr))
-        .flatten()
-        .filter(|m| {
-            get_meta_ident(&ctxt, m)
-                .map(|i| !schemars_meta_names.contains(&i))
-                .unwrap_or(false)
-        })
-        .peekable();
-
-    *attrs = schemars_attrs;
-
-    if serde_meta.peek().is_some() {
+    if !serde_meta.is_empty() {
         let new_serde_attr = quote! {
             #[serde(#(#serde_meta),*)]
         };
@@ -98,8 +115,6 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
             Err(e) => ctxt.error_spanned_by(to_tokens(attrs), e),
         }
     }
-
-    attrs.extend(misc_attrs)
 }
 
 fn to_tokens(attrs: &[Attribute]) -> impl ToTokens {
@@ -149,33 +164,35 @@ mod tests {
     #[test]
     fn test_process_serde_attrs() {
         let mut input: DeriveInput = parse_quote! {
-            #[serde(container, container2 = "blah")]
-            #[serde(container3(foo, bar))]
-            #[schemars(container2 = "overridden", container4)]
+            #[serde(rename(serialize = "ser_name"), rename_all = "camelCase")]
+            #[serde(default, unknown_word)]
+            #[schemars(rename = "overriden", another_unknown_word)]
             #[misc]
             struct MyStruct {
                 /// blah blah blah
-                #[serde(field, field2)]
+                #[serde(alias = "first")]
                 field1: i32,
-                #[serde(field, field2, serialize_with = "se", deserialize_with = "de")]
-                #[schemars(field = "overridden", with = "with")]
+                #[serde(serialize_with = "se", deserialize_with = "de")]
+                #[schemars(with = "with")]
                 field2: i32,
-                #[schemars(field)]
+                #[schemars(skip)]
+                #[serde(skip_serializing)]
                 field3: i32,
             }
         };
         let expected: DeriveInput = parse_quote! {
-            #[serde(container2 = "overridden", container4)]
-            #[serde(container, container3(foo, bar))]
+            #[schemars(rename = "overriden", another_unknown_word)]
             #[misc]
+            #[serde(rename = "overriden", rename_all = "camelCase", default)]
             struct MyStruct {
-                #[serde(field, field2)]
                 #[doc = r" blah blah blah"]
+                #[serde(alias = "first")]
                 field1: i32,
-                #[serde(field = "overridden", with = "with")]
-                #[serde(field2)]
+                #[schemars(with = "with")]
+                #[serde(serialize_with = "se", deserialize_with = "de")]
                 field2: i32,
-                #[serde(field)]
+                #[schemars(skip)]
+                #[serde(skip)]
                 field3: i32,
             }
         };
