@@ -14,14 +14,14 @@ pub fn get_title_and_desc_from_docs(attrs: &[Attribute]) -> (Option<String>, Opt
             .trim_start_matches('#')
             .trim()
             .to_owned();
-        let maybe_desc = split.next().and_then(get_description);
+        let maybe_desc = split.next().and_then(merge_description_lines);
         (none_if_empty(title), maybe_desc)
     } else {
-        (None, get_description(&docs))
+        (None, merge_description_lines(&docs))
     }
 }
 
-fn get_description(docs: &str) -> Option<String> {
+fn merge_description_lines(docs: &str) -> Option<String> {
     let desc = docs
         .trim()
         .split("\n\n")
