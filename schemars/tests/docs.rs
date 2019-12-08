@@ -23,10 +23,10 @@ pub struct MyStruct {
 #[derive(Debug, JsonSchema)]
 pub struct MyUnitStruct;
 
-#[doc = " # This is the enum's title "]
-#[doc = " This is "]
+/// # This is the enum's title
+/// This is
 #[derive(Debug, JsonSchema)]
-#[doc = " the enum's description."]
+/// the enum's description.
 pub enum MyEnum {
     UndocumentedUnit,
     /// This comment is not included in the generated schema :(
