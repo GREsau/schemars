@@ -3,6 +3,7 @@
 ## [0.6.0] - TBD
 ### Added:
 - When deriving `JsonSchema`, the schema's `title` and `description` are now set from `#[doc]` comments (https://github.com/GREsau/schemars/issues/7)
+- When deriving `JsonSchema` on structs using a `#[serde(default)]` attribute, the schema's properties will now include `default` whenever the default is not null (https://github.com/GREsau/schemars/issues/6)
 ### Changed:
 - When the `option_nullable` setting is enabled (e.g. for openapi 3), schemas for `Option<T>` will no longer inline `T`'s schema when it should be referenceable.
 
