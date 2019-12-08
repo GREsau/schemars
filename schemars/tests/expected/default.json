@@ -4,24 +4,21 @@
   "type": "object",
   "properties": {
     "my_bool": {
-      "type": "boolean",
-      "default": false
+      "default": false,
+      "type": "boolean"
     },
     "my_int": {
+      "default": 0,
       "type": "integer",
-      "format": "int32",
-      "default": 0
+      "format": "int32"
     },
     "my_struct2": {
+      "default": "i:0 b:false",
       "allOf": [
         {
           "$ref": "#/definitions/MyStruct2"
         }
-      ],
-      "default": {
-        "my_bool": false,
-        "my_int": 0
-      }
+      ]
     }
   },
   "definitions": {
@@ -29,13 +26,13 @@
       "type": "object",
       "properties": {
         "my_bool": {
-          "type": "boolean",
-          "default": true
+          "default": true,
+          "type": "boolean"
         },
         "my_int": {
+          "default": 6,
           "type": "integer",
-          "format": "int32",
-          "default": 6
+          "format": "int32"
         }
       }
     }

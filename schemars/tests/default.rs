@@ -14,11 +14,19 @@ fn six() -> i32 {
     6
 }
 
+fn custom_serialize<S>(value: &MyStruct2, ser: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    ser.collect_str(&format_args!("i:{} b:{}", value.my_int, value.my_bool))
+}
+
 #[derive(Default, Deserialize, Serialize, JsonSchema, Debug)]
 #[serde(default)]
 pub struct MyStruct {
     pub my_int: i32,
     pub my_bool: bool,
+    #[serde(serialize_with = "custom_serialize")]
     pub my_struct2: MyStruct2,
 }
 

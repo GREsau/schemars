@@ -292,7 +292,6 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
         let name = field.attrs.name().deserialize_name();
         let ty = field.ty;
 
-        // TODO respect serialize_with on field
         let default = match field.attrs.default() {
             SerdeDefault::None if set_container_default.is_some() => {
                 let field_ident = field
@@ -305,7 +304,27 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
             SerdeDefault::None => None,
             SerdeDefault::Default => Some(quote!(<#ty>::default())),
             SerdeDefault::Path(path) => Some(quote!(#path())),
-        };
+        }
+        .map(|d| match field.attrs.serialize_with() {
+            Some(ser_with) => quote! {
+                {
+                    struct _SchemarsDefaultSerialize<T>(T);
+
+                    impl serde::Serialize for _SchemarsDefaultSerialize<#ty>
+                    {
+                        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                        where
+                            S: serde::Serializer
+                        {
+                            #ser_with(&self.0, serializer)
+                        }
+                    }
+
+                    _SchemarsDefaultSerialize(#d)
+                }
+            },
+            None => d,
+        });
 
         if default.is_none() {
             required.push(name.clone());

@@ -4,8 +4,6 @@
   "type": "object",
   "required": [
     "command_line",
-    "system_cpu_time",
-    "user_cpu_time",
     "wall_time"
   ],
   "properties": {
@@ -13,10 +11,26 @@
       "type": "string"
     },
     "system_cpu_time": {
-      "$ref": "#/definitions/DurationDef"
+      "default": {
+        "nanos": 0,
+        "secs": 0
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/DurationDef"
+        }
+      ]
     },
     "user_cpu_time": {
-      "$ref": "#/definitions/DurationDef"
+      "default": {
+        "nanos": 0,
+        "secs": 0
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/DurationDef"
+        }
+      ]
     },
     "wall_time": {
       "$ref": "#/definitions/DurationDef"

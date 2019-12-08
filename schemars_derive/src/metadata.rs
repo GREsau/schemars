@@ -55,9 +55,9 @@ pub fn set_metadata_on_schema(schema_expr: TokenStream, metadata: &SchemaMetadat
 
     if let Some(default) = &metadata.default {
         setters.push(quote! {
-            metadata.default = match serde_json::json!(#default) {
-                serde_json::value::Value::Null => None,
-                d => Some(d),
+            metadata.default = match serde_json::value::to_value(#default) {
+                Ok(serde_json::value::Value::Null) | Err(_) => None,
+                Ok(d) => Some(d),
             };
         })
     }
