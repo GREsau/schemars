@@ -411,13 +411,15 @@ fn get_with_from_attr(attr: &syn::Attribute) -> Option<syn::LitStr> {
         _ => return None,
     };
     for nm in nested_metas {
-        match nm {
-            NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                path,
-                lit: Lit::Str(with),
-                ..
-            })) if path.is_ident("with") => return Some(with),
-            _ => {}
+        if let NestedMeta::Meta(Meta::NameValue(MetaNameValue {
+            path,
+            lit: Lit::Str(with),
+            ..
+        })) = nm
+        {
+            if path.is_ident("with") {
+                return Some(with);
+            }
         }
     }
     None
