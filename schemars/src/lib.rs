@@ -32,55 +32,55 @@ fn main() {
 
 ```json
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "MyStruct",
-  "type": "object",
-  "required": [
-    "my_bool",
-    "my_int",
-    "my_nullable_enum"
-  ],
-  "properties": {
-    "my_bool": {
-      "type": "boolean"
-    },
-    "my_int": {
-      "type": "integer",
-      "format": "int32"
-    },
-    "my_nullable_enum": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/MyEnum"
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MyStruct",
+    "type": "object",
+    "required": [
+        "my_bool",
+        "my_int",
+        "my_nullable_enum"
+    ],
+    "properties": {
+        "my_bool": {
+            "type": "boolean"
         },
-        {
-          "type": "null"
-        }
-      ]
-    }
-  },
-  "definitions": {
-    "MyEnum": {
-      "anyOf": [
-        {
-          "enum": [
-            "Unit"
-          ]
+        "my_int": {
+            "type": "integer",
+            "format": "int32"
         },
-        {
-          "type": "object",
-          "required": [
-            "StringNewType"
-          ],
-          "properties": {
-            "StringNewType": {
-              "type": "string"
-            }
-          }
+        "my_nullable_enum": {
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/MyEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         }
-      ]
+    },
+    "definitions": {
+        "MyEnum": {
+            "anyOf": [
+                {
+                    "enum": [
+                        "Unit"
+                    ]
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "StringNewType"
+                    ],
+                    "properties": {
+                        "StringNewType": {
+                            "type": "string"
+                        }
+                    }
+                }
+            ]
+        }
     }
-  }
 }
 ```
 </details>
@@ -122,49 +122,49 @@ fn main() {
 
 ```json
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "MyStruct",
-  "type": "object",
-  "required": [
-    "myBool",
-    "myNumber"
-  ],
-  "properties": {
-    "myBool": {
-      "type": "boolean"
-    },
-    "myNullableEnum": {
-      "anyOf": [
-        {
-          "$ref": "#/definitions/MyEnum"
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "MyStruct",
+    "type": "object",
+    "required": [
+        "myBool",
+        "myNumber"
+    ],
+    "properties": {
+        "myBool": {
+            "type": "boolean"
         },
-        {
-          "type": "null"
-        }
-      ]
-    },
-    "myNumber": {
-      "type": "integer",
-      "format": "int32"
-    }
-  },
-  "definitions": {
-    "MyEnum": {
-      "anyOf": [
-        {
-          "type": "null"
+        "myNullableEnum": {
+            "default": null,
+            "anyOf": [
+                {
+                    "$ref": "#/definitions/MyEnum"
+                },
+                {
+                    "type": "null"
+                }
+            ]
         },
-        {
-          "type": "string"
+        "myNumber": {
+            "type": "integer",
+            "format": "int32"
         }
-      ]
+    },
+    "definitions": {
+        "MyEnum": {
+            "anyOf": [
+                {
+                    "type": "null"
+                },
+                {
+                    "type": "string"
+                }
+            ]
+        }
     }
-  }
 }
 ```
 </details>
 
-\
 `#[serde(...)]` attributes can be overriden using `#[schemars(...)]` attributes, which behave identically (e.g. `#[schemars(rename_all = "camelCase")]`). You may find this useful if you want to change the generated schema without affecting Serde's behaviour, or if you're just not using Serde.
 
 ## Feature Flags
@@ -219,64 +219,64 @@ use schema::Schema;
 /// let my_schema = schema_for!(MyStruct);
 /// ```
 pub trait JsonSchema {
-  /// Whether JSON Schemas generated for this type should be re-used where possible using the `$ref` keyword.
-  ///
-  /// For trivial types (such as primitives), this should return `false`. For more complex types, it should return `true`.
-  /// For recursive types, this *must* return `true` to prevent infinite cycles when generating schemas.
-  ///
-  /// By default, this returns `true`.
-  fn is_referenceable() -> bool {
-    true
-  }
+    /// Whether JSON Schemas generated for this type should be re-used where possible using the `$ref` keyword.
+    ///
+    /// For trivial types (such as primitives), this should return `false`. For more complex types, it should return `true`.
+    /// For recursive types, this *must* return `true` to prevent infinite cycles when generating schemas.
+    ///
+    /// By default, this returns `true`.
+    fn is_referenceable() -> bool {
+        true
+    }
 
-  /// The name of the generated JSON Schema.
-  ///
-  /// This is used as the title for root schemas, and the key within the `definitions` property for subschemas.
-  fn schema_name() -> String;
+    /// The name of the generated JSON Schema.
+    ///
+    /// This is used as the title for root schemas, and the key within the `definitions` property for subschemas.
+    fn schema_name() -> String;
 
-  /// Generates a JSON Schema for this type.
-  ///
-  /// If the returned schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
-  /// add them to the [`SchemaGenerator`](gen::SchemaGenerator)'s schema definitions.
-  ///
-  /// This should not return a `$ref` schema.
-  fn json_schema(gen: &mut gen::SchemaGenerator) -> Schema;
+    /// Generates a JSON Schema for this type.
+    ///
+    /// If the returned schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
+    /// add them to the [`SchemaGenerator`](gen::SchemaGenerator)'s schema definitions.
+    ///
+    /// This should not return a `$ref` schema.
+    fn json_schema(gen: &mut gen::SchemaGenerator) -> Schema;
 
-  /// Helper for generating schemas for flattened `Option` fields.
-  ///
-  /// This should not need to be called or implemented by code outside of `schemars`.
-  #[doc(hidden)]
-  fn json_schema_optional(gen: &mut gen::SchemaGenerator) -> Schema {
-    Self::json_schema(gen)
-  }
+    /// Helper for generating schemas for flattened `Option` fields.
+    ///
+    /// This should not need to be called or implemented by code outside of `schemars`.
+    #[doc(hidden)]
+    fn json_schema_optional(gen: &mut gen::SchemaGenerator) -> Schema {
+        Self::json_schema(gen)
+    }
 }
 
 #[cfg(test)]
 pub mod tests {
-  use super::*;
+    use super::*;
 
-  pub fn schema_object_for<T: JsonSchema>() -> schema::SchemaObject {
-    schema_object(schema_for::<T>())
-  }
-
-  pub fn custom_schema_object_for<T: JsonSchema>(
-    settings: gen::SchemaSettings,
-  ) -> schema::SchemaObject {
-    schema_object(custom_schema_for::<T>(settings))
-  }
-
-  pub fn schema_for<T: JsonSchema>() -> schema::Schema {
-    custom_schema_for::<T>(Default::default())
-  }
-
-  pub fn custom_schema_for<T: JsonSchema>(settings: gen::SchemaSettings) -> schema::Schema {
-    T::json_schema(&mut gen::SchemaGenerator::new(settings))
-  }
-
-  pub fn schema_object(schema: schema::Schema) -> schema::SchemaObject {
-    match schema {
-      schema::Schema::Object(o) => o,
-      s => panic!("Schema was not an object: {:?}", s),
+    pub fn schema_object_for<T: JsonSchema>() -> schema::SchemaObject {
+        schema_object(schema_for::<T>())
     }
-  }
+
+    pub fn custom_schema_object_for<T: JsonSchema>(
+        settings: gen::SchemaSettings,
+    ) -> schema::SchemaObject {
+        schema_object(custom_schema_for::<T>(settings))
+    }
+
+    pub fn schema_for<T: JsonSchema>() -> schema::Schema {
+        custom_schema_for::<T>(Default::default())
+    }
+
+    pub fn custom_schema_for<T: JsonSchema>(settings: gen::SchemaSettings) -> schema::Schema {
+        T::json_schema(&mut gen::SchemaGenerator::new(settings))
+    }
+
+    pub fn schema_object(schema: schema::Schema) -> schema::SchemaObject {
+        match schema {
+            schema::Schema::Object(o) => o,
+            s => panic!("Schema was not an object: {:?}", s),
+        }
+    }
 }
