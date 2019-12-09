@@ -1,30 +1,30 @@
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
-use std::collections::BTreeSet;
+use std::collections::HashSet;
 use syn::parse::Parser;
 use syn::{Attribute, Data, DeriveInput, Field, GenericParam, Generics, Meta, NestedMeta, Variant};
 
-// List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes, which we want serde to parse for us.
+// List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes which we want serde_derive_internals to parse for us.
 static SERDE_KEYWORDS: &[&str] = &[
     "rename",
     "rename_all",
-    "deny_unknown_fields",
+    // TODO: for structs with `deny_unknown_fields`, set schema's `additionalProperties` to false.
+    // "deny_unknown_fields",
     "tag",
-    "content",
+    // TODO: support adjecently tagged enums (https://github.com/GREsau/schemars/issues/4)
+    // "content",
     "untagged",
-    "bound",
     "default",
-    "remote",
-    "alias",
     "skip",
     "skip_serializing",
     "skip_serializing_if",
     "skip_deserializing",
-    "other",
     "flatten",
-    // special cases - these keywords are not copied from schemars attrs to serde attrs
+    // Special cases - `with`/`serialize_with` are passed to serde but not copied from schemars attrs to serde attrs.
+    // This is because we want to preserve any serde attribute's `serialize_with` value to determine whether the field's
+    // default value should be serialized. We also check the `with` value on schemars/serde attrs e.g. to support deriving
+    // JsonSchema on remote types, but we parse that ourselves rather than using serde_derive_internals.
     "serialize_with",
-    "deserialize_with",
     "with",
 ];
 
@@ -36,8 +36,8 @@ pub fn add_trait_bounds(generics: &mut Generics) {
     }
 }
 
-// If a struct/variant/field has any #[schemars] attributes, then rename them
-// to #[serde] so that serde_derive_internals will parse them for us.
+// If a struct/variant/field has any #[schemars] attributes, then create copies of them
+// as #[serde] attributes so that serde_derive_internals will parse them for us.
 pub fn process_serde_attrs(input: &mut DeriveInput) -> Result<(), Vec<syn::Error>> {
     let ctxt = Ctxt::new();
     process_attrs(&ctxt, &mut input.attrs);
@@ -74,7 +74,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         .filter(|at| at.path.is_ident("schemars"))
         .collect();
 
-    let (mut serde_meta, mut schemars_meta_names): (Vec<_>, BTreeSet<_>) = schemars_attrs
+    let (mut serde_meta, mut schemars_meta_names): (Vec<_>, HashSet<_>) = schemars_attrs
         .iter()
         .flat_map(|at| get_meta_items(&ctxt, at))
         .flatten()
@@ -171,7 +171,7 @@ mod tests {
             #[misc]
             struct MyStruct {
                 /// blah blah blah
-                #[serde(alias = "first")]
+                #[serde(skip_serializing_if = "some_fn")]
                 field1: i32,
                 #[serde(serialize_with = "se", deserialize_with = "de")]
                 #[schemars(with = "with")]
@@ -187,10 +187,10 @@ mod tests {
             #[serde(rename = "overriden", rename_all = "camelCase", default)]
             struct MyStruct {
                 #[doc = r" blah blah blah"]
-                #[serde(alias = "first")]
+                #[serde(skip_serializing_if = "some_fn")]
                 field1: i32,
                 #[schemars(with = "with")]
-                #[serde(serialize_with = "se", deserialize_with = "de")]
+                #[serde(serialize_with = "se")]
                 field2: i32,
                 #[schemars(skip)]
                 #[serde(skip)]
