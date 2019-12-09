@@ -140,6 +140,7 @@ fn main() {
       "type": "boolean"
     },
     "myNullableEnum": {
+      "default": null,
       "anyOf": [
         {
           "$ref": "#/definitions/MyEnum"
