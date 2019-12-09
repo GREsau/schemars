@@ -15,7 +15,7 @@ use serde_derive_internals::attr::{self as serde_attr, Default as SerdeDefault, 
 use serde_derive_internals::{Ctxt, Derive};
 use syn::spanned::Spanned;
 
-#[proc_macro_derive(JsonSchema, attributes(schemars, serde, doc))]
+#[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
 pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let mut input = parse_macro_input!(input as syn::DeriveInput);
 
