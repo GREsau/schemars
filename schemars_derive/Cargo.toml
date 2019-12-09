@@ -2,7 +2,7 @@
 name = "schemars_derive"
 description = "Macros for #[derive(JsonSchema)], for use with schemars"
 repository = "https://github.com/GREsau/schemars"
-version = "0.6.0-alpha-2"
+version = "0.6.0"
 authors = ["Graham Esau <gesau@hotmail.co.uk>"]
 edition = "2018"
 license = "MIT"

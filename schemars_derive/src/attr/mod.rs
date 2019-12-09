@@ -12,7 +12,7 @@ pub fn get_with_from_attrs(field: &syn::Field) -> Option<syn::Result<syn::ExprPa
         .attrs
         .iter()
         .filter(|at| match at.path.get_ident() {
-            // FIXME this is relying on order of attributes (schemars before serde) from preprocess.rs
+            // FIXME this is relying on order of attributes (schemars before serde) from schemars_to_serde.rs
             Some(i) => i == "schemars" || i == "serde",
             None => false,
         })
