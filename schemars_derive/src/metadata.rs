@@ -59,12 +59,12 @@ pub fn set_metadata_on_schema(schema_expr: TokenStream, metadata: &SchemaMetadat
             {
                 let default = #default;
                 if !#skip_if(&default) {
-                    metadata.default = serde_json::value::to_value(default).ok();
+                    metadata.default = schemars::_serde_json::value::to_value(default).ok();
                 }
             }
         }),
         (Some(default), None) => setters.push(quote! {
-            metadata.default = serde_json::value::to_value(#default).ok();
+            metadata.default = schemars::_serde_json::value::to_value(#default).ok();
         }),
         _ => {}
     }

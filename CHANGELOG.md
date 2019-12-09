@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.6.1] - 2019-12-09
+### Fixed:
+- Fix a compile error that can occur when deriving `JsonSchema` from a project that doesn't reference serde_json
+
 ## [0.6.0] - 2019-12-09
 ### Added:
 - When deriving `JsonSchema`, the schema's `title` and `description` are now set from `#[doc]` comments (https://github.com/GREsau/schemars/issues/7)
