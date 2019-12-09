@@ -294,7 +294,9 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
         let ty = field.ty;
 
         let default = match field.attrs.default() {
-            SerdeDefault::None if set_container_default.is_some() => {
+            _ if field.attrs.skip_serializing() => None,
+            SerdeDefault::None if set_container_default.is_none() => None,
+            SerdeDefault::None => {
                 let field_ident = field
                     .original
                     .ident
@@ -302,7 +304,6 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
                     .expect("This is not a tuple struct, so field should be named");
                 Some(quote!(cdefault.#field_ident))
             }
-            SerdeDefault::None => None,
             SerdeDefault::Default => Some(quote!(<#ty>::default())),
             SerdeDefault::Path(path) => Some(quote!(#path())),
         }
@@ -341,6 +342,7 @@ fn schema_for_struct(fields: &[Field], cattrs: &attr::Container) -> TokenStream 
             read_only: field.attrs.skip_deserializing(),
             write_only: field.attrs.skip_serializing(),
             default,
+            skip_default_if: field.attrs.skip_serializing_if().cloned(),
             ..get_metadata_from_docs(&field.original.attrs)
         };
         let schema_expr = set_metadata_on_schema(schema_expr, &metadata);

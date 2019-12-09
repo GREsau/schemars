@@ -18,6 +18,7 @@ static SERDE_KEYWORDS: &[&str] = &[
     "alias",
     "skip",
     "skip_serializing",
+    "skip_serializing_if",
     "skip_deserializing",
     "other",
     "flatten",

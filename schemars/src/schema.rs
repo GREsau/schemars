@@ -103,7 +103,11 @@ pub struct SchemaObject {
     /// The `const` keyword.
     ///
     /// See [JSON Schema Validation 6.1.3. "const"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.3)
-    #[serde(rename = "const", skip_serializing_if = "Option::is_none")]
+    #[serde(
+        rename = "const",
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "allow_null"
+    )]
     pub const_value: Option<Value>,
     /// Properties of the [`SchemaObject`] which define validation assertions in terms of other schemas.
     #[serde(flatten, deserialize_with = "skip_if_default")]
@@ -128,6 +132,15 @@ pub struct SchemaObject {
     /// Arbitrary extra properties which are not part of the JSON Schema specification, or which `schemars` does not support.
     #[serde(flatten)]
     pub extensions: Map<String, Value>,
+}
+
+// Deserializing "null" to `Option<Value>` directly results in `None`,
+// this function instead makes it deserialize to `Some(Value::Null)`.
+fn allow_null<'de, D>(de: D) -> Result<Option<Value>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Value::deserialize(de).map(Option::Some)
 }
 
 fn skip_if_default<'de, D, T>(deserializer: D) -> Result<Option<Box<T>>, D::Error>
@@ -226,7 +239,10 @@ pub struct Metadata {
     /// The `default` keyword.
     ///
     /// See [JSON Schema Validation 9.2. "default"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.2).
-    #[serde(skip_serializing_if = "Option::is_none")]
+    #[serde(
+        skip_serializing_if = "Option::is_none",
+        deserialize_with = "allow_null"
+    )]
     pub default: Option<Value>,
     /// The `deprecated` keyword.
     ///
