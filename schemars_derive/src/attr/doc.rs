@@ -1,13 +1,13 @@
 use syn::{Attribute, Lit::Str, Meta::NameValue, MetaNameValue};
 
-pub fn get_title_and_desc_from_docs(attrs: &[Attribute]) -> (Option<String>, Option<String>) {
-    let docs = match get_docs(attrs) {
+pub fn get_title_and_desc_from_doc(attrs: &[Attribute]) -> (Option<String>, Option<String>) {
+    let doc = match get_doc(attrs) {
         None => return (None, None),
-        Some(docs) => docs,
+        Some(doc) => doc,
     };
 
-    if docs.starts_with('#') {
-        let mut split = docs.splitn(2, '\n');
+    if doc.starts_with('#') {
+        let mut split = doc.splitn(2, '\n');
         let title = split
             .next()
             .unwrap()
@@ -17,12 +17,12 @@ pub fn get_title_and_desc_from_docs(attrs: &[Attribute]) -> (Option<String>, Opt
         let maybe_desc = split.next().and_then(merge_description_lines);
         (none_if_empty(title), maybe_desc)
     } else {
-        (None, merge_description_lines(&docs))
+        (None, merge_description_lines(&doc))
     }
 }
 
-fn merge_description_lines(docs: &str) -> Option<String> {
-    let desc = docs
+fn merge_description_lines(doc: &str) -> Option<String> {
+    let desc = doc
         .trim()
         .split("\n\n")
         .filter_map(|line| none_if_empty(line.trim().replace('\n', " ")))
@@ -31,8 +31,8 @@ fn merge_description_lines(docs: &str) -> Option<String> {
     none_if_empty(desc)
 }
 
-fn get_docs(attrs: &[Attribute]) -> Option<String> {
-    let docs = attrs
+fn get_doc(attrs: &[Attribute]) -> Option<String> {
+    let doc = attrs
         .iter()
         .filter_map(|attr| {
             if !attr.path.is_ident("doc") {
@@ -53,7 +53,7 @@ fn get_docs(attrs: &[Attribute]) -> Option<String> {
         .skip_while(|s| *s == "")
         .collect::<Vec<_>>()
         .join("\n");
-    none_if_empty(docs)
+    none_if_empty(doc)
 }
 
 fn none_if_empty(s: String) -> Option<String> {

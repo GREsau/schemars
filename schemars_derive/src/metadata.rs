@@ -1,4 +1,4 @@
-use crate::doc_attrs;
+use crate::attr;
 use proc_macro2::TokenStream;
 use syn::{Attribute, ExprPath};
 
@@ -21,7 +21,7 @@ pub fn set_metadata_on_schema_from_docs(
 }
 
 pub fn get_metadata_from_docs(attrs: &[Attribute]) -> SchemaMetadata {
-    let (title, description) = doc_attrs::get_title_and_desc_from_docs(attrs);
+    let (title, description) = attr::get_title_and_desc_from_doc(attrs);
     SchemaMetadata {
         title,
         description,
