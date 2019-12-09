@@ -15,7 +15,7 @@ pub struct MyStruct {
 #[serde(untagged)]
 pub enum MyEnum {
     Unit,
-    StringNewType(String)
+    StringNewType(String),
 }
 
 fn main() {

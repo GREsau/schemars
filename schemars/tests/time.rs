@@ -1,7 +1,7 @@
 mod util;
 use schemars::JsonSchema;
-use util::*;
 use std::time::{Duration, SystemTime};
+use util::*;
 
 #[derive(Debug, JsonSchema)]
 struct MyStruct {

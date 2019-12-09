@@ -10,7 +10,7 @@ pub struct MyStruct {
 #[derive(JsonSchema)]
 pub enum MyEnum {
     Unit,
-    StringNewType(String)
+    StringNewType(String),
 }
 
 fn main() {

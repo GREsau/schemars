@@ -7,7 +7,7 @@ use util::*;
 struct MyStruct {
     range: Range<usize>,
     inclusive: RangeInclusive<f64>,
-    bound: Bound<String>
+    bound: Bound<String>,
 }
 
 #[test]

@@ -1,7 +1,7 @@
 mod util;
 use schemars::JsonSchema;
-use util::*;
 use std::ffi::{OsStr, OsString};
+use util::*;
 
 #[derive(Debug, JsonSchema)]
 struct OsStrings {
