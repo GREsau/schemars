@@ -27,7 +27,6 @@ url: "https://graham.cool" # the base hostname & protocol for your site, e.g. ht
 
 # Build settings
 remote_theme: pmarsceill/just-the-docs
-theme: "just-the-docs"
 
 aux_links:
     "GitHub":
