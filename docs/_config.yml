@@ -29,11 +29,11 @@ url: "https://graham.cool" # the base hostname & protocol for your site, e.g. ht
 remote_theme: pmarsceill/just-the-docs
 
 aux_links:
-    "GitHub":
+    '<img src="https://img.shields.io/badge/GitHub--lightgrey?style=social&amp;logo=github" alt="Schemars on GitHub" title="Schemars on GitHub">':
         - "https://github.com/GREsau/schemars"
-    "crates.io":
+    '<img src="https://img.shields.io/crates/v/schemars" alt="Schemars on crates.io" title="Schemars on crates.io">':
         - "https://crates.io/crates/schemars"
-    "API docs":
+    '<img src="https://docs.rs/schemars/badge.svg" alt="Schemars API docs" title="Schemars API docs">':
         - "https://docs.rs/schemars"
 
 # Exclude from processing.

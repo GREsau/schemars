@@ -127,3 +127,7 @@ md: $content-width,
 lg: $content-width + $nav-width,
 xl: 1400px
 );
+
+.aux-nav a:not([class]), .aux-nav a:not([class]):hover {
+    background: none;
+}
