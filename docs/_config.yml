@@ -27,14 +27,15 @@ url: "https://graham.cool" # the base hostname & protocol for your site, e.g. ht
 
 # Build settings
 remote_theme: pmarsceill/just-the-docs
+markdown: CommonMarkGhPages
 
 aux_links:
     '<img src="https://img.shields.io/badge/GitHub--lightgrey?style=social&amp;logo=github" alt="Schemars on GitHub" title="Schemars on GitHub">':
         - "https://github.com/GREsau/schemars"
-    '<img src="https://img.shields.io/crates/v/schemars" alt="Schemars on crates.io" title="Schemars on crates.io">':
-        - "https://crates.io/crates/schemars"
-    '<img src="https://docs.rs/schemars/badge.svg" alt="Schemars API docs" title="Schemars API docs">':
+    '<img src="https://img.shields.io/badge/API%20documentation--lightgrey?style=social" alt="Schemars API docs" title="Schemars API docs">':
         - "https://docs.rs/schemars"
+    '<img src="https://img.shields.io/crates/v/schemars?style=social" alt="Schemars on crates.io" title="Schemars on crates.io">':
+        - "https://crates.io/crates/schemars"
 
 # Exclude from processing.
 # The following items will not be processed, by default.

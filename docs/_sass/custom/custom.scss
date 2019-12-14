@@ -131,3 +131,15 @@ xl: 1400px
 .aux-nav a:not([class]), .aux-nav a:not([class]):hover {
     background: none;
 }
+
+.aux-nav .mr-2 {
+    margin-right: 0.1rem !important;
+}
+
+pre.highlight, figure.highlight {
+    line-height: 1.2em;
+}
+
+pre.highlight code, figure.highlight code {
+    font-size: 14px;
+}
