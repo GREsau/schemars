@@ -60,8 +60,8 @@
 //$body-text-color: $grey-dk-100;
 //$body-heading-color: $grey-dk-300;
 //$search-result-preview-color: $grey-dk-000;
-//$nav-child-link-color: $grey-dk-100;
 //$link-color: $purple-000;
+$nav-child-link-color: $link-color;
 //$btn-primary-color: $purple-100;
 //$base-button-color: #f7f7f7;
 
@@ -136,10 +136,22 @@ xl: 1400px
     margin-right: 0.1rem !important;
 }
 
+.aux-nav a img {
+    height: 22px;
+}
+
 pre.highlight, figure.highlight {
     line-height: 1.2em;
 }
 
 pre.highlight code, figure.highlight code {
     font-size: 14px;
+}
+
+.navigation-list-item .navigation-list-child-list {
+    display: block !important;
+}
+
+.navigation-list > .navigation-list-item {
+    margin-bottom: 0.5em !important;
 }
