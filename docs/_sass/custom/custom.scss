@@ -152,6 +152,21 @@ pre.highlight code, figure.highlight code {
     display: block !important;
 }
 
-.navigation-list > .navigation-list-item {
-    margin-bottom: 0.5em !important;
+.navigation-list-item .navigation-list-link {
+    padding-top: .35rem;
+    padding-bottom: .45rem;
+}
+
+.navigation-list-item > .navigation-list-link:not(:only-child) {
+    padding-bottom: .3rem;
+}
+
+.navigation-list-child-list .navigation-list-item .navigation-list-link {
+    padding-top: .25rem;
+    padding-bottom: .3rem;
+}
+
+.navigation-list-link:hover {
+    text-decoration: underline;
+    text-decoration-color: rgba($link-color, 0.6);
 }
