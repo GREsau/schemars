@@ -231,7 +231,8 @@ impl SchemaGenerator {
     /// add them to the `SchemaGenerator`'s schema definitions and include them in the returned `SchemaObject`'s
     /// [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> RootSchema {
-        let mut schema: SchemaObject = T::json_schema(self).into();
+        let schema = T::json_schema(self);
+        let mut schema: SchemaObject = self.make_extensible(schema.into());
         schema.metadata().title.get_or_insert_with(T::schema_name);
         RootSchema {
             meta_schema: self.settings.meta_schema.clone(),
@@ -245,7 +246,8 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
     /// include them in the returned `SchemaObject`'s [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> RootSchema {
-        let mut schema: SchemaObject = T::json_schema(&mut self).into();
+        let schema = T::json_schema(&mut self);
+        let mut schema: SchemaObject = self.make_extensible(schema.into());
         schema.metadata().title.get_or_insert_with(T::schema_name);
         RootSchema {
             meta_schema: self.settings.meta_schema,
