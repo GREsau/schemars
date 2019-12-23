@@ -35,7 +35,7 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         Data::Struct(Style::Unit, _) => schema_for_unit_struct(),
         Data::Struct(Style::Newtype, ref fields) => schema_for_newtype_struct(&fields[0]),
         Data::Struct(Style::Tuple, ref fields) => schema_for_tuple_struct(fields),
-        Data::Struct(Style::Struct, ref fields) => schema_for_struct(fields, &cont.attrs),
+        Data::Struct(Style::Struct, ref fields) => schema_for_struct(fields, Some(&cont.attrs)),
         Data::Enum(ref variants) => schema_for_enum(variants, &cont.attrs),
     };
     let schema_expr = set_metadata_on_schema_from_docs(schema_expr, &cont.original.attrs);
@@ -117,16 +117,15 @@ fn is_unit_variant(v: &Variant) -> bool {
 fn schema_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> TokenStream {
     let variants = variants.iter().filter(|v| !v.attrs.skip_deserializing());
     match cattrs.tag() {
-        TagType::External => schema_for_external_tagged_enum(variants, cattrs),
-        TagType::None => schema_for_untagged_enum(variants, cattrs),
-        TagType::Internal { tag } => schema_for_internal_tagged_enum(variants, cattrs, tag),
+        TagType::External => schema_for_external_tagged_enum(variants),
+        TagType::None => schema_for_untagged_enum(variants),
+        TagType::Internal { tag } => schema_for_internal_tagged_enum(variants, tag),
         TagType::Adjacent { .. } => unimplemented!("Adjacent tagged enums not yet supported."),
     }
 }
 
 fn schema_for_external_tagged_enum<'a>(
-    variants: impl Iterator<Item = &'a Variant<'a>>,
-    cattrs: &serde_attr::Container,
+    variants: impl Iterator<Item = &'a Variant<'a>>
 ) -> TokenStream {
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
         variants.partition(|v| is_unit_variant(v));
@@ -150,7 +149,7 @@ fn schema_for_external_tagged_enum<'a>(
 
     schemas.extend(complex_variants.into_iter().map(|variant| {
         let name = variant.attrs.name().deserialize_name();
-        let sub_schema = schema_for_untagged_enum_variant(variant, cattrs);
+        let sub_schema = schema_for_untagged_enum_variant(variant);
         let schema_expr = wrap_schema_fields(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
             object: Some(Box::new(schemars::schema::ObjectValidation {
@@ -180,7 +179,6 @@ fn schema_for_external_tagged_enum<'a>(
 
 fn schema_for_internal_tagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
-    cattrs: &serde_attr::Container,
     tag_name: &str,
 ) -> TokenStream {
     let schemas = variants.map(|variant| {
@@ -217,7 +215,7 @@ fn schema_for_internal_tagged_enum<'a>(
                     <#ty>::json_schema(gen)
                 }
             }
-            Style::Struct => schema_for_struct(&variant.fields, cattrs),
+            Style::Struct => schema_for_struct(&variant.fields, None),
             Style::Tuple => unreachable!("Internal tagged enum tuple variants will have caused serde_derive_internals to output a compile error already."),
         };
         quote! {
@@ -234,11 +232,10 @@ fn schema_for_internal_tagged_enum<'a>(
 }
 
 fn schema_for_untagged_enum<'a>(
-    variants: impl Iterator<Item = &'a Variant<'a>>,
-    cattrs: &serde_attr::Container,
+    variants: impl Iterator<Item = &'a Variant<'a>>
 ) -> TokenStream {
     let schemas = variants.map(|variant| {
-        let schema_expr = schema_for_untagged_enum_variant(variant, cattrs);
+        let schema_expr = schema_for_untagged_enum_variant(variant);
         set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
     });
 
@@ -251,14 +248,13 @@ fn schema_for_untagged_enum<'a>(
 }
 
 fn schema_for_untagged_enum_variant(
-    variant: &Variant,
-    cattrs: &serde_attr::Container,
+    variant: &Variant
 ) -> TokenStream {
     match variant.style {
         Style::Unit => schema_for_unit_struct(),
         Style::Newtype => schema_for_newtype_struct(&variant.fields[0]),
         Style::Tuple => schema_for_tuple_struct(&variant.fields),
-        Style::Struct => schema_for_struct(&variant.fields, cattrs),
+        Style::Struct => schema_for_struct(&variant.fields, None),
     }
 }
 
@@ -285,13 +281,13 @@ fn schema_for_tuple_struct(fields: &[Field]) -> TokenStream {
     }
 }
 
-fn schema_for_struct(fields: &[Field], cattrs: &serde_attr::Container) -> TokenStream {
+fn schema_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -> TokenStream {
     let (flat, nested): (Vec<_>, Vec<_>) = fields
         .iter()
         .filter(|f| !f.attrs.skip_deserializing() || !f.attrs.skip_serializing())
         .partition(|f| f.attrs.flatten());
 
-    let set_container_default = match cattrs.default() {
+    let set_container_default = match cattrs.map_or(&SerdeDefault::None, |c| c.default()) {
         SerdeDefault::None => None,
         SerdeDefault::Default => Some(quote!(let container_default = Self::default();)),
         SerdeDefault::Path(path) => Some(quote!(let container_default = #path();)),
