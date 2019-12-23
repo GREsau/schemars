@@ -40,3 +40,11 @@ code {
     text-decoration: underline;
     text-decoration-color: rgba($link-color, 0.6);
 }
+
+.indented {
+    margin-left: 20px;
+
+    h1, h2, h3, h4, h5, h6 {
+        margin-left: -20px;
+    }
+}
