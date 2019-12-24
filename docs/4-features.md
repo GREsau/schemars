@@ -4,6 +4,22 @@ title: Feature Flags
 nav_order: 5
 ---
 
-# Feature Flags
+# Feature Flags and Optional Dependencies
 
-Feature flags that can be enabled..
+Some functionality can be selectively enabled/disabled via [Cargo features](https://doc.rust-lang.org/cargo/reference/manifest.html#the-features-section). These can be enabled when you add Schemars to your crate's cargo.toml, e.g.
+```toml
+[dependencies]
+schemars = { version = "0.6", features = ["chrono"] }
+```
+
+<div class="indented">
+
+### derive_json_schema
+
+Implements `JsonSchema` on Schemars types themselves.
+
+### chrono
+
+Implements `JsonSchema` on all [Chrono](https://github.com/chronotope/chrono) types which are serializable by Serde.
+
+</div>
