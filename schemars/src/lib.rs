@@ -16,9 +16,11 @@ pub struct MyStruct {
 }
 
 #[derive(JsonSchema)]
-pub enum MyEnum {
-    Unit,
-    StringNewType(String)
+pub enum MyEnum {    
+    StringNewType(String),
+    StructVariant {
+        floats: Vec<f32>,
+    }
 }
 
 fn main() {
@@ -63,11 +65,6 @@ fn main() {
         "MyEnum": {
             "anyOf": [
                 {
-                    "enum": [
-                        "Unit"
-                    ]
-                },
-                {
                     "type": "object",
                     "required": [
                         "StringNewType"
@@ -75,6 +72,29 @@ fn main() {
                     "properties": {
                         "StringNewType": {
                             "type": "string"
+                        }
+                    }
+                },
+                {
+                    "type": "object",
+                    "required": [
+                        "StructVariant"
+                    ],
+                    "properties": {
+                        "StructVariant": {
+                            "type": "object",
+                            "required": [
+                                "floats"
+                            ],
+                            "properties": {
+                                "floats": {
+                                    "type": "array",
+                                    "items": {
+                                        "type": "number",
+                                        "format": "float"
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -105,16 +125,17 @@ pub struct MyStruct {
 
 #[derive(Deserialize, Serialize, JsonSchema)]
 #[serde(untagged)]
-pub enum MyEnum {
-    Unit,
-    StringNewType(String)
+pub enum MyEnum {    
+    StringNewType(String),
+    StructVariant {
+        floats: Vec<f32>,
+    }
 }
 
 fn main() {
     let schema = schema_for!(MyStruct);
     println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 }
-
 ```
 
 <details>
@@ -153,10 +174,22 @@ fn main() {
         "MyEnum": {
             "anyOf": [
                 {
-                    "type": "null"
+                    "type": "string"
                 },
                 {
-                    "type": "string"
+                    "type": "object",
+                    "required": [
+                        "floats"
+                    ],
+                    "properties": {
+                        "floats": {
+                            "type": "array",
+                            "items": {
+                                "type": "number",
+                                "format": "float"
+                            }
+                        }
+                    }
                 }
             ]
         }

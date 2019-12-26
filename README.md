@@ -22,9 +22,11 @@ pub struct MyStruct {
 }
 
 #[derive(JsonSchema)]
-pub enum MyEnum {
-    Unit,
-    StringNewType(String)
+pub enum MyEnum {    
+    StringNewType(String),
+    StructVariant {
+        floats: Vec<f32>,
+    }
 }
 
 fn main() {
@@ -38,55 +40,73 @@ fn main() {
 
 ```json
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "MyStruct",
-    "type": "object",
-    "required": [
-        "my_bool",
-        "my_int",
-        "my_nullable_enum"
-    ],
-    "properties": {
-        "my_bool": {
-            "type": "boolean"
-        },
-        "my_int": {
-            "type": "integer",
-            "format": "int32"
-        },
-        "my_nullable_enum": {
-            "anyOf": [
-                {
-                    "$ref": "#/definitions/MyEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyStruct",
+  "type": "object",
+  "required": [
+    "my_bool",
+    "my_int",
+    "my_nullable_enum"
+  ],
+  "properties": {
+    "my_bool": {
+      "type": "boolean"
     },
-    "definitions": {
-        "MyEnum": {
-            "anyOf": [
-                {
-                    "enum": [
-                        "Unit"
-                    ]
-                },
-                {
-                    "type": "object",
-                    "required": [
-                        "StringNewType"
-                    ],
-                    "properties": {
-                        "StringNewType": {
-                            "type": "string"
-                        }
-                    }
-                }
-            ]
+    "my_int": {
+      "type": "integer",
+      "format": "int32"
+    },
+    "my_nullable_enum": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/MyEnum"
+        },
+        {
+          "type": "null"
         }
+      ]
     }
+  },
+  "definitions": {
+    "MyEnum": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "StringNewType"
+          ],
+          "properties": {
+            "StringNewType": {
+              "type": "string"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "StructVariant"
+          ],
+          "properties": {
+            "StructVariant": {
+              "type": "object",
+              "required": [
+                "floats"
+              ],
+              "properties": {
+                "floats": {
+                  "type": "array",
+                  "items": {
+                    "type": "number",
+                    "format": "float"
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
 }
 ```
 </details>
@@ -111,16 +131,17 @@ pub struct MyStruct {
 
 #[derive(Deserialize, Serialize, JsonSchema)]
 #[serde(untagged)]
-pub enum MyEnum {
-    Unit,
-    StringNewType(String)
+pub enum MyEnum {    
+    StringNewType(String),
+    StructVariant {
+        floats: Vec<f32>,
+    }
 }
 
 fn main() {
     let schema = schema_for!(MyStruct);
     println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 }
-
 ```
 
 <details>
@@ -128,45 +149,57 @@ fn main() {
 
 ```json
 {
-    "$schema": "http://json-schema.org/draft-07/schema#",
-    "title": "MyStruct",
-    "type": "object",
-    "required": [
-        "myBool",
-        "myNumber"
-    ],
-    "properties": {
-        "myBool": {
-            "type": "boolean"
-        },
-        "myNullableEnum": {
-            "default": null,
-            "anyOf": [
-                {
-                    "$ref": "#/definitions/MyEnum"
-                },
-                {
-                    "type": "null"
-                }
-            ]
-        },
-        "myNumber": {
-            "type": "integer",
-            "format": "int32"
-        }
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyStruct",
+  "type": "object",
+  "required": [
+    "myBool",
+    "myNumber"
+  ],
+  "properties": {
+    "myBool": {
+      "type": "boolean"
     },
-    "definitions": {
-        "MyEnum": {
-            "anyOf": [
-                {
-                    "type": "null"
-                },
-                {
-                    "type": "string"
-                }
-            ]
+    "myNullableEnum": {
+      "default": null,
+      "anyOf": [
+        {
+          "$ref": "#/definitions/MyEnum"
+        },
+        {
+          "type": "null"
         }
+      ]
+    },
+    "myNumber": {
+      "type": "integer",
+      "format": "int32"
     }
+  },
+  "definitions": {
+    "MyEnum": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "object",
+          "required": [
+            "floats"
+          ],
+          "properties": {
+            "floats": {
+              "type": "array",
+              "items": {
+                "type": "number",
+                "format": "float"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
 }
 ```
 </details>

@@ -13,9 +13,11 @@ pub struct MyStruct {
 
 #[derive(Deserialize, Serialize, JsonSchema)]
 #[serde(untagged)]
-pub enum MyEnum {
-    Unit,
+pub enum MyEnum {    
     StringNewType(String),
+    StructVariant {
+        floats: Vec<f32>,
+    }
 }
 
 fn main() {
