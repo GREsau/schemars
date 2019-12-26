@@ -48,3 +48,8 @@ code {
         margin-left: -20px;
     }
 }
+
+details summary {
+    display: list-item;
+    cursor: pointer;
+}
