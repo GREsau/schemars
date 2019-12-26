@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Process",
+  "type": "object",
+  "required": [
+    "command_line",
+    "wall_time"
+  ],
+  "properties": {
+    "command_line": {
+      "type": "string"
+    },
+    "wall_time": {
+      "$ref": "#/definitions/DurationDef"
+    }
+  },
+  "definitions": {
+    "DurationDef": {
+      "type": "object",
+      "required": [
+        "nanos",
+        "secs"
+      ],
+      "properties": {
+        "nanos": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "secs": {
+          "type": "integer",
+          "format": "int64"
+        }
+      }
+    }
+  }
+}
