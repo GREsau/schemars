@@ -2,6 +2,9 @@ use crate::schema::*;
 use crate::{JsonSchema, Map};
 
 /// Settings to customize how Schemas are generated.
+/// 
+/// The default settings currently conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
+/// If you require your generated schemas to conform to draft 7, consider using the [`draft07`](#method.draft07) method.
 #[derive(Debug, PartialEq, Clone)]
 pub struct SchemaSettings {
     /// If `true`, schemas for [`Option<T>`](Option) will include a `nullable` property.
@@ -33,7 +36,7 @@ pub struct SchemaSettings {
 pub enum BoolSchemas {
     /// `Bool` schemas may be used.
     Enabled,
-    /// `Bool` schemas may only be used in a schema's [`additionalProperties`](../sschema/struct.ObjectValidation.html#structfield.additional_properties) field.
+    /// `Bool` schemas may only be used in a schema's [`additionalProperties`](../schema/struct.ObjectValidation.html#structfield.additional_properties) field.
     AdditionalPropertiesOnly,
     /// `Bool` schemas will never be used.
     Disabled,
