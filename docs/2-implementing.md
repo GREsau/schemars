@@ -7,9 +7,7 @@ permalink: /implementing
 
 # Implementing JsonSchema
 
-How to implement JsonSchema manually, without deriving it...
-
-[Deriving `JsonSchema`]({% link 1-deriving.md %}) is usually the easiest way to enable JSON schema generation for your types. But if you need more customisation, you can also implement `JsonSchema` manually. This trait has two associated functions which must be implemented, and one which can optionally be implemented:
+[Deriving `JsonSchema`]({{ site.baseurl }}{% link 1-deriving.md %}) is usually the easiest way to enable JSON schema generation for your types. But if you need more customisation, you can also implement `JsonSchema` manually. This trait has two associated functions which must be implemented, and one which can optionally be implemented:
 
 ## schema_name
 ```rust
