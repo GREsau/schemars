@@ -24,6 +24,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   A crate to Generate JSON Schema documents from Rust code.
 baseurl: "/schemars" # the subpath of your site, e.g. /blog
 url: "https://graham.cool" # the base hostname & protocol for your site, e.g. http://example.com
+permalink: pretty
 
 # Build settings
 remote_theme: pmarsceill/just-the-docs

@@ -2,7 +2,7 @@
 layout: default
 title: Implementing JsonSchema
 nav_order: 3
-permalink: /implementing
+permalink: /implementing/
 ---
 
 # Implementing JsonSchema
