@@ -231,7 +231,7 @@ pub trait JsonSchema {
 
     /// The name of the generated JSON Schema.
     ///
-    /// This is used as the title for root schemas, and the key within the `definitions` property for subschemas.
+    /// This is used as the title for root schemas, and the key within the root's `definitions` property for subschemas.
     fn schema_name() -> String;
 
     /// Generates a JSON Schema for this type.

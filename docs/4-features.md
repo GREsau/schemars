@@ -2,6 +2,7 @@
 layout: default
 title: Feature Flags
 nav_order: 5
+permalink: /features
 ---
 
 # Feature Flags and Optional Dependencies
