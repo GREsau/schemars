@@ -2,7 +2,7 @@
 layout: default
 title: Custom Schema Settings
 parent: Examples
-nav_order: 3
+nav_order: 4
 summary: Generating a schema using custom settings which changes how Option<T> is handled.
 ---
 
