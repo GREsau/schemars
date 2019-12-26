@@ -222,7 +222,7 @@ pub trait JsonSchema {
     /// Whether JSON Schemas generated for this type should be re-used where possible using the `$ref` keyword.
     ///
     /// For trivial types (such as primitives), this should return `false`. For more complex types, it should return `true`.
-    /// For recursive types, this *must* return `true` to prevent infinite cycles when generating schemas.
+    /// For recursive types, this **must** return `true` to prevent infinite cycles when generating schemas.
     ///
     /// By default, this returns `true`.
     fn is_referenceable() -> bool {
