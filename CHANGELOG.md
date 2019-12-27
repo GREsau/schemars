@@ -1,11 +1,12 @@
 # Changelog
 
-## [0.6.2] - TBD
+## [0.6.2] - 2019-12-27
 ### Added:
 - Documentation website available at https://graham.cool/schemars/!
 ### Changed:
 - Rename `derive_json_schema` to `impl_json_schema`. `derive_json_schema` is still available for backward-compatibility, but will be removed in a future version.
 - Improve schema naming for deriving on remote types. A `#[serde(remote = "Duration")]` attribute is now treated similarly to `#[serde(rename = "Duration")]`.
+- Ensure root schemas do not have a `$ref` property. If necessary, wrap the `$ref` in an `allOf`.
 
 ## [0.6.1] - 2019-12-09
 ### Fixed:
