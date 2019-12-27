@@ -10,6 +10,6 @@ struct IndexMapTypes {
 }
 
 #[test]
-fn chrono_types() -> TestResult {
+fn indexmap_types() -> TestResult {
     test_default_generated_schema::<IndexMapTypes>("indexmap")
 }

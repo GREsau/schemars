@@ -19,6 +19,7 @@ serde_json = "1.0"
 
 chrono = { version = "0.4", default-features = false, optional = true }
 indexmap = { version = "1.2", optional = true }
+either = { version = "1.3", optional = true }
 
 [dev-dependencies]
 pretty_assertions = "0.6.1"
@@ -35,6 +36,10 @@ required-features = ["chrono"]
 [[test]]
 name = "indexmap"
 required-features = ["indexmap"]
+
+[[test]]
+name = "either"
+required-features = ["either"]
 
 [[test]]
 name = "schema_for_schema"

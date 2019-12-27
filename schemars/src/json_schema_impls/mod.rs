@@ -38,6 +38,8 @@ mod atomic;
 mod chrono;
 #[cfg(feature = "indexmap")]
 mod indexmap;
+#[cfg(feature = "either")]
+mod either;
 mod core;
 mod ffi;
 mod maps;
