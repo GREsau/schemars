@@ -6,7 +6,6 @@ macro_rules! map_impl {
     ($($desc:tt)+) => {
         impl $($desc)+
         where
-            K: Into<String>,
             V: JsonSchema,
         {
             no_ref_schema!();

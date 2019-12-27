@@ -36,6 +36,8 @@ mod array;
 mod atomic;
 #[cfg(feature = "chrono")]
 mod chrono;
+#[cfg(feature = "indexmap")]
+mod indexmap;
 mod core;
 mod ffi;
 mod maps;

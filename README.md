@@ -208,5 +208,6 @@ fn main() {
 
 ## Feature Flags
 - `chrono` - implements `JsonSchema` for all [Chrono](https://github.com/chronotope/chrono) types which are serializable by Serde.
+- `indexmap` - implements `JsonSchema` on `IndexMap` and `IndexSet` from [indexmap](https://github.com/bluss/indexmap).
 - `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
 

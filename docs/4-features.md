@@ -23,4 +23,8 @@ Implements `JsonSchema` on Schemars types themselves.
 
 Implements `JsonSchema` on all [Chrono](https://github.com/chronotope/chrono) types which are serializable by Serde.
 
+### indexmap
+
+Implements `JsonSchema` on `IndexMap` and `IndexSet` from [indexmap](https://github.com/bluss/indexmap).
+
 </div>
