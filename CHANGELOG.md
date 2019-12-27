@@ -1,5 +1,9 @@
 # Changelog
 
+## next
+### Changed
+- Remove trait bounds from Map/Set JsonSchema impls. They are unnecessary as we never create/use any instances of these types.
+
 ## [0.6.3] - 2019-12-27
 - No actual code changes - this version was just published to fix broken README on crates.io
 

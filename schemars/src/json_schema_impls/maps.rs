@@ -39,8 +39,8 @@ macro_rules! map_impl {
     };
 }
 
-map_impl!(<K: Ord, V> JsonSchema for std::collections::BTreeMap<K, V>);
-map_impl!(<K: Eq + core::hash::Hash, V, H: core::hash::BuildHasher> JsonSchema for std::collections::HashMap<K, V, H>);
+map_impl!(<K, V> JsonSchema for std::collections::BTreeMap<K, V>);
+map_impl!(<K, V, H> JsonSchema for std::collections::HashMap<K, V, H>);
 
 #[cfg(test)]
 mod tests {

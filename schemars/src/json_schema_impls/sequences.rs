@@ -29,9 +29,9 @@ macro_rules! seq_impl {
     };
 }
 
-seq_impl!(<T: Ord> JsonSchema for std::collections::BinaryHeap<T>);
-seq_impl!(<T: Ord> JsonSchema for std::collections::BTreeSet<T>);
-seq_impl!(<T: Eq + core::hash::Hash, H: core::hash::BuildHasher> JsonSchema for std::collections::HashSet<T, H>);
+seq_impl!(<T> JsonSchema for std::collections::BinaryHeap<T>);
+seq_impl!(<T> JsonSchema for std::collections::BTreeSet<T>);
+seq_impl!(<T, H> JsonSchema for std::collections::HashSet<T, H>);
 seq_impl!(<T> JsonSchema for std::collections::LinkedList<T>);
 seq_impl!(<T> JsonSchema for Vec<T>);
 seq_impl!(<T> JsonSchema for std::collections::VecDeque<T>);
