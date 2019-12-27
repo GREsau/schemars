@@ -1,6 +1,7 @@
 [package]
 name = "schemars_derive"
 description = "Macros for #[derive(JsonSchema)], for use with schemars"
+homepage = "https://graham.cool/schemars/"
 repository = "https://github.com/GREsau/schemars"
 version = "0.6.1"
 authors = ["Graham Esau <gesau@hotmail.co.uk>"]
