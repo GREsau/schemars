@@ -1,0 +1,59 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyStruct_for_int32",
+  "type": "object",
+  "required": [
+    "byte_or_bool2",
+    "fake_map",
+    "s",
+    "unit_or_t2"
+  ],
+  "properties": {
+    "byte_or_bool2": {
+      "$ref": "#/definitions/OrDef_for_uint8_and_Boolean"
+    },
+    "fake_map": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      }
+    },
+    "s": {
+      "$ref": "#/definitions/StrDef"
+    },
+    "unit_or_t2": {
+      "$ref": "#/definitions/OrDef_for_Null_and_int32"
+    }
+  },
+  "definitions": {
+    "OrDef_for_Null_and_int32": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer",
+          "format": "int32"
+        }
+      ]
+    },
+    "OrDef_for_uint8_and_Boolean": {
+      "anyOf": [
+        {
+          "type": "integer",
+          "format": "uint8",
+          "minimum": 0.0
+        },
+        {
+          "type": "boolean"
+        }
+      ]
+    },
+    "StrDef": {
+      "type": "string"
+    }
+  }
+}
