@@ -15,7 +15,7 @@ schemars = { version = "0.6", features = ["chrono"] }
 
 <div class="indented">
 
-### derive_json_schema
+### impl_json_schema
 
 Implements `JsonSchema` on Schemars types themselves.
 

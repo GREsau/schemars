@@ -202,7 +202,7 @@ fn main() {
 
 ## Feature Flags
 - `chrono` - implements `JsonSchema` for all [Chrono](https://github.com/chronotope/chrono) types which are serializable by Serde.
-- `derive_json_schema` - implements `JsonSchema` for Schemars types themselves
+- `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
 */
 
 /// The map type used by schemars types.

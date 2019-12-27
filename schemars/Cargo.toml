@@ -22,7 +22,9 @@ chrono = { version = "0.4", default-features = false, optional = true }
 pretty_assertions = "0.6.1"
 
 [features]
-derive_json_schema = []
+impl_json_schema = []
+# derive_json_schema will be removed in a later version
+derive_json_schema = ["impl_json_schema"]
 
 [[test]]
 name = "chrono"
@@ -30,7 +32,7 @@ required-features = ["chrono"]
 
 [[test]]
 name = "schema_for_schema"
-required-features = ["derive_json_schema"]
+required-features = ["impl_json_schema"]
 
 [package.metadata.docs.rs]
 all-features = true
