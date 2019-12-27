@@ -2,7 +2,7 @@
 
 ## next
 ### Added:
-- Implemented `JsonSchema` on types from `indexmap` and `either` (as optional dependencies)
+- Implemented `JsonSchema` on types from `indexmap`, `either` and `uuid` (as optional dependencies)
 ### Changed
 - Remove trait bounds from Map/Set JsonSchema impls. They are unnecessary as we never create/use any instances of these types.
 

@@ -40,6 +40,8 @@ mod chrono;
 mod indexmap;
 #[cfg(feature = "either")]
 mod either;
+#[cfg(feature = "uuid")]
+mod uuid;
 mod core;
 mod ffi;
 mod maps;

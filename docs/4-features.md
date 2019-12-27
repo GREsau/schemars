@@ -27,4 +27,7 @@ Implements `JsonSchema` on `IndexMap` and `IndexSet` from [indexmap](https://git
 ### either
 Implements `JsonSchema` on [`Either`](https://github.com/bluss/either).
 
+### uuid
+Implements `JsonSchema` on [`Uuid`](https://github.com/uuid-rs/uuid).
+
 </div>
