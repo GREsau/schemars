@@ -14,7 +14,7 @@
       "default": "0.000000000s",
       "allOf": [
         {
-          "$ref": "#/definitions/DurationDef"
+          "$ref": "#/definitions/Duration"
         }
       ]
     },
@@ -25,16 +25,16 @@
       },
       "allOf": [
         {
-          "$ref": "#/definitions/DurationDef"
+          "$ref": "#/definitions/Duration"
         }
       ]
     },
     "wall_time": {
-      "$ref": "#/definitions/DurationDef"
+      "$ref": "#/definitions/Duration"
     }
   },
   "definitions": {
-    "DurationDef": {
+    "Duration": {
       "type": "object",
       "required": [
         "nanos",

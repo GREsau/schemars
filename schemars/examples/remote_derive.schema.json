@@ -11,11 +11,11 @@
       "type": "string"
     },
     "wall_time": {
-      "$ref": "#/definitions/DurationDef"
+      "$ref": "#/definitions/Duration"
     }
   },
   "definitions": {
-    "DurationDef": {
+    "Duration": {
       "type": "object",
       "required": [
         "nanos",

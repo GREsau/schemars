@@ -16,6 +16,7 @@ use schemars::{schema_for, JsonSchema};
 // This is just a copy of the remote data structure that Schemars can use to
 // create a suitable JsonSchema impl.
 #[derive(JsonSchema)]
+#[serde(remote = "Duration")]
 pub struct DurationDef {
     pub secs: i64,
     pub nanos: i32,

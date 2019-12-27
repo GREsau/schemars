@@ -10,7 +10,7 @@
   ],
   "properties": {
     "byte_or_bool2": {
-      "$ref": "#/definitions/OrDef_for_uint8_and_Boolean"
+      "$ref": "#/definitions/Or_for_uint8_and_Boolean"
     },
     "fake_map": {
       "type": "object",
@@ -22,14 +22,14 @@
       }
     },
     "s": {
-      "$ref": "#/definitions/StrDef"
+      "$ref": "#/definitions/Str"
     },
     "unit_or_t2": {
-      "$ref": "#/definitions/OrDef_for_Null_and_int32"
+      "$ref": "#/definitions/Or_for_Null_and_int32"
     }
   },
   "definitions": {
-    "OrDef_for_Null_and_int32": {
+    "Or_for_Null_and_int32": {
       "anyOf": [
         {
           "type": "null"
@@ -40,7 +40,7 @@
         }
       ]
     },
-    "OrDef_for_uint8_and_Boolean": {
+    "Or_for_uint8_and_Boolean": {
       "anyOf": [
         {
           "type": "integer",
@@ -52,7 +52,7 @@
         }
       ]
     },
-    "StrDef": {
+    "Str": {
       "type": "string"
     }
   }

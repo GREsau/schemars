@@ -43,25 +43,35 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let type_name = cont.ident;
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
 
-    let schema_base_name = cont.attrs.name().deserialize_name();
+    let mut schema_base_name = cont.attrs.name().deserialize_name();
+    let schema_is_renamed = type_name != schema_base_name;
+
+    if !schema_is_renamed {
+        if let Some(path) = cont.attrs.remote() {
+            if let Some(segment) = path.segments.last() {
+                schema_base_name = segment.ident.to_string();
+            }
+        }
+    }
+    
     let schema_name = if type_params.is_empty() {
         quote! {
             #schema_base_name.to_owned()
         }
-    } else if type_name == schema_base_name {
-        let mut schema_name_fmt = schema_base_name;
-        schema_name_fmt.push_str("_for_{}");
-        schema_name_fmt.push_str(&"_and_{}".repeat(type_params.len() - 1));
-        quote! {
-            format!(#schema_name_fmt #(,#type_params::schema_name())*)
-        }
-    } else {
+    } else if schema_is_renamed {
         let mut schema_name_fmt = schema_base_name;
         for tp in &type_params {
             schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
         }
         quote! {
             format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())*)
+        }
+    } else {
+        let mut schema_name_fmt = schema_base_name;
+        schema_name_fmt.push_str("_for_{}");
+        schema_name_fmt.push_str(&"_and_{}".repeat(type_params.len() - 1));
+        quote! {
+            format!(#schema_name_fmt #(,#type_params::schema_name())*)
         }
     };
 
