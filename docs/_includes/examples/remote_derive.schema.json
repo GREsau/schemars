@@ -4,11 +4,18 @@
   "type": "object",
   "required": [
     "command_line",
+    "durations",
     "wall_time"
   ],
   "properties": {
     "command_line": {
       "type": "string"
+    },
+    "durations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/Duration"
+      }
     },
     "wall_time": {
       "$ref": "#/definitions/Duration"

@@ -31,6 +31,9 @@ pub struct Process {
     pub command_line: String,
     #[serde(with = "DurationDef")]
     pub wall_time: Duration,
+    // Generic types must be explicitly specified with turbofix `::<>` syntax.
+    #[serde(with = "Vec::<DurationDef>")]
+    pub durations: Vec<Duration>,
 }
 
 fn main() {
