@@ -1,0 +1,36 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        rust:
+          - 1.32.0
+          - stable
+          - beta
+          - nightly
+        include:
+          - rust: nightly
+            allow_failure: true
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: ${{ matrix.rust }}
+          override: true
+      - name: Check with no feature flags
+        run: cargo check --verbose --no-default-features
+        continue-on-error: ${{ matrix.allow_failure }}
+        working-directory: ./schemars
+      - name: Run tests
+        run: cargo test --verbose --all-features --no-fail-fast
+        continue-on-error: ${{ matrix.allow_failure }}
+        working-directory: ./schemars
+      - name: Run derive tests
+        run: cargo test --verbose --all-features --no-fail-fast
+        continue-on-error: ${{ matrix.allow_failure }}
+        working-directory: ./schemars_derive
