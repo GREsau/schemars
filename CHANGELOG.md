@@ -1,6 +1,6 @@
 # Changelog
 
-## next
+## 0.6.4 - 2019-12-27
 ### Added:
 - Implemented `JsonSchema` on types from `indexmap`, `either` and `uuid` (as optional dependencies)
 ### Changed
