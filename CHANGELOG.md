@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.2] - TBD
+### Added:
+- Documentation website available at https://graham.cool/schemars/!
+### Changed:
+- Rename `derive_json_schema` to `impl_json_schema`. `derive_json_schema` is still available for backward-compatibility, but will be removed in a future version.
+- Improve schema naming for deriving on remote types. A `#[serde(remote = "Duration")]` attribute is now treated similarly to `#[serde(rename = "Duration")]`.
+
 ## [0.6.1] - 2019-12-09
 ### Fixed:
 - Fix a compile error that can occur when deriving `JsonSchema` from a project that doesn't reference serde_json
