@@ -21,6 +21,10 @@ chrono = { version = "0.4", default-features = false, optional = true }
 indexmap = { version = "1.2", optional = true }
 either = { version = "1.3", default-features = false, optional = true }
 uuid = { version = "0.8", default-features = false, optional = true }
+smallvec = { version = "1.0", optional = true }
+arrayvec = { version = "0.5", default-features = false, optional = true }
+# TODO implement JsonSchema on bytes types. bytes 0.5 requires Rust 1.39+
+# bytes = { version = "0.5", default-features = false, optional = true }
 
 [dev-dependencies]
 pretty_assertions = "0.6.1"
@@ -45,6 +49,14 @@ required-features = ["either"]
 [[test]]
 name = "uuid"
 required-features = ["uuid"]
+
+[[test]]
+name = "smallvec"
+required-features = ["smallvec"]
+
+[[test]]
+name = "arrayvec"
+required-features = ["arrayvec"]
 
 [[test]]
 name = "schema_for_schema"

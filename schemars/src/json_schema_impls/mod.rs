@@ -42,6 +42,10 @@ mod indexmap;
 mod either;
 #[cfg(feature = "uuid")]
 mod uuid;
+#[cfg(feature = "smallvec")]
+mod smallvec;
+#[cfg(feature = "arrayvec")]
+mod arrayvec;
 mod core;
 mod ffi;
 mod maps;
