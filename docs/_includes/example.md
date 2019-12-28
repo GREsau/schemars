@@ -9,6 +9,6 @@
 <summary>Click to see the output JSON schema...</summary>
 
 ```json
-{% include {{ output }} %}
+{% include {{ output }} -%}
 ```
 </details>

@@ -2,7 +2,7 @@
 layout: default
 title: Doc Comments
 parent: Examples
-nav_order: 5
+nav_order: 6
 summary: Giving schemas a custom title and/or description using doc comments.
 ---
 
