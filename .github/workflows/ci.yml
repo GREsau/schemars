@@ -14,7 +14,7 @@ jobs:
           - nightly
         include:
           - rust: 1.32.0
-            test_features: ""
+            test_features: "--features impl_json_schema,chrono,indexmap,either,uuid"
           - rust: stable
             test_features: "--all-features"
           - rust: beta
