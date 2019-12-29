@@ -1,10 +1,10 @@
 # Changelog
 
-## next
+## [0.6.5] - 2019-12-29
 ### Added:
 - Implemented `JsonSchema` on types from `smallvec` and `arrayvec` (as optional dependencies)
 
-## 0.6.4 - 2019-12-27
+## [0.6.4] - 2019-12-27
 ### Added:
 - Implemented `JsonSchema` on types from `indexmap`, `either` and `uuid` (as optional dependencies)
 ### Changed
