@@ -17,12 +17,13 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             schema = match schema {
                 Schema::Bool(true) => Schema::Bool(true),
                 Schema::Bool(false) => <()>::json_schema(gen),
-                Schema::Object(
-                    obj @ SchemaObject {
-                        instance_type: Some(_),
-                        ..
-                    },
-                ) => Schema::Object(with_null_type(obj)),
+                Schema::Object(SchemaObject {
+                    instance_type: Some(ref mut instance_type),
+                    ..
+                }) => {
+                    add_null_type(instance_type);
+                    schema
+                }
                 schema => SchemaObject {
                     subschemas: Some(Box::new(SubschemaValidation {
                         any_of: Some(vec![schema, <()>::json_schema(gen)]),
@@ -56,18 +57,14 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
     }
 }
 
-fn with_null_type(mut obj: SchemaObject) -> SchemaObject {
-    match obj
-        .instance_type
-        .as_mut()
-        .expect("checked in calling function")
-    {
-        SingleOrVec::Single(ty) if **ty == InstanceType::Null => {}
-        SingleOrVec::Vec(ty) if ty.contains(&InstanceType::Null) => {}
-        SingleOrVec::Single(ty) => obj.instance_type = Some(vec![**ty, InstanceType::Null].into()),
-        SingleOrVec::Vec(ref mut ty) => ty.push(InstanceType::Null),
+fn add_null_type(instance_type: &mut SingleOrVec<InstanceType>) {
+    match instance_type {
+        SingleOrVec::Single(ty) if **ty != InstanceType::Null => {
+            *instance_type = vec![**ty, InstanceType::Null].into()
+        }
+        SingleOrVec::Vec(ty) if !ty.contains(&InstanceType::Null) => ty.push(InstanceType::Null),
+        _ => {}
     };
-    obj
 }
 
 impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
