@@ -1,5 +1,5 @@
 mod util;
-use schemars::JsonSchema;
+use schemars::{gen::SchemaSettings, JsonSchema};
 use util::*;
 
 #[derive(Debug, JsonSchema)]
@@ -54,6 +54,12 @@ pub enum MyEnum {
 #[test]
 fn doc_comments_struct() -> TestResult {
     test_default_generated_schema::<MyStruct>("doc_comments_struct")
+}
+
+#[test]
+fn doc_comments_struct_ref_siblings() -> TestResult {
+    let settings = SchemaSettings::draft07().with(|s| s.allow_ref_siblings = true);
+    test_generated_schema::<MyStruct>("doc_comments_struct_ref_siblings", settings)
 }
 
 #[test]
