@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.7.0-alpha-1] - 2019-12-29
+### Changed:
+- **BREAKING CHANGE** - `SchemaSettings` can no longer be created using struct initialization syntax. Instead, if you need to use custom schema settings, you can use a constructor function and either:
+    - assign it to a `mut` variable and modify its public fields
+    - call the `with(|s| ...)` method on the settings and modify the settings inside the closure/function (as in the custom_settings.rs example)
+### Added:
+- Added `allow_ref_siblings` setting to `SchemaSettings`. When enabled, schemas with a `$ref` property may have other properties set.
+- Can create JSON Schema 2019-09 schemas using `SchemaSettings::draft2019_09()` (which enables `allow_ref_siblings`)
+
 ## [0.6.5] - 2019-12-29
 ### Added:
 - Implemented `JsonSchema` on types from `smallvec` and `arrayvec` (as optional dependencies)
