@@ -13,21 +13,14 @@ Some functionality can be selectively enabled/disabled via [Cargo features](http
 schemars = { version = "0.6", features = ["chrono"] }
 ```
 
-<div class="indented">
+## Feature Flags
+- `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
 
-### impl_json_schema
-Implements `JsonSchema` on Schemars types themselves.
-
-### chrono
-Implements `JsonSchema` on all [Chrono](https://github.com/chronotope/chrono) types which are serializable by Serde.
-
-### indexmap
-Implements `JsonSchema` on `IndexMap` and `IndexSet` from [indexmap](https://github.com/bluss/indexmap).
-
-### either
-Implements `JsonSchema` on [`Either`](https://github.com/bluss/either).
-
-### uuid
-Implements `JsonSchema` on [`Uuid`](https://github.com/uuid-rs/uuid).
-
-</div>
+## Optional Dependencies
+Schemars can implement `JsonSchema` on types from several popular crates, enabled via optional dependencies (dependency versions are shown in brackets):
+- [`chrono`](https://crates.io/crates/chrono) (^0.4)
+- [`indexmap`](https://crates.io/crates/indexmap) (^1.2)
+- [`either`](https://crates.io/crates/either) (^1.3)
+- [`uuid`](https://crates.io/crates/uuid) (^0.8)
+- [`smallvec`](https://crates.io/crates/uuid) (^1.0)
+- [`arrayvec`](https://crates.io/crates/arrayvec) (^0.5)

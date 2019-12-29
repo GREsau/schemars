@@ -207,9 +207,13 @@ fn main() {
 `#[serde(...)]` attributes can be overriden using `#[schemars(...)]` attributes, which behave identically (e.g. `#[schemars(rename_all = "camelCase")]`). You may find this useful if you want to change the generated schema without affecting Serde's behaviour, or if you're just not using Serde.
 
 ## Feature Flags
-- `chrono` - implements `JsonSchema` for all [Chrono](https://github.com/chronotope/chrono) types which are serializable by Serde.
-- `indexmap` - implements `JsonSchema` on `IndexMap` and `IndexSet` from [indexmap](https://github.com/bluss/indexmap).
-- `either` - implements `JsonSchema` on [`Either`](https://github.com/bluss/either).
-- `uuid` - implements `JsonSchema` on [`Uuid`](https://github.com/uuid-rs/uuid).
 - `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
 
+## Optional Dependencies
+Schemars can implement `JsonSchema` on types from several popular crates, enabled via optional dependencies (dependency versions are shown in brackets):
+- [`chrono`](https://crates.io/crates/chrono) (^0.4)
+- [`indexmap`](https://crates.io/crates/indexmap) (^1.2)
+- [`either`](https://crates.io/crates/either) (^1.3)
+- [`uuid`](https://crates.io/crates/uuid) (^0.8)
+- [`smallvec`](https://crates.io/crates/uuid) (^1.0)
+- [`arrayvec`](https://crates.io/crates/arrayvec) (^0.5)
