@@ -69,8 +69,7 @@ mod tests {
 
     #[test]
     fn schema_for_map_any_value_no_bool_schema() {
-        let settings =
-            SchemaSettings::default().with(|s| s.bool_schemas = BoolSchemas::Disabled);
+        let settings = SchemaSettings::default().with(|s| s.bool_schemas = BoolSchemas::Disabled);
         let schema = custom_schema_object_for::<BTreeMap<String, serde_json::Value>>(settings);
         assert_eq!(
             schema.instance_type,

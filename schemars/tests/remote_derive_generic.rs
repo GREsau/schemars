@@ -1,9 +1,9 @@
 mod util;
 
 use schemars::JsonSchema;
-use serde::{Serialize};
-use util::*;
+use serde::Serialize;
 use std::collections::{HashMap, HashSet};
+use util::*;
 
 enum Or<A, B> {
     #[allow(dead_code)]

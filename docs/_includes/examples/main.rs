@@ -8,11 +8,9 @@ pub struct MyStruct {
 }
 
 #[derive(JsonSchema)]
-pub enum MyEnum {    
+pub enum MyEnum {
     StringNewType(String),
-    StructVariant {
-        floats: Vec<f32>,
-    }
+    StructVariant { floats: Vec<f32> },
 }
 
 fn main() {

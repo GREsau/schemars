@@ -16,7 +16,7 @@ pub struct MyStruct {
 
 /// # My Amazing Enum
 #[derive(JsonSchema)]
-pub enum MyEnum {    
+pub enum MyEnum {
     /// A wrapper around a `String`
     StringNewType(String),
     /// A struct-like enum variant which contains
@@ -24,7 +24,7 @@ pub enum MyEnum {
     StructVariant {
         /// The floats themselves
         floats: Vec<f32>,
-    }
+    },
 }
 
 fn main() {

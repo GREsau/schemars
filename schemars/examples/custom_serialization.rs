@@ -38,7 +38,9 @@ mod as_string {
         D: Deserializer<'de>,
     {
         let string = String::deserialize(deserializer)?;
-        string.parse().map_err(|_| D::Error::custom("Input was not valid"))
+        string
+            .parse()
+            .map_err(|_| D::Error::custom("Input was not valid"))
     }
 }
 

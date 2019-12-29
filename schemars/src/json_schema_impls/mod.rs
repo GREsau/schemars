@@ -32,22 +32,18 @@ macro_rules! forward_impl {
 }
 
 mod array;
+#[cfg(feature = "arrayvec")]
+mod arrayvec;
 #[cfg(std_atomic)]
 mod atomic;
 #[cfg(feature = "chrono")]
 mod chrono;
-#[cfg(feature = "indexmap")]
-mod indexmap;
+mod core;
 #[cfg(feature = "either")]
 mod either;
-#[cfg(feature = "uuid")]
-mod uuid;
-#[cfg(feature = "smallvec")]
-mod smallvec;
-#[cfg(feature = "arrayvec")]
-mod arrayvec;
-mod core;
 mod ffi;
+#[cfg(feature = "indexmap")]
+mod indexmap;
 mod maps;
 #[cfg(num_nonzero_signed)]
 mod nonzero_signed;
@@ -55,6 +51,10 @@ mod nonzero_unsigned;
 mod primitives;
 mod sequences;
 mod serdejson;
+#[cfg(feature = "smallvec")]
+mod smallvec;
 mod time;
 mod tuple;
+#[cfg(feature = "uuid")]
+mod uuid;
 mod wrapper;

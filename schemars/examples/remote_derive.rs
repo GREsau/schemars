@@ -1,6 +1,6 @@
 // Pretend that this is somebody else's crate, not a module.
 mod other_crate {
-    // Neither Schemars nor the other crate provides a JsonSchema impl  
+    // Neither Schemars nor the other crate provides a JsonSchema impl
     // for this struct.
     pub struct Duration {
         pub secs: i64,

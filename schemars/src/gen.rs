@@ -192,7 +192,7 @@ impl SchemaGenerator {
     /// assert_eq!(extensible_schema, extensible_schema2);
     /// ```
     pub fn make_extensible(&self, schema: SchemaObject) -> SchemaObject {
-        if schema.is_ref() && !self.settings().allow_ref_siblings{
+        if schema.is_ref() && !self.settings().allow_ref_siblings {
             SchemaObject {
                 subschemas: Some(Box::new(SubschemaValidation {
                     all_of: Some(vec![schema.into()]),

@@ -1,6 +1,6 @@
 mod util;
-use uuid::Uuid;
 use util::*;
+use uuid::Uuid;
 
 #[test]
 fn uuid() -> TestResult {

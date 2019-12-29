@@ -53,7 +53,7 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
             }
         }
     }
-    
+
     let schema_name = if type_params.is_empty() {
         quote! {
             #schema_base_name.to_owned()
@@ -135,7 +135,7 @@ fn schema_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> Toke
 }
 
 fn schema_for_external_tagged_enum<'a>(
-    variants: impl Iterator<Item = &'a Variant<'a>>
+    variants: impl Iterator<Item = &'a Variant<'a>>,
 ) -> TokenStream {
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
         variants.partition(|v| is_unit_variant(v));
@@ -241,9 +241,7 @@ fn schema_for_internal_tagged_enum<'a>(
     })
 }
 
-fn schema_for_untagged_enum<'a>(
-    variants: impl Iterator<Item = &'a Variant<'a>>
-) -> TokenStream {
+fn schema_for_untagged_enum<'a>(variants: impl Iterator<Item = &'a Variant<'a>>) -> TokenStream {
     let schemas = variants.map(|variant| {
         let schema_expr = schema_for_untagged_enum_variant(variant);
         set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
@@ -257,9 +255,7 @@ fn schema_for_untagged_enum<'a>(
     })
 }
 
-fn schema_for_untagged_enum_variant(
-    variant: &Variant
-) -> TokenStream {
+fn schema_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
     match variant.style {
         Style::Unit => schema_for_unit_struct(),
         Style::Newtype => schema_for_newtype_struct(&variant.fields[0]),
