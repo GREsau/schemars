@@ -29,6 +29,10 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `"http://json-schema.org/draft-07/schema#"`.
     pub meta_schema: Option<String>,
+    /// Whether schemas with a `$ref` property may have other properties set.
+    ///
+    /// Defaults to `false`.
+    pub allow_ref_siblings: bool,
     _hidden: (),
 }
 
@@ -58,6 +62,20 @@ impl SchemaSettings {
             bool_schemas: BoolSchemas::Enabled,
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
+            allow_ref_siblings: false,
+            _hidden: (),
+        }
+    }
+
+    /// Creates `SchemaSettings` that conform to [JSON Schema 2019-09](https://json-schema.org/specification-links.html#2019-09-formerly-known-as-draft-8).
+    pub fn draft2019_09() -> SchemaSettings {
+        SchemaSettings {
+            option_nullable: false,
+            option_add_null_type: true,
+            bool_schemas: BoolSchemas::Enabled,
+            definitions_path: "#/definitions/".to_owned(),
+            meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
+            allow_ref_siblings: true,
             _hidden: (),
         }
     }
@@ -73,6 +91,7 @@ impl SchemaSettings {
                 "https://spec.openapis.org/oas/3.0/schema/2019-04-02#/definitions/Schema"
                     .to_owned(),
             ),
+            allow_ref_siblings: false,
             _hidden: (),
         }
     }
@@ -173,7 +192,7 @@ impl SchemaGenerator {
     /// assert_eq!(extensible_schema, extensible_schema2);
     /// ```
     pub fn make_extensible(&self, schema: SchemaObject) -> SchemaObject {
-        if schema.is_ref() {
+        if schema.is_ref() && !self.settings().allow_ref_siblings{
             SchemaObject {
                 subschemas: Some(Box::new(SubschemaValidation {
                     all_of: Some(vec![schema.into()]),

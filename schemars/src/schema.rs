@@ -67,11 +67,13 @@ pub struct RootSchema {
     /// The root schema itself.
     #[serde(flatten)]
     pub schema: SchemaObject,
-    /// The `$defs` keyword.
+    /// The `definitions` keyword.
     ///
-    /// This is currently serialized as `definitions` for backwards compatibility.
+    /// In JSON Schema draft 2019-09 this was replaced by $defs, but in Schemars this is still
+    /// serialized as `definitions` for backward-compatibility.
     ///
-    /// See [JSON Schema 8.2.5. Schema Re-Use With "$defs"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5).
+    /// See [JSON Schema 8.2.5. Schema Re-Use With "$defs"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5),
+    /// and [JSON Schema (draft 07) 9. Schema Re-Use With "definitions"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-01#section-9).
     #[serde(alias = "$defs", skip_serializing_if = "Map::is_empty")]
     pub definitions: Map<String, Schema>,
 }

@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "title": "RootSchema",
   "description": "The root object of a JSON Schema document.",
   "type": "object",
@@ -372,11 +372,7 @@
         },
         {
           "description": "A JSON Schema object.",
-          "allOf": [
-            {
-              "$ref": "#/definitions/SchemaObject"
-            }
-          ]
+          "$ref": "#/definitions/SchemaObject"
         }
       ]
     },
