@@ -199,11 +199,10 @@ mod tests {
 
     #[test]
     fn schema_for_option_with_nullable() {
-        let settings = SchemaSettings {
-            option_nullable: true,
-            option_add_null_type: false,
-            ..Default::default()
-        };
+        let settings = SchemaSettings::default().with(|s| {
+            s.option_nullable = true;
+            s.option_add_null_type = false;
+        });
         let schema = custom_schema_object_for::<Option<i32>>(settings);
         assert_eq!(
             schema.instance_type,

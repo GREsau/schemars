@@ -2,7 +2,7 @@ use crate::schema::*;
 use crate::{JsonSchema, Map};
 
 /// Settings to customize how Schemas are generated.
-/// 
+///
 /// The default settings currently conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
 /// If you require your generated schemas to conform to draft 7, consider using the [`draft07`](#method.draft07) method.
 #[derive(Debug, PartialEq, Clone)]
@@ -29,6 +29,7 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `"http://json-schema.org/draft-07/schema#"`.
     pub meta_schema: Option<String>,
+    _hidden: (),
 }
 
 /// Controls whether trivial [`Bool`](../schema/enum.Schema.html#variant.Bool) schemas may be generated.
@@ -57,6 +58,7 @@ impl SchemaSettings {
             bool_schemas: BoolSchemas::Enabled,
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
+            _hidden: (),
         }
     }
 
@@ -71,7 +73,25 @@ impl SchemaSettings {
                 "https://spec.openapis.org/oas/3.0/schema/2019-04-02#/definitions/Schema"
                     .to_owned(),
             ),
+            _hidden: (),
         }
+    }
+
+    /// Modifies the `SchemaSettings` by calling the given function.
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::gen::{SchemaGenerator, SchemaSettings};
+    ///
+    /// let settings = SchemaSettings::default().with(|s| {
+    ///     s.option_nullable = true;
+    ///     s.option_add_null_type = false;
+    /// });
+    /// let gen = settings.into_generator();
+    /// ```
+    pub fn with(mut self, configure_fn: impl FnOnce(&mut Self)) -> Self {
+        configure_fn(&mut self);
+        self
     }
 
     /// Creates a new [`SchemaGenerator`] using these settings.
@@ -98,6 +118,12 @@ impl SchemaSettings {
 pub struct SchemaGenerator {
     settings: SchemaSettings,
     definitions: Map<String, Schema>,
+}
+
+impl From<SchemaSettings> for SchemaGenerator {
+    fn from(settings: SchemaSettings) -> Self {
+        settings.into_generator()
+    }
 }
 
 impl SchemaGenerator {
