@@ -14,6 +14,8 @@ pub enum MyEnum {
 }
 
 fn main() {
+    // Pure draft 07 schemas use a `definitions` property instead of `$defs`.
+    // We'll also make `Option<T>` have a `nullable` property set.
     let settings = SchemaSettings::draft07().with(|s| {
         s.option_nullable = true;
         s.option_add_null_type = false;

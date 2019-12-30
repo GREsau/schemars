@@ -23,7 +23,7 @@
       "description": "This enum might be set, or it might not.",
       "anyOf": [
         {
-          "$ref": "#/definitions/MyEnum"
+          "$ref": "#/$defs/MyEnum"
         },
         {
           "type": "null"
@@ -31,7 +31,7 @@
       ]
     }
   },
-  "definitions": {
+  "$defs": {
     "MyEnum": {
       "title": "My Amazing Enum",
       "anyOf": [

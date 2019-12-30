@@ -14,14 +14,14 @@
     "durations": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/Duration"
+        "$ref": "#/$defs/Duration"
       }
     },
     "wall_time": {
-      "$ref": "#/definitions/Duration"
+      "$ref": "#/$defs/Duration"
     }
   },
-  "definitions": {
+  "$defs": {
     "Duration": {
       "type": "object",
       "required": [

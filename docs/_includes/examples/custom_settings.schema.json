@@ -28,38 +28,38 @@
     "MyEnum": {
       "anyOf": [
         {
-          "type": "object",
-          "required": [
-            "StringNewType"
-          ],
           "properties": {
             "StringNewType": {
               "type": "string"
             }
-          }
+          },
+          "required": [
+            "StringNewType"
+          ],
+          "type": "object"
         },
         {
-          "type": "object",
-          "required": [
-            "StructVariant"
-          ],
           "properties": {
             "StructVariant": {
-              "type": "object",
+              "properties": {
+                "floats": {
+                  "items": {
+                    "format": "float",
+                    "type": "number"
+                  },
+                  "type": "array"
+                }
+              },
               "required": [
                 "floats"
               ],
-              "properties": {
-                "floats": {
-                  "type": "array",
-                  "items": {
-                    "type": "number",
-                    "format": "float"
-                  }
-                }
-              }
+              "type": "object"
             }
-          }
+          },
+          "required": [
+            "StructVariant"
+          ],
+          "type": "object"
         }
       ]
     }
