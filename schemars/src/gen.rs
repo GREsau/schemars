@@ -78,7 +78,7 @@ impl SchemaSettings {
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
             allow_ref_siblings: false,
             postprocess_root: Some(Arc::new(|root| {
-                let defs = std::mem::take(&mut root.definitions);
+                let defs = std::mem::replace(&mut root.definitions, Map::new());
                 if !defs.is_empty() {
                     root.schema
                         .extensions
