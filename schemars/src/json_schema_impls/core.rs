@@ -190,7 +190,7 @@ mod tests {
         assert_eq!(schema.subschemas.is_some(), true);
         let any_of = schema.subschemas.unwrap().any_of.unwrap();
         assert_eq!(any_of.len(), 2);
-        assert_eq!(any_of[0], Schema::new_ref("#/definitions/Foo".to_string()));
+        assert_eq!(any_of[0], Schema::new_ref("#/$defs/Foo".to_string()));
         assert_eq!(any_of[1], schema_for::<()>());
     }
 
