@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use schemars::{gen::SchemaSettings, schema::RootSchema, schema_for, JsonSchema};
+use schemars::{gen::SchemaSettings, schema::RootSchema, schema_07_for, JsonSchema};
 use std::error::Error;
 use std::fs;
 use std::panic;
@@ -14,7 +14,8 @@ pub fn test_generated_schema<T: JsonSchema>(file: &str, settings: SchemaSettings
 
 #[allow(dead_code)] // https://github.com/rust-lang/rust/issues/46379
 pub fn test_default_generated_schema<T: JsonSchema>(file: &str) -> TestResult {
-    let actual = schema_for!(T);
+    // FIXME this should be using `schema_for!`, but tests need updating
+    let actual = schema_07_for!(T);
     test_schema(&actual, file)
 }
 

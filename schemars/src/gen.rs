@@ -1,11 +1,12 @@
 use crate::schema::*;
 use crate::{JsonSchema, Map};
+use std::sync::Arc;
 
 /// Settings to customize how Schemas are generated.
 ///
 /// The default settings currently conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
 /// If you require your generated schemas to conform to draft 7, consider using the [`draft07`](#method.draft07) method.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Clone)]
 pub struct SchemaSettings {
     /// If `true`, schemas for [`Option<T>`](Option) will include a `nullable` property.
     ///
@@ -33,6 +34,8 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `false`.
     pub allow_ref_siblings: bool,
+    // TODO document
+    pub postprocess_root: Option<Arc<dyn Fn(&mut RootSchema)>>,
     _hidden: (),
 }
 
@@ -48,13 +51,24 @@ pub enum BoolSchemas {
 }
 
 impl Default for SchemaSettings {
+    // TODO document
     fn default() -> SchemaSettings {
-        SchemaSettings::draft07()
+        SchemaSettings {
+            option_nullable: false,
+            option_add_null_type: true,
+            bool_schemas: BoolSchemas::Enabled,
+            definitions_path: "#/$defs/".to_owned(),
+            meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
+            allow_ref_siblings: false,
+            postprocess_root: None,
+            _hidden: (),
+        }
     }
 }
 
 impl SchemaSettings {
     /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7).
+    // TODO document defs/definitions behaviour
     pub fn draft07() -> SchemaSettings {
         SchemaSettings {
             option_nullable: false,
@@ -63,6 +77,14 @@ impl SchemaSettings {
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
             allow_ref_siblings: false,
+            postprocess_root: Some(Arc::new(|root| {
+                let defs = std::mem::take(&mut root.definitions);
+                if !defs.is_empty() {
+                    root.schema
+                        .extensions
+                        .insert("definitions".to_owned(), serde_json::json!(defs));
+                }
+            })),
             _hidden: (),
         }
     }
@@ -73,9 +95,10 @@ impl SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
             bool_schemas: BoolSchemas::Enabled,
-            definitions_path: "#/definitions/".to_owned(),
+            definitions_path: "#/$defs/".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
             allow_ref_siblings: true,
+            postprocess_root: None,
             _hidden: (),
         }
     }
@@ -92,6 +115,7 @@ impl SchemaSettings {
                     .to_owned(),
             ),
             allow_ref_siblings: false,
+            postprocess_root: None,
             _hidden: (),
         }
     }
@@ -110,6 +134,15 @@ impl SchemaSettings {
     /// ```
     pub fn with(mut self, configure_fn: impl FnOnce(&mut Self)) -> Self {
         configure_fn(&mut self);
+        self
+    }
+
+    // TODO document
+    pub fn with_postprocess_root(
+        mut self,
+        postprocess: impl Fn(&mut RootSchema) + 'static,
+    ) -> Self {
+        self.postprocess_root = Some(Arc::new(postprocess));
         self
     }
 
@@ -133,7 +166,7 @@ impl SchemaSettings {
 /// let gen = SchemaGenerator::default();
 /// let schema = gen.into_root_schema_for::<MyStruct>();
 /// ```
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct SchemaGenerator {
     settings: SchemaSettings,
     definitions: Map<String, Schema>,
@@ -282,11 +315,15 @@ impl SchemaGenerator {
         let schema = T::json_schema(self);
         let mut schema: SchemaObject = self.make_extensible(schema.into());
         schema.metadata().title.get_or_insert_with(T::schema_name);
-        RootSchema {
+        let mut root = RootSchema {
             meta_schema: self.settings.meta_schema.clone(),
             definitions: self.definitions.clone(),
             schema,
+        };
+        if let Some(postprocess) = &self.settings.postprocess_root {
+            (*postprocess)(&mut root)
         }
+        root
     }
 
     /// Consumes `self` and generates a root JSON Schema for the type `T`.
@@ -297,11 +334,15 @@ impl SchemaGenerator {
         let schema = T::json_schema(&mut self);
         let mut schema: SchemaObject = self.make_extensible(schema.into());
         schema.metadata().title.get_or_insert_with(T::schema_name);
-        RootSchema {
+        let mut root = RootSchema {
             meta_schema: self.settings.meta_schema,
             definitions: self.definitions,
             schema,
+        };
+        if let Some(postprocess) = &self.settings.postprocess_root {
+            (*postprocess)(&mut root)
         }
+        root
     }
 
     /// Attemps to find the schema that the given `schema` is referencing.

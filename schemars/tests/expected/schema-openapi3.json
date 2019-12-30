@@ -4,6 +4,13 @@
   "description": "The root object of a JSON Schema document.",
   "type": "object",
   "properties": {
+    "$defs": {
+      "description": "The `$defs` keyword.\n\nTODO update docs\n\nSee [JSON Schema 8.2.5. Schema Re-Use With \"$defs\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5), and [JSON Schema (draft 07) 9. Schema Re-Use With \"definitions\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-01#section-9).",
+      "type": "object",
+      "additionalProperties": {
+        "$ref": "#/components/schemas/Schema"
+      }
+    },
     "$id": {
       "description": "The `$id` keyword.\n\nSee [JSON Schema 8.2.2. The \"$id\" Keyword](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.2).",
       "type": "string",
@@ -69,13 +76,6 @@
     "default": {
       "description": "The `default` keyword.\n\nSee [JSON Schema Validation 9.2. \"default\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.2).",
       "nullable": true
-    },
-    "definitions": {
-      "description": "The `definitions` keyword.\n\nIn JSON Schema draft 2019-09 this was replaced by $defs, but in Schemars this is still serialized as `definitions` for backward-compatibility.\n\nSee [JSON Schema 8.2.5. Schema Re-Use With \"$defs\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5), and [JSON Schema (draft 07) 9. Schema Re-Use With \"definitions\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-01#section-9).",
-      "type": "object",
-      "additionalProperties": {
-        "$ref": "#/components/schemas/Schema"
-      }
     },
     "deprecated": {
       "description": "The `deprecated` keyword.\n\nSee [JSON Schema Validation 9.3. \"deprecated\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.3).",
@@ -286,7 +286,7 @@
     }
   },
   "additionalProperties": true,
-  "definitions": {
+  "$defs": {
     "InstanceType": {
       "description": "The possible types of values in JSON Schema documents.\n\nSee [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).",
       "enum": [
