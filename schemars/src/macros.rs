@@ -28,6 +28,13 @@ macro_rules! schema_07_for {
 }
 
 #[macro_export]
+macro_rules! schema_07_pure_for {
+    ($type:ty) => {
+        $crate::gen::SchemaSettings::draft07_pure().into_generator().into_root_schema_for::<$type>()
+    };
+}
+
+#[macro_export]
 macro_rules! schema_2019_09_for {
     ($type:ty) => {
         $crate::gen::SchemaSettings::draft2019_09().into_generator().into_root_schema_for::<$type>()

@@ -35,7 +35,7 @@ pub struct SchemaSettings {
     /// Defaults to `false`.
     pub allow_ref_siblings: bool,
     // TODO document
-    pub postprocess_root: Option<Arc<dyn Fn(&mut RootSchema)>>,
+    pub postprocess_root: Vec<Arc<dyn Fn(&mut RootSchema)>>,
     _hidden: (),
 }
 
@@ -53,16 +53,7 @@ pub enum BoolSchemas {
 impl Default for SchemaSettings {
     // TODO document
     fn default() -> SchemaSettings {
-        SchemaSettings {
-            option_nullable: false,
-            option_add_null_type: true,
-            bool_schemas: BoolSchemas::Enabled,
-            definitions_path: "#/$defs/".to_owned(),
-            meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            allow_ref_siblings: false,
-            postprocess_root: None,
-            _hidden: (),
-        }
+        SchemaSettings::draft07()
     }
 }
 
@@ -74,19 +65,18 @@ impl SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
             bool_schemas: BoolSchemas::Enabled,
-            definitions_path: "#/definitions/".to_owned(),
+            definitions_path: "#/$defs/".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
             allow_ref_siblings: false,
-            postprocess_root: Some(Arc::new(|root| {
-                let defs = std::mem::replace(&mut root.definitions, Map::new());
-                if !defs.is_empty() {
-                    root.schema
-                        .extensions
-                        .insert("definitions".to_owned(), serde_json::json!(defs));
-                }
-            })),
+            postprocess_root: Vec::new(),
             _hidden: (),
         }
+    }
+
+    /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7).
+    // TODO document defs/definitions behaviour
+    pub fn draft07_pure() -> SchemaSettings {
+        SchemaSettings::draft07().with_legacy_definitions()
     }
 
     /// Creates `SchemaSettings` that conform to [JSON Schema 2019-09](https://json-schema.org/specification-links.html#2019-09-formerly-known-as-draft-8).
@@ -98,7 +88,7 @@ impl SchemaSettings {
             definitions_path: "#/$defs/".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
             allow_ref_siblings: true,
-            postprocess_root: None,
+            postprocess_root: Vec::new(),
             _hidden: (),
         }
     }
@@ -115,7 +105,7 @@ impl SchemaSettings {
                     .to_owned(),
             ),
             allow_ref_siblings: false,
-            postprocess_root: None,
+            postprocess_root: Vec::new(),
             _hidden: (),
         }
     }
@@ -142,8 +132,21 @@ impl SchemaSettings {
         mut self,
         postprocess: impl Fn(&mut RootSchema) + 'static,
     ) -> Self {
-        self.postprocess_root = Some(Arc::new(postprocess));
+        self.postprocess_root.push(Arc::new(postprocess));
         self
+    }
+
+    // TODO document
+    pub fn with_legacy_definitions(mut self) -> Self {
+        self.definitions_path = "#/definitions/".to_owned();
+        self.with_postprocess_root(|root| {
+            let defs = std::mem::replace(&mut root.definitions, Map::new());
+            if !defs.is_empty() {
+                root.schema
+                    .extensions
+                    .insert("definitions".to_owned(), serde_json::json!(defs));
+            }
+        })
     }
 
     /// Creates a new [`SchemaGenerator`] using these settings.
@@ -320,7 +323,7 @@ impl SchemaGenerator {
             definitions: self.definitions.clone(),
             schema,
         };
-        if let Some(postprocess) = &self.settings.postprocess_root {
+        for postprocess in &self.settings.postprocess_root {
             (*postprocess)(&mut root)
         }
         root
@@ -339,7 +342,7 @@ impl SchemaGenerator {
             definitions: self.definitions,
             schema,
         };
-        if let Some(postprocess) = &self.settings.postprocess_root {
+        for postprocess in &self.settings.postprocess_root {
             (*postprocess)(&mut root)
         }
         root
