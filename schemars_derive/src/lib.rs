@@ -288,7 +288,7 @@ fn schema_for_tuple_struct(fields: &[Field]) -> TokenStream {
 }
 
 fn schema_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -> TokenStream {
-    let (flat, nested): (Vec<_>, Vec<_>) = fields
+    let (flattened_fields, property_fields): (Vec<_>, Vec<_>) = fields
         .iter()
         .filter(|f| !f.attrs.skip_deserializing() || !f.attrs.skip_serializing())
         .partition(|f| f.attrs.flatten());
@@ -299,55 +299,36 @@ fn schema_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -
         SerdeDefault::Path(path) => Some(quote!(let container_default = #path();)),
     };
 
-    let mut required = Vec::new();
-    let recurse = nested.iter().map(|field| {
+    let properties = property_fields.iter().map(|field| {
         let name = field.attrs.name().deserialize_name();
         let default = field_default_expr(field, set_container_default.is_some());
 
-        if default.is_none() {
-            required.push(name.clone());
-        }
-
-        let ty = get_json_schema_type(field);
-        let span = field.original.span();
-        let schema_expr = quote_spanned! {span=>
-            gen.subschema_for::<#ty>()
+        let required = match default {
+            Some(_) => quote!(false),
+            None => quote!(true),
         };
 
-        let metadata = SchemaMetadata {
+        let metadata = quote_metadata(&SchemaMetadata {
             read_only: field.attrs.skip_deserializing(),
             write_only: field.attrs.skip_serializing(),
             default,
             skip_default_if: field.attrs.skip_serializing_if().cloned(),
             ..get_metadata_from_docs(&field.original.attrs)
-        };
-        let schema_expr = set_metadata_on_schema(schema_expr, &metadata);
+        });
+
+        let ty = get_json_schema_type(field);
+        let span = field.original.span();
 
         quote_spanned! {span=>
-            props.insert(#name.to_owned(), #schema_expr);
+            <#ty>::add_schema_property(gen, &mut schema_object, #name.to_owned(), #metadata, #required);
         }
     });
 
-    let schema = wrap_schema_fields(quote! {
-        instance_type: Some(schemars::schema::InstanceType::Object.into()),
-        object: Some(Box::new(schemars::schema::ObjectValidation {
-            properties: {
-                let mut props = schemars::Map::new();
-                #(#recurse)*
-                props
-            },
-            required: {
-                let mut required = schemars::Set::new();
-                #(required.insert(#required.to_owned());)*
-                required
-            },
-            ..Default::default()
-        })),
-    });
-
-    let flattens = flat.iter().map(|field| {
+    let flattens = flattened_fields.iter().map(|field| {
         let ty = get_json_schema_type(field);
-        quote_spanned! {field.original.span()=>
+        let span = field.original.span();
+
+        quote_spanned! {span=>
             .flatten(<#ty>::json_schema_optional(gen))
         }
     });
@@ -355,7 +336,13 @@ fn schema_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -
     quote! {
         {
             #set_container_default
-            #schema #(#flattens)*
+            let mut schema_object = schemars::schema::SchemaObject {
+                instance_type: Some(schemars::schema::InstanceType::Object.into()),
+                ..Default::default()
+            };
+            #(#properties)*
+            schemars::schema::Schema::Object(schema_object)
+            #(#flattens)*
         }
     }
 }

@@ -35,7 +35,8 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             }
         }
         if gen.settings().option_nullable {
-            let mut schema_obj = gen.make_extensible(schema.into());
+            let mut schema_obj = schema.into();
+            gen.make_extensible(&mut schema_obj);
             schema_obj
                 .extensions
                 .insert("nullable".to_owned(), json!(true));
@@ -54,6 +55,25 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             object_validation.required.clear();
         }
         schema
+    }
+
+    fn add_schema_property(
+        gen: &mut SchemaGenerator,
+        parent: &mut SchemaObject,
+        name: String,
+        metadata: Option<Metadata>,
+        _required: bool,
+    ) {
+        let mut schema = gen.subschema_for::<Self>();
+
+        if let Some(metadata) = metadata {
+            let mut schema_obj = schema.into();
+            gen.apply_metadata(&mut schema_obj, metadata);
+            schema = Schema::Object(schema_obj);
+        }
+
+        let object = parent.object();
+        object.properties.insert(name, schema);
     }
 }
 
@@ -76,6 +96,7 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
         let mut ok_schema = SchemaObject::default();
         ok_schema.instance_type = Some(InstanceType::Object.into());
         let obj = ok_schema.object();
+        // TODO use add_schema_property (what's the behaviour for `Result<Option<...>,...>`?)
         obj.required.insert("Ok".to_owned());
         obj.properties
             .insert("Ok".to_owned(), gen.subschema_for::<T>());
@@ -83,6 +104,7 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
         let mut err_schema = SchemaObject::default();
         err_schema.instance_type = Some(InstanceType::Object.into());
         let obj = err_schema.object();
+        // TODO use add_schema_property (what's the behaviour for `Result<...,Option<...>>`?)
         obj.required.insert("Err".to_owned());
         obj.properties
             .insert("Err".to_owned(), gen.subschema_for::<E>());
@@ -101,6 +123,7 @@ impl<T: JsonSchema> JsonSchema for Bound<T> {
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         let mut included_schema = SchemaObject::default();
         included_schema.instance_type = Some(InstanceType::Object.into());
+        // TODO use add_schema_property
         included_schema
             .object()
             .required
@@ -112,6 +135,7 @@ impl<T: JsonSchema> JsonSchema for Bound<T> {
 
         let mut excluded_schema = SchemaObject::default();
         excluded_schema.instance_type = Some(InstanceType::Object.into());
+        // TODO use add_schema_property
         excluded_schema
             .object()
             .required
@@ -144,6 +168,7 @@ impl<T: JsonSchema> JsonSchema for Range<T> {
         let mut schema = SchemaObject::default();
         schema.instance_type = Some(InstanceType::Object.into());
         let obj = schema.object();
+        // TODO use add_schema_property
         obj.required.insert("start".to_owned());
         obj.required.insert("end".to_owned());
         obj.properties

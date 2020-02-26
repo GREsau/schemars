@@ -11,6 +11,7 @@ impl JsonSchema for OsString {
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         let mut unix_schema = SchemaObject::default();
         unix_schema.instance_type = Some(InstanceType::Object.into());
+        // TODO use add_schema_property
         unix_schema.object().required.insert("Unix".to_owned());
         unix_schema
             .object()
@@ -19,6 +20,7 @@ impl JsonSchema for OsString {
 
         let mut win_schema = SchemaObject::default();
         win_schema.instance_type = Some(InstanceType::Object.into());
+        // TODO use add_schema_property
         win_schema.object().required.insert("Windows".to_owned());
         win_schema
             .object()

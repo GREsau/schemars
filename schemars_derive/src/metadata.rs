@@ -29,7 +29,41 @@ pub fn get_metadata_from_docs(attrs: &[Attribute]) -> SchemaMetadata {
     }
 }
 
+pub fn quote_metadata(metadata: &SchemaMetadata) -> TokenStream {
+    let setters = make_metadata_setters(metadata);
+
+    if setters.is_empty() {
+        return quote!(None);
+    }
+
+    quote! {
+        Some({
+            let mut metadata = schemars::schema::Metadata::default();
+            #(#setters)*
+            metadata
+        })
+    }
+}
+
 pub fn set_metadata_on_schema(schema_expr: TokenStream, metadata: &SchemaMetadata) -> TokenStream {
+    let setters = make_metadata_setters(metadata);
+
+    if setters.is_empty() {
+        return schema_expr;
+    }
+
+    quote! {
+        {
+            let mut schema = #schema_expr.into();
+            gen.make_extensible(&mut schema);
+            let mut metadata = schema.metadata();
+            #(#setters)*
+            schemars::schema::Schema::Object(schema)
+        }
+    }
+}
+
+fn make_metadata_setters(metadata: &SchemaMetadata) -> Vec<TokenStream> {
     let mut setters = Vec::<TokenStream>::new();
 
     if let Some(title) = &metadata.title {
@@ -69,17 +103,5 @@ pub fn set_metadata_on_schema(schema_expr: TokenStream, metadata: &SchemaMetadat
         _ => {}
     }
 
-    if setters.is_empty() {
-        return schema_expr;
-    }
-
-    quote! {
-        {
-            let schema = #schema_expr.into();
-            let mut schema_obj = gen.make_extensible(schema);
-            let mut metadata = schema_obj.metadata();
-            #(#setters)*
-            schemars::schema::Schema::Object(schema_obj)
-        }
-    }
+    setters
 }

@@ -24,6 +24,16 @@ macro_rules! forward_impl {
             fn json_schema_optional(gen: &mut SchemaGenerator) -> Schema {
                 <$target>::json_schema_optional(gen)
             }
+
+            fn add_schema_property(
+                gen: &mut SchemaGenerator,
+                parent: &mut crate::schema::SchemaObject,
+                name: String,
+                metadata: Option<crate::schema::Metadata>,
+                required: bool,
+            ) {
+                <$target>::add_schema_property(gen, parent, name, metadata, required)
+            }
         }
     };
     ($ty:ty => $target:ty) => {

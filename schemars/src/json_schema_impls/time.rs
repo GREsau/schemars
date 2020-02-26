@@ -12,6 +12,7 @@ impl JsonSchema for Duration {
         let mut schema = SchemaObject::default();
         schema.instance_type = Some(InstanceType::Object.into());
         let obj = schema.object();
+        // TODO use add_schema_property
         obj.required.insert("secs".to_owned());
         obj.required.insert("nanos".to_owned());
         obj.properties
@@ -31,6 +32,7 @@ impl JsonSchema for SystemTime {
         let mut schema = SchemaObject::default();
         schema.instance_type = Some(InstanceType::Object.into());
         let obj = schema.object();
+        // TODO use add_schema_property
         obj.required.insert("secs_since_epoch".to_owned());
         obj.required.insert("nanos_since_epoch".to_owned());
         obj.properties

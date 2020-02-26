@@ -15,7 +15,7 @@ impl Schema {
     }
 }
 
-trait Merge: Sized {
+pub(crate) trait Merge: Sized {
     fn merge(self, other: Self) -> Self;
 }
 
