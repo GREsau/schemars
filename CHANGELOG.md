@@ -1,6 +1,6 @@
 # Changelog
 
-## Current changes (version TBC)
+## [0.7.0-alpha-2] - 2020-02-29
 ### Fixed:
 - When deriving `JsonSchema` on structs, `Option<T>` struct fields are no longer included in the list of required properties in the schema (https://github.com/GREsau/schemars/issues/11)
 
