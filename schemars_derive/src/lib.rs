@@ -38,7 +38,8 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         Data::Struct(Style::Struct, ref fields) => schema_for_struct(fields, Some(&cont.attrs)),
         Data::Enum(ref variants) => schema_for_enum(variants, &cont.attrs),
     };
-    let schema_expr = set_metadata_on_schema_from_docs(schema_expr, &cont.original.attrs);
+    let doc_metadata = SchemaMetadata::from_doc_attrs(&cont.original.attrs);
+    let schema_expr = doc_metadata.apply_to_schema(schema_expr);
 
     let type_name = cont.ident;
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
@@ -176,7 +177,8 @@ fn schema_for_external_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
-        set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
+        let doc_metadata = SchemaMetadata::from_doc_attrs(&variant.original.attrs);
+        doc_metadata.apply_to_schema(schema_expr)
     }));
 
     wrap_schema_fields(quote! {
@@ -214,7 +216,8 @@ fn schema_for_internal_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
-        let tag_schema = set_metadata_on_schema_from_docs(tag_schema, &variant.original.attrs);
+        let doc_metadata = SchemaMetadata::from_doc_attrs(&variant.original.attrs);
+        let tag_schema = doc_metadata.apply_to_schema(tag_schema);
 
         let variant_schema = match variant.style {
             Style::Unit => return tag_schema,
@@ -244,7 +247,8 @@ fn schema_for_internal_tagged_enum<'a>(
 fn schema_for_untagged_enum<'a>(variants: impl Iterator<Item = &'a Variant<'a>>) -> TokenStream {
     let schemas = variants.map(|variant| {
         let schema_expr = schema_for_untagged_enum_variant(variant);
-        set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
+        let doc_metadata = SchemaMetadata::from_doc_attrs(&variant.original.attrs);
+        doc_metadata.apply_to_schema(schema_expr)
     });
 
     wrap_schema_fields(quote! {
@@ -308,13 +312,13 @@ fn schema_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -
             None => quote!(true),
         };
 
-        let metadata = quote_metadata(&SchemaMetadata {
+        let metadata = &SchemaMetadata {
             read_only: field.attrs.skip_deserializing(),
             write_only: field.attrs.skip_serializing(),
             default,
             skip_default_if: field.attrs.skip_serializing_if().cloned(),
-            ..get_metadata_from_docs(&field.original.attrs)
-        });
+            ..SchemaMetadata::from_doc_attrs(&field.original.attrs)
+        };
 
         let ty = get_json_schema_type(field);
         let span = field.original.span();
