@@ -7,7 +7,7 @@ pub use schemars_to_serde::process_serde_attrs;
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use syn::parse::{self, Parse};
 
-pub fn get_with_from_attrs(field: &syn::Field) -> Option<syn::Result<syn::ExprPath>> {
+pub fn get_with_from_attrs(field: &syn::Field) -> Option<syn::Result<syn::Type>> {
     field
         .attrs
         .iter()
