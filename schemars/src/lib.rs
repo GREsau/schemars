@@ -282,14 +282,16 @@ pub trait JsonSchema {
     /// Helper for generating schemas for flattened `Option` fields.
     ///
     /// This should not need to be called or implemented by code outside of `schemars`.
-    // TODO rename
     #[doc(hidden)]
-    fn json_schema_optional(gen: &mut gen::SchemaGenerator) -> Schema {
+    fn json_schema_for_flatten(gen: &mut gen::SchemaGenerator) -> Schema {
         Self::json_schema(gen)
     }
 
-    // TODO document
-    fn add_schema_property(
+    /// Helper for generating schemas for `Option` fields.
+    ///
+    /// This should not need to be called or implemented by code outside of `schemars`.
+    #[doc(hidden)]
+    fn add_schema_as_property(
         gen: &mut gen::SchemaGenerator,
         parent: &mut SchemaObject,
         name: String,

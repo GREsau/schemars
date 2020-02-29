@@ -45,8 +45,8 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         schema
     }
 
-    fn json_schema_optional(gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = T::json_schema_optional(gen);
+    fn json_schema_for_flatten(gen: &mut SchemaGenerator) -> Schema {
+        let mut schema = T::json_schema_for_flatten(gen);
         if let Schema::Object(SchemaObject {
             object: Some(ref mut object_validation),
             ..
@@ -57,7 +57,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         schema
     }
 
-    fn add_schema_property(
+    fn add_schema_as_property(
         gen: &mut SchemaGenerator,
         parent: &mut SchemaObject,
         name: String,
@@ -96,7 +96,6 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
         let mut ok_schema = SchemaObject::default();
         ok_schema.instance_type = Some(InstanceType::Object.into());
         let obj = ok_schema.object();
-        // TODO use add_schema_property (what's the behaviour for `Result<Option<...>,...>`?)
         obj.required.insert("Ok".to_owned());
         obj.properties
             .insert("Ok".to_owned(), gen.subschema_for::<T>());
@@ -104,7 +103,6 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
         let mut err_schema = SchemaObject::default();
         err_schema.instance_type = Some(InstanceType::Object.into());
         let obj = err_schema.object();
-        // TODO use add_schema_property (what's the behaviour for `Result<...,Option<...>>`?)
         obj.required.insert("Err".to_owned());
         obj.properties
             .insert("Err".to_owned(), gen.subschema_for::<E>());
@@ -123,7 +121,6 @@ impl<T: JsonSchema> JsonSchema for Bound<T> {
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         let mut included_schema = SchemaObject::default();
         included_schema.instance_type = Some(InstanceType::Object.into());
-        // TODO use add_schema_property
         included_schema
             .object()
             .required
@@ -135,7 +132,6 @@ impl<T: JsonSchema> JsonSchema for Bound<T> {
 
         let mut excluded_schema = SchemaObject::default();
         excluded_schema.instance_type = Some(InstanceType::Object.into());
-        // TODO use add_schema_property
         excluded_schema
             .object()
             .required
@@ -168,7 +164,6 @@ impl<T: JsonSchema> JsonSchema for Range<T> {
         let mut schema = SchemaObject::default();
         schema.instance_type = Some(InstanceType::Object.into());
         let obj = schema.object();
-        // TODO use add_schema_property
         obj.required.insert("start".to_owned());
         obj.required.insert("end".to_owned());
         obj.properties

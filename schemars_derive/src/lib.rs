@@ -320,7 +320,7 @@ fn schema_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -
         let span = field.original.span();
 
         quote_spanned! {span=>
-            <#ty>::add_schema_property(gen, &mut schema_object, #name.to_owned(), #metadata, #required);
+            <#ty>::add_schema_as_property(gen, &mut schema_object, #name.to_owned(), #metadata, #required);
         }
     });
 
@@ -329,7 +329,7 @@ fn schema_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -
         let span = field.original.span();
 
         quote_spanned! {span=>
-            .flatten(<#ty>::json_schema_optional(gen))
+            .flatten(<#ty>::json_schema_for_flatten(gen))
         }
     });
 
