@@ -10,6 +10,12 @@
     "bar": {
       "type": "boolean"
     },
+    "baz": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "foo": {
       "type": "integer",
       "format": "int32"
