@@ -19,9 +19,6 @@
       "properties": {
         "Complex": {
           "type": "object",
-          "required": [
-            "my_nullable_string"
-          ],
           "properties": {
             "my_nullable_string": {
               "title": "A nullable string",

@@ -1,6 +1,6 @@
 mod util;
-use pretty_assertions::assert_eq;
-use schemars::{schema_for, JsonSchema};
+use schemars::JsonSchema;
+use util::*;
 
 #[derive(Debug, JsonSchema)]
 struct Flat {
@@ -43,8 +43,11 @@ struct Deep4 {
 }
 
 #[test]
-fn flatten_schema() {
-    let flat = schema_for!(Flat);
-    let deep = schema_for!(Deep1);
-    assert_eq!(flat, deep);
+fn test_flat_schema() -> TestResult {
+    test_default_generated_schema::<Flat>("flatten")
+}
+
+#[test]
+fn test_flattened_schema() -> TestResult {
+    test_default_generated_schema::<Deep1>("flatten")
 }

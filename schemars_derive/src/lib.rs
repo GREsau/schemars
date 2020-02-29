@@ -38,7 +38,8 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         Data::Struct(Style::Struct, ref fields) => schema_for_struct(fields, Some(&cont.attrs)),
         Data::Enum(ref variants) => schema_for_enum(variants, &cont.attrs),
     };
-    let schema_expr = set_metadata_on_schema_from_docs(schema_expr, &cont.original.attrs);
+    let doc_metadata = SchemaMetadata::from_doc_attrs(&cont.original.attrs);
+    let schema_expr = doc_metadata.apply_to_schema(schema_expr);
 
     let type_name = cont.ident;
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
@@ -176,7 +177,8 @@ fn schema_for_external_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
-        set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
+        let doc_metadata = SchemaMetadata::from_doc_attrs(&variant.original.attrs);
+        doc_metadata.apply_to_schema(schema_expr)
     }));
 
     wrap_schema_fields(quote! {
@@ -214,7 +216,8 @@ fn schema_for_internal_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
-        let tag_schema = set_metadata_on_schema_from_docs(tag_schema, &variant.original.attrs);
+        let doc_metadata = SchemaMetadata::from_doc_attrs(&variant.original.attrs);
+        let tag_schema = doc_metadata.apply_to_schema(tag_schema);
 
         let variant_schema = match variant.style {
             Style::Unit => return tag_schema,
@@ -244,7 +247,8 @@ fn schema_for_internal_tagged_enum<'a>(
 fn schema_for_untagged_enum<'a>(variants: impl Iterator<Item = &'a Variant<'a>>) -> TokenStream {
     let schemas = variants.map(|variant| {
         let schema_expr = schema_for_untagged_enum_variant(variant);
-        set_metadata_on_schema_from_docs(schema_expr, &variant.original.attrs)
+        let doc_metadata = SchemaMetadata::from_doc_attrs(&variant.original.attrs);
+        doc_metadata.apply_to_schema(schema_expr)
     });
 
     wrap_schema_fields(quote! {
@@ -288,7 +292,7 @@ fn schema_for_tuple_struct(fields: &[Field]) -> TokenStream {
 }
 
 fn schema_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -> TokenStream {
-    let (flat, nested): (Vec<_>, Vec<_>) = fields
+    let (flattened_fields, property_fields): (Vec<_>, Vec<_>) = fields
         .iter()
         .filter(|f| !f.attrs.skip_deserializing() || !f.attrs.skip_serializing())
         .partition(|f| f.attrs.flatten());
@@ -299,63 +303,50 @@ fn schema_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -
         SerdeDefault::Path(path) => Some(quote!(let container_default = #path();)),
     };
 
-    let mut required = Vec::new();
-    let recurse = nested.iter().map(|field| {
+    let properties = property_fields.iter().map(|field| {
         let name = field.attrs.name().deserialize_name();
         let default = field_default_expr(field, set_container_default.is_some());
 
-        if default.is_none() {
-            required.push(name.clone());
-        }
-
-        let ty = get_json_schema_type(field);
-        let span = field.original.span();
-        let schema_expr = quote_spanned! {span=>
-            gen.subschema_for::<#ty>()
+        let required = match default {
+            Some(_) => quote!(false),
+            None => quote!(true),
         };
 
-        let metadata = SchemaMetadata {
+        let metadata = &SchemaMetadata {
             read_only: field.attrs.skip_deserializing(),
             write_only: field.attrs.skip_serializing(),
             default,
             skip_default_if: field.attrs.skip_serializing_if().cloned(),
-            ..get_metadata_from_docs(&field.original.attrs)
+            ..SchemaMetadata::from_doc_attrs(&field.original.attrs)
         };
-        let schema_expr = set_metadata_on_schema(schema_expr, &metadata);
+
+        let ty = get_json_schema_type(field);
+        let span = field.original.span();
 
         quote_spanned! {span=>
-            props.insert(#name.to_owned(), #schema_expr);
+            <#ty>::add_schema_as_property(gen, &mut schema_object, #name.to_owned(), #metadata, #required);
         }
     });
 
-    let schema = wrap_schema_fields(quote! {
-        instance_type: Some(schemars::schema::InstanceType::Object.into()),
-        object: Some(Box::new(schemars::schema::ObjectValidation {
-            properties: {
-                let mut props = schemars::Map::new();
-                #(#recurse)*
-                props
-            },
-            required: {
-                let mut required = schemars::Set::new();
-                #(required.insert(#required.to_owned());)*
-                required
-            },
-            ..Default::default()
-        })),
-    });
-
-    let flattens = flat.iter().map(|field| {
+    let flattens = flattened_fields.iter().map(|field| {
         let ty = get_json_schema_type(field);
-        quote_spanned! {field.original.span()=>
-            .flatten(<#ty>::json_schema_optional(gen))
+        let span = field.original.span();
+
+        quote_spanned! {span=>
+            .flatten(<#ty>::json_schema_for_flatten(gen))
         }
     });
 
     quote! {
         {
             #set_container_default
-            #schema #(#flattens)*
+            let mut schema_object = schemars::schema::SchemaObject {
+                instance_type: Some(schemars::schema::InstanceType::Object.into()),
+                ..Default::default()
+            };
+            #(#properties)*
+            schemars::schema::Schema::Object(schema_object)
+            #(#flattens)*
         }
     }
 }

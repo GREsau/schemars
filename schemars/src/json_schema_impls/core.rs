@@ -35,7 +35,8 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             }
         }
         if gen.settings().option_nullable {
-            let mut schema_obj = gen.make_extensible(schema.into());
+            let mut schema_obj = schema.into();
+            gen.make_extensible(&mut schema_obj);
             schema_obj
                 .extensions
                 .insert("nullable".to_owned(), json!(true));
@@ -44,8 +45,8 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         schema
     }
 
-    fn json_schema_optional(gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = T::json_schema_optional(gen);
+    fn json_schema_for_flatten(gen: &mut SchemaGenerator) -> Schema {
+        let mut schema = T::json_schema_for_flatten(gen);
         if let Schema::Object(SchemaObject {
             object: Some(ref mut object_validation),
             ..
@@ -54,6 +55,25 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             object_validation.required.clear();
         }
         schema
+    }
+
+    fn add_schema_as_property(
+        gen: &mut SchemaGenerator,
+        parent: &mut SchemaObject,
+        name: String,
+        metadata: Option<Metadata>,
+        _required: bool,
+    ) {
+        let mut schema = gen.subschema_for::<Self>();
+
+        if let Some(metadata) = metadata {
+            let mut schema_obj = schema.into();
+            gen.apply_metadata(&mut schema_obj, metadata);
+            schema = Schema::Object(schema_obj);
+        }
+
+        let object = parent.object();
+        object.properties.insert(name, schema);
     }
 }
 

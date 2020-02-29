@@ -1,5 +1,9 @@
 # Changelog
 
+## Current changes (version TBC)
+### Fixed:
+- When deriving `JsonSchema` on structs, `Option<T>` struct fields are no longer included in the list of required properties in the schema (https://github.com/GREsau/schemars/issues/11)
+
 ## [0.7.0-alpha-1] - 2019-12-29
 ### Changed:
 - **BREAKING CHANGE** - `SchemaSettings` can no longer be created using struct initialization syntax. Instead, if you need to use custom schema settings, you can use a constructor function and either:

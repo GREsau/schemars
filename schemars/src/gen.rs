@@ -1,3 +1,4 @@
+use crate::flatten::Merge;
 use crate::schema::*;
 use crate::{JsonSchema, Map};
 
@@ -169,9 +170,9 @@ impl SchemaGenerator {
         &self.settings
     }
 
-    /// Returns a `SchemaObject` equivalent to the given `schema` which may have validation, metadata or other properties set on it.
+    /// Modifies the given `SchemaObject` so that it may have validation, metadata or other properties set on it.
     ///
-    /// If `schema` is not a `$ref` schema, then this returns `schema` unmodified. Otherwise, depending on this generator's settings,
+    /// If `schema` is not a `$ref` schema, then this does not modify `schema`. Otherwise, depending on this generator's settings,
     /// this may wrap the `$ref` in another schema. This is required because in many JSON Schema implementations, a schema with `$ref`
     /// set may not include other properties.
     ///
@@ -184,24 +185,19 @@ impl SchemaGenerator {
     /// let ref_schema = SchemaObject::new_ref("foo".to_owned());
     /// assert!(ref_schema.is_ref());
     ///
-    /// let extensible_schema = gen.make_extensible(ref_schema.clone());
+    /// let mut extensible_schema = ref_schema.clone();
+    /// gen.make_extensible(&mut extensible_schema);
     /// assert_ne!(ref_schema, extensible_schema);
     /// assert!(!extensible_schema.is_ref());
     ///
-    /// let extensible_schema2 = gen.make_extensible(extensible_schema.clone());
+    /// let mut extensible_schema2 = extensible_schema.clone();
+    /// gen.make_extensible(&mut extensible_schema);
     /// assert_eq!(extensible_schema, extensible_schema2);
     /// ```
-    pub fn make_extensible(&self, schema: SchemaObject) -> SchemaObject {
+    pub fn make_extensible(&self, schema: &mut SchemaObject) {
         if schema.is_ref() && !self.settings().allow_ref_siblings {
-            SchemaObject {
-                subschemas: Some(Box::new(SubschemaValidation {
-                    all_of: Some(vec![schema.into()]),
-                    ..Default::default()
-                })),
-                ..Default::default()
-            }
-        } else {
-            schema
+            let original = std::mem::replace(schema, SchemaObject::default());
+            schema.subschemas().all_of = Some(vec![original.into()]);
         }
     }
 
@@ -279,8 +275,8 @@ impl SchemaGenerator {
     /// add them to the `SchemaGenerator`'s schema definitions and include them in the returned `SchemaObject`'s
     /// [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> RootSchema {
-        let schema = T::json_schema(self);
-        let mut schema: SchemaObject = self.make_extensible(schema.into());
+        let mut schema = T::json_schema(self).into();
+        self.make_extensible(&mut schema);
         schema.metadata().title.get_or_insert_with(T::schema_name);
         RootSchema {
             meta_schema: self.settings.meta_schema.clone(),
@@ -294,8 +290,8 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
     /// include them in the returned `SchemaObject`'s [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> RootSchema {
-        let schema = T::json_schema(&mut self);
-        let mut schema: SchemaObject = self.make_extensible(schema.into());
+        let mut schema = T::json_schema(&mut self).into();
+        self.make_extensible(&mut schema);
         schema.metadata().title.get_or_insert_with(T::schema_name);
         RootSchema {
             meta_schema: self.settings.meta_schema,
@@ -345,5 +341,12 @@ impl SchemaGenerator {
             }
             _ => None,
         }
+    }
+
+    // TODO should this take a Schema instead of SchemaObject?
+    pub(crate) fn apply_metadata(&self, schema: &mut SchemaObject, metadata: Metadata) {
+        self.make_extensible(schema);
+        // TODO get rid of the clone
+        schema.metadata = Some(Box::new(metadata)).merge(schema.metadata.clone());
     }
 }

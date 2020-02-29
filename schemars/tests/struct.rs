@@ -6,6 +6,7 @@ use util::*;
 pub struct Struct {
     foo: i32,
     bar: bool,
+    baz: Option<String>,
 }
 
 #[test]
@@ -14,7 +15,7 @@ fn struct_normal() -> TestResult {
 }
 
 #[derive(Debug, JsonSchema)]
-pub struct Tuple(i32, bool);
+pub struct Tuple(i32, bool, Option<String>);
 
 #[test]
 fn struct_tuple() -> TestResult {

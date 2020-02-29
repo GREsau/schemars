@@ -236,7 +236,7 @@ pub use schemars_derive::*;
 #[doc(hidden)]
 pub use serde_json as _serde_json;
 
-use schema::Schema;
+use schema::{Schema, SchemaObject};
 
 /// A type which can be described as a JSON Schema document.
 ///
@@ -281,10 +281,38 @@ pub trait JsonSchema {
 
     /// Helper for generating schemas for flattened `Option` fields.
     ///
-    /// This should not need to be called or implemented by code outside of `schemars`.
+    /// This should not need to be called or implemented by code outside of `schemars`,
+    /// and should not be considered part of the public API.
     #[doc(hidden)]
-    fn json_schema_optional(gen: &mut gen::SchemaGenerator) -> Schema {
+    fn json_schema_for_flatten(gen: &mut gen::SchemaGenerator) -> Schema {
         Self::json_schema(gen)
+    }
+
+    /// Helper for generating schemas for `Option` fields.
+    ///
+    /// This should not need to be called or implemented by code outside of `schemars`,
+    /// and should not be considered part of the public API.
+    #[doc(hidden)]
+    fn add_schema_as_property(
+        gen: &mut gen::SchemaGenerator,
+        parent: &mut SchemaObject,
+        name: String,
+        metadata: Option<schema::Metadata>,
+        required: bool,
+    ) {
+        let mut schema = gen.subschema_for::<Self>();
+
+        if let Some(metadata) = metadata {
+            let mut schema_obj = schema.into();
+            gen.apply_metadata(&mut schema_obj, metadata);
+            schema = Schema::Object(schema_obj);
+        }
+
+        let object = parent.object();
+        if required {
+            object.required.insert(name.clone());
+        }
+        object.properties.insert(name, schema);
     }
 }
 
