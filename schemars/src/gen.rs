@@ -343,10 +343,12 @@ impl SchemaGenerator {
         }
     }
 
-    // TODO should this take a Schema instead of SchemaObject?
-    pub(crate) fn apply_metadata(&self, schema: &mut SchemaObject, metadata: Metadata) {
-        self.make_extensible(schema);
-        // TODO get rid of the clone
-        schema.metadata = Some(Box::new(metadata)).merge(schema.metadata.clone());
+    pub(crate) fn apply_metadata(&self, schema: Schema, metadata: Metadata) -> Schema {
+        let mut schema_obj = schema.into();
+
+        self.make_extensible(&mut schema_obj);
+        schema_obj.metadata = Some(Box::new(metadata)).merge(schema_obj.metadata);
+
+        Schema::Object(schema_obj)
     }
 }

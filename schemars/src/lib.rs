@@ -37,8 +37,7 @@ fn main() {
     "type": "object",
     "required": [
         "my_bool",
-        "my_int",
-        "my_nullable_enum"
+        "my_int"
     ],
     "properties": {
         "my_bool": {
@@ -303,9 +302,7 @@ pub trait JsonSchema {
         let mut schema = gen.subschema_for::<Self>();
 
         if let Some(metadata) = metadata {
-            let mut schema_obj = schema.into();
-            gen.apply_metadata(&mut schema_obj, metadata);
-            schema = Schema::Object(schema_obj);
+            schema = gen.apply_metadata(schema, metadata);
         }
 
         let object = parent.object();
