@@ -43,8 +43,7 @@ fn main() {
   "type": "object",
   "required": [
     "my_bool",
-    "my_int",
-    "my_nullable_enum"
+    "my_int"
   ],
   "properties": {
     "my_bool": {
