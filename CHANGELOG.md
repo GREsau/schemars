@@ -1,14 +1,14 @@
 # Changelog
 
-## [0.7.0-alpha-2] - 2020-02-29
-### Fixed:
-- When deriving `JsonSchema` on structs, `Option<T>` struct fields are no longer included in the list of required properties in the schema (https://github.com/GREsau/schemars/issues/11)
-
-## [0.7.0-alpha-1] - 2019-12-29
+## [0.7.0] - 2020-03-24
 ### Changed:
 - **BREAKING CHANGE** - `SchemaSettings` can no longer be created using struct initialization syntax. Instead, if you need to use custom schema settings, you can use a constructor function and either:
     - assign it to a `mut` variable and modify its public fields
     - call the `with(|s| ...)` method on the settings and modify the settings inside the closure/function (as in the custom_settings.rs example)
+### Fixed:
+- When deriving `JsonSchema` on structs, `Option<T>` struct fields are no longer included in the list of required properties in the schema (https://github.com/GREsau/schemars/issues/11)
+- Fix deriving `JsonSchema` when a non-std `String` type is in scope (https://github.com/GREsau/schemars/pull/19)
+- This will now compile: `#[schemars(with="()")]`
 ### Added:
 - Added `allow_ref_siblings` setting to `SchemaSettings`. When enabled, schemas with a `$ref` property may have other properties set.
 - Can create JSON Schema 2019-09 schemas using `SchemaSettings::draft2019_09()` (which enables `allow_ref_siblings`)
