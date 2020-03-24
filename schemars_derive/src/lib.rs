@@ -81,7 +81,7 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
     let impl_block = quote! {
         #[automatically_derived]
         impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
-            fn schema_name() -> String {
+            fn schema_name() -> std::string::String {
                 #schema_name
             }
 
