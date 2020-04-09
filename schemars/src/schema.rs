@@ -261,6 +261,11 @@ pub struct Metadata {
     /// See [JSON Schema Validation 9.4. "readOnly" and "writeOnly"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.4).
     #[serde(skip_serializing_if = "is_false")]
     pub write_only: bool,
+    /// The `examples` keyword.
+    ///
+    /// See [JSON Schema Validation 9.5. "examples"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.5).
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub examples: Vec<Value>,
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref)]

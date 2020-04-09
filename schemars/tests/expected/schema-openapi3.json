@@ -101,6 +101,11 @@
       "items": {},
       "nullable": true
     },
+    "examples": {
+      "description": "The `examples` keyword.\n\nSee [JSON Schema Validation 9.5. \"examples\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.5).",
+      "type": "array",
+      "items": {}
+    },
     "exclusiveMaximum": {
       "description": "The `exclusiveMaximum` keyword.\n\nSee [JSON Schema Validation 6.2.3. \"exclusiveMaximum\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.3).",
       "type": "number",
@@ -404,6 +409,11 @@
           "type": "array",
           "items": {},
           "nullable": true
+        },
+        "examples": {
+          "description": "The `examples` keyword.\n\nSee [JSON Schema Validation 9.5. \"examples\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.5).",
+          "type": "array",
+          "items": {}
         },
         "exclusiveMaximum": {
           "description": "The `exclusiveMaximum` keyword.\n\nSee [JSON Schema Validation 6.2.3. \"exclusiveMaximum\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.3).",
