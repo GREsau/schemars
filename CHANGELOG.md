@@ -1,5 +1,9 @@
 # Changelog
 
+## In-dev - version TBC
+### Added:
+- Added `examples` (https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.5) to `Metadata`
+
 ## [0.7.0] - 2020-03-24
 ### Changed:
 - **BREAKING CHANGE** - `SchemaSettings` can no longer be created using struct initialization syntax. Instead, if you need to use custom schema settings, you can use a constructor function and either:
