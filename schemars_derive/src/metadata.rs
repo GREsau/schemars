@@ -1,7 +1,7 @@
 use crate::attr;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt};
-use syn::{Attribute, ExprPath};
+use syn::Attribute;
 
 #[derive(Debug, Clone, Default)]
 pub struct SchemaMetadata {
@@ -10,7 +10,6 @@ pub struct SchemaMetadata {
     pub read_only: bool,
     pub write_only: bool,
     pub default: Option<TokenStream>,
-    pub skip_default_if: Option<ExprPath>,
 }
 
 impl ToTokens for SchemaMetadata {
@@ -41,19 +40,10 @@ impl SchemaMetadata {
     }
 
     pub fn apply_to_schema(&self, schema_expr: TokenStream) -> TokenStream {
-        let setters = self.make_setters();
-
-        if setters.is_empty() {
-            return schema_expr;
-        }
-
         quote! {
             {
-                let mut schema = #schema_expr.into();
-                gen.make_extensible(&mut schema);
-                let mut metadata = schema.metadata();
-                #(#setters)*
-                schemars::schema::Schema::Object(schema)
+                let schema = #schema_expr;
+                gen.apply_metadata(schema, #self)
             }
         }
     }
@@ -83,19 +73,10 @@ impl SchemaMetadata {
             });
         }
 
-        match (&self.default, &self.skip_default_if) {
-            (Some(default), Some(skip_if)) => setters.push(quote! {
-                {
-                    let default = #default;
-                    if !#skip_if(&default) {
-                        metadata.default = schemars::_serde_json::value::to_value(default).ok();
-                    }
-                }
-            }),
-            (Some(default), None) => setters.push(quote! {
-                metadata.default = schemars::_serde_json::value::to_value(#default).ok();
-            }),
-            _ => {}
+        if let Some(default) = &self.default {
+            setters.push(quote! {
+                metadata.default = #default.and_then(|d| schemars::_serde_json::value::to_value(d).ok());
+            });
         }
 
         setters

@@ -65,10 +65,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         _required: bool,
     ) {
         let mut schema = gen.subschema_for::<Self>();
-
-        if let Some(metadata) = metadata {
-            schema = gen.apply_metadata(schema, metadata);
-        }
+        schema = gen.apply_metadata(schema, metadata);
 
         let object = parent.object();
         object.properties.insert(name, schema);

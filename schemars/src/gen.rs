@@ -343,12 +343,22 @@ impl SchemaGenerator {
         }
     }
 
-    pub(crate) fn apply_metadata(&self, schema: Schema, metadata: Metadata) -> Schema {
-        let mut schema_obj = schema.into();
+    /// This function is only public for use by schemars_derive.
+    ///
+    /// It should not be considered part of the public API.
+    #[doc(hidden)]
+    pub fn apply_metadata(&self, schema: Schema, metadata: Option<Metadata>) -> Schema {
+        match metadata {
+            None => return schema,
+            Some(metadata) if metadata == Metadata::default() => return schema,
+            Some(metadata) => {
+                let mut schema_obj = schema.into();
 
-        self.make_extensible(&mut schema_obj);
-        schema_obj.metadata = Some(Box::new(metadata)).merge(schema_obj.metadata);
+                self.make_extensible(&mut schema_obj);
+                schema_obj.metadata = Some(Box::new(metadata)).merge(schema_obj.metadata);
 
-        Schema::Object(schema_obj)
+                Schema::Object(schema_obj)
+            }
+        }
     }
 }

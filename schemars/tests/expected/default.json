@@ -19,6 +19,9 @@
           "$ref": "#/definitions/MyStruct2"
         }
       ]
+    },
+    "my_struct2_default_skipped": {
+      "$ref": "#/definitions/MyStruct2"
     }
   },
   "definitions": {

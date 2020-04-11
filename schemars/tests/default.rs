@@ -3,6 +3,10 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use util::*;
 
+fn is_default<T: Default + PartialEq>(value: &T) -> bool {
+    value == &T::default()
+}
+
 fn ten_and_true() -> MyStruct2 {
     MyStruct2 {
         my_int: 10,
@@ -28,9 +32,14 @@ pub struct MyStruct {
     pub my_bool: bool,
     #[serde(serialize_with = "custom_serialize")]
     pub my_struct2: MyStruct2,
+    #[serde(
+        serialize_with = "custom_serialize",
+        skip_serializing_if = "is_default"
+    )]
+    pub my_struct2_default_skipped: MyStruct2,
 }
 
-#[derive(Default, Deserialize, Serialize, JsonSchema, Debug)]
+#[derive(Default, Deserialize, Serialize, JsonSchema, Debug, PartialEq)]
 #[serde(default = "ten_and_true")]
 pub struct MyStruct2 {
     #[serde(default = "six")]

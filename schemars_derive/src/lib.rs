@@ -316,7 +316,6 @@ fn schema_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -
             read_only: field.attrs.skip_deserializing(),
             write_only: field.attrs.skip_serializing(),
             default,
-            skip_default_if: field.attrs.skip_serializing_if().cloned(),
             ..SchemaMetadata::from_doc_attrs(&field.original.attrs)
         };
 
@@ -367,6 +366,22 @@ fn field_default_expr(field: &Field, container_has_default: bool) -> Option<Toke
         SerdeDefault::Path(path) => quote!(#path()),
     };
 
+    let default_expr = match field.attrs.skip_serializing_if() {
+        Some(skip_if) => {
+            quote! {
+                {
+                    let default = #default_expr;
+                    if #skip_if(&default) {
+                        None
+                    } else {
+                        Some(default)
+                    }
+                }
+            }
+        }
+        None => quote!(Some(#default_expr)),
+    };
+
     Some(if let Some(ser_with) = field.attrs.serialize_with() {
         quote! {
             {
@@ -382,7 +397,7 @@ fn field_default_expr(field: &Field, container_has_default: bool) -> Option<Toke
                     }
                 }
 
-                _SchemarsDefaultSerialize(#default_expr)
+                #default_expr.map(|d| _SchemarsDefaultSerialize(d))
             }
         }
     } else {

@@ -300,10 +300,7 @@ pub trait JsonSchema {
         required: bool,
     ) {
         let mut schema = gen.subschema_for::<Self>();
-
-        if let Some(metadata) = metadata {
-            schema = gen.apply_metadata(schema, metadata);
-        }
+        schema = gen.apply_metadata(schema, metadata);
 
         let object = parent.object();
         if required {
