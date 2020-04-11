@@ -350,7 +350,7 @@ impl SchemaGenerator {
     pub fn apply_metadata(&self, schema: Schema, metadata: Option<Metadata>) -> Schema {
         match metadata {
             None => return schema,
-            Some(metadata) if metadata == Metadata::default() => return schema,
+            Some(ref metadata) if *metadata == Metadata::default() => return schema,
             Some(metadata) => {
                 let mut schema_obj = schema.into();
 
