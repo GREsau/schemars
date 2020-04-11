@@ -1,8 +1,11 @@
 # Changelog
 
-## In-dev - version TBC
+## [0.7.1] - 2020-04-11
 ### Added:
 - Added `examples` (https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.5) to `Metadata`
+
+### Fixed
+- Fixed a bug in schemars_derive causing a compile error when the `default`, `skip_serializing_if`, and `serialize_with`/`with` attributes are used together (https://github.com/GREsau/schemars/issues/26)
 
 ## [0.7.0] - 2020-03-24
 ### Changed:
