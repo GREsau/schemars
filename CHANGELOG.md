@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.7.2] - 2020-04-30
+### Added:
+- Enable deriving JsonSchema on adjacent tagged enums (https://github.com/GREsau/schemars/issues/4)
+
 ## [0.7.1] - 2020-04-11
 ### Added:
 - Added `examples` (https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.5) to `Metadata`
