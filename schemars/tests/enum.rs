@@ -59,3 +59,19 @@ pub enum Untagged {
 fn enum_untagged() -> TestResult {
     test_default_generated_schema::<Untagged>("enum-untagged")
 }
+
+#[derive(Debug, JsonSchema)]
+#[schemars(tag = "t", content = "c")]
+pub enum Adjacent {
+    UnitOne,
+    StringMap(Map<String, String>),
+    UnitStructNewType(UnitStruct),
+    StructNewType(Struct),
+    Struct { foo: i32, bar: bool },
+    Tuple(i32, bool),
+}
+
+#[test]
+fn enum_adjacent_tagged() -> TestResult {
+    test_default_generated_schema::<Adjacent>("enum_adjacent_tagged-untagged")
+}

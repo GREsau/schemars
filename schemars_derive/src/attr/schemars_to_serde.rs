@@ -11,8 +11,7 @@ static SERDE_KEYWORDS: &[&str] = &[
     // TODO: for structs with `deny_unknown_fields`, set schema's `additionalProperties` to false.
     // "deny_unknown_fields",
     "tag",
-    // TODO: support adjecently tagged enums (https://github.com/GREsau/schemars/issues/4)
-    // "content",
+    "content",
     "untagged",
     "default",
     "skip",

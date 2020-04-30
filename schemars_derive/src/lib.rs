@@ -131,7 +131,9 @@ fn schema_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> Toke
         TagType::External => schema_for_external_tagged_enum(variants),
         TagType::None => schema_for_untagged_enum(variants),
         TagType::Internal { tag } => schema_for_internal_tagged_enum(variants, tag),
-        TagType::Adjacent { .. } => unimplemented!("Adjacent tagged enums not yet supported."),
+        TagType::Adjacent { tag, content } => {
+            schema_for_adjacent_tagged_enum(variants, tag, content)
+        }
     }
 }
 
@@ -266,6 +268,71 @@ fn schema_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
         Style::Tuple => schema_for_tuple_struct(&variant.fields),
         Style::Struct => schema_for_struct(&variant.fields, None),
     }
+}
+
+fn schema_for_adjacent_tagged_enum<'a>(
+    variants: impl Iterator<Item = &'a Variant<'a>>,
+    tag_name: &str,
+    content_name: &str,
+) -> TokenStream {
+    let schemas = variants.map(|variant| {
+        let content_schema = match variant.style {
+            Style::Unit => None,
+            Style::Newtype => {
+                let field = &variant.fields[0];
+                let ty = get_json_schema_type(field);
+                Some(quote_spanned! {field.original.span()=>
+                    <#ty>::json_schema(gen)
+                })
+            }
+            Style::Struct => Some(schema_for_struct(&variant.fields, None)),
+            Style::Tuple => Some(schema_for_tuple_struct(&variant.fields)),
+        };
+
+        let (add_content_property, add_content_required) = content_schema
+            .map(|content_schema| {
+                (
+                    quote!(props.insert(#content_name.to_owned(), #content_schema);),
+                    quote!(required.insert(#content_name.to_owned());),
+                )
+            })
+            .unwrap_or_default();
+
+        let name = variant.attrs.name().deserialize_name();
+        let tag_schema = wrap_schema_fields(quote! {
+            instance_type: Some(schemars::schema::InstanceType::String.into()),
+            enum_values: Some(vec![#name.into()]),
+        });
+
+        let outer_schema = wrap_schema_fields(quote! {
+            instance_type: Some(schemars::schema::InstanceType::Object.into()),
+            object: Some(Box::new(schemars::schema::ObjectValidation {
+                properties: {
+                    let mut props = schemars::Map::new();
+                    props.insert(#tag_name.to_owned(), #tag_schema);
+                    #add_content_property
+                    props
+                },
+                required: {
+                    let mut required = schemars::Set::new();
+                    required.insert(#tag_name.to_owned());
+                    #add_content_required
+                    required
+                },
+                ..Default::default()
+            })),
+        });
+
+        let doc_metadata = SchemaMetadata::from_doc_attrs(&variant.original.attrs);
+        doc_metadata.apply_to_schema(outer_schema)
+    });
+
+    wrap_schema_fields(quote! {
+        subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
+            any_of: Some(vec![#(#schemas),*]),
+            ..Default::default()
+        })),
+    })
 }
 
 fn schema_for_unit_struct() -> TokenStream {
