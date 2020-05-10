@@ -89,6 +89,18 @@
           "minItems": 2
         }
       }
+    },
+    {
+      "type": "object",
+      "required": [
+        "withInt"
+      ],
+      "properties": {
+        "withInt": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
     }
   ],
   "definitions": {

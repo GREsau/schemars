@@ -106,6 +106,24 @@
           ]
         }
       }
+    },
+    {
+      "type": [
+        "object",
+        "integer"
+      ],
+      "format": "int32",
+      "required": [
+        "typeProperty"
+      ],
+      "properties": {
+        "typeProperty": {
+          "type": "string",
+          "enum": [
+            "WithInt"
+          ]
+        }
+      }
     }
   ]
 }

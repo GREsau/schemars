@@ -18,9 +18,14 @@ pub enum External {
     StringMap(Map<String, String>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
-    Struct { foo: i32, bar: bool },
+    Struct {
+        foo: i32,
+        bar: bool,
+    },
     UnitTwo,
     Tuple(i32, bool),
+    #[schemars(with = "i32")]
+    WithInt,
 }
 
 #[test]
@@ -35,8 +40,13 @@ pub enum Internal {
     StringMap(Map<String, String>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
-    Struct { foo: i32, bar: bool },
+    Struct {
+        foo: i32,
+        bar: bool,
+    },
     UnitTwo,
+    #[schemars(with = "i32")]
+    WithInt,
 }
 
 #[test]
@@ -51,8 +61,13 @@ pub enum Untagged {
     StringMap(Map<String, String>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
-    Struct { foo: i32, bar: bool },
+    Struct {
+        foo: i32,
+        bar: bool,
+    },
     Tuple(i32, bool),
+    #[schemars(with = "i32")]
+    WithInt,
 }
 
 #[test]
@@ -67,8 +82,14 @@ pub enum Adjacent {
     StringMap(Map<String, String>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
-    Struct { foo: i32, bar: bool },
+    Struct {
+        foo: i32,
+        bar: bool,
+    },
     Tuple(i32, bool),
+    UnitTwo,
+    #[schemars(with = "i32")]
+    WithInt,
 }
 
 #[test]

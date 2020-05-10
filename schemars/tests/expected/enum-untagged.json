@@ -46,6 +46,10 @@
       ],
       "maxItems": 2,
       "minItems": 2
+    },
+    {
+      "type": "integer",
+      "format": "int32"
     }
   ],
   "definitions": {

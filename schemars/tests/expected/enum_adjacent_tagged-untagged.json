@@ -145,6 +145,39 @@
           ]
         }
       }
+    },
+    {
+      "type": "object",
+      "required": [
+        "t"
+      ],
+      "properties": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "UnitTwo"
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "c",
+        "t"
+      ],
+      "properties": {
+        "c": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "t": {
+          "type": "string",
+          "enum": [
+            "WithInt"
+          ]
+        }
+      }
     }
   ]
 }

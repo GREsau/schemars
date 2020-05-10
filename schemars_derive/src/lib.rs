@@ -10,9 +10,10 @@ mod metadata;
 use metadata::*;
 use proc_macro2::TokenStream;
 use quote::ToTokens;
-use serde_derive_internals::ast::{Container, Data, Field, Style, Variant};
+use serde_derive_internals::ast::{Container, Data, Field, Style, Variant as SerdeVariant};
 use serde_derive_internals::attr::{self as serde_attr, Default as SerdeDefault, TagType};
 use serde_derive_internals::{Ctxt, Derive};
+use std::ops::Deref;
 use syn::spanned::Spanned;
 
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
@@ -36,7 +37,7 @@ pub fn derive_json_schema(input: proc_macro::TokenStream) -> proc_macro::TokenSt
         Data::Struct(Style::Newtype, ref fields) => schema_for_newtype_struct(&fields[0]),
         Data::Struct(Style::Tuple, ref fields) => schema_for_tuple_struct(fields),
         Data::Struct(Style::Struct, ref fields) => schema_for_struct(fields, Some(&cont.attrs)),
-        Data::Enum(ref variants) => schema_for_enum(variants, &cont.attrs),
+        Data::Enum(variants) => schema_for_enum(&Variant::vec_new(variants), &cont.attrs),
     };
     let doc_metadata = SchemaMetadata::from_doc_attrs(&cont.original.attrs);
     let schema_expr = doc_metadata.apply_to_schema(schema_expr);
@@ -120,7 +121,7 @@ fn compile_error<'a>(errors: impl IntoIterator<Item = &'a syn::Error>) -> TokenS
 
 fn is_unit_variant(v: &Variant) -> bool {
     match v.style {
-        Style::Unit => true,
+        Style::Unit => v.with.is_none(),
         _ => false,
     }
 }
@@ -221,17 +222,24 @@ fn schema_for_internal_tagged_enum<'a>(
         let doc_metadata = SchemaMetadata::from_doc_attrs(&variant.original.attrs);
         let tag_schema = doc_metadata.apply_to_schema(tag_schema);
 
-        let variant_schema = match variant.style {
-            Style::Unit => return tag_schema,
-            Style::Newtype => {
+        // FIXME this match block is duplicated in schema_for_adjacent_tagged_enum,
+        // and is extremely similar to schema_for_untagged_enum_variant
+        let variant_schema = match (&variant.with, &variant.style) {
+            (Some(with), _) => {
+                quote_spanned! {variant.original.span()=>
+                    <#with>::json_schema(gen)
+                }
+            }
+            (None, Style::Unit) => return tag_schema,
+            (None, Style::Newtype) => {
                 let field = &variant.fields[0];
                 let ty = get_json_schema_type(field);
                 quote_spanned! {field.original.span()=>
                     <#ty>::json_schema(gen)
                 }
             }
-            Style::Struct => schema_for_struct(&variant.fields, None),
-            Style::Tuple => unreachable!("Internal tagged enum tuple variants will have caused serde_derive_internals to output a compile error already."),
+            (None, Style::Struct) => schema_for_struct(&variant.fields, None),
+            (None, Style::Tuple) => schema_for_tuple_struct(&variant.fields),
         };
         quote! {
             #tag_schema.flatten(#variant_schema)
@@ -262,6 +270,12 @@ fn schema_for_untagged_enum<'a>(variants: impl Iterator<Item = &'a Variant<'a>>)
 }
 
 fn schema_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
+    if let Some(with) = &variant.with {
+        return quote_spanned! {variant.original.span()=>
+            gen.subschema_for::<#with>()
+        };
+    }
+
     match variant.style {
         Style::Unit => schema_for_unit_struct(),
         Style::Newtype => schema_for_newtype_struct(&variant.fields[0]),
@@ -276,17 +290,20 @@ fn schema_for_adjacent_tagged_enum<'a>(
     content_name: &str,
 ) -> TokenStream {
     let schemas = variants.map(|variant| {
-        let content_schema = match variant.style {
-            Style::Unit => None,
-            Style::Newtype => {
+        let content_schema = match (&variant.with, &variant.style) {
+            (Some(with), _) => Some(quote_spanned! {variant.original.span()=>
+                <#with>::json_schema(gen)
+            }),
+            (None, Style::Unit) => None,
+            (None, Style::Newtype) => {
                 let field = &variant.fields[0];
                 let ty = get_json_schema_type(field);
                 Some(quote_spanned! {field.original.span()=>
                     <#ty>::json_schema(gen)
                 })
             }
-            Style::Struct => Some(schema_for_struct(&variant.fields, None)),
-            Style::Tuple => Some(schema_for_tuple_struct(&variant.fields)),
+            (None, Style::Struct) => Some(schema_for_struct(&variant.fields, None)),
+            (None, Style::Tuple) => Some(schema_for_tuple_struct(&variant.fields)),
         };
 
         let (add_content_property, add_content_required) = content_schema
@@ -472,11 +489,39 @@ fn field_default_expr(field: &Field, container_has_default: bool) -> Option<Toke
     })
 }
 
-fn get_json_schema_type(field: &Field) -> Box<dyn ToTokens> {
+fn get_json_schema_type(field: &Field) -> TokenStream {
     // TODO support [schemars(schema_with= "...")] or equivalent
-    match attr::get_with_from_attrs(&field.original) {
-        None => Box::new(field.ty.clone()),
-        Some(Ok(expr_path)) => Box::new(expr_path),
-        Some(Err(e)) => Box::new(compile_error(&[e])),
+    match attr::get_with_from_attrs(&field.original.attrs) {
+        None => field.ty.to_token_stream(),
+        Some(Ok(expr_path)) => expr_path.to_token_stream(),
+        Some(Err(e)) => compile_error(&[e]),
+    }
+}
+
+struct Variant<'a> {
+    serde: SerdeVariant<'a>,
+    with: Option<TokenStream>,
+}
+
+impl<'a> Variant<'a> {
+    fn new(serde: SerdeVariant<'a>) -> Self {
+        let with = match attr::get_with_from_attrs(&serde.original.attrs) {
+            None => None,
+            Some(Ok(expr_path)) => Some(expr_path.to_token_stream()),
+            Some(Err(e)) => Some(compile_error(&[e])),
+        };
+        Self { serde, with }
+    }
+
+    fn vec_new(serdes: Vec<SerdeVariant<'a>>) -> Vec<Variant<'a>> {
+        serdes.into_iter().map(Self::new).collect()
+    }
+}
+
+impl<'a> Deref for Variant<'a> {
+    type Target = SerdeVariant<'a>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.serde
     }
 }

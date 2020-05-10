@@ -1,5 +1,9 @@
 # Changelog
 
+## In-dev - version TBC
+### Fixed
+- `#[serde(with = "...")]`/`#[schemars(with = "...")]` attributes on enum variants are now respected
+
 ## [0.7.2] - 2020-04-30
 ### Added:
 - Enable deriving JsonSchema on adjacent tagged enums (https://github.com/GREsau/schemars/issues/4)
