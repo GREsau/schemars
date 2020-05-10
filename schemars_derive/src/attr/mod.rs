@@ -5,9 +5,13 @@ pub use doc::get_title_and_desc_from_doc;
 pub use schemars_to_serde::process_serde_attrs;
 
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
+use serde_derive_internals::Ctxt;
 use syn::parse::{self, Parse};
 
-pub fn get_with_from_attrs(attrs: &[syn::Attribute]) -> Option<syn::Result<syn::Type>> {
+pub fn get_with_from_attrs(
+    attrs: &[syn::Attribute],
+    errors: &Ctxt,
+) -> Result<Option<syn::Type>, ()> {
     attrs
         .iter()
         .filter(|at| match at.path.get_ident() {
@@ -17,7 +21,13 @@ pub fn get_with_from_attrs(attrs: &[syn::Attribute]) -> Option<syn::Result<syn::
         })
         .filter_map(get_with_from_attr)
         .next()
-        .map(|lit| parse_lit_str(&lit))
+        .map_or(Ok(None), |lit| match parse_lit_str::<syn::Type>(&lit) {
+            Ok(t) => Ok(Some(t)),
+            Err(e) => {
+                errors.error_spanned_by(lit, e);
+                Err(())
+            }
+        })
 }
 
 fn get_with_from_attr(attr: &syn::Attribute) -> Option<syn::LitStr> {
