@@ -45,7 +45,7 @@
       ],
       "properties": {
         "c": {
-          "type": "null"
+          "$ref": "#/definitions/UnitStruct"
         },
         "t": {
           "type": "string",
@@ -63,20 +63,7 @@
       ],
       "properties": {
         "c": {
-          "type": "object",
-          "required": [
-            "bar",
-            "foo"
-          ],
-          "properties": {
-            "bar": {
-              "type": "boolean"
-            },
-            "foo": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
+          "$ref": "#/definitions/Struct"
         },
         "t": {
           "type": "string",
@@ -179,5 +166,26 @@
         }
       }
     }
-  ]
+  ],
+  "definitions": {
+    "Struct": {
+      "type": "object",
+      "required": [
+        "bar",
+        "foo"
+      ],
+      "properties": {
+        "bar": {
+          "type": "boolean"
+        },
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
+    "UnitStruct": {
+      "type": "null"
+    }
+  }
 }

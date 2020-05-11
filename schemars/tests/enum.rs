@@ -94,5 +94,5 @@ pub enum Adjacent {
 
 #[test]
 fn enum_adjacent_tagged() -> TestResult {
-    test_default_generated_schema::<Adjacent>("enum_adjacent_tagged-untagged")
+    test_default_generated_schema::<Adjacent>("enum-adjacent-tagged")
 }

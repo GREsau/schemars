@@ -54,10 +54,21 @@ impl<'a> Variant<'a> {
     pub fn name(&self) -> String {
         self.serde_attrs.name().deserialize_name()
     }
+
+    pub fn is_unit(&self) -> bool {
+        match self.style {
+            serde_ast::Style::Unit => true,
+            _ => false,
+        }
+    }
 }
 
 impl<'a> Field<'a> {
     pub fn name(&self) -> String {
         self.serde_attrs.name().deserialize_name()
+    }
+
+    pub fn type_for_schema(&self) -> &syn::Type {
+        self.with.as_ref().unwrap_or(self.ty)
     }
 }
