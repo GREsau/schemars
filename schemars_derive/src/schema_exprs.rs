@@ -1,4 +1,4 @@
-use crate::{ast::*, metadata::SchemaMetadata};
+use crate::{ast::*, attr::WithAttr, metadata::SchemaMetadata};
 use proc_macro2::TokenStream;
 use serde_derive_internals::ast::Style;
 use serde_derive_internals::attr::{self as serde_attr, Default as SerdeDefault, TagType};
@@ -33,7 +33,7 @@ fn expr_for_external_tagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
 ) -> TokenStream {
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
-        variants.partition(|v| v.is_unit() && v.with.is_none());
+        variants.partition(|v| v.is_unit() && v.attrs.with.is_none());
 
     let unit_names = unit_variants.iter().map(|v| v.name());
     let unit_schema = schema_object(quote! {
@@ -147,7 +147,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
     content_name: &str,
 ) -> TokenStream {
     let schemas = variants.map(|variant| {
-        let content_schema = if variant.is_unit() && variant.with.is_none() {
+        let content_schema = if variant.is_unit() && variant.attrs.with.is_none() {
             None
         } else {
             Some(expr_for_untagged_enum_variant(variant))
@@ -200,7 +200,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
 }
 
 fn expr_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
-    if let Some(with) = &variant.with {
+    if let Some(WithAttr::Type(with)) = &variant.attrs.with {
         return quote_spanned! {variant.original.span()=>
             gen.subschema_for::<#with>()
         };
@@ -215,7 +215,7 @@ fn expr_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
 }
 
 fn expr_for_untagged_enum_variant_for_flatten(variant: &Variant) -> Option<TokenStream> {
-    if let Some(with) = &variant.with {
+    if let Some(WithAttr::Type(with)) = &variant.attrs.with {
         return Some(quote_spanned! {variant.original.span()=>
             <#with>::json_schema(gen)
         });

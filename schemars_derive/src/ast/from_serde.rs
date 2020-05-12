@@ -1,5 +1,5 @@
 use super::*;
-use crate::attr::get_with_from_attrs;
+use crate::attr::Attrs;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::Ctxt;
 
@@ -56,7 +56,7 @@ impl<'a> FromSerde for Variant<'a> {
             style: serde.style,
             fields: Field::vec_from_serde(errors, serde.fields)?,
             original: serde.original,
-            with: get_with_from_attrs(&serde.original.attrs, errors)?,
+            attrs: Attrs::new(&serde.original.attrs, errors),
         })
     }
 }
@@ -70,7 +70,7 @@ impl<'a> FromSerde for Field<'a> {
             serde_attrs: serde.attrs,
             ty: serde.ty,
             original: serde.original,
-            with: get_with_from_attrs(&serde.original.attrs, errors)?,
+            attrs: Attrs::new(&serde.original.attrs, errors),
         })
     }
 }

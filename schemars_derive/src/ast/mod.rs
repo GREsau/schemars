@@ -1,5 +1,6 @@
 mod from_serde;
 
+use crate::attr::{Attrs, WithAttr};
 use from_serde::FromSerde;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::{Ctxt, Derive};
@@ -23,7 +24,7 @@ pub struct Variant<'a> {
     pub style: serde_ast::Style,
     pub fields: Vec<Field<'a>>,
     pub original: &'a syn::Variant,
-    pub with: Option<syn::Type>,
+    pub attrs: Attrs,
 }
 
 pub struct Field<'a> {
@@ -31,7 +32,7 @@ pub struct Field<'a> {
     pub serde_attrs: serde_derive_internals::attr::Field,
     pub ty: &'a syn::Type,
     pub original: &'a syn::Field,
-    pub with: Option<syn::Type>,
+    pub attrs: Attrs,
 }
 
 impl<'a> Container<'a> {
@@ -69,6 +70,10 @@ impl<'a> Field<'a> {
     }
 
     pub fn type_for_schema(&self) -> &syn::Type {
-        self.with.as_ref().unwrap_or(self.ty)
+        match &self.attrs.with {
+            None => self.ty,
+            Some(WithAttr::Type(ty)) => ty,
+            Some(WithAttr::_Function(_)) => todo!(),
+        }
     }
 }
