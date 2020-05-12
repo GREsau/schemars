@@ -73,7 +73,7 @@ impl<'a> Field<'a> {
         match &self.attrs.with {
             None => self.ty,
             Some(WithAttr::Type(ty)) => ty,
-            Some(WithAttr::_Function(_)) => todo!(),
+            Some(WithAttr::_Function(_)) => unimplemented!(), // TODO
         }
     }
 }
