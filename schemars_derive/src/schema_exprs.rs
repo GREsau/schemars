@@ -303,11 +303,22 @@ fn expr_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -> 
         }
     });
 
+    let deny_unknown_fields = cattrs
+        .map_or(false, |attrs| attrs.deny_unknown_fields());
+
     quote! {
         {
             #set_container_default
             let mut schema_object = schemars::schema::SchemaObject {
                 instance_type: Some(schemars::schema::InstanceType::Object.into()),
+                object: Some(Box::new(schemars::schema::ObjectValidation {
+                    additional_properties: if #deny_unknown_fields {
+                        Some(Box::new(false.into()))
+                    } else {
+                        None
+                    },
+                    ..Default::default()
+                })),
                 ..Default::default()
             };
             #(#properties)*
