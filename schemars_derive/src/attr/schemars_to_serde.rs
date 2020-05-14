@@ -8,8 +8,7 @@ use syn::{Attribute, Data, Field, Meta, NestedMeta, Variant};
 static SERDE_KEYWORDS: &[&str] = &[
     "rename",
     "rename_all",
-    // TODO: for structs with `deny_unknown_fields`, set schema's `additionalProperties` to false.
-    // "deny_unknown_fields",
+    "deny_unknown_fields",
     "tag",
     "content",
     "untagged",
