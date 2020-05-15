@@ -2,6 +2,9 @@ mod util;
 use schemars::{JsonSchema, Map};
 use util::*;
 
+// Ensure that schemars_derive uses the full path to std::string::String
+pub struct String;
+
 #[derive(Debug, JsonSchema)]
 pub struct UnitStruct;
 
@@ -15,7 +18,7 @@ pub struct Struct {
 #[schemars(rename_all = "camelCase")]
 pub enum External {
     UnitOne,
-    StringMap(Map<String, String>),
+    StringMap(Map<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
     Struct {
@@ -37,7 +40,7 @@ fn enum_external_tag() -> TestResult {
 #[schemars(tag = "typeProperty")]
 pub enum Internal {
     UnitOne,
-    StringMap(Map<String, String>),
+    StringMap(Map<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
     Struct {
@@ -58,7 +61,7 @@ fn enum_internal_tag() -> TestResult {
 #[schemars(untagged)]
 pub enum Untagged {
     UnitOne,
-    StringMap(Map<String, String>),
+    StringMap(Map<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
     Struct {
@@ -79,7 +82,7 @@ fn enum_untagged() -> TestResult {
 #[schemars(tag = "t", content = "c")]
 pub enum Adjacent {
     UnitOne,
-    StringMap(Map<String, String>),
+    StringMap(Map<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
     Struct {

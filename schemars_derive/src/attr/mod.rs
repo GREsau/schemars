@@ -22,7 +22,7 @@ pub struct Attrs {
 #[derive(Debug)]
 pub enum WithAttr {
     Type(syn::Type),
-    _Function(syn::Path),
+    Function(syn::Path),
 }
 
 impl Attrs {
@@ -74,10 +74,18 @@ impl Attrs {
                     if let Ok(ty) = parse_lit_into_ty(errors, attr_type, "with", &m.lit) {
                         match self.with {
                             Some(WithAttr::Type(_)) => duplicate_error(m),
-                            Some(WithAttr::_Function(_)) => {
-                                mutual_exclusive_error(m, "schema_with")
-                            }
+                            Some(WithAttr::Function(_)) => mutual_exclusive_error(m, "schema_with"),
                             None => self.with = Some(WithAttr::Type(ty)),
+                        }
+                    }
+                }
+
+                Meta(NameValue(m)) if m.path.is_ident("schema_with") => {
+                    if let Ok(fun) = parse_lit_into_path(errors, attr_type, "schema_with", &m.lit) {
+                        match self.with {
+                            Some(WithAttr::Function(_)) => duplicate_error(m),
+                            Some(WithAttr::Type(_)) => mutual_exclusive_error(m, "with"),
+                            None => self.with = Some(WithAttr::Function(fun)),
                         }
                     }
                 }
@@ -148,8 +156,8 @@ fn get_lit_str<'a>(
         cx.error_spanned_by(
             lit,
             format!(
-                "expected {} attribute to be a string: `{} = \"...\"`",
-                attr_type, meta_item_name
+                "expected {} {} attribute to be a string: `{} = \"...\"`",
+                attr_type, meta_item_name, meta_item_name
             ),
         );
         Err(())
@@ -167,7 +175,31 @@ fn parse_lit_into_ty(
     parse_lit_str(string).map_err(|_| {
         cx.error_spanned_by(
             lit,
-            format!("failed to parse type: {} = {:?}", attr_type, string.value()),
+            format!(
+                "failed to parse type: `{} = {:?}`",
+                meta_item_name,
+                string.value()
+            ),
+        )
+    })
+}
+
+fn parse_lit_into_path(
+    cx: &Ctxt,
+    attr_type: &'static str,
+    meta_item_name: &'static str,
+    lit: &syn::Lit,
+) -> Result<syn::Path, ()> {
+    let string = get_lit_str(cx, attr_type, meta_item_name, lit)?;
+
+    parse_lit_str(string).map_err(|_| {
+        cx.error_spanned_by(
+            lit,
+            format!(
+                "failed to parse path: `{} = {:?}`",
+                meta_item_name,
+                string.value()
+            ),
         )
     })
 }

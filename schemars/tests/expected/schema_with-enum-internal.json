@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Internal",
+  "anyOf": [
+    {
+      "type": "object",
+      "required": [
+        "foo",
+        "typeProperty"
+      ],
+      "properties": {
+        "foo": {
+          "type": "boolean"
+        },
+        "typeProperty": {
+          "type": "string",
+          "enum": [
+            "Struct"
+          ]
+        }
+      }
+    },
+    {
+      "type": [
+        "boolean",
+        "object"
+      ],
+      "required": [
+        "typeProperty"
+      ],
+      "properties": {
+        "typeProperty": {
+          "type": "string",
+          "enum": [
+            "NewType"
+          ]
+        }
+      }
+    }
+  ]
+}

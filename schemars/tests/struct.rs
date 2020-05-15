@@ -2,11 +2,14 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
+// Ensure that schemars_derive uses the full path to std::string::String
+pub struct String;
+
 #[derive(Debug, JsonSchema)]
 pub struct Struct {
     foo: i32,
     bar: bool,
-    baz: Option<String>,
+    baz: Option<&'static str>,
 }
 
 #[test]
@@ -15,7 +18,7 @@ fn struct_normal() -> TestResult {
 }
 
 #[derive(Debug, JsonSchema)]
-pub struct Tuple(i32, bool, Option<String>);
+pub struct Tuple(i32, bool, Option<&'static str>);
 
 #[test]
 fn struct_tuple() -> TestResult {

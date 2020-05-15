@@ -1,6 +1,6 @@
 mod from_serde;
 
-use crate::attr::{Attrs, WithAttr};
+use crate::attr::Attrs;
 use from_serde::FromSerde;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::{Ctxt, Derive};
@@ -67,13 +67,5 @@ impl<'a> Variant<'a> {
 impl<'a> Field<'a> {
     pub fn name(&self) -> String {
         self.serde_attrs.name().deserialize_name()
-    }
-
-    pub fn type_for_schema(&self) -> &syn::Type {
-        match &self.attrs.with {
-            None => self.ty,
-            Some(WithAttr::Type(ty)) => ty,
-            Some(WithAttr::_Function(_)) => unimplemented!(), // TODO
-        }
     }
 }

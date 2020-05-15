@@ -17,6 +17,58 @@ pub fn expr_for_container(cont: &Container) -> TokenStream {
     doc_metadata.apply_to_schema(schema_expr)
 }
 
+fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
+    let (ty, type_def) = type_for_schema(field, 0);
+    let span = field.original.span();
+
+    if allow_ref {
+        quote_spanned! {span=>
+            {
+                #type_def
+                gen.subschema_for::<#ty>()
+            }
+        }
+    } else {
+        quote_spanned! {span=>
+            {
+                #type_def
+                <#ty as schemars::JsonSchema>::json_schema(gen)
+            }
+        }
+    }
+}
+
+fn type_for_schema(field: &Field, local_id: usize) -> (syn::Type, Option<TokenStream>) {
+    match &field.attrs.with {
+        None => (field.ty.to_owned(), None),
+        Some(WithAttr::Type(ty)) => (ty.to_owned(), None),
+        Some(WithAttr::Function(fun)) => {
+            let ty_name = format_ident!("_SchemarsSchemaWithFunction{}", local_id);
+            let fn_name = fun.segments.last().unwrap().ident.to_string();
+
+            let type_def = quote_spanned! {fun.span()=>
+                struct #ty_name;
+
+                impl schemars::JsonSchema for #ty_name {
+                    fn is_referenceable() -> bool {
+                        false
+                    }
+
+                    fn schema_name() -> std::string::String {
+                        #fn_name.to_string()
+                    }
+
+                    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                        #fun(gen)
+                    }
+                }
+            };
+
+            (parse_quote!(#ty_name), Some(type_def))
+        }
+    }
+}
+
 fn expr_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> TokenStream {
     let variants = variants
         .iter()
@@ -208,7 +260,7 @@ fn expr_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
 
     match variant.style {
         Style::Unit => expr_for_unit_struct(),
-        Style::Newtype => expr_for_newtype_struct(&variant.fields[0]),
+        Style::Newtype => expr_for_field(&variant.fields[0], true),
         Style::Tuple => expr_for_tuple_struct(&variant.fields),
         Style::Struct => expr_for_struct(&variant.fields, None),
     }
@@ -223,13 +275,7 @@ fn expr_for_untagged_enum_variant_for_flatten(variant: &Variant) -> Option<Token
 
     Some(match variant.style {
         Style::Unit => return None,
-        Style::Newtype => {
-            let field = &variant.fields[0];
-            let ty = field.type_for_schema();
-            quote_spanned! {field.original.span()=>
-                <#ty>::json_schema(gen)
-            }
-        }
+        Style::Newtype => expr_for_field(&variant.fields[0], false),
         Style::Tuple => expr_for_tuple_struct(&variant.fields),
         Style::Struct => expr_for_struct(&variant.fields, None),
     })
@@ -242,19 +288,21 @@ fn expr_for_unit_struct() -> TokenStream {
 }
 
 fn expr_for_newtype_struct(field: &Field) -> TokenStream {
-    let ty = field.type_for_schema();
-    quote_spanned! {field.original.span()=>
-        gen.subschema_for::<#ty>()
-    }
+    expr_for_field(field, true)
 }
 
 fn expr_for_tuple_struct(fields: &[Field]) -> TokenStream {
-    let types = fields
+    let (types, type_defs): (Vec<_>, Vec<_>) = fields
         .iter()
         .filter(|f| !f.serde_attrs.skip_deserializing())
-        .map(Field::type_for_schema);
+        .enumerate()
+        .map(|(i, f)| type_for_schema(f, i))
+        .unzip();
     quote! {
-        gen.subschema_for::<(#(#types),*)>()
+        {
+            #(#type_defs)*
+            gen.subschema_for::<(#(#types),*)>()
+        }
     }
 }
 
@@ -270,7 +318,9 @@ fn expr_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -> 
         SerdeDefault::Path(path) => Some(quote!(let container_default = #path();)),
     });
 
-    let properties = property_fields.iter().map(|field| {
+    let mut type_defs = Vec::new();
+
+    let properties: Vec<_> = property_fields.into_iter().map(|field| {
         let name = field.name();
         let default = field_default_expr(field, set_container_default.is_some());
 
@@ -286,25 +336,34 @@ fn expr_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -> 
             ..SchemaMetadata::from_doc_attrs(&field.original.attrs)
         };
 
-        let ty = field.type_for_schema();
-        let span = field.original.span();
-
-        quote_spanned! {span=>
-            <#ty>::add_schema_as_property(gen, &mut schema_object, #name.to_owned(), #metadata, #required);
+        let (ty, type_def) = type_for_schema(field, type_defs.len());
+        if let Some(type_def) = type_def {
+            type_defs.push(type_def);
         }
-    });
 
-    let flattens = flattened_fields.iter().map(|field| {
-        let ty = field.type_for_schema();
-        let span = field.original.span();
-
-        quote_spanned! {span=>
-            .flatten(<#ty>::json_schema_for_flatten(gen))
+        quote_spanned! {ty.span()=>
+            <#ty as schemars::JsonSchema>::add_schema_as_property(gen, &mut schema_object, #name.to_owned(), #metadata, #required);
         }
-    });
+
+    }).collect();
+
+    let flattens: Vec<_> = flattened_fields
+        .into_iter()
+        .map(|field| {
+            let (ty, type_def) = type_for_schema(field, type_defs.len());
+            if let Some(type_def) = type_def {
+                type_defs.push(type_def);
+            }
+
+            quote_spanned! {ty.span()=>
+                .flatten(<#ty as schemars::JsonSchema>::json_schema_for_flatten(gen))
+            }
+        })
+        .collect();
 
     quote! {
         {
+            #(#type_defs)*
             #set_container_default
             let mut schema_object = schemars::schema::SchemaObject {
                 instance_type: Some(schemars::schema::InstanceType::Object.into()),
