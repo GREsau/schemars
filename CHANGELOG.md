@@ -1,6 +1,6 @@
 # Changelog
 
-## In-dev - version TBC
+## [0.7.3] - 2020-05-15
 ### Added:
 - `#[schemars(schema_with = "...")]` attribute can be set on variants and fields. This allows you to specify another function which returns the schema you want, which is particularly useful on fields of types that don't implement the JsonSchema trait (https://github.com/GREsau/schemars/issues/15)
 
