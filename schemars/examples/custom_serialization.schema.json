@@ -5,7 +5,8 @@
   "properties": {
     "bool_as_string": {
       "default": "false",
-      "type": "string"
+      "type": "string",
+      "format": "boolean"
     },
     "bool_normal": {
       "default": false,
