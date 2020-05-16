@@ -38,7 +38,7 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     }
 }
 
-fn type_for_schema(field: &Field, local_id: usize) -> (syn::Type, Option<TokenStream>) {
+pub fn type_for_schema(field: &Field, local_id: usize) -> (syn::Type, Option<TokenStream>) {
     match &field.attrs.with {
         None => (field.ty.to_owned(), None),
         Some(WithAttr::Type(ty)) => (ty.to_owned(), None),

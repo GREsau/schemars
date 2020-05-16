@@ -30,10 +30,44 @@ fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
         Err(e) => return compile_error(&e),
     };
 
-    let schema_expr = schema_exprs::expr_for_container(&cont);
-
     let type_name = &cont.ident;
-    let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
+    let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
+
+    if let Some(transparent_field) = cont.transparent_field() {
+        let (ty, type_def) = schema_exprs::type_for_schema(transparent_field, 0);
+        return quote! {
+            #[automatically_derived]
+            impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
+                #type_def
+
+                fn is_referenceable() -> bool {
+                    <#ty as schemars::JsonSchema>::is_referenceable()
+                }
+
+                fn schema_name() -> std::string::String {
+                    <#ty as schemars::JsonSchema>::schema_name()
+                }
+
+                fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                    <#ty as schemars::JsonSchema>::json_schema(gen)
+                }
+
+                fn json_schema_for_flatten(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                    <#ty as schemars::JsonSchema>::json_schema_for_flatten(gen)
+                }
+
+                fn add_schema_as_property(
+                    gen: &mut schemars::gen::SchemaGenerator,
+                    parent: &mut schemars::schema::SchemaObject,
+                    name: String,
+                    metadata: Option<schemars::schema::Metadata>,
+                    required: bool,
+                ) {
+                    <#ty as schemars::JsonSchema>::add_schema_as_property(gen, parent, name, metadata, required)
+                }
+            };
+        };
+    }
 
     let mut schema_base_name = cont.name();
     let schema_is_renamed = *type_name != schema_base_name;
@@ -46,6 +80,7 @@ fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
         }
     }
 
+    let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
     let schema_name = if type_params.is_empty() {
         quote! {
             #schema_base_name.to_owned()
@@ -67,7 +102,7 @@ fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
         }
     };
 
-    let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
+    let schema_expr = schema_exprs::expr_for_container(&cont);
 
     quote! {
         #[automatically_derived]

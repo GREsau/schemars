@@ -49,6 +49,16 @@ impl<'a> Container<'a> {
     pub fn name(&self) -> String {
         self.serde_attrs.name().deserialize_name()
     }
+
+    pub fn transparent_field(&'a self) -> Option<&'a Field> {
+        if self.serde_attrs.transparent() {
+            if let Data::Struct(_, fields) = &self.data {
+                return Some(&fields[0]);
+            }
+        }
+
+        None
+    }
 }
 
 impl<'a> Variant<'a> {
