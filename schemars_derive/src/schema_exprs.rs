@@ -362,8 +362,14 @@ fn expr_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -> 
         })
         .collect();
 
-    let deny_unknown_fields = cattrs
-        .map_or(false, |attrs| attrs.deny_unknown_fields());
+    let deny_unknown_fields = cattrs.map_or(false, |attrs| attrs.deny_unknown_fields());
+    let set_additional_properties = if deny_unknown_fields {
+        quote! {
+            schema_object.object().additional_properties = Some(Box::new(false.into()));
+        }
+    } else {
+        TokenStream::new()
+    };
 
     quote! {
         {
@@ -371,16 +377,9 @@ fn expr_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -> 
             #set_container_default
             let mut schema_object = schemars::schema::SchemaObject {
                 instance_type: Some(schemars::schema::InstanceType::Object.into()),
-                object: Some(Box::new(schemars::schema::ObjectValidation {
-                    additional_properties: if #deny_unknown_fields {
-                        Some(Box::new(false.into()))
-                    } else {
-                        None
-                    },
-                    ..Default::default()
-                })),
                 ..Default::default()
             };
+            #set_additional_properties
             #(#properties)*
             schemars::schema::Schema::Object(schema_object)
             #(#flattens)*
