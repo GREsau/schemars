@@ -3,6 +3,7 @@
   "title": "External",
   "anyOf": [
     {
+      "type": "string",
       "enum": [
         "unitOne",
         "unitTwo"

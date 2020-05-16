@@ -294,6 +294,7 @@
   "definitions": {
     "InstanceType": {
       "description": "The possible types of values in JSON Schema documents.\n\nSee [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).",
+      "type": "string",
       "enum": [
         "null",
         "boolean",

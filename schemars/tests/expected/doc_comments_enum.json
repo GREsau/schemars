@@ -4,6 +4,7 @@
   "description": "This is the enum's description.",
   "anyOf": [
     {
+      "type": "string",
       "enum": [
         "UndocumentedUnit",
         "DocumentedUnit"

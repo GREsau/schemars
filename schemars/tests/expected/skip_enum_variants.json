@@ -3,6 +3,7 @@
   "title": "MyEnum",
   "anyOf": [
     {
+      "type": "string",
       "enum": [
         "Included2"
       ]
