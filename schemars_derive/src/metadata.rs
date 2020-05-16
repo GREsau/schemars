@@ -7,6 +7,7 @@ use syn::Attribute;
 pub struct SchemaMetadata {
     pub title: Option<String>,
     pub description: Option<String>,
+    pub deprecated: bool,
     pub read_only: bool,
     pub write_only: bool,
     pub default: Option<TokenStream>,
@@ -30,11 +31,13 @@ impl ToTokens for SchemaMetadata {
 }
 
 impl SchemaMetadata {
-    pub fn from_doc_attrs(attrs: &[Attribute]) -> SchemaMetadata {
+    pub fn from_attrs(attrs: &[Attribute]) -> SchemaMetadata {
         let (title, description) = attr::get_title_and_desc_from_doc(attrs);
+        let deprecated = attrs.iter().any(|a| a.path.is_ident("deprecated"));
         SchemaMetadata {
             title,
             description,
+            deprecated,
             ..Default::default()
         }
     }
@@ -59,6 +62,12 @@ impl SchemaMetadata {
         if let Some(description) = &self.description {
             setters.push(quote! {
                 metadata.description = Some(#description.to_owned());
+            });
+        }
+
+        if self.deprecated {
+            setters.push(quote! {
+                metadata.deprecated = true;
             });
         }
 
