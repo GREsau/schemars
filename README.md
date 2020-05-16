@@ -117,7 +117,7 @@ use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, JsonSchema)]
-#[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
 pub struct MyStruct {
     #[serde(rename = "myNumber")]
     pub my_int: i32,
@@ -171,6 +171,7 @@ fn main() {
       "format": "int32"
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "MyEnum": {
       "anyOf": [

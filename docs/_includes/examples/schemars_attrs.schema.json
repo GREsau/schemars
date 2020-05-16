@@ -26,6 +26,7 @@
       "format": "int32"
     }
   },
+  "additionalProperties": false,
   "definitions": {
     "MyEnum": {
       "anyOf": [

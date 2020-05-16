@@ -1,4 +1,8 @@
 # Changelog
+## In-dev - version TBC
+### Added:
+- If a struct is annotated with `#[serde(deny_unknown_fields)]`, generated schema will have `additionalProperties` set to `false` (https://github.com/GREsau/schemars/pull/30)
+- Set `type` property to `string` on simple enums (https://github.com/GREsau/schemars/issues/28)
 
 ## [0.7.3] - 2020-05-15
 ### Added:

@@ -2,7 +2,7 @@ use schemars::{schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, JsonSchema)]
-#[schemars(rename_all = "camelCase")]
+#[schemars(rename_all = "camelCase", deny_unknown_fields)]
 pub struct MyStruct {
     #[serde(rename = "thisIsOverridden")]
     #[schemars(rename = "myNumber")]

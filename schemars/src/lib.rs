@@ -113,7 +113,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct MyStruct {
-    #[serde(rename = "myNumber")]
+    #[serde(rename = "myNumber", deny_unknown_fields)]
     pub my_int: i32,
     pub my_bool: bool,
     #[serde(default)]
@@ -165,6 +165,7 @@ fn main() {
             "format": "int32"
         }
     },
+    "additionalProperties": false,
     "definitions": {
         "MyEnum": {
             "anyOf": [
