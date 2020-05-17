@@ -16,7 +16,7 @@ pub struct Attrs {
     pub title: Option<String>,
     pub description: Option<String>,
     pub deprecated: bool,
-    // TODO pub example: Option<syn::Path>,
+    pub examples: Vec<syn::Path>,
 }
 
 #[derive(Debug)]
@@ -108,6 +108,12 @@ impl Attrs {
                             Some(_) => duplicate_error(m),
                             None => self.description = Some(description.value()),
                         }
+                    }
+                }
+
+                Meta(NameValue(m)) if m.path.is_ident("example") => {
+                    if let Ok(fun) = parse_lit_into_path(errors, attr_type, "example", &m.lit) {
+                        self.examples.push(fun)
                     }
                 }
 

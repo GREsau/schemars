@@ -3,13 +3,14 @@ use attr::Attrs;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt};
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone)]
 pub struct SchemaMetadata<'a> {
     pub title: Option<&'a str>,
     pub description: Option<&'a str>,
     pub deprecated: bool,
     pub read_only: bool,
     pub write_only: bool,
+    pub examples: &'a [syn::Path],
     pub default: Option<TokenStream>,
 }
 
@@ -36,7 +37,10 @@ impl<'a> SchemaMetadata<'a> {
             title: attrs.title.as_ref().and_then(none_if_empty),
             description: attrs.description.as_ref().and_then(none_if_empty),
             deprecated: attrs.deprecated,
-            ..Default::default()
+            examples: &attrs.examples,
+            read_only: false,
+            write_only: false,
+            default: None,
         }
     }
 
@@ -77,6 +81,17 @@ impl<'a> SchemaMetadata<'a> {
         if self.write_only {
             setters.push(quote! {
                 metadata.write_only = true;
+            });
+        }
+
+        if !self.examples.is_empty() {
+            let examples = self.examples.iter().map(|eg| {
+                quote! {
+                    schemars::_serde_json::value::to_value(#eg())
+                }
+            });
+            setters.push(quote! {
+                metadata.examples = vec![#(#examples),*].into_iter().flatten().collect();
             });
         }
 
