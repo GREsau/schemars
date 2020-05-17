@@ -1,5 +1,9 @@
 # Changelog
 
+## In-dev - version TBC
+### Added:
+- `#[schemars(example = "...")]` attribute for setting examples on generated schemas (https://github.com/GREsau/schemars/issues/23)
+
 ## [0.7.5] - 2020-05-17
 ### Added:
 - Setting `#[deprecated]` attribute will now cause generated schemas to have the `deprecated` property set to `true`
