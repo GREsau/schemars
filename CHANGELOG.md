@@ -4,6 +4,9 @@
 - Setting `#[deprecated]` attribute will now cause generated schemas to have the `deprecated` property set to `true`
 - Respect #[serde(transparent)] attribute (https://github.com/GREsau/schemars/issues/17)
 
+### Changed:
+- schemars_derive is now an optional dependency, but included by default
+
 ## [0.7.4] - 2020-05-16
 ### Added:
 - If a struct is annotated with `#[serde(deny_unknown_fields)]`, generated schema will have `additionalProperties` set to `false` (https://github.com/GREsau/schemars/pull/30)
