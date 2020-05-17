@@ -232,6 +232,8 @@ pub mod gen;
 pub mod schema;
 
 #[cfg(feature = "schemars_derive")]
+extern crate schemars_derive;
+#[cfg(feature = "schemars_derive")]
 pub use schemars_derive::*;
 
 // Export serde_json so schemars_derive can use it
