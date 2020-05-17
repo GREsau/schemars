@@ -1,6 +1,6 @@
 # Changelog
 
-## In-dev - version TBC
+## [0.7.6] - 2020-05-17
 ### Added:
 - `#[schemars(example = "...")]` attribute for setting examples on generated schemas (https://github.com/GREsau/schemars/issues/23)
 
