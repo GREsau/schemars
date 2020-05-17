@@ -2,7 +2,8 @@
 ## In-dev - version TBC
 ### Added:
 - Setting `#[deprecated]` attribute will now cause generated schemas to have the `deprecated` property set to `true`
-- Respect #[serde(transparent)] attribute (https://github.com/GREsau/schemars/issues/17)
+- Respect `#[serde(transparent)]` attribute (https://github.com/GREsau/schemars/issues/17)
+- `#[schemars(title = "...", description = "...")]` can now be used to set schema title/description. If present, these values will be used instead of doc comments (https://github.com/GREsau/schemars/issues/13)
 
 ### Changed:
 - schemars_derive is now an optional dependency, but included by default
