@@ -13,7 +13,7 @@ categories = ["encoding"]
 build = "build.rs"
 
 [dependencies]
-schemars_derive = { version = "=0.7.4", path = "../schemars_derive" }
+schemars_derive = { version = "=0.7.4", optional = true, path = "../schemars_derive" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
@@ -28,7 +28,11 @@ arrayvec = { version = "0.5", default-features = false, optional = true }
 pretty_assertions = "0.6.1"
 
 [features]
-impl_json_schema = []
+default = ["derive"]
+
+derive = ["schemars_derive"]
+
+impl_json_schema = ["derive"]
 # derive_json_schema will be removed in a later version
 derive_json_schema = ["impl_json_schema"]
 

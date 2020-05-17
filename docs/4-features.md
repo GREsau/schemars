@@ -14,6 +14,7 @@ schemars = { version = "0.6", features = ["chrono"] }
 ```
 
 ## Feature Flags
+- `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro
 - `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
 
 ## Optional Dependencies
