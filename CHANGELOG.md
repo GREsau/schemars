@@ -1,5 +1,6 @@
 # Changelog
-## In-dev - version TBC
+
+## [0.7.5] - 2020-05-17
 ### Added:
 - Setting `#[deprecated]` attribute will now cause generated schemas to have the `deprecated` property set to `true`
 - Respect `#[serde(transparent)]` attribute (https://github.com/GREsau/schemars/issues/17)
