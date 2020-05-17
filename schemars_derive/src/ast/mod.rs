@@ -11,6 +11,7 @@ pub struct Container<'a> {
     pub data: Data<'a>,
     pub generics: &'a syn::Generics,
     pub original: &'a syn::DeriveInput,
+    pub attrs: Attrs,
 }
 
 pub enum Data<'a> {

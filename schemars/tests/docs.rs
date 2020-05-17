@@ -66,3 +66,22 @@ fn doc_comments_struct_ref_siblings() -> TestResult {
 fn doc_comments_enum() -> TestResult {
     test_default_generated_schema::<MyEnum>("doc_comments_enum")
 }
+
+/// # OverrideDocs struct
+/// This description should be overridden
+#[derive(Debug, JsonSchema)]
+#[schemars(description = "New description")]
+pub struct OverrideDocs {
+    /// # Overridden
+    #[schemars(title = "My integer", description = "This is an i32")]
+    pub my_int: i32,
+    /// # Overridden
+    /// Also overridden
+    #[schemars(title = "", description = "")]
+    pub my_undocumented_bool: bool,
+}
+
+#[test]
+fn doc_comments_override() -> TestResult {
+    test_default_generated_schema::<OverrideDocs>("doc_comments_override")
+}

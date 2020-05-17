@@ -27,6 +27,8 @@ impl<'a> FromSerde for Container<'a> {
             data: Data::from_serde(errors, serde.data)?,
             generics: serde.generics,
             original: serde.original,
+            // FIXME this allows with/schema_with attribute on containers
+            attrs: Attrs::new(&serde.original.attrs, errors),
         })
     }
 }

@@ -13,7 +13,7 @@ pub fn expr_for_container(cont: &Container) -> TokenStream {
         Data::Enum(variants) => expr_for_enum(variants, &cont.serde_attrs),
     };
 
-    let doc_metadata = SchemaMetadata::from_attrs(&cont.original.attrs);
+    let doc_metadata = SchemaMetadata::from_attrs(&cont.attrs);
     doc_metadata.apply_to_schema(schema_expr)
 }
 
@@ -121,7 +121,7 @@ fn expr_for_external_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
-        let doc_metadata = SchemaMetadata::from_attrs(&variant.original.attrs);
+        let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
         doc_metadata.apply_to_schema(schema_expr)
     }));
 
@@ -160,7 +160,7 @@ fn expr_for_internal_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
-        let doc_metadata = SchemaMetadata::from_attrs(&variant.original.attrs);
+        let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
         let tag_schema = doc_metadata.apply_to_schema(tag_schema);
 
         match expr_for_untagged_enum_variant_for_flatten(&variant) {
@@ -182,7 +182,7 @@ fn expr_for_internal_tagged_enum<'a>(
 fn expr_for_untagged_enum<'a>(variants: impl Iterator<Item = &'a Variant<'a>>) -> TokenStream {
     let schemas = variants.map(|variant| {
         let schema_expr = expr_for_untagged_enum_variant(variant);
-        let doc_metadata = SchemaMetadata::from_attrs(&variant.original.attrs);
+        let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
         doc_metadata.apply_to_schema(schema_expr)
     });
 
@@ -240,7 +240,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
             })),
         });
 
-        let doc_metadata = SchemaMetadata::from_attrs(&variant.original.attrs);
+        let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
         doc_metadata.apply_to_schema(outer_schema)
     });
 
@@ -334,7 +334,7 @@ fn expr_for_struct(fields: &[Field], cattrs: Option<&serde_attr::Container>) -> 
             read_only: field.serde_attrs.skip_deserializing(),
             write_only: field.serde_attrs.skip_serializing(),
             default,
-            ..SchemaMetadata::from_attrs(&field.original.attrs)
+            ..SchemaMetadata::from_attrs(&field.attrs)
         };
 
         let (ty, type_def) = type_for_schema(field, type_defs.len());

@@ -1,19 +1,19 @@
 use crate::attr;
+use attr::Attrs;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{ToTokens, TokenStreamExt};
-use syn::Attribute;
 
 #[derive(Debug, Clone, Default)]
-pub struct SchemaMetadata {
-    pub title: Option<String>,
-    pub description: Option<String>,
+pub struct SchemaMetadata<'a> {
+    pub title: Option<&'a str>,
+    pub description: Option<&'a str>,
     pub deprecated: bool,
     pub read_only: bool,
     pub write_only: bool,
     pub default: Option<TokenStream>,
 }
 
-impl ToTokens for SchemaMetadata {
+impl ToTokens for SchemaMetadata<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let setters = self.make_setters();
         if setters.is_empty() {
@@ -30,14 +30,12 @@ impl ToTokens for SchemaMetadata {
     }
 }
 
-impl SchemaMetadata {
-    pub fn from_attrs(attrs: &[Attribute]) -> SchemaMetadata {
-        let (title, description) = attr::get_title_and_desc_from_doc(attrs);
-        let deprecated = attrs.iter().any(|a| a.path.is_ident("deprecated"));
+impl<'a> SchemaMetadata<'a> {
+    pub fn from_attrs(attrs: &'a Attrs) -> Self {
         SchemaMetadata {
-            title,
-            description,
-            deprecated,
+            title: attrs.title.as_deref().and_then(none_if_empty),
+            description: attrs.description.as_deref().and_then(none_if_empty),
+            deprecated: attrs.deprecated,
             ..Default::default()
         }
     }
@@ -51,7 +49,7 @@ impl SchemaMetadata {
         }
     }
 
-    fn make_setters(self: &SchemaMetadata) -> Vec<TokenStream> {
+    fn make_setters(&self) -> Vec<TokenStream> {
         let mut setters = Vec::<TokenStream>::new();
 
         if let Some(title) = &self.title {
@@ -89,5 +87,13 @@ impl SchemaMetadata {
         }
 
         setters
+    }
+}
+
+fn none_if_empty<'a>(s: &'a str) -> Option<&'a str> {
+    if s.is_empty() {
+        None
+    } else {
+        Some(s)
     }
 }

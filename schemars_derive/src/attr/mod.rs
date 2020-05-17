@@ -1,7 +1,6 @@
 mod doc;
 mod schemars_to_serde;
 
-pub use doc::get_title_and_desc_from_doc;
 pub use schemars_to_serde::process_serde_attrs;
 
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
@@ -16,6 +15,7 @@ pub struct Attrs {
     pub with: Option<WithAttr>,
     pub title: Option<String>,
     pub description: Option<String>,
+    pub deprecated: bool,
     // TODO pub example: Option<syn::Path>,
 }
 
@@ -27,14 +27,17 @@ pub enum WithAttr {
 
 impl Attrs {
     pub fn new(attrs: &[syn::Attribute], errors: &Ctxt) -> Self {
-        let (title, description) = doc::get_title_and_desc_from_doc(attrs);
-        Attrs {
-            title,
-            description,
-            ..Attrs::default()
-        }
-        .populate(attrs, "schemars", false, errors)
-        .populate(attrs, "serde", true, errors)
+        let mut result = Attrs::default()
+            .populate(attrs, "schemars", false, errors)
+            .populate(attrs, "serde", true, errors);
+
+        result.deprecated = attrs.iter().any(|a| a.path.is_ident("deprecated"));
+
+        let (doc_title, doc_description) = doc::get_title_and_desc_from_doc(attrs);
+        result.title = result.title.or(doc_title);
+        result.description = result.description.or(doc_description);
+
+        result
     }
 
     fn populate(
@@ -86,6 +89,24 @@ impl Attrs {
                             Some(WithAttr::Function(_)) => duplicate_error(m),
                             Some(WithAttr::Type(_)) => mutual_exclusive_error(m, "with"),
                             None => self.with = Some(WithAttr::Function(fun)),
+                        }
+                    }
+                }
+
+                Meta(NameValue(m)) if m.path.is_ident("title") => {
+                    if let Ok(title) = get_lit_str(errors, attr_type, "title", &m.lit) {
+                        match self.title {
+                            Some(_) => duplicate_error(m),
+                            None => self.title = Some(title.value()),
+                        }
+                    }
+                }
+
+                Meta(NameValue(m)) if m.path.is_ident("description") => {
+                    if let Ok(description) = get_lit_str(errors, attr_type, "description", &m.lit) {
+                        match self.description {
+                            Some(_) => duplicate_error(m),
+                            None => self.description = Some(description.value()),
                         }
                     }
                 }
