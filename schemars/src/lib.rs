@@ -212,9 +212,13 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 
 /// The map type used by schemars types.
 ///
-/// Currently a `BTreeMap`, but this may change a different implementation
+/// Currently a `BTreeMap` or `IndexMap` can be used, but this may change a different implementation
+/// The `IndexMap` will be used when the `preserve_order` feature flag is set.
 /// with a similar interface in a future version of schemars.
+#[cfg(not(feature = "preserve_order"))]
 pub type Map<K, V> = std::collections::BTreeMap<K, V>;
+#[cfg(feature = "preserve_order")]
+pub type Map<K, V> = indexmap::IndexMap<K, V>;
 /// The set type used by schemars types.
 ///
 /// Currently a `BTreeSet`, but this may change a different implementation
