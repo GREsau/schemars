@@ -231,6 +231,10 @@ pub mod gen;
 /// JSON Schema types.
 pub mod schema;
 
+/// JSON Schema validation.
+#[cfg(feature = "validation")]
+pub mod validation;
+
 #[cfg(feature = "schemars_derive")]
 extern crate schemars_derive;
 #[cfg(feature = "schemars_derive")]
