@@ -30,7 +30,7 @@ pretty_assertions = "0.6.1"
 
 [features]
 default = ["derive", "validation"]
-validation = ["regex"]
+validation = ["regex", "smallvec"]
 
 derive = ["schemars_derive"]
 
