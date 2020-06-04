@@ -1,6 +1,7 @@
 use crate::flatten::Merge;
 use crate::schema::*;
-use crate::{JsonSchema, Map};
+use crate::{visit::*, JsonSchema, Map};
+use std::{fmt::Debug, sync::Arc};
 
 /// Settings to customize how Schemas are generated.
 ///
@@ -18,10 +19,6 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `true`.
     pub option_add_null_type: bool,
-    /// Controls whether trivial [`Bool`](../schema/enum.Schema.html#variant.Bool) schemas may be generated.
-    ///
-    /// Defaults to [`BoolSchemas::Enabled`].
-    pub bool_schemas: BoolSchemas,
     /// A JSON pointer to the expected location of referenceable subschemas within the resulting root schema.
     ///
     /// Defaults to `"#/definitions/"`.
@@ -30,22 +27,9 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `"http://json-schema.org/draft-07/schema#"`.
     pub meta_schema: Option<String>,
-    /// Whether schemas with a `$ref` property may have other properties set.
-    ///
-    /// Defaults to `false`.
-    pub allow_ref_siblings: bool,
+    /// TODO document
+    pub visitors: Visitors,
     _hidden: (),
-}
-
-/// Controls whether trivial [`Bool`](../schema/enum.Schema.html#variant.Bool) schemas may be generated.
-#[derive(Debug, PartialEq, Copy, Clone)]
-pub enum BoolSchemas {
-    /// `Bool` schemas may be used.
-    Enabled,
-    /// `Bool` schemas may only be used in a schema's [`additionalProperties`](../schema/struct.ObjectValidation.html#structfield.additional_properties) field.
-    AdditionalPropertiesOnly,
-    /// `Bool` schemas will never be used.
-    Disabled,
 }
 
 impl Default for SchemaSettings {
@@ -60,10 +44,9 @@ impl SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
-            bool_schemas: BoolSchemas::Enabled,
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            allow_ref_siblings: false,
+            visitors: Visitors(vec![Arc::new(RemoveRefSiblings)]),
             _hidden: (),
         }
     }
@@ -73,10 +56,9 @@ impl SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
-            bool_schemas: BoolSchemas::Enabled,
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
-            allow_ref_siblings: true,
+            visitors: Visitors::default(),
             _hidden: (),
         }
     }
@@ -86,13 +68,17 @@ impl SchemaSettings {
         SchemaSettings {
             option_nullable: true,
             option_add_null_type: false,
-            bool_schemas: BoolSchemas::AdditionalPropertiesOnly,
             definitions_path: "#/components/schemas/".to_owned(),
             meta_schema: Some(
                 "https://spec.openapis.org/oas/3.0/schema/2019-04-02#/definitions/Schema"
                     .to_owned(),
             ),
-            allow_ref_siblings: false,
+            visitors: Visitors(vec![
+                Arc::new(RemoveRefSiblings),
+                Arc::new(ReplaceBoolSchemas {
+                    skip_additional_properties: true,
+                }),
+            ]),
             _hidden: (),
         }
     }
@@ -114,9 +100,32 @@ impl SchemaSettings {
         self
     }
 
+    /// TODO document
+    pub fn with_visitor(mut self, visitor: impl Visitor) -> Self {
+        self.visitors.0.push(Arc::new(visitor));
+        self
+    }
+
     /// Creates a new [`SchemaGenerator`] using these settings.
     pub fn into_generator(self) -> SchemaGenerator {
         SchemaGenerator::new(self)
+    }
+}
+
+/// TODO document
+#[derive(Debug, Clone, Default)]
+pub struct Visitors(Vec<Arc<dyn Visitor>>);
+
+impl PartialEq for Visitors {
+    fn eq(&self, other: &Self) -> bool {
+        if self.0.len() != other.0.len() {
+            return false;
+        }
+
+        self.0
+            .iter()
+            .zip(other.0.iter())
+            .all(|(a, b)| Arc::ptr_eq(a, b))
     }
 }
 
@@ -170,59 +179,17 @@ impl SchemaGenerator {
         &self.settings
     }
 
-    /// Modifies the given `SchemaObject` so that it may have validation, metadata or other properties set on it.
-    ///
-    /// If `schema` is not a `$ref` schema, then this does not modify `schema`. Otherwise, depending on this generator's settings,
-    /// this may wrap the `$ref` in another schema. This is required because in many JSON Schema implementations, a schema with `$ref`
-    /// set may not include other properties.
-    ///
-    /// # Example
-    /// ```
-    /// use schemars::{gen::SchemaGenerator, schema::SchemaObject};
-    ///
-    /// let gen = SchemaGenerator::default();
-    ///
-    /// let ref_schema = SchemaObject::new_ref("foo".to_owned());
-    /// assert!(ref_schema.is_ref());
-    ///
-    /// let mut extensible_schema = ref_schema.clone();
-    /// gen.make_extensible(&mut extensible_schema);
-    /// assert_ne!(ref_schema, extensible_schema);
-    /// assert!(!extensible_schema.is_ref());
-    ///
-    /// let mut extensible_schema2 = extensible_schema.clone();
-    /// gen.make_extensible(&mut extensible_schema);
-    /// assert_eq!(extensible_schema, extensible_schema2);
-    /// ```
-    pub fn make_extensible(&self, schema: &mut SchemaObject) {
-        if schema.is_ref() && !self.settings().allow_ref_siblings {
-            let original = std::mem::replace(schema, SchemaObject::default());
-            schema.subschemas().all_of = Some(vec![original.into()]);
-        }
-    }
+    #[deprecated = "This method no longer has any effect."]
+    pub fn make_extensible(&self, _schema: &mut SchemaObject) {}
 
-    /// Returns a `Schema` that matches everything, such as the empty schema `{}`.
-    ///
-    /// The exact value returned depends on this generator's [`BoolSchemas`](struct.SchemaSettings.html#structfield.bool_schemas) setting.
+    #[deprecated = "Use `Schema::Bool(true)` instead"]
     pub fn schema_for_any(&self) -> Schema {
-        let schema: Schema = true.into();
-        if self.settings().bool_schemas == BoolSchemas::Enabled {
-            schema
-        } else {
-            Schema::Object(schema.into())
-        }
+        Schema::Bool(true)
     }
 
-    /// Returns a `Schema` that matches nothing, such as the schema `{ "not":{} }`.
-    ///
-    /// The exact value returned depends on this generator's [`BoolSchemas`](struct.SchemaSettings.html#structfield.bool_schemas) setting.
+    #[deprecated = "Use `Schema::Bool(false)` instead"]
     pub fn schema_for_none(&self) -> Schema {
-        let schema: Schema = false.into();
-        if self.settings().bool_schemas == BoolSchemas::Enabled {
-            schema
-        } else {
-            Schema::Object(schema.into())
-        }
+        Schema::Bool(false)
     }
 
     /// Generates a JSON Schema for the type `T`, and returns either the schema itself or a `$ref` schema referencing `T`'s schema.
@@ -253,7 +220,7 @@ impl SchemaGenerator {
         self.definitions.insert(name, schema);
     }
 
-    /// Returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
+    /// Borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
@@ -275,14 +242,19 @@ impl SchemaGenerator {
     /// add them to the `SchemaGenerator`'s schema definitions and include them in the returned `SchemaObject`'s
     /// [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> RootSchema {
-        let mut schema = T::json_schema(self).into();
-        self.make_extensible(&mut schema);
+        let mut schema = T::json_schema(self).into_object();
         schema.metadata().title.get_or_insert_with(T::schema_name);
-        RootSchema {
+        let mut root = RootSchema {
             meta_schema: self.settings.meta_schema.clone(),
             definitions: self.definitions.clone(),
             schema,
+        };
+
+        for visitor in &self.settings.visitors.0 {
+            visitor.visit_root_schema(&mut root)
         }
+
+        root
     }
 
     /// Consumes `self` and generates a root JSON Schema for the type `T`.
@@ -290,14 +262,19 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
     /// include them in the returned `SchemaObject`'s [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> RootSchema {
-        let mut schema = T::json_schema(&mut self).into();
-        self.make_extensible(&mut schema);
+        let mut schema = T::json_schema(&mut self).into_object();
         schema.metadata().title.get_or_insert_with(T::schema_name);
-        RootSchema {
+        let mut root = RootSchema {
             meta_schema: self.settings.meta_schema,
             definitions: self.definitions,
             schema,
+        };
+
+        for visitor in &self.settings.visitors.0 {
+            visitor.visit_root_schema(&mut root)
         }
+
+        root
     }
 
     /// Attemps to find the schema that the given `schema` is referencing.
@@ -352,12 +329,69 @@ impl SchemaGenerator {
             None => return schema,
             Some(ref metadata) if *metadata == Metadata::default() => return schema,
             Some(metadata) => {
-                let mut schema_obj = schema.into();
-
-                self.make_extensible(&mut schema_obj);
+                let mut schema_obj = schema.into_object();
                 schema_obj.metadata = Some(Box::new(metadata)).merge(schema_obj.metadata);
-
                 Schema::Object(schema_obj)
+            }
+        }
+    }
+}
+
+/// TODO document
+#[derive(Debug)]
+pub struct ReplaceBoolSchemas {
+    pub skip_additional_properties: bool,
+}
+
+impl Visitor for ReplaceBoolSchemas {
+    fn visit_schema(&self, schema: &mut Schema) {
+        if let Schema::Bool(b) = *schema {
+            *schema = Schema::Bool(b).into_object().into()
+        }
+
+        visit_schema(self, schema)
+    }
+
+    fn visit_schema_object(&self, schema: &mut SchemaObject) {
+        if self.skip_additional_properties {
+            let mut additional_properties = None;
+            if let Some(obj) = &mut schema.object {
+                if let Some(ap) = &obj.additional_properties {
+                    if let Schema::Bool(_) = ap.as_ref() {
+                        additional_properties = obj.additional_properties.take();
+                    }
+                }
+            }
+
+            visit_schema_object(self, schema);
+
+            if additional_properties.is_some() {
+                schema.object().additional_properties = additional_properties;
+            }
+        } else {
+            visit_schema_object(self, schema);
+        }
+    }
+}
+
+/// TODO document
+#[derive(Debug)]
+pub struct RemoveRefSiblings;
+
+impl Visitor for RemoveRefSiblings {
+    fn visit_schema_object(&self, schema: &mut SchemaObject) {
+        visit_schema_object(self, schema);
+
+        if let Some(reference) = schema.reference.take() {
+            if schema == &SchemaObject::default() {
+                schema.reference = Some(reference);
+            } else {
+                let ref_schema = Schema::new_ref(reference);
+                let all_of = &mut schema.subschemas().all_of;
+                match all_of {
+                    Some(vec) => vec.push(ref_schema),
+                    None => *all_of = Some(vec![ref_schema]),
+                }
             }
         }
     }

@@ -1,5 +1,17 @@
 # Changelog
 
+## In-dev - version TBC
+### Added:
+- `visit::Visitor`, a trait for updating a schema and all schemas it contains recursively. A `SchemaSettings` can now contain a list of visitors.
+- `into_object()` method added to `Schema` as a shortcut for `into::<SchemaObject>()`
+
+### Removed (**BREAKING CHANGES**):
+- `SchemaSettings::bool_schemas` - this has been superseded by the `ReplaceBoolSchemas` visitor
+- `SchemaSettings::allow_ref_siblings` - this has been superseded by the `RemoveRefSiblings` visitor
+
+### Deprecated:
+- `make_extensible`, `schema_for_any`, and `schema_for_none` methods on `SchemaGenerator`
+
 ## [0.7.6] - 2020-05-17
 ### Added:
 - `#[schemars(example = "...")]` attribute for setting examples on generated schemas (https://github.com/GREsau/schemars/issues/23)

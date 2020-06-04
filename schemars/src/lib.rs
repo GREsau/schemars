@@ -230,6 +230,8 @@ mod macros;
 pub mod gen;
 /// JSON Schema types.
 pub mod schema;
+/// TODO document
+pub mod visit;
 
 #[cfg(feature = "schemars_derive")]
 extern crate schemars_derive;
@@ -323,18 +325,9 @@ pub mod tests {
         schema_object(schema_for::<T>())
     }
 
-    pub fn custom_schema_object_for<T: JsonSchema>(
-        settings: gen::SchemaSettings,
-    ) -> schema::SchemaObject {
-        schema_object(custom_schema_for::<T>(settings))
-    }
-
     pub fn schema_for<T: JsonSchema>() -> schema::Schema {
-        custom_schema_for::<T>(Default::default())
-    }
-
-    pub fn custom_schema_for<T: JsonSchema>(settings: gen::SchemaSettings) -> schema::Schema {
-        T::json_schema(&mut gen::SchemaGenerator::new(settings))
+        let mut gen = gen::SchemaGenerator::default();
+        T::json_schema(&mut gen)
     }
 
     pub fn schema_object(schema: schema::Schema) -> schema::SchemaObject {

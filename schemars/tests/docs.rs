@@ -58,7 +58,7 @@ fn doc_comments_struct() -> TestResult {
 
 #[test]
 fn doc_comments_struct_ref_siblings() -> TestResult {
-    let settings = SchemaSettings::draft07().with(|s| s.allow_ref_siblings = true);
+    let settings = SchemaSettings::draft2019_09();
     test_generated_schema::<MyStruct>("doc_comments_struct_ref_siblings", settings)
 }
 

@@ -40,6 +40,21 @@ impl Schema {
             _ => false,
         }
     }
+
+    /// TODO document
+    pub fn into_object(self) -> SchemaObject {
+        match self {
+            Schema::Object(o) => o,
+            Schema::Bool(true) => SchemaObject::default(),
+            Schema::Bool(false) => SchemaObject {
+                subschemas: Some(Box::new(SubschemaValidation {
+                    not: Some(Schema::Object(Default::default()).into()),
+                    ..Default::default()
+                })),
+                ..Default::default()
+            },
+        }
+    }
 }
 
 impl From<SchemaObject> for Schema {
@@ -204,17 +219,7 @@ impl SchemaObject {
 
 impl From<Schema> for SchemaObject {
     fn from(schema: Schema) -> Self {
-        match schema {
-            Schema::Object(o) => o,
-            Schema::Bool(true) => SchemaObject::default(),
-            Schema::Bool(false) => SchemaObject {
-                subschemas: Some(Box::new(SubschemaValidation {
-                    not: Some(Schema::Object(Default::default()).into()),
-                    ..Default::default()
-                })),
-                ..Default::default()
-            },
-        }
+        schema.into_object()
     }
 }
 

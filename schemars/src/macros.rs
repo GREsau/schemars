@@ -1,4 +1,4 @@
-/// Generates a [`Schema`](schema::Schema) for the given type using default settings.
+/// Generates a [`RootSchema`](schema::RootSchema) for the given type using default settings.
 ///
 /// The type must implement [`JsonSchema`].
 ///

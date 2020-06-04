@@ -11,8 +11,8 @@ impl JsonSchema for Value {
         "AnyValue".to_owned()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        gen.schema_for_any()
+    fn json_schema(_: &mut SchemaGenerator) -> Schema {
+        Schema::Bool(true)
     }
 }
 
