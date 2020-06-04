@@ -1,42 +1,187 @@
 use super::{Validate, ValidateMap, ValidateSeq, Validator};
-use serde::{ser, Serialize};
+use serde::{ser, ser::SerializeMap, Serialize};
 use std::{
     collections::hash_map::DefaultHasher,
     hash::{Hash, Hasher},
     mem,
 };
 
+/// A span that is associated with values during validation.
+///
+/// This trait is automatically implemented.
+pub trait Span: core::fmt::Debug + Clone {}
+impl<T: core::fmt::Debug + Clone> Span for T {}
+
+/// Spanner is used to provide spans for values that implement Serde Serialize.
+///
+/// A spanner is cloned for every nested value in a map or sequence,
+/// so custom Clone implementation might be necessary.
 pub trait Spanner: Clone {
-    type Span: core::fmt::Debug + Clone;
 
+    /// The span type that is associated with each value.
+    type Span: Span;
+
+    /// Span for a map key.
     fn key<S: ?Sized + Serialize>(&mut self, key: &S) -> Option<Self::Span>;
-    fn value<S: ?Sized + Serialize>(&mut self) -> Option<Self::Span>;
 
+    /// Span for a value.
+    fn value<S: ?Sized + Serialize>(&mut self, value: &S) -> Option<Self::Span>;
+
+    /// Same as value but for unit types.
+    fn unit(&mut self) -> Option<Self::Span>;
+
+    /// Span for a map value.
     fn map_start(&mut self) -> Option<Self::Span>;
+
+    /// Span for errors before closing a map.
     fn map_end(&mut self) -> Option<Self::Span>;
 
+    /// Span for a sequence value.
     fn seq_start(&mut self) -> Option<Self::Span>;
+
+    /// Span for errors before closing a sequence.
     fn seq_end(&mut self) -> Option<Self::Span>;
 }
 
-#[derive(Hash)]
-pub struct Keys<'k, S: ?Sized + Serialize> {
-    keys: Vec<String>,
+/// Spanned allows validation of any value that implements Serde Serialize with
+/// a given [Spanner](Spanner).
+pub struct Spanned<'k, S: ?Sized + Serialize, SP: Spanner> {
+    spanner: SP,
+    span: Option<SP::Span>,
     value: &'k S,
 }
 
-impl<'k, S: ?Sized + Serialize> Keys<'k, S> {
-    pub fn new(value: &'k S) -> Self {
-        Keys {
-            keys: Vec::new(),
+impl<'k, S, SP> Spanned<'k, S, SP>
+where
+    S: ?Sized + Serialize,
+    SP: Spanner,
+{
+    /// Create a new spanned value.
+    pub fn new(value: &'k S, spanner: SP) -> Self {
+        Spanned {
+            spanner,
+            span: None,
             value,
         }
     }
 }
 
-impl<'k, S: core::fmt::Display + ?Sized + Serialize> core::fmt::Display for Keys<'k, S> {
+impl<'k, S, SP> core::fmt::Display for Spanned<'k, S, SP>
+where
+    S: core::fmt::Display + ?Sized + Serialize,
+    SP: Spanner,
+{
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self.value.fmt(f)
+    }
+}
+
+impl<'k, S, SP> Hash for Spanned<'k, S, SP>
+where
+    S: ?Sized + Serialize + Hash,
+    SP: Spanner,
+{
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.value.hash(state)
+    }
+}
+
+/// KeySpanner associates nested values with their
+/// full path from the first value as a Vec of Strings.
+///
+/// Sequence indices are also turned into strings.
+#[derive(Default)]
+pub struct KeySpanner {
+    keys: Vec<String>,
+
+    // We use the same span for a map key and its value
+    last_key: Option<String>,
+
+    is_seq: bool,
+    item_index: usize,
+}
+
+impl KeySpanner {
+    /// Create a new Spanner.
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Clone for KeySpanner {
+    fn clone(&self) -> Self {
+        let mut keys = self.keys.clone();
+        if let Some(k) = &self.last_key {
+            keys.push(k.clone());
+        }
+
+        KeySpanner {
+            keys,
+            last_key: None,
+            is_seq: false,
+            item_index: 0,
+        }
+    }
+}
+
+impl Spanner for KeySpanner {
+    type Span = Vec<String>;
+
+    fn key<S: ?Sized + Serialize>(&mut self, key: &S) -> Option<Self::Span> {
+        let k = key.serialize(KeySerializer).unwrap();
+        let mut keys = self.keys.clone();
+        keys.push(k.clone());
+        self.last_key = k.into();
+
+        Some(keys)
+    }
+
+    fn value<S: ?Sized + Serialize>(&mut self, _value: &S) -> Option<Self::Span> {
+        if self.is_seq {
+            self.last_key = self.item_index.to_string().into();
+            self.item_index += 1;
+        }
+
+        if let Some(k) = &self.last_key {
+            let mut keys = self.keys.clone();
+            keys.push(k.clone());
+            return Some(keys);
+        }
+
+        Some(self.keys.clone())
+    }
+
+    fn unit(&mut self) -> Option<Self::Span> {
+        if self.is_seq {
+            self.last_key = self.item_index.to_string().into();
+            self.item_index += 1;
+        }
+
+        if let Some(k) = mem::take(&mut self.last_key) {
+            let mut keys = self.keys.clone();
+            keys.push(k);
+            return Some(keys);
+        }
+
+        Some(self.keys.clone())
+    }
+
+    fn map_start(&mut self) -> Option<Self::Span> {
+        Some(self.keys.clone())
+    }
+
+    fn map_end(&mut self) -> Option<Self::Span> {
+        Some(self.keys.clone())
+    }
+
+    fn seq_start(&mut self) -> Option<Self::Span> {
+        self.is_seq = true;
+        Some(self.keys.clone())
+    }
+
+    fn seq_end(&mut self) -> Option<Self::Span> {
+        self.is_seq = false;
+        Some(self.keys.clone())
     }
 }
 
@@ -60,26 +205,25 @@ impl<'a, Ser: ?Sized + Serialize> Serialize for Hashed<'a, Ser> {
     }
 }
 
-impl<S: ?Sized + Serialize> Hash for Hashed<'_, S> {
+impl<'a, S: ?Sized + Serialize> Hash for Hashed<'a, S> {
     fn hash<H: Hasher>(&self, state: &mut H) {
         state.write_u64(self.1);
     }
 }
 
-impl<'k, S> Validate for Keys<'k, S>
+impl<'k, S, SP> Validate for Spanned<'k, S, SP>
 where
     S: ?Sized + Serialize,
+    SP: Spanner,
 {
-    type Span = Vec<String>;
+    type Span = SP::Span;
 
     fn validate<V: Validator<Self::Span>>(&self, validator: V) -> Result<(), V::Error> {
         let mut err = None;
 
-        let k = KeysInner {
-            keys: self.keys.clone(),
-            value_key: String::new(),
+        let k = SpannedInner {
+            spanner: self.spanner.clone(),
             validator: Some(validator),
-            seq_index: 0,
             validator_seq: None,
             validator_map: None,
             error: &mut err,
@@ -96,25 +240,21 @@ where
     }
 
     fn span(&self) -> Option<Self::Span> {
-        Some(self.keys.clone())
+        self.span.clone()
     }
 }
 
-struct KeysInner<'k, V: Validator<Vec<String>>> {
-    keys: Vec<String>,
-    value_key: String,
+struct SpannedInner<'k, SP: Spanner, V: Validator<SP::Span>> {
+    spanner: SP,
 
     validator: Option<V>,
-
-    seq_index: usize,
     validator_seq: Option<V::ValidateSeq>,
-
     validator_map: Option<V::ValidateMap>,
 
     error: &'k mut Option<V::Error>,
 }
 
-impl<'k, V: Validator<Vec<String>>> KeysInner<'k, V> {
+impl<'k, SP: Spanner, V: Validator<SP::Span>> SpannedInner<'k, SP, V> {
     fn add_error(&mut self, e: V::Error) {
         match &mut self.error {
             Some(err) => {
@@ -142,13 +282,16 @@ impl ser::Error for SerdeError {
     where
         T: std::fmt::Display,
     {
-        unimplemented!()
+        // This just not to cause panics,
+        // but it is actually ignored
+        SerdeError
     }
 }
 
-impl<'k, V> ser::Serializer for KeysInner<'k, V>
+impl<'k, SP, V> ser::Serializer for SpannedInner<'k, SP, V>
 where
-    V: Validator<Vec<String>>,
+    V: Validator<SP::Span>,
+    SP: Spanner,
 {
     type Ok = ();
     type Error = SerdeError;
@@ -161,105 +304,195 @@ where
     type SerializeStructVariant = Self;
 
     fn serialize_bool(mut self, v: bool) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_bool(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_bool(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_i8(mut self, v: i8) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_i8(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_i8(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_i16(mut self, v: i16) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_i16(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_i16(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_i32(mut self, v: i32) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_i32(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_i32(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_i64(mut self, v: i64) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_i64(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_i64(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_u8(mut self, v: u8) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_u8(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_u8(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_u16(mut self, v: u16) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_u16(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_u16(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_u32(mut self, v: u32) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_u32(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_u32(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_u64(mut self, v: u64) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_u64(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_u64(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_f32(mut self, v: f32) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_f32(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_f32(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_f64(mut self, v: f64) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_f64(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_f64(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_char(mut self, v: char) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_char(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_char(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_str(mut self, v: &str) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_str(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_str(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_bytes(mut self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_bytes(v) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(&v))
+            .validate_bytes(v)
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_none(mut self) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_none() {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.unit())
+            .validate_none()
+        {
             self.add_error(e)
         }
         Ok(())
@@ -273,14 +506,26 @@ where
     }
 
     fn serialize_unit(mut self) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_unit() {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.unit())
+            .validate_unit()
+        {
             self.add_error(e)
         }
         Ok(())
     }
 
     fn serialize_unit_struct(mut self, name: &'static str) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator.take().unwrap().validate_unit_struct(name) {
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(name))
+            .validate_unit_struct(name)
+        {
             self.add_error(e)
         }
         Ok(())
@@ -292,11 +537,12 @@ where
         variant_index: u32,
         variant: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) =
-            self.validator
-                .take()
-                .unwrap()
-                .validate_unit_variant(name, variant_index, variant)
+        if let Err(e) = self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.value(variant))
+            .validate_unit_variant(name, variant_index, variant)
         {
             self.add_error(e)
         }
@@ -318,17 +564,26 @@ where
         self,
         _name: &'static str,
         _variant_index: u32,
-        _variant: &'static str,
-        _value: &T,
+        variant: &'static str,
+        value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
         T: Serialize,
     {
-        todo!()
+        let mut m = self.serialize_map(Some(1))?;
+        m.serialize_key(variant)?;
+        m.serialize_value(value)?;
+        m.end()
     }
 
     fn serialize_seq(mut self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-        match self.validator.take().unwrap().validate_seq(len) {
+        match self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.seq_start())
+            .validate_seq(len)
+        {
             Ok(v) => {
                 self.validator_seq = Some(v);
                 Ok(self)
@@ -341,7 +596,13 @@ where
     }
 
     fn serialize_tuple(mut self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-        match self.validator.take().unwrap().validate_seq(Some(len)) {
+        match self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.seq_start())
+            .validate_seq(Some(len))
+        {
             Ok(v) => {
                 self.validator_seq = Some(v);
                 Ok(self)
@@ -358,7 +619,13 @@ where
         _name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-        match self.validator.take().unwrap().validate_seq(Some(len)) {
+        match self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.seq_start())
+            .validate_seq(Some(len))
+        {
             Ok(v) => {
                 self.validator_seq = Some(v);
                 Ok(self)
@@ -381,7 +648,13 @@ where
     }
 
     fn serialize_map(mut self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-        match self.validator.take().unwrap().validate_map(len) {
+        match self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.map_start())
+            .validate_map(len)
+        {
             Ok(v) => {
                 self.validator_map = Some(v);
                 Ok(self)
@@ -398,7 +671,13 @@ where
         _name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeStruct, Self::Error> {
-        match self.validator.take().unwrap().validate_map(Some(len)) {
+        match self
+            .validator
+            .take()
+            .unwrap()
+            .with_span(self.spanner.map_start())
+            .validate_map(Some(len))
+        {
             Ok(v) => {
                 self.validator_map = Some(v);
                 Ok(self)
@@ -421,9 +700,10 @@ where
     }
 }
 
-impl<'k, V> ser::SerializeSeq for KeysInner<'k, V>
+impl<'k, SP, V> ser::SerializeSeq for SpannedInner<'k, SP, V>
 where
-    V: Validator<Vec<String>>,
+    V: Validator<SP::Span>,
+    SP: Spanner,
 {
     type Ok = ();
     type Error = SerdeError;
@@ -431,17 +711,15 @@ where
     where
         T: Serialize,
     {
-        let mut keys = self.keys.clone();
-        keys.push(format!("{}", self.seq_index));
-        self.seq_index += 1;
+        let val: Hashed<T> = Hashed::new(value, DefaultHasher::new());
 
-        let val = Hashed::new(value, DefaultHasher::new());
+        let validator = self.validator_seq.as_mut().unwrap();
 
-        let item_valid = self
-            .validator_seq
-            .as_mut()
-            .unwrap()
-            .validate_element(&Keys { keys, value: &val });
+        let item_valid = validator.validate_element(&Spanned {
+            span: self.spanner.value(value),
+            spanner: self.spanner.clone(),
+            value: &val,
+        });
 
         if let Err(e) = item_valid {
             self.add_error(e);
@@ -451,7 +729,10 @@ where
     }
 
     fn end(mut self) -> Result<Self::Ok, Self::Error> {
-        if let Err(e) = self.validator_seq.take().unwrap().end() {
+        let mut validator = self.validator_seq.take().unwrap();
+        validator.set_span(self.spanner.seq_end());
+
+        if let Err(e) = validator.end() {
             self.add_error(e);
         }
 
@@ -459,9 +740,10 @@ where
     }
 }
 
-impl<'k, V> ser::SerializeTuple for KeysInner<'k, V>
+impl<'k, SP, V> ser::SerializeTuple for SpannedInner<'k, SP, V>
 where
-    V: Validator<Vec<String>>,
+    V: Validator<SP::Span>,
+    SP: Spanner,
 {
     type Ok = ();
     type Error = SerdeError;
@@ -476,9 +758,10 @@ where
     }
 }
 
-impl<'k, V> ser::SerializeTupleStruct for KeysInner<'k, V>
+impl<'k, SP, V> ser::SerializeTupleStruct for SpannedInner<'k, SP, V>
 where
-    V: Validator<Vec<String>>,
+    V: Validator<SP::Span>,
+    SP: Spanner,
 {
     type Ok = ();
     type Error = SerdeError;
@@ -493,9 +776,10 @@ where
     }
 }
 
-impl<'k, V> ser::SerializeTupleVariant for KeysInner<'k, V>
+impl<'k, SP, V> ser::SerializeTupleVariant for SpannedInner<'k, SP, V>
 where
-    V: Validator<Vec<String>>,
+    V: Validator<SP::Span>,
+    SP: Spanner,
 {
     type Ok = ();
     type Error = SerdeError;
@@ -512,9 +796,10 @@ where
     }
 }
 
-impl<'k, V> ser::SerializeMap for KeysInner<'k, V>
+impl<'k, SP, V> ser::SerializeMap for SpannedInner<'k, SP, V>
 where
-    V: Validator<Vec<String>>,
+    V: Validator<SP::Span>,
+    SP: Spanner,
 {
     type Ok = ();
     type Error = SerdeError;
@@ -523,17 +808,13 @@ where
     where
         T: Serialize,
     {
-        let mut keys = self.keys.clone();
         let k = key.serialize(KeySerializer).unwrap();
-        keys.push(k.clone());
 
-        let key_valid = self
-            .validator_map
-            .as_mut()
-            .unwrap()
-            .validate_key(&Keys { keys, value: &k });
-
-        self.value_key = k;
+        let key_valid = self.validator_map.as_mut().unwrap().validate_key(&Spanned {
+            spanner: self.spanner.clone(),
+            span: self.spanner.key(key),
+            value: &k,
+        });
 
         if let Err(e) = key_valid {
             self.add_error(e);
@@ -546,14 +827,15 @@ where
     where
         T: Serialize,
     {
-        let mut keys = self.keys.clone();
-        keys.push(mem::take(&mut self.value_key));
-
         let valid = self
             .validator_map
             .as_mut()
             .unwrap()
-            .validate_value(&Keys { keys, value });
+            .validate_value(&Spanned {
+                spanner: self.spanner.clone(),
+                span: self.spanner.value(value),
+                value,
+            });
 
         if let Err(e) = valid {
             self.add_error(e);
@@ -563,9 +845,10 @@ where
     }
 
     fn end(mut self) -> Result<Self::Ok, Self::Error> {
-        let valid = self.validator_map.take().unwrap().end();
+        let mut validator = self.validator_map.take().unwrap();
+        validator.set_span(self.spanner.map_end());
 
-        if let Err(e) = valid {
+        if let Err(e) = validator.end() {
             self.add_error(e);
         }
 
@@ -573,9 +856,10 @@ where
     }
 }
 
-impl<'k, V> ser::SerializeStruct for KeysInner<'k, V>
+impl<'k, SP, V> ser::SerializeStruct for SpannedInner<'k, SP, V>
 where
-    V: Validator<Vec<String>>,
+    V: Validator<SP::Span>,
+    SP: Spanner,
 {
     type Ok = ();
     type Error = SerdeError;
@@ -595,9 +879,10 @@ where
     }
 }
 
-impl<'k, V> ser::SerializeStructVariant for KeysInner<'k, V>
+impl<'k, SP, V> ser::SerializeStructVariant for SpannedInner<'k, SP, V>
 where
-    V: Validator<Vec<String>>,
+    V: Validator<SP::Span>,
+    SP: Spanner,
 {
     type Ok = ();
     type Error = SerdeError;
@@ -620,7 +905,7 @@ where
 /// Returned if a map key is not string, as json
 /// only supports string keys.
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub struct KeyNotStringError;
+struct KeyNotStringError;
 
 impl core::fmt::Display for KeyNotStringError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -635,7 +920,8 @@ impl ser::Error for KeyNotStringError {
     where
         T: std::fmt::Display,
     {
-        unimplemented!()
+        // It is ignored.
+        Self
     }
 }
 
@@ -785,13 +1071,13 @@ impl ser::Serializer for KeySerializer {
     }
 }
 
-/// A serializer that
+/// A serializer that hashes a Serde Serialize value.
 struct HashSerializer<H: Hasher> {
     hasher: H,
 }
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-pub struct ImpossibleError;
+struct ImpossibleError;
 
 impl core::fmt::Display for ImpossibleError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -806,13 +1092,13 @@ impl ser::Error for ImpossibleError {
     where
         T: std::fmt::Display,
     {
-        unimplemented!()
+        ImpossibleError
     }
 }
 
 impl<'h, H: Hasher> ser::Serializer for &'h mut HashSerializer<H> {
     type Ok = u64;
-    type Error = ImpossibleError; // Laziness, this will never occur.
+    type Error = ImpossibleError; 
 
     type SerializeSeq = Self;
     type SerializeTuple = Self;
@@ -866,11 +1152,11 @@ impl<'h, H: Hasher> ser::Serializer for &'h mut HashSerializer<H> {
         Ok(self.hasher.finish())
     }
     fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
-        self.hasher.write_i32(v as i32);
+        self.hasher.write(&v.to_le_bytes());
         Ok(self.hasher.finish())
     }
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-        self.hasher.write_i64(v as i64);
+        self.hasher.write(&v.to_le_bytes());
         Ok(self.hasher.finish())
     }
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {

@@ -1,4 +1,6 @@
-use super::{Validate, ValidateMap, ValidateSeq, Validator};
+//! Implementation of Validator for schemas.
+
+use super::{span::Span, Validate, ValidateMap, ValidateSeq, Validator};
 use crate::{
     schema::{InstanceType, Metadata, RootSchema, Schema, SchemaObject, SingleOrVec},
     Set,
@@ -10,24 +12,27 @@ use std::{
     ops::AddAssign,
 };
 
-/// An validation error with an optional span.
+/// An validation error with an optional span of the invalid value.
 #[derive(Debug, Clone, PartialEq)]
-pub struct Error<S: core::fmt::Debug + Clone> {
+pub struct Error<S: Span> {
+    /// Information about the schema that caused the validation
+    /// error.
     pub meta: Option<Box<Metadata>>,
 
+    /// The span of the invalid value.
     pub span: Option<S>,
 
     /// The actual error details.
     pub value: ErrorValue<S>,
 }
 
-impl<S: core::fmt::Debug + Clone> Error<S> {
+impl<S: Span> Error<S> {
     fn new(meta: Option<Box<Metadata>>, span: Option<S>, value: ErrorValue<S>) -> Self {
         Self { meta, span, value }
     }
 }
 
-impl<S: core::fmt::Debug + Clone> core::fmt::Display for Error<S> {
+impl<S: Span> core::fmt::Display for Error<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut start_paren = false;
 
@@ -59,7 +64,7 @@ impl<S: core::fmt::Debug + Clone> core::fmt::Display for Error<S> {
 /// All the validation errors that can occur.
 #[derive(Debug, Clone, PartialEq)]
 // TODO maybe prefix or group them by type?
-pub enum ErrorValue<S: core::fmt::Debug + Clone> {
+pub enum ErrorValue<S: Span> {
     /// Indicates that the schema will never match any value.
     NotAllowed,
 
@@ -121,7 +126,7 @@ pub enum ErrorValue<S: core::fmt::Debug + Clone> {
     RequiredProperty { name: String },
 }
 
-impl<S: core::fmt::Debug + Clone> core::fmt::Display for ErrorValue<S> {
+impl<S: Span> core::fmt::Display for ErrorValue<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ErrorValue::NotAllowed => write!(f, "value is not allowed here"),
@@ -257,21 +262,48 @@ impl<S: core::fmt::Debug + Clone> core::fmt::Display for ErrorValue<S> {
     }
 }
 
-type ErrorsInner<S> = SmallVec<[Error<S>; 10]>;
+type SmallVecArray<S> = [Error<S>; 10];
 
-// TODO vec impls
+/// In a lot of cases there are only 1 or 2 errors.
+/// I'm not sure whether this makes the overall performance better or not.
+type ErrorsInner<S> = SmallVec<SmallVecArray<S>>;
+
 /// This type is returned from validation.
 #[derive(Debug, Clone, PartialEq)]
 #[repr(transparent)]
-pub struct Errors<S: core::fmt::Debug + Clone>(ErrorsInner<S>);
+pub struct Errors<S: Span>(ErrorsInner<S>);
 
-impl<S: core::fmt::Debug + Clone> Errors<S> {
+impl<S: Span> Errors<S> {
+    pub fn is_empty(&self) -> bool {
+        self.0.is_empty()
+    }
+
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn iter(&self) -> impl Iterator<Item = &Error<S>> {
+        self.0.iter()
+    }
+}
+
+impl<S: Span> IntoIterator for Errors<S> {
+    type Item = <ErrorsInner<S> as IntoIterator>::Item;
+
+    type IntoIter = smallvec::IntoIter<SmallVecArray<S>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<S: Span> Errors<S> {
     fn new() -> Self {
         Errors(SmallVec::new())
     }
 }
 
-impl<S: core::fmt::Debug + Clone> core::fmt::Display for Errors<S> {
+impl<S: Span> core::fmt::Display for Errors<S> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         for e in &self.0 {
             writeln!(f, "{}", e)?;
@@ -280,14 +312,176 @@ impl<S: core::fmt::Debug + Clone> core::fmt::Display for Errors<S> {
     }
 }
 
-impl<S: core::fmt::Debug + Clone> std::error::Error for Errors<S> {}
+impl<S: Span> std::error::Error for Errors<S> {}
 
-impl<S: core::fmt::Debug + Clone> AddAssign for Errors<S> {
+impl<S: Span> AddAssign for Errors<S> {
     fn add_assign(&mut self, rhs: Self) {
         self.0.extend(rhs.0.into_iter());
     }
 }
 
+impl RootSchema {
+    /// Validate a value against the schema.
+    pub fn validate<V: ?Sized + Validate>(&self, value: &V) -> Result<(), Errors<V::Span>> {
+        self.schema.validate(value)
+    }
+}
+
+impl Schema {
+    /// Validate a value against the schema.
+    pub fn validate<V: ?Sized + Validate>(&self, value: &V) -> Result<(), Errors<V::Span>> {
+        let r = SchemaRef::from(self);
+        let s = not_bool_schema!(r, &value.span());
+        s.validate(value)
+    }
+}
+
+impl SchemaObject {
+    /// Validate a value against the schema.
+    pub fn validate<V: ?Sized + Validate>(&self, value: &V) -> Result<(), Errors<V::Span>> {
+        let mut errors = validate_subschemas(self, value).err();
+
+        if let Err(e) = value.validate(SchemaValidator::from_ref(SchemaRef::Object(self))) {
+            match &mut errors {
+                Some(errs) => {
+                    *errs += e;
+                }
+                None => errors = Some(e),
+            }
+        }
+
+        match errors {
+            None => Ok(()),
+            Some(e) => Err(e),
+        }
+    }
+}
+
+/// Validate all the allOf anyOf, etc. schemas for a given value.
+fn validate_subschemas<V: ?Sized + Validate>(
+    schema: &SchemaObject,
+    value: &V,
+) -> Result<(), Errors<V::Span>> {
+    if let Some(sub) = &schema.subschemas {
+        let mut errors = SmallVec::new();
+
+        if let Some(all_of) = &sub.all_of {
+            for s in all_of {
+                if let Err(e) = s.validate(value) {
+                    errors.extend(e.0.into_iter());
+                }
+            }
+        }
+
+        if let Some(any_of) = &sub.any_of {
+            let mut validated = Vec::with_capacity(any_of.len());
+            let mut inner_errors: Vec<Errors<_>> = Vec::with_capacity(any_of.len());
+            for s in any_of {
+                match s.validate(value) {
+                    Ok(_) => match s {
+                        Schema::Object(o) => {
+                            validated.push(o.metadata.clone());
+                        }
+                        _ => {
+                            validated.push(None);
+                        }
+                    },
+                    Err(e) => {
+                        inner_errors.push(e);
+                    }
+                }
+            }
+            if validated.is_empty() {
+                errors.push(Error::new(
+                    schema.metadata.clone(),
+                    value.span(),
+                    ErrorValue::NoneValid {
+                        errors: inner_errors,
+                    },
+                ));
+            } else if validated.len() > 1 {
+                errors.push(Error::new(
+                    schema.metadata.clone(),
+                    value.span(),
+                    ErrorValue::MoreThanOneValid { matched: validated },
+                ));
+            }
+        }
+
+        if let Some(one_of) = &sub.one_of {
+            let mut validated = Vec::with_capacity(one_of.len());
+            let mut inner_errors: Vec<Errors<_>> = Vec::with_capacity(one_of.len());
+            for s in one_of {
+                match s.validate(value) {
+                    Ok(_) => match s {
+                        Schema::Object(o) => {
+                            validated.push(o.metadata.clone());
+                        }
+                        _ => {
+                            validated.push(None);
+                        }
+                    },
+                    Err(e) => {
+                        inner_errors.push(e);
+                    }
+                }
+            }
+            if validated.is_empty() {
+                errors.push(Error::new(
+                    schema.metadata.clone(),
+                    value.span(),
+                    ErrorValue::NoneValid {
+                        errors: inner_errors,
+                    },
+                ));
+            } else if validated.len() > 1 {
+                errors.push(Error::new(
+                    schema.metadata.clone(),
+                    value.span(),
+                    ErrorValue::MoreThanOneValid { matched: validated },
+                ));
+            }
+        }
+
+        if let (Some(sub_if), Some(sub_then)) = (&sub.if_schema, &sub.then_schema) {
+            if sub_if.validate(value).is_ok() {
+                if let Err(e) = sub_then.validate(value) {
+                    errors.extend(e.0.into_iter());
+                }
+            } else if let Some(sub_else) = &sub.else_schema {
+                if let Err(e) = sub_else.validate(value) {
+                    errors.extend(e.0.into_iter());
+                }
+            }
+        }
+
+        if let Some(not) = &sub.not {
+            if not.validate(value).is_ok() {
+                errors.push(Error::new(
+                    schema.metadata.clone(),
+                    value.span(),
+                    ErrorValue::ValidNot {
+                        matched: match &**not {
+                            Schema::Object(o) => o.metadata.clone(),
+                            _ => None,
+                        },
+                    },
+                ));
+            }
+        }
+
+        return if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(Errors(errors))
+        };
+    }
+
+    Ok(())
+}
+
+/// This is technically not needed anymore,
+/// but should do no harm to leave it as is.
 enum SchemaRef<'s> {
     Bool(bool),
     Object(&'s SchemaObject),
@@ -308,7 +502,12 @@ impl<'s> From<&'s RootSchema> for SchemaRef<'s> {
     }
 }
 
-pub struct SchemaValidator<'a, S: core::fmt::Debug + Clone> {
+/// A validator that validates a given schema.
+///
+/// This is not exposed directly because a value must be validated
+/// against multiple schemas in some cases, so the `Schema::validate` methods
+/// must be used instead that will validate the value against their subschemas.
+struct SchemaValidator<'a, S: Span> {
     schema: SchemaRef<'a>,
     span: Option<S>,
 
@@ -324,19 +523,11 @@ pub struct SchemaValidator<'a, S: core::fmt::Debug + Clone> {
     obj_last_key: Option<String>,
 }
 
-impl<'a, S: core::fmt::Debug + Clone> SchemaValidator<'a, S> {
-    pub fn new(schema: &'a Schema, span: Option<S>) -> Self {
-        Self::from_ref(schema.into(), span)
-    }
-
-    pub fn new_root(root_schema: &'a RootSchema, span: Option<S>) -> Self {
-        Self::from_ref(root_schema.into(), span)
-    }
-
-    fn from_ref(schema: SchemaRef<'a>, span: Option<S>) -> Self {
+impl<'a, S: Span> SchemaValidator<'a, S> {
+    fn from_ref(schema: SchemaRef<'a>) -> Self {
         Self {
-            span,
             schema,
+            span: None,
             arr_item_count: 0,
             arr_hashes: HashMap::new(),
             arr_contains: None,
@@ -347,520 +538,7 @@ impl<'a, S: core::fmt::Debug + Clone> SchemaValidator<'a, S> {
     }
 }
 
-macro_rules! not_bool_schema {
-    ($schema:expr, $span:expr) => {
-        match &$schema {
-            SchemaRef::Bool(allow_all) => {
-                if *allow_all {
-                    return Ok(());
-                } else {
-                    let mut errors = SmallVec::new();
-                    errors.push(Error::new(None, (*$span).clone(), ErrorValue::NotAllowed));
-                    return Err(Errors(errors));
-                }
-            }
-            SchemaRef::Object(o) => o,
-        }
-    };
-
-    // With a non-unit return type.
-    ($ret_val:expr, $schema:expr, $span:expr) => {
-        match &$schema {
-            SchemaRef::Bool(allow_all) => {
-                if *allow_all {
-                    return Ok($ret_val);
-                } else {
-                    let mut errors = SmallVec::new();
-                    errors.push(Error::new(None, (*$span).clone(), ErrorValue::NotAllowed));
-                    return Err(Errors(errors));
-                }
-            }
-            SchemaRef::Object(o) => o,
-        }
-    };
-}
-
-macro_rules! check_type {
-    ($expected_type:ident, $schema:expr, $span:expr) => {
-        match &$schema.instance_type {
-            Some(s) => match s {
-                SingleOrVec::Single(single) => match &**single {
-                    InstanceType::$expected_type => Ok(()),
-                    _ => {
-                        let mut errors = SmallVec::new();
-                        errors.push(Error::new(
-                            $schema.metadata.clone(),
-                            $span.clone(),
-                            ErrorValue::InvalidType {
-                                expected: s.clone(),
-                            },
-                        ));
-                        Err(Errors(errors))
-                    }
-                },
-                SingleOrVec::Vec(vec) => {
-                    if vec.iter().any(|i| *i == InstanceType::$expected_type) {
-                        Ok(())
-                    } else {
-                        let mut errors = SmallVec::new();
-                        errors.push(Error::new(
-                            $schema.metadata.clone(),
-                            $span.clone(),
-                            ErrorValue::InvalidType {
-                                expected: s.clone(),
-                            },
-                        ));
-                        Err(Errors(errors))
-                    }
-                }
-            },
-            None => {
-                let mut errors = SmallVec::new();
-                errors.push(Error::new(
-                    $schema.metadata.clone(),
-                    $span.clone(),
-                    ErrorValue::InvalidType {
-                        expected: SingleOrVec::Single(Box::new(InstanceType::Object)),
-                    },
-                ));
-                Err(Errors(errors))
-            }
-        }
-    };
-    (Object, $schema:expr, $span:expr) => {
-        match &$schema.instance_type {
-            Some(s) => match s {
-                SingleOrVec::Single(single) => match &**single {
-                    InstanceType::Object => Ok(()),
-                    _ => {
-                        let mut errors = SmallVec::new();
-                        errors.push(Error::new(
-                            $schema.metadata.clone(),
-                            $span.clone(),
-                            ErrorValue::InvalidType {
-                                expected: s.clone(),
-                            },
-                        ));
-                        Err(Errors(errors))
-                    }
-                },
-                SingleOrVec::Vec(vec) => {
-                    if vec.iter().any(|i| *i == InstanceType::Object) {
-                        Ok(())
-                    } else {
-                        let mut errors = SmallVec::new();
-                        errors.push(Error::new(
-                            $schema.metadata.clone(),
-                            $span.clone(),
-                            ErrorValue::InvalidType {
-                                expected: s.clone(),
-                            },
-                        ));
-                        Err(Errors(errors))
-                    }
-                }
-            },
-            None => Ok(()),
-        }
-    };
-}
-
-macro_rules! check_enum {
-    (bool, $value:expr, $schema:expr, $span:expr) => {
-        if let Some(enum_vals) = &$schema.enum_values {
-            let mut enum_contains = false;
-            for val in enum_vals {
-                if let Some(v) = val.as_bool() {
-                    if v == $value {
-                        enum_contains = true;
-                        break;
-                    }
-                }
-            }
-
-            if enum_contains {
-                Ok(())
-            } else {
-                let mut errors = SmallVec::new();
-                errors.push(Error::new(
-                    $schema.metadata.clone(),
-                    $span.clone(),
-                    ErrorValue::InvalidEnumValue {
-                        expected: enum_vals.clone(),
-                    },
-                ));
-                Err(Errors(errors))
-            }
-        } else {
-            Ok(())
-        }
-    };
-    (int, $value:expr, $schema:expr, $span:expr) => {
-        if let Some(enum_vals) = &$schema.enum_values {
-            let mut errors = SmallVec::new();
-
-            let mut enum_contains = false;
-            for val in enum_vals {
-                if let Some(v) = val.as_i64() {
-                    if v == $value as i64 {
-                        enum_contains = true;
-                        break;
-                    }
-                }
-                if let Some(v) = val.as_u64() {
-                    if v == $value as u64 {
-                        enum_contains = true;
-                        break;
-                    }
-                }
-            }
-
-            if enum_contains {
-                Ok(())
-            } else {
-                errors.push(Error::new(
-                    $schema.metadata.clone(),
-                    $span.clone(),
-                    ErrorValue::InvalidEnumValue {
-                        expected: enum_vals.clone(),
-                    },
-                ));
-                Err(Errors(errors))
-            }
-        } else {
-            Ok(())
-        }
-    };
-    (float, $value:expr, $schema:expr, $span:expr) => {
-        if let Some(enum_vals) = &$schema.enum_values {
-            let mut errors = SmallVec::new();
-
-            let mut enum_contains = false;
-            for val in enum_vals {
-                if let Some(v) = val.as_f64() {
-                    if v == $value as f64 {
-                        enum_contains = true;
-                        break;
-                    }
-                }
-            }
-
-            if enum_contains {
-                Ok(())
-            } else {
-                errors.push(Error::new(
-                    $schema.metadata.clone(),
-                    $span.clone(),
-                    ErrorValue::InvalidEnumValue {
-                        expected: enum_vals.clone(),
-                    },
-                ));
-                Err(Errors(errors))
-            }
-        } else {
-            Ok(())
-        }
-    };
-    (str, $value:expr, $schema:expr, $span:expr) => {
-        if let Some(enum_vals) = &$schema.enum_values {
-            let mut enum_contains = false;
-            for val in enum_vals {
-                if let Some(v) = val.as_str() {
-                    if v == $value {
-                        enum_contains = true;
-                        break;
-                    }
-                }
-            }
-
-            if enum_contains {
-                Ok(())
-            } else {
-                let mut errors = SmallVec::new();
-                errors.push(Error::new(
-                    $schema.metadata.clone(),
-                    $span.clone(),
-                    ErrorValue::InvalidEnumValue {
-                        expected: enum_vals.clone(),
-                    },
-                ));
-                Err(Errors(errors))
-            }
-        } else {
-            Ok(())
-        }
-    };
-}
-
-// TODO float conversions and equality
-macro_rules! check_number {
-    ($value:expr, $schema:expr, $span:expr) => {
-        if let Some(n) = &$schema.number {
-            let mut errors = SmallVec::new();
-
-            let mut number_err = false;
-
-            if let Some(m) = n.multiple_of {
-                if m != 0f64 && $value as f64 % m != 0f64 {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::NotMultipleOf { multiple_of: m },
-                    ));
-                    number_err = true;
-                }
-            }
-
-            if let Some(min) = n.minimum {
-                if ($value as f64) < min {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::LessThanExpected {
-                            min,
-                            exclusive: false,
-                        },
-                    ));
-                    number_err = true;
-                }
-            }
-
-            if let Some(min) = n.exclusive_minimum {
-                if ($value as f64) <= min {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::LessThanExpected {
-                            min,
-                            exclusive: true,
-                        },
-                    ));
-                    number_err = true;
-                }
-            }
-
-            if let Some(max) = n.maximum {
-                if ($value as f64) > max {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::MoreThanExpected {
-                            max,
-                            exclusive: false,
-                        },
-                    ));
-                    number_err = true;
-                }
-            }
-
-            if let Some(max) = n.exclusive_maximum {
-                if ($value as f64) >= max {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::MoreThanExpected {
-                            max,
-                            exclusive: true,
-                        },
-                    ));
-                    number_err = true;
-                }
-            }
-            if !number_err {
-                Ok(())
-            } else {
-                Err(Errors(errors))
-            }
-        } else {
-            Ok(())
-        };
-    };
-}
-
-// TODO format
-macro_rules! check_string {
-    ($value:expr, $schema:expr, $span:expr) => {
-        if let Some(s) = &$schema.string {
-            let mut errors = SmallVec::new();
-
-            let mut string_err = false;
-
-            if let Some(p) = &s.pattern {
-                // TODO we assume that the regex in the schema is valid
-                let re = regex::Regex::new(&*p).unwrap();
-                if !re.is_match($value) {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::NoPatternMatch { pattern: p.clone() },
-                    ));
-                    string_err = true;
-                }
-
-                if let Some(max_length) = s.max_length {
-                    if $value.chars().count() > max_length as usize {
-                        errors.push(Error::new(
-                            $schema.metadata.clone(),
-                            $span.clone(),
-                            ErrorValue::TooLong { max_length },
-                        ));
-                        string_err = true;
-                    }
-                }
-
-                if let Some(min_length) = s.min_length {
-                    if $value.chars().count() < min_length as usize {
-                        errors.push(Error::new(
-                            $schema.metadata.clone(),
-                            $span.clone(),
-                            ErrorValue::TooShort { min_length },
-                        ));
-                        string_err = true;
-                    }
-                }
-            }
-
-            if !string_err {
-                Ok(())
-            } else {
-                Err(Errors(errors))
-            }
-        } else {
-            Ok(())
-        }
-    };
-}
-
-macro_rules! check_subschemas {
-    ($func:ident, $schema:expr, $span:expr) => {
-        // check_subschemas!($func, $schema, $span,)
-    };
-    ($func:ident, $schema:expr, $span:expr, $($values:expr),*) => {
-        if let Some(sub) = &$schema.subschemas {
-            let mut errors = SmallVec::new();
-
-            if let Some(all_of) = &sub.all_of {
-                for s in all_of {
-                    if let Err(e) = (SchemaValidator::new(s, $span.clone())).$func($($values),*) {
-                        errors.extend(e.0.into_iter());
-                    }
-                }
-            }
-
-            if let Some(any_of) = &sub.any_of {
-                let mut validated = Vec::with_capacity(any_of.len());
-                let mut inner_errors: Vec<Errors<_>> = Vec::with_capacity(any_of.len());
-                for s in any_of {
-                    match (SchemaValidator::new(s, $span.clone())).$func($($values),*) {
-                        Ok(_) => match s {
-                            Schema::Object(o) => {
-                                validated.push(o.metadata.clone());
-                            }
-                            _ => {
-                                validated.push(None);
-                            }
-                        },
-                        Err(e) => {
-                            inner_errors.push(e);
-                        }
-                    }
-                }
-                if validated.is_empty() {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::NoneValid {
-                            errors: inner_errors,
-                        },
-                    ));
-                } else if validated.len() > 1 {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::MoreThanOneValid { matched: validated },
-                    ));
-                }
-            }
-
-            if let Some(one_of) = &sub.one_of {
-                let mut validated = Vec::with_capacity(one_of.len());
-                let mut inner_errors: Vec<Errors<_>> = Vec::with_capacity(one_of.len());
-                for s in one_of {
-                    match (SchemaValidator::new(s, $span.clone())).$func($($values),*) {
-                        Ok(_) => match s {
-                            Schema::Object(o) => {
-                                validated.push(o.metadata.clone());
-                            }
-                            _ => {
-                                validated.push(None);
-                            }
-                        },
-                        Err(e) => {
-                            inner_errors.push(e);
-                        }
-                    }
-                }
-                if validated.is_empty() {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::NoneValid {
-                            errors: inner_errors,
-                        },
-                    ));
-                } else if validated.len() > 1 {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::MoreThanOneValid { matched: validated },
-                    ));
-                }
-            }
-
-            if let (Some(sub_if), Some(sub_then)) = (&sub.if_schema, &sub.then_schema) {
-                if let Ok(_) = (SchemaValidator::new(sub_if, $span.clone())).$func($($values),*) {
-                    if let Err(e) = (SchemaValidator::new(sub_then, $span.clone())).$func($($values),*) {
-                        errors.extend(e.0.into_iter());
-                    }
-                } else {
-                    if let Some(sub_else) = &sub.else_schema {
-                        if let Err(e) =
-                            (SchemaValidator::new(sub_else, $span.clone())).$func($($values),*)
-                        {
-                            errors.extend(e.0.into_iter());
-                        }
-                    }
-                }
-            }
-
-            if let Some(not) = &sub.not {
-                if let Ok(_) = (SchemaValidator::new(not, $span.clone())).$func($($values),*) {
-                    errors.push(Error::new(
-                        $schema.metadata.clone(),
-                        $span.clone(),
-                        ErrorValue::ValidNot { matched: match &**not {
-                            Schema::Object(o) => {
-                                    o.metadata.clone()
-                                },
-                                _ => None
-                            }
-                        },
-                    ));
-                }
-            }
-
-            if errors.len() == 1 {
-                Ok(())
-            } else {
-                Err(Errors(errors))
-            }
-        } else {
-            Ok(())
-        }
-    };
-}
-
-impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
+impl<'a, S: Span> Validator<S> for SchemaValidator<'a, S> {
     type Error = Errors<S>;
 
     type ValidateSeq = Self;
@@ -874,7 +552,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_bool(self, v: bool) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_bool, s, &self.span, v)?;
         check_type!(Boolean, s, &self.span)?;
         check_enum!(bool, v, s, &self.span)?;
 
@@ -884,7 +561,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_i8(self, v: i8) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_i8, s, &self.span, v)?;
         check_type!(Integer, s, &self.span)?;
         check_enum!(int, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -895,7 +571,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_i16(self, v: i16) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_i16, s, &self.span, v)?;
         check_type!(Integer, s, &self.span)?;
         check_enum!(int, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -906,7 +581,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_i32(self, v: i32) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_i32, s, &self.span, v)?;
         check_type!(Integer, s, &self.span)?;
         check_enum!(int, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -917,7 +591,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_i64(self, v: i64) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_i64, s, &self.span, v)?;
         check_type!(Integer, s, &self.span)?;
         check_enum!(int, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -928,7 +601,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_i128(self, v: i128) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_i128, s, &self.span, v)?;
         check_type!(Integer, s, &self.span)?;
         check_enum!(int, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -939,7 +611,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_u8(self, v: u8) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_u8, s, &self.span, v)?;
         check_type!(Integer, s, &self.span)?;
         check_enum!(int, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -950,7 +621,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_u16(self, v: u16) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_u16, s, &self.span, v)?;
         check_type!(Integer, s, &self.span)?;
         check_enum!(int, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -961,7 +631,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_u32(self, v: u32) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_u32, s, &self.span, v)?;
         check_type!(Integer, s, &self.span)?;
         check_enum!(int, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -972,7 +641,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_u64(self, v: u64) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_u64, s, &self.span, v)?;
         check_type!(Integer, s, &self.span)?;
         check_enum!(int, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -983,7 +651,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_u128(self, v: u128) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_u128, s, &self.span, v)?;
         check_type!(Integer, s, &self.span)?;
         check_enum!(int, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -994,7 +661,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_f32(self, v: f32) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_f32, s, &self.span, v)?;
         check_type!(Number, s, &self.span)?;
         check_enum!(float, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -1005,7 +671,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_f64(self, v: f64) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_f64, s, &self.span, v)?;
         check_type!(Number, s, &self.span)?;
         check_enum!(float, v, s, &self.span)?;
         check_number!(v, s, &self.span)?;
@@ -1020,7 +685,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_str(self, v: &str) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_str, s, &self.span, v)?;
         check_type!(String, s, &self.span)?;
         check_enum!(str, v, s, &self.span)?;
         check_string!(v, s, &self.span)?;
@@ -1028,10 +692,9 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
         Ok(())
     }
 
-    fn validate_bytes(self, v: &[u8]) -> Result<(), Self::Error> {
+    fn validate_bytes(self, _v: &[u8]) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_bytes, s, &self.span, v)?;
         check_type!(String, s, &self.span)?;
         // TODO anything else to check here?
         Ok(())
@@ -1040,7 +703,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_none(self) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_none, s, &self.span,)?;
         check_type!(Null, s, &self.span)?;
 
         Ok(())
@@ -1056,16 +718,14 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_unit(self) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_unit, s, &self.span,)?;
         check_type!(Null, s, &self.span)?;
 
         Ok(())
     }
 
-    fn validate_unit_struct(self, name: &'static str) -> Result<(), Self::Error> {
+    fn validate_unit_struct(self, _name: &'static str) -> Result<(), Self::Error> {
         let s = not_bool_schema!(&self.schema, &self.span);
 
-        // check_subschemas!(validate_unit_struct, s, &self.span, name)?;
         check_type!(Null, s, &self.span)?;
 
         Ok(())
@@ -1083,8 +743,6 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     fn validate_seq(mut self, len: Option<usize>) -> Result<Self::ValidateSeq, Self::Error> {
         let s = not_bool_schema!(self, &self.schema, &self.span);
 
-        // check_subschemas!(validate_seq, s, &self.span, len)?;
-
         check_type!(Array, s, &self.span)?;
 
         if let Some(arr) = &s.array {
@@ -1098,10 +756,8 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
         Ok(self)
     }
 
-    fn validate_map(mut self, len: Option<usize>) -> Result<Self::ValidateMap, Self::Error> {
+    fn validate_map(mut self, _len: Option<usize>) -> Result<Self::ValidateMap, Self::Error> {
         let s = not_bool_schema!(self, &self.schema, &self.span);
-
-        // check_subschemas!(validate_map, s, &self.span, len)?;
 
         check_type!(Object, s, &self.span)?;
 
@@ -1113,8 +769,12 @@ impl<'a, S: core::fmt::Debug + Clone> Validator<S> for SchemaValidator<'a, S> {
     }
 }
 
-impl<'a, S: core::fmt::Debug + Clone> ValidateSeq<S> for SchemaValidator<'a, S> {
+impl<'a, S: Span> ValidateSeq<S> for SchemaValidator<'a, S> {
     type Error = Errors<S>;
+
+    fn set_span(&mut self, span: Option<S>) {
+        self.span = span;
+    }
 
     fn validate_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -1127,7 +787,7 @@ impl<'a, S: core::fmt::Debug + Clone> ValidateSeq<S> for SchemaValidator<'a, S> 
         self.arr_item_count += 1;
         if let Some(arr) = &s.array {
             if let Some(c) = self.arr_contains {
-                if let Ok(_) = value.validate(SchemaValidator::new(c, self.span.clone())) {
+                if c.validate(value).is_ok() {
                     self.arr_contains = None;
                 }
             }
@@ -1135,23 +795,17 @@ impl<'a, S: core::fmt::Debug + Clone> ValidateSeq<S> for SchemaValidator<'a, S> 
             if let Some(items) = &arr.items {
                 match items {
                     SingleOrVec::Single(single_schema) => {
-                        if let Err(e) =
-                            value.validate(SchemaValidator::new(single_schema, value.span()))
-                        {
+                        if let Err(e) = single_schema.validate(value) {
                             errors.0.extend(e.0.into_iter());
                         }
                     }
                     SingleOrVec::Vec(schemas) => {
                         if let Some(s) = schemas.get(self.arr_item_count - 1) {
-                            if let Err(e) =
-                                value.validate(SchemaValidator::new(s, value.span()))
-                            {
+                            if let Err(e) = s.validate(value) {
                                 errors.0.extend(e.0.into_iter());
                             }
                         } else if let Some(s) = &arr.additional_items {
-                            if let Err(e) =
-                                value.validate(SchemaValidator::new(s, value.span()))
-                            {
+                            if let Err(e) = s.validate(value) {
                                 errors.0.extend(e.0.into_iter());
                             }
                         }
@@ -1233,8 +887,12 @@ impl<'a, S: core::fmt::Debug + Clone> ValidateSeq<S> for SchemaValidator<'a, S> 
     }
 }
 
-impl<'a, S: core::fmt::Debug + Clone> ValidateMap<S> for SchemaValidator<'a, S> {
+impl<'a, S: Span> ValidateMap<S> for SchemaValidator<'a, S> {
     type Error = Errors<S>;
+
+    fn set_span(&mut self, span: Option<S>) {
+        self.span = span;
+    }
 
     fn validate_key<T>(&mut self, key: &T) -> Result<(), Self::Error>
     where
@@ -1251,7 +909,7 @@ impl<'a, S: core::fmt::Debug + Clone> ValidateMap<S> for SchemaValidator<'a, S> 
 
         if let Some(obj) = &s.object {
             if let Some(name_schema) = &obj.property_names {
-                if let Err(e) = key.validate(SchemaValidator::new(name_schema, key.span())) {
+                if let Err(e) = name_schema.validate(key) {
                     return Err(e);
                 }
             }
@@ -1269,7 +927,7 @@ impl<'a, S: core::fmt::Debug + Clone> ValidateMap<S> for SchemaValidator<'a, S> 
 
         if let Some(obj) = &s.object {
             if let Some(prop_schema) = obj.properties.get(&key) {
-                match value.validate(SchemaValidator::new(prop_schema, value.span())) {
+                match prop_schema.validate(value) {
                     Ok(_) => {
                         return Ok(());
                     }
@@ -1283,7 +941,7 @@ impl<'a, S: core::fmt::Debug + Clone> ValidateMap<S> for SchemaValidator<'a, S> 
                 // TODO we assume valid regex
                 let key_re = regex::Regex::new(k).unwrap();
                 if key_re.is_match(&key) {
-                    match value.validate(SchemaValidator::new(v, value.span())) {
+                    match v.validate(value) {
                         Ok(_) => {
                             return Ok(());
                         }
@@ -1295,8 +953,7 @@ impl<'a, S: core::fmt::Debug + Clone> ValidateMap<S> for SchemaValidator<'a, S> 
             }
 
             if let Some(add_prop_schema) = &obj.additional_properties {
-                if let Err(e) = value.validate(SchemaValidator::new(add_prop_schema, value.span()))
-                {
+                if let Err(e) = add_prop_schema.validate(value) {
                     return Err(e);
                 }
             }
@@ -1346,171 +1003,3 @@ impl<'a, S: core::fmt::Debug + Clone> ValidateMap<S> for SchemaValidator<'a, S> 
         }
     }
 }
-
-// /// Returned if a map key is not string, as json
-// /// only supports string keys.
-// #[derive(Debug, Copy, Clone, Eq, PartialEq)]
-// pub struct KeyNotStringError;
-
-// impl core::fmt::Debug for KeyNotStringError {
-//     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-//         f.write_str("json keys must be strings")
-//     }
-// }
-
-// impl std::error::Error for KeyNotStringError {}
-
-// impl ser::Error for KeyNotStringError {
-//     fn custom<T>(msg: T) -> Self
-//     where
-//         T: std::fmt::Display,
-//     {
-//         unreachable!()
-//     }
-// }
-
-// /// A serializer that only allows strings.
-// ///
-// /// It converts integers to strings just like serde_json does.
-// struct KeySerializer;
-
-// impl Validator for KeySerializer {
-//     type Ok = String;
-//     type Error = KeyNotStringError;
-//     type SerializeSeq = ser::Impossible<String, KeyNotStringError>;
-//     type SerializeTuple = ser::Impossible<String, KeyNotStringError>;
-//     type SerializeTupleStruct = ser::Impossible<String, KeyNotStringError>;
-//     type SerializeTupleVariant = ser::Impossible<String, KeyNotStringError>;
-//     type SerializeMap = ser::Impossible<String, KeyNotStringError>;
-//     type SerializeStruct = ser::Impossible<String, KeyNotStringError>;
-//     type SerializeStructVariant = ser::Impossible<String, KeyNotStringError>;
-
-//     fn validate_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
-//         Ok(v.to_string())
-//     }
-//     fn validate_i16(self, v: i16) -> Result<Self::Ok, Self::Error> {
-//         Ok(v.to_string())
-//     }
-//     fn validate_i32(self, v: i32) -> Result<Self::Ok, Self::Error> {
-//         Ok(v.to_string())
-//     }
-//     fn validate_i64(self, v: i64) -> Result<Self::Ok, Self::Error> {
-//         Ok(v.to_string())
-//     }
-//     fn validate_u8(self, v: u8) -> Result<Self::Ok, Self::Error> {
-//         Ok(v.to_string())
-//     }
-//     fn validate_u16(self, v: u16) -> Result<Self::Ok, Self::Error> {
-//         Ok(v.to_string())
-//     }
-//     fn validate_u32(self, v: u32) -> Result<Self::Ok, Self::Error> {
-//         Ok(v.to_string())
-//     }
-//     fn validate_u64(self, v: u64) -> Result<Self::Ok, Self::Error> {
-//         Ok(v.to_string())
-//     }
-//     fn validate_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_char(self, v: char) -> Result<Self::Ok, Self::Error> {
-//         Ok(v.to_string())
-//     }
-//     fn validate_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
-//         Ok(v.to_string())
-//     }
-//     fn validate_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_none(self) -> Result<Self::Ok, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_some<T: ?Sized>(self, value: &T) -> Result<Self::Ok, Self::Error>
-//     where
-//         T: Serialize,
-//     {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_unit(self) -> Result<Self::Ok, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_unit_struct(self, name: &'static str) -> Result<Self::Ok, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_unit_variant(
-//         self,
-//         name: &'static str,
-//         variant_index: u32,
-//         variant: &'static str,
-//     ) -> Result<Self::Ok, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_newtype_struct<T: ?Sized>(
-//         self,
-//         name: &'static str,
-//         value: &T,
-//     ) -> Result<Self::Ok, Self::Error>
-//     where
-//         T: Serialize,
-//     {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_newtype_variant<T: ?Sized>(
-//         self,
-//         name: &'static str,
-//         variant_index: u32,
-//         variant: &'static str,
-//         value: &T,
-//     ) -> Result<Self::Ok, Self::Error>
-//     where
-//         T: Serialize,
-//     {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_seq(self, len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_tuple_struct(
-//         self,
-//         name: &'static str,
-//         len: usize,
-//     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_tuple_variant(
-//         self,
-//         name: &'static str,
-//         variant_index: u32,
-//         variant: &'static str,
-//         len: usize,
-//     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_map(self, len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_struct(
-//         self,
-//         name: &'static str,
-//         len: usize,
-//     ) -> Result<Self::SerializeStruct, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-//     fn validate_struct_variant(
-//         self,
-//         name: &'static str,
-//         variant_index: u32,
-//         variant: &'static str,
-//         len: usize,
-//     ) -> Result<Self::SerializeStructVariant, Self::Error> {
-//         Err(KeyNotStringError)
-//     }
-// }

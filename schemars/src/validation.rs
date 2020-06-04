@@ -1,21 +1,49 @@
 use core::ops::AddAssign;
 use std::hash::Hash;
 
-pub mod span;
-pub mod schema;
+#[macro_use] mod macros;
 
+pub mod schema;
+pub mod span;
+
+/// Validate is implemented by values that can be validate themselves 
+/// against a given validator.
 pub trait Validate {
-    type Span: core::fmt::Debug + Clone;
+    /// Span is information about the value.
+    ///
+    /// It is usually returned with the errors so that the caller knows
+    /// where the error happened in case of nested values such as arrays or maps.
+    type Span: span::Span;
+
+    /// Validate self against a given validator.
+    ///
+    /// It is advised to call [with_span](Validator::with_span), or initialize
+    /// the validator with a span, otherwise the [Validator](Validator)'s span will be empty.
     fn validate<V: Validator<Self::Span>>(&self, validator: V) -> Result<(), V::Error>;
+
+    /// Return the span for the value if any.
     fn span(&self) -> Option<Self::Span>;
 }
 
+/// Values that implement [Validate](Validate) can validate themselves against
+/// types that implement this trait.
+///
+/// It is modelled after Serde Serializer, and works in a very similar fashion.
 pub trait Validator<S: core::fmt::Debug + Clone>: Sized {
+
+    /// The error returned by the validator.
+    ///
+    /// The [AddAssign](AddAssign) bound is added so that some validators
+    /// can return multiple errors together.
     type Error: std::error::Error + AddAssign;
 
     type ValidateSeq: ValidateSeq<S, Error = Self::Error>;
     type ValidateMap: ValidateMap<S, Error = Self::Error>;
 
+    /// Set the span for the current value that is being validated.
+    ///
+    /// In some cases this is needed to ensure that the validator returns
+    /// the correct span in its errors.
     fn with_span(self, span: Option<S>) -> Self;
 
     fn validate_bool(self, v: bool) -> Result<(), Self::Error>;
@@ -64,6 +92,8 @@ pub trait Validator<S: core::fmt::Debug + Clone>: Sized {
 pub trait ValidateSeq<S: core::fmt::Debug + Clone> {
     type Error: std::error::Error;
 
+    fn set_span(&mut self, span: Option<S>);
+
     fn validate_element<V: ?Sized>(&mut self, value: &V) -> Result<(), Self::Error>
     where
         V: Validate<Span = S> + Hash;
@@ -74,7 +104,9 @@ pub trait ValidateSeq<S: core::fmt::Debug + Clone> {
 pub trait ValidateMap<S: core::fmt::Debug + Clone> {
     type Error: std::error::Error;
 
-    // TODO: ToString fine here?
+    fn set_span(&mut self, span: Option<S>);
+    
+    // TODO: Any way to get rid of the ToString bound here?
     fn validate_key<V: ?Sized>(&mut self, key: &V) -> Result<(), Self::Error>
     where
         V: Validate<Span = S> + ToString;
@@ -89,7 +121,7 @@ pub trait ValidateMap<S: core::fmt::Debug + Clone> {
         value: &V,
     ) -> Result<(), Self::Error>
     where
-        // TODO: ToString fine here?
+        // TODO: Any way to get rid of the ToString bound here?
         K: Validate<Span = S> + ToString,
         V: Validate<Span = S>,
     {
