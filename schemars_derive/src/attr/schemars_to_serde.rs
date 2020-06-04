@@ -5,7 +5,7 @@ use syn::parse::Parser;
 use syn::{Attribute, Data, Field, Meta, NestedMeta, Variant};
 
 // List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes which we want serde_derive_internals to parse for us.
-static SERDE_KEYWORDS: &[&str] = &[
+pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     "rename",
     "rename_all",
     "deny_unknown_fields",

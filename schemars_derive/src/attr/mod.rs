@@ -4,6 +4,7 @@ mod schemars_to_serde;
 pub use schemars_to_serde::process_serde_attrs;
 
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
+use quote::ToTokens;
 use serde_derive_internals::Ctxt;
 use syn::parse::{self, Parse};
 use syn::Meta::{List, NameValue};
@@ -117,31 +118,30 @@ impl Attrs {
                     }
                 }
 
-                Meta(_meta_item) => {
-                    // TODO uncomment this for 0.8.0 (breaking change)
-                    //  https://github.com/GREsau/schemars/issues/18
-                    // if !ignore_errors {
-                    //     let path = meta_item
-                    //         .path()
-                    //         .into_token_stream()
-                    //         .to_string()
-                    //         .replace(' ', "");
-                    //     errors.error_spanned_by(
-                    //         meta_item.path(),
-                    //         format!("unknown schemars container attribute `{}`", path),
-                    //     );
-                    // }
+                _ if ignore_errors => {}
+
+                Meta(meta_item) => {
+                    let is_known_serde_keyword = schemars_to_serde::SERDE_KEYWORDS
+                        .iter()
+                        .any(|k| meta_item.path().is_ident(k));
+                    if !is_known_serde_keyword {
+                        let path = meta_item
+                            .path()
+                            .into_token_stream()
+                            .to_string()
+                            .replace(' ', "");
+                        errors.error_spanned_by(
+                            meta_item.path(),
+                            format!("unknown schemars container attribute `{}`", path),
+                        );
+                    }
                 }
 
-                Lit(_lit) => {
-                    // TODO uncomment this for 0.8.0 (breaking change)
-                    //  https://github.com/GREsau/schemars/issues/18
-                    // if !ignore_errors {
-                    //     errors.error_spanned_by(
-                    //         lit,
-                    //         "unexpected literal in schemars container attribute",
-                    //     );
-                    // }
+                Lit(lit) => {
+                    errors.error_spanned_by(
+                        lit,
+                        "unexpected literal in schemars container attribute",
+                    );
                 }
             }
         }

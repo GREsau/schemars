@@ -9,6 +9,9 @@
 - `SchemaSettings::bool_schemas` - this has been superseded by the `ReplaceBoolSchemas` visitor
 - `SchemaSettings::allow_ref_siblings` - this has been superseded by the `RemoveRefSiblings` visitor
 
+### Fixed:
+- **BREAKING CHANGE** unknown items in `#[schemars(...)]` attributes now cause a compilation error (https://github.com/GREsau/schemars/issues/18)
+
 ### Deprecated:
 - `make_extensible`, `schema_for_any`, and `schema_for_none` methods on `SchemaGenerator`
 
