@@ -66,5 +66,9 @@ required-features = ["arrayvec"]
 name = "schema_for_schema"
 required-features = ["impl_json_schema"]
 
+[[test]]
+name = "validation"
+required-features = ["validation"]
+
 [package.metadata.docs.rs]
 all-features = true

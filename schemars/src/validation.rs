@@ -16,6 +16,8 @@ pub trait Validator<S: core::fmt::Debug + Clone>: Sized {
     type ValidateSeq: ValidateSeq<S, Error = Self::Error>;
     type ValidateMap: ValidateMap<S, Error = Self::Error>;
 
+    fn with_span(self, span: Option<S>) -> Self;
+
     fn validate_bool(self, v: bool) -> Result<(), Self::Error>;
 
     fn validate_i8(self, v: i8) -> Result<(), Self::Error>;
@@ -62,7 +64,6 @@ pub trait Validator<S: core::fmt::Debug + Clone>: Sized {
 pub trait ValidateSeq<S: core::fmt::Debug + Clone> {
     type Error: std::error::Error;
 
-    // TODO: Is a Hash requirement good enough to check for uniqueness?
     fn validate_element<V: ?Sized>(&mut self, value: &V) -> Result<(), Self::Error>
     where
         V: Validate<Span = S> + Hash;
