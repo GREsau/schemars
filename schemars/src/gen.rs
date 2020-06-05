@@ -236,7 +236,7 @@ impl SchemaGenerator {
             schema,
         };
 
-        for visitor in &self.settings.visitors.0 {
+        for visitor in &mut self.settings.visitors.0 {
             visitor.visit_root_schema(&mut root)
         }
 
@@ -256,7 +256,7 @@ impl SchemaGenerator {
             schema,
         };
 
-        for visitor in &self.settings.visitors.0 {
+        for visitor in &mut self.settings.visitors.0 {
             visitor.visit_root_schema(&mut root)
         }
 
@@ -330,7 +330,7 @@ pub struct ReplaceBoolSchemas {
 }
 
 impl Visitor for ReplaceBoolSchemas {
-    fn visit_schema(&self, schema: &mut Schema) {
+    fn visit_schema(&mut self, schema: &mut Schema) {
         if let Schema::Bool(b) = *schema {
             *schema = Schema::Bool(b).into_object().into()
         }
@@ -338,7 +338,7 @@ impl Visitor for ReplaceBoolSchemas {
         visit_schema(self, schema)
     }
 
-    fn visit_schema_object(&self, schema: &mut SchemaObject) {
+    fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
         if self.skip_additional_properties {
             let mut additional_properties = None;
             if let Some(obj) = &mut schema.object {
@@ -365,7 +365,7 @@ impl Visitor for ReplaceBoolSchemas {
 pub struct RemoveRefSiblings;
 
 impl Visitor for RemoveRefSiblings {
-    fn visit_schema_object(&self, schema: &mut SchemaObject) {
+    fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
         visit_schema_object(self, schema);
 
         if let Some(reference) = schema.reference.take() {

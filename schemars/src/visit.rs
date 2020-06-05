@@ -3,33 +3,33 @@ use dyn_clone::DynClone;
 use std::fmt::Debug;
 
 pub trait Visitor: Debug + DynClone {
-    fn visit_root_schema(&self, root: &mut RootSchema) {
+    fn visit_root_schema(&mut self, root: &mut RootSchema) {
         visit_root_schema(self, root)
     }
 
-    fn visit_schema(&self, schema: &mut Schema) {
+    fn visit_schema(&mut self, schema: &mut Schema) {
         visit_schema(self, schema)
     }
 
-    fn visit_schema_object(&self, schema: &mut SchemaObject) {
+    fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
         visit_schema_object(self, schema)
     }
 }
 
 dyn_clone::clone_trait_object!(Visitor);
 
-pub fn visit_root_schema<V: Visitor + ?Sized>(v: &V, root: &mut RootSchema) {
+pub fn visit_root_schema<V: Visitor + ?Sized>(v: &mut V, root: &mut RootSchema) {
     v.visit_schema_object(&mut root.schema);
     visit_map_values(v, &mut root.definitions);
 }
 
-pub fn visit_schema<V: Visitor + ?Sized>(v: &V, schema: &mut Schema) {
+pub fn visit_schema<V: Visitor + ?Sized>(v: &mut V, schema: &mut Schema) {
     if let Schema::Object(schema) = schema {
         v.visit_schema_object(schema)
     }
 }
 
-pub fn visit_schema_object<V: Visitor + ?Sized>(v: &V, schema: &mut SchemaObject) {
+pub fn visit_schema_object<V: Visitor + ?Sized>(v: &mut V, schema: &mut SchemaObject) {
     if let Some(sub) = &mut schema.subschemas {
         visit_vec(v, &mut sub.all_of);
         visit_vec(v, &mut sub.any_of);
@@ -54,13 +54,13 @@ pub fn visit_schema_object<V: Visitor + ?Sized>(v: &V, schema: &mut SchemaObject
     }
 }
 
-fn visit_box<V: Visitor + ?Sized>(v: &V, target: &mut Option<Box<Schema>>) {
+fn visit_box<V: Visitor + ?Sized>(v: &mut V, target: &mut Option<Box<Schema>>) {
     if let Some(s) = target {
         v.visit_schema(s)
     }
 }
 
-fn visit_vec<V: Visitor + ?Sized>(v: &V, target: &mut Option<Vec<Schema>>) {
+fn visit_vec<V: Visitor + ?Sized>(v: &mut V, target: &mut Option<Vec<Schema>>) {
     if let Some(vec) = target {
         for s in vec {
             v.visit_schema(s)
@@ -68,13 +68,13 @@ fn visit_vec<V: Visitor + ?Sized>(v: &V, target: &mut Option<Vec<Schema>>) {
     }
 }
 
-fn visit_map_values<V: Visitor + ?Sized>(v: &V, target: &mut crate::Map<String, Schema>) {
+fn visit_map_values<V: Visitor + ?Sized>(v: &mut V, target: &mut crate::Map<String, Schema>) {
     for s in target.values_mut() {
         v.visit_schema(s)
     }
 }
 
-fn visit_single_or_vec<V: Visitor + ?Sized>(v: &V, target: &mut Option<SingleOrVec<Schema>>) {
+fn visit_single_or_vec<V: Visitor + ?Sized>(v: &mut V, target: &mut Option<SingleOrVec<Schema>>) {
     match target {
         None => {}
         Some(SingleOrVec::Single(s)) => v.visit_schema(s),
