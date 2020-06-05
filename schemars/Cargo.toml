@@ -16,6 +16,7 @@ build = "build.rs"
 schemars_derive = { version = "=0.7.6", optional = true, path = "../schemars_derive" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+dyn-clone = "1.0"
 
 chrono = { version = "0.4", default-features = false, optional = true }
 indexmap = { version = "1.2", optional = true }

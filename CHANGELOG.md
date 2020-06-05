@@ -8,6 +8,7 @@
 ### Removed (**BREAKING CHANGES**):
 - `SchemaSettings::bool_schemas` - this has been superseded by the `ReplaceBoolSchemas` visitor
 - `SchemaSettings::allow_ref_siblings` - this has been superseded by the `RemoveRefSiblings` visitor
+- `SchemaSettings` no longer implements `PartialEq`
 
 ### Fixed:
 - **BREAKING CHANGE** unknown items in `#[schemars(...)]` attributes now cause a compilation error (https://github.com/GREsau/schemars/issues/18)

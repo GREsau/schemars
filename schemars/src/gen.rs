@@ -1,13 +1,12 @@
 use crate::flatten::Merge;
 use crate::schema::*;
 use crate::{visit::*, JsonSchema, Map};
-use std::sync::Arc;
 
 /// Settings to customize how Schemas are generated.
 ///
 /// The default settings currently conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
 /// If you require your generated schemas to conform to draft 7, consider using the [`draft07`](#method.draft07) method.
-#[derive(Debug, PartialEq, Clone)]
+#[derive(Debug, Clone)]
 pub struct SchemaSettings {
     /// If `true`, schemas for [`Option<T>`](Option) will include a `nullable` property.
     ///
@@ -46,7 +45,7 @@ impl SchemaSettings {
             option_add_null_type: true,
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            visitors: Visitors(vec![Arc::new(RemoveRefSiblings)]),
+            visitors: Visitors(vec![Box::new(RemoveRefSiblings)]),
             _hidden: (),
         }
     }
@@ -74,8 +73,8 @@ impl SchemaSettings {
                     .to_owned(),
             ),
             visitors: Visitors(vec![
-                Arc::new(RemoveRefSiblings),
-                Arc::new(ReplaceBoolSchemas {
+                Box::new(RemoveRefSiblings),
+                Box::new(ReplaceBoolSchemas {
                     skip_additional_properties: true,
                 }),
             ]),
@@ -102,7 +101,7 @@ impl SchemaSettings {
 
     /// TODO document
     pub fn with_visitor(mut self, visitor: impl Visitor + 'static) -> Self {
-        self.visitors.0.push(Arc::new(visitor));
+        self.visitors.0.push(Box::new(visitor));
         self
     }
 
@@ -114,20 +113,7 @@ impl SchemaSettings {
 
 /// TODO document
 #[derive(Debug, Clone, Default)]
-pub struct Visitors(Vec<Arc<dyn Visitor>>);
-
-impl PartialEq for Visitors {
-    fn eq(&self, other: &Self) -> bool {
-        if self.0.len() != other.0.len() {
-            return false;
-        }
-
-        self.0
-            .iter()
-            .zip(other.0.iter())
-            .all(|(a, b)| Arc::ptr_eq(a, b))
-    }
-}
+pub struct Visitors(Vec<Box<dyn Visitor>>);
 
 /// The main type used to generate JSON Schemas.
 ///
@@ -338,7 +324,7 @@ impl SchemaGenerator {
 }
 
 /// TODO document
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ReplaceBoolSchemas {
     pub skip_additional_properties: bool,
 }
@@ -375,7 +361,7 @@ impl Visitor for ReplaceBoolSchemas {
 }
 
 /// TODO document
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RemoveRefSiblings;
 
 impl Visitor for RemoveRefSiblings {

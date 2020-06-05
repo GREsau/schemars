@@ -1,7 +1,8 @@
 use crate::schema::{RootSchema, Schema, SchemaObject, SingleOrVec};
+use dyn_clone::DynClone;
 use std::fmt::Debug;
 
-pub trait Visitor: Debug {
+pub trait Visitor: Debug + DynClone {
     fn visit_root_schema(&self, root: &mut RootSchema) {
         visit_root_schema(self, root)
     }
@@ -14,6 +15,8 @@ pub trait Visitor: Debug {
         visit_schema_object(self, schema)
     }
 }
+
+dyn_clone::clone_trait_object!(Visitor);
 
 pub fn visit_root_schema<V: Visitor + ?Sized>(v: &V, root: &mut RootSchema) {
     v.visit_schema_object(&mut root.schema);
