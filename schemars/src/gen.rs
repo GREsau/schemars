@@ -101,7 +101,7 @@ impl SchemaSettings {
     }
 
     /// TODO document
-    pub fn with_visitor(mut self, visitor: impl Visitor) -> Self {
+    pub fn with_visitor(mut self, visitor: impl Visitor + 'static) -> Self {
         self.visitors.0.push(Arc::new(visitor));
         self
     }
