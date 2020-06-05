@@ -1,7 +1,7 @@
 use crate::schema::{RootSchema, Schema, SchemaObject, SingleOrVec};
-use std::{any::Any, fmt::Debug};
+use std::fmt::Debug;
 
-pub trait Visitor: Debug + Any {
+pub trait Visitor: Debug {
     fn visit_root_schema(&self, root: &mut RootSchema) {
         visit_root_schema(self, root)
     }
