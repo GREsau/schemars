@@ -1,7 +1,7 @@
 use crate::flatten::Merge;
 use crate::schema::*;
 use crate::{visit::*, JsonSchema, Map};
-use std::{fmt::Debug, sync::Arc};
+use std::sync::Arc;
 
 /// Settings to customize how Schemas are generated.
 ///
