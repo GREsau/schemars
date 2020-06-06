@@ -197,8 +197,9 @@ fn main() {
 `#[serde(...)]` attributes can be overriden using `#[schemars(...)]` attributes, which behave identically (e.g. `#[schemars(rename_all = "camelCase")]`). You may find this useful if you want to change the generated schema without affecting Serde's behaviour, or if you're just not using Serde.
 
 ## Feature Flags
-- `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro
-- `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
+- `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro.
+- `impl_json_schema` - implements `JsonSchema` for Schemars types themselves.
+- `preserve_order` - keep the order of structure fields in `Schema` and `SchemaObject`.
 
 ## Optional Dependencies
 Schemars can implement `JsonSchema` on types from several popular crates, enabled via optional dependencies (dependency versions are shown in brackets):
