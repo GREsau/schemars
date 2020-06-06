@@ -225,21 +225,13 @@ pub type Map<K, V> = indexmap::IndexMap<K, V>;
 /// with a similar interface in a future version of schemars.
 pub type Set<T> = std::collections::BTreeSet<T>;
 
+/// A view into a single entry in a map, which may either be vacant or occupied.
+/// This `enum` is constructed from the `entry` method on `BTreeMap` or `IndexMap` 
+/// depending on the `preserve_order` feature flag.
 #[cfg(not(feature = "preserve_order"))]
 pub type MapEntry<'a, K, V> = std::collections::btree_map::Entry<'a, K, V>;
 #[cfg(feature = "preserve_order")]
 pub type MapEntry<'a, K, V> = indexmap::map::Entry<'a, K, V>;
-
-#[cfg(not(feature = "preserve_order"))]
-pub type AltMap<K, V> = std::collections::HashMap<K, V>;
-#[cfg(feature = "preserve_order")]
-pub type AltMap<K, V> = indexmap::IndexMap<K, V>;
-
-#[cfg(not(feature = "preserve_order"))]
-pub type AltMapEntry<'a, K, V> = std::collections::hash_map::Entry<'a, K, V>;
-#[cfg(feature = "preserve_order")]
-pub type AltMapEntry<'a, K, V> = indexmap::map::Entry<'a, K, V>;
-
 
 mod flatten;
 mod json_schema_impls;
