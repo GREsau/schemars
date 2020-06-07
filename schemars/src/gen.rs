@@ -1,6 +1,8 @@
 use crate::flatten::Merge;
 use crate::schema::*;
 use crate::{visit::*, JsonSchema, Map};
+use dyn_clone::DynClone;
+use std::{any::Any, fmt::Debug};
 
 /// Settings to customize how Schemas are generated.
 ///
@@ -26,8 +28,8 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `"http://json-schema.org/draft-07/schema#"`.
     pub meta_schema: Option<String>,
-    /// TODO document
-    pub visitors: Visitors,
+    /// A list of visitors that get applied to all generated root schemas.
+    pub visitors: Vec<Box<dyn Visitor2>>,
     _hidden: (),
 }
 
@@ -45,7 +47,7 @@ impl SchemaSettings {
             option_add_null_type: true,
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            visitors: Visitors(vec![Box::new(RemoveRefSiblings)]),
+            visitors: vec![Box::new(RemoveRefSiblings)],
             _hidden: (),
         }
     }
@@ -57,7 +59,7 @@ impl SchemaSettings {
             option_add_null_type: true,
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
-            visitors: Visitors::default(),
+            visitors: Vec::default(),
             _hidden: (),
         }
     }
@@ -72,12 +74,12 @@ impl SchemaSettings {
                 "https://spec.openapis.org/oas/3.0/schema/2019-04-02#/definitions/Schema"
                     .to_owned(),
             ),
-            visitors: Visitors(vec![
+            visitors: vec![
                 Box::new(RemoveRefSiblings),
                 Box::new(ReplaceBoolSchemas {
                     skip_additional_properties: true,
                 }),
-            ]),
+            ],
             _hidden: (),
         }
     }
@@ -99,9 +101,9 @@ impl SchemaSettings {
         self
     }
 
-    /// TODO document
-    pub fn with_visitor(mut self, visitor: impl Visitor + 'static) -> Self {
-        self.visitors.0.push(Box::new(visitor));
+    /// Appends the given visitor to the list of [visitors](SchemaSettings::visitors) for these `SchemaSettings`.
+    pub fn with_visitor(mut self, visitor: impl Visitor + Debug + DynClone + 'static) -> Self {
+        self.visitors.push(Box::new(visitor));
         self
     }
 
@@ -110,10 +112,6 @@ impl SchemaSettings {
         SchemaGenerator::new(self)
     }
 }
-
-/// TODO document
-#[derive(Debug, Clone, Default)]
-pub struct Visitors(Vec<Box<dyn Visitor>>);
 
 /// The main type used to generate JSON Schemas.
 ///
@@ -236,7 +234,7 @@ impl SchemaGenerator {
             schema,
         };
 
-        for visitor in &mut self.settings.visitors.0 {
+        for visitor in &mut self.settings.visitors {
             visitor.visit_root_schema(&mut root)
         }
 
@@ -256,7 +254,7 @@ impl SchemaGenerator {
             schema,
         };
 
-        for visitor in &mut self.settings.visitors.0 {
+        for visitor in &mut self.settings.visitors {
             visitor.visit_root_schema(&mut root)
         }
 
@@ -323,62 +321,39 @@ impl SchemaGenerator {
     }
 }
 
-/// TODO document
-#[derive(Debug, Clone)]
-pub struct ReplaceBoolSchemas {
-    pub skip_additional_properties: bool,
+/// A [Visitor](Visitor) which implements additional traits required to be included in a [SchemaSettings].
+///
+/// You will rarely need to use this trait directly as it is automatically implemented for any type which implements all of:
+/// - [`Visitor`]
+/// - [`std::fmt::Debug`]
+/// - [`std::any::Any`] (implemented for all `'static` types)
+/// - [`dyn_clone::DynClone`] (or [`std::clone::Clone`])
+///
+/// # Example
+/// ```
+/// use schemars::visit::Visitor;
+/// use schemars::gen::Visitor2;
+///
+/// #[derive(Debug, Clone)]
+/// struct MyVisitor;
+///
+/// impl Visitor for MyVisitor { }
+///
+/// let v: &dyn Visitor2 = &MyVisitor;
+/// assert_eq!(v.as_any().is::<MyVisitor>(), true);
+/// ```
+pub trait Visitor2: Visitor + Debug + DynClone + Any {
+    /// Upcasts this visitor into an `Any`, which can be used to inspect and manipulate it as its concrete type.
+    fn as_any(&self) -> &dyn Any;
 }
 
-impl Visitor for ReplaceBoolSchemas {
-    fn visit_schema(&mut self, schema: &mut Schema) {
-        if let Schema::Bool(b) = *schema {
-            *schema = Schema::Bool(b).into_object().into()
-        }
+dyn_clone::clone_trait_object!(Visitor2);
 
-        visit_schema(self, schema)
-    }
-
-    fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
-        if self.skip_additional_properties {
-            let mut additional_properties = None;
-            if let Some(obj) = &mut schema.object {
-                if let Some(ap) = &obj.additional_properties {
-                    if let Schema::Bool(_) = ap.as_ref() {
-                        additional_properties = obj.additional_properties.take();
-                    }
-                }
-            }
-
-            visit_schema_object(self, schema);
-
-            if additional_properties.is_some() {
-                schema.object().additional_properties = additional_properties;
-            }
-        } else {
-            visit_schema_object(self, schema);
-        }
-    }
-}
-
-/// TODO document
-#[derive(Debug, Clone)]
-pub struct RemoveRefSiblings;
-
-impl Visitor for RemoveRefSiblings {
-    fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
-        visit_schema_object(self, schema);
-
-        if let Some(reference) = schema.reference.take() {
-            if schema == &SchemaObject::default() {
-                schema.reference = Some(reference);
-            } else {
-                let ref_schema = Schema::new_ref(reference);
-                let all_of = &mut schema.subschemas().all_of;
-                match all_of {
-                    Some(vec) => vec.push(ref_schema),
-                    None => *all_of = Some(vec![ref_schema]),
-                }
-            }
-        }
+impl<T> Visitor2 for T
+where
+    T: Visitor + Debug + DynClone + Any,
+{
+    fn as_any(&self) -> &dyn Any {
+        self
     }
 }
