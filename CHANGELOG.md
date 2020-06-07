@@ -1,9 +1,10 @@
 # Changelog
 
-## In-dev - version TBC
+## **In-dev** - [0.8.0]
 ### Added:
 - `visit::Visitor`, a trait for updating a schema and all schemas it contains recursively. A `SchemaSettings` can now contain a list of visitors.
 - `into_object()` method added to `Schema` as a shortcut for `into::<SchemaObject>()`
+- Preserve order of schema properties under `preserve_order` feature flag (https://github.com/GREsau/schemars/issues/32)
 
 ### Removed (**BREAKING CHANGES**):
 - `SchemaSettings::bool_schemas` - this has been superseded by the `ReplaceBoolSchemas` visitor

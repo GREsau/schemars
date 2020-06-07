@@ -205,6 +205,7 @@ fn main() {
 ## Feature Flags
 - `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro
 - `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
+- `preserve_order` - keep the order of struct fields in `Schema` and `SchemaObject`
 
 ## Optional Dependencies
 Schemars can implement `JsonSchema` on types from several popular crates, enabled via optional dependencies (dependency versions are shown in brackets):
