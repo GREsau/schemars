@@ -106,15 +106,7 @@ where
     K: std::hash::Hash + Eq + Ord,
 {
     fn merge(mut self, other: Self) -> Self {
-        // IndexMap only implements `Extens<(K, V)>` for `IndexMap<K, V, S>`
-        // `where K: Hash + Eq + Copy, V: Copy,`
-        // The `K: Copy` and `V: Copy` traits are not implemented for things like `String`
-        // Because of this I made a simple extend implementation here.
-        // self.extend(other);
-        // Basic replacement for extend.
-        for (key, value) in other {
-            self.insert(key, value);
-        }
+        self.extend(other);
         self
     }
 }
