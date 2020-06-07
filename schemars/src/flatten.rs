@@ -101,7 +101,10 @@ impl<T> Merge for Vec<T> {
     }
 }
 
-impl<K: Ord, V> Merge for Map<K, V> {
+impl<K, V> Merge for Map<K, V>
+where
+    K: std::hash::Hash + Eq + Ord,
+{
     fn merge(mut self, other: Self) -> Self {
         self.extend(other);
         self

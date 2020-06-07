@@ -197,8 +197,9 @@ fn main() {
 `#[serde(...)]` attributes can be overriden using `#[schemars(...)]` attributes, which behave identically (e.g. `#[schemars(rename_all = "camelCase")]`). You may find this useful if you want to change the generated schema without affecting Serde's behaviour, or if you're just not using Serde.
 
 ## Feature Flags
-- `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro
-- `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
+- `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro.
+- `impl_json_schema` - implements `JsonSchema` for Schemars types themselves.
+- `preserve_order` - keep the order of structure fields in `Schema` and `SchemaObject`.
 
 ## Optional Dependencies
 Schemars can implement `JsonSchema` on types from several popular crates, enabled via optional dependencies (dependency versions are shown in brackets):
@@ -212,14 +213,26 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 
 /// The map type used by schemars types.
 ///
-/// Currently a `BTreeMap`, but this may change a different implementation
+/// Currently a `BTreeMap` or `IndexMap` can be used, but this may change to a different implementation
 /// with a similar interface in a future version of schemars.
+/// The `IndexMap` will be used when the `preserve_order` feature flag is set.
+#[cfg(not(feature = "preserve_order"))]
 pub type Map<K, V> = std::collections::BTreeMap<K, V>;
+#[cfg(feature = "preserve_order")]
+pub type Map<K, V> = indexmap::IndexMap<K, V>;
 /// The set type used by schemars types.
 ///
-/// Currently a `BTreeSet`, but this may change a different implementation
+/// Currently a `BTreeSet`, but this may change to a different implementation
 /// with a similar interface in a future version of schemars.
 pub type Set<T> = std::collections::BTreeSet<T>;
+
+/// A view into a single entry in a map, which may either be vacant or occupied.
+/// This is constructed from the `entry` method on `BTreeMap` or `IndexMap`
+/// depending on whether the `preserve_order` feature flag is set.
+#[cfg(not(feature = "preserve_order"))]
+pub type MapEntry<'a, K, V> = std::collections::btree_map::Entry<'a, K, V>;
+#[cfg(feature = "preserve_order")]
+pub type MapEntry<'a, K, V> = indexmap::map::Entry<'a, K, V>;
 
 mod flatten;
 mod json_schema_impls;
