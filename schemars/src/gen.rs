@@ -212,12 +212,18 @@ impl SchemaGenerator {
         &self.definitions
     }
 
-    /// Consumes `self` and returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
+    /// Returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated,
+    /// leaving an empty map in its place.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn into_definitions(self) -> Map<String, Schema> {
-        self.definitions
+    pub fn take_definitions(&mut self) -> Map<String, Schema> {
+        std::mem::replace(&mut self.definitions, Map::default())
+    }
+
+    /// Returns an iterator over the [visitors](SchemaSettings::visitors) being used by this `SchemaGenerator`.
+    pub fn visitors_mut(&mut self) -> impl Iterator<Item = &mut dyn Visitor2> {
+        self.settings.visitors.iter_mut().map(|v| v.as_mut())
     }
 
     /// Generates a root JSON Schema for the type `T`.

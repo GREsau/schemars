@@ -5,11 +5,14 @@
 - `visit::Visitor`, a trait for updating a schema and all schemas it contains recursively. A `SchemaSettings` can now contain a list of visitors.
 - `into_object()` method added to `Schema` as a shortcut for `into::<SchemaObject>()`
 - Preserve order of schema properties under `preserve_order` feature flag (https://github.com/GREsau/schemars/issues/32)
+- `SchemaGenerator::take_definitions()` which behaves similarly to the now-removed `into_definitions()` method but without consuming the generator
+- `SchemaGenerator::visitors_mut()` which returns an iterator over a generator's settings's visitors
 
 ### Removed (**BREAKING CHANGES**):
 - `SchemaSettings::bool_schemas` - this has been superseded by the `ReplaceBoolSchemas` visitor
 - `SchemaSettings::allow_ref_siblings` - this has been superseded by the `RemoveRefSiblings` visitor
 - `SchemaSettings` no longer implements `PartialEq`
+- `SchemaGenerator::into_definitions()` - this has been superseded by `SchemaGenerator::take_definitions()`
 
 ### Fixed:
 - **BREAKING CHANGE** unknown items in `#[schemars(...)]` attributes now cause a compilation error (https://github.com/GREsau/schemars/issues/18)
