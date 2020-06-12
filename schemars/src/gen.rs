@@ -79,6 +79,9 @@ impl SchemaSettings {
                 Box::new(ReplaceBoolSchemas {
                     skip_additional_properties: true,
                 }),
+                Box::new(SetSingleExample {
+                    retain_examples: false,
+                }),
             ],
             _hidden: (),
         }

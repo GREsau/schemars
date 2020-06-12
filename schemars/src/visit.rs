@@ -93,6 +93,7 @@ fn visit_single_or_vec<V: Visitor + ?Sized>(v: &mut V, target: &mut Option<Singl
 /// TODO document
 #[derive(Debug, Clone)]
 pub struct ReplaceBoolSchemas {
+    /// TODO document
     pub skip_additional_properties: bool,
 }
 
@@ -143,6 +144,31 @@ impl Visitor for RemoveRefSiblings {
                     None => *all_of = Some(vec![ref_schema]),
                 }
             }
+        }
+    }
+}
+
+/// TODO document
+#[derive(Debug, Clone)]
+pub struct SetSingleExample {
+    /// TODO document
+    pub retain_examples: bool,
+}
+
+impl Visitor for SetSingleExample {
+    fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
+        visit_schema_object(self, schema);
+
+        let first_example = schema.metadata.as_mut().and_then(|m| {
+            if self.retain_examples {
+                m.examples.first().cloned()
+            } else {
+                m.examples.drain(..).next()
+            }
+        });
+
+        if let Some(example) = first_example {
+            schema.extensions.insert("example".to_owned(), example);
         }
     }
 }
