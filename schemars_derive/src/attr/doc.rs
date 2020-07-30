@@ -22,7 +22,10 @@ pub fn get_title_and_desc_from_doc(attrs: &[Attribute]) -> (Option<String>, Opti
     };
 
     if !preserve_formatting {
-        maybe_desc = maybe_desc.as_ref().map(String::as_str).and_then(merge_description_lines);
+        maybe_desc = maybe_desc
+            .as_ref()
+            .map(String::as_str)
+            .and_then(merge_description_lines);
     }
 
     (title, maybe_desc)
@@ -39,7 +42,9 @@ fn merge_description_lines(doc: &str) -> Option<String> {
 }
 
 fn should_preserve_formatting(attrs: &[Attribute]) -> bool {
-    attrs.iter().any(|attr| attr.path.is_ident("schemars_preserve_doc_formatting"))
+    attrs
+        .iter()
+        .any(|attr| attr.path.is_ident("schemars_preserve_doc_formatting"))
 }
 
 fn get_doc(attrs: &[Attribute], preserve_formatting: bool) -> Option<String> {
@@ -60,8 +65,7 @@ fn get_doc(attrs: &[Attribute], preserve_formatting: bool) -> Option<String> {
         .collect::<Vec<_>>();
 
     let doc = if !preserve_formatting {
-        doc
-            .iter()
+        doc.iter()
             .flat_map(|a| a.split('\n'))
             .map(str::trim)
             .skip_while(|s| *s == "")
