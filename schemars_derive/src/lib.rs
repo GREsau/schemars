@@ -12,7 +12,7 @@ mod schema_exprs;
 use ast::*;
 use proc_macro2::TokenStream;
 
-#[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
+#[proc_macro_derive(JsonSchema, attributes(schemars, serde, schemars_preserve_doc_formatting))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     derive_json_schema(input).into()

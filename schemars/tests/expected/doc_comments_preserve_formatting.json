@@ -1,0 +1,6 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyPreserveFormattingStruct",
+  "description": "This\nis\nnot\n                        a\nsingle\nline.",
+  "type": "null"
+}

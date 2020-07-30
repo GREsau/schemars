@@ -51,6 +51,16 @@ pub enum MyEnum {
     },
 }
 
+/// This
+/// is
+/// not
+///                         a
+/// single
+/// line.
+#[derive(JsonSchema)]
+#[schemars_preserve_doc_formatting]
+pub struct MyPreserveFormattingStruct;
+
 #[test]
 fn doc_comments_struct() -> TestResult {
     test_default_generated_schema::<MyStruct>("doc_comments_struct")
@@ -65,6 +75,11 @@ fn doc_comments_struct_ref_siblings() -> TestResult {
 #[test]
 fn doc_comments_enum() -> TestResult {
     test_default_generated_schema::<MyEnum>("doc_comments_enum")
+}
+
+#[test]
+fn doc_comments_preserve_formatting() -> TestResult {
+    test_default_generated_schema::<MyPreserveFormattingStruct>("doc_comments_preserve_formatting")
 }
 
 /// # OverrideDocs struct
