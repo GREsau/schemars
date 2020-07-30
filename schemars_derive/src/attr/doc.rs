@@ -67,8 +67,6 @@ fn get_doc(attrs: &[Attribute], preserve_formatting: bool) -> Option<String> {
             .skip_while(|s| *s == "")
             .collect::<Vec<_>>()
             .join("\n")
-    } else if !doc.is_empty() && doc.iter().all(|line| line.starts_with(' ')) {
-        doc.iter().map(|line| &line[1..]).collect::<Vec<_>>().join("\n")
     } else {
         doc.join("\n")
     };
