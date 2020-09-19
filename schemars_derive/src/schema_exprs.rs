@@ -4,13 +4,15 @@ use serde_derive_internals::ast::Style;
 use serde_derive_internals::attr::{self as serde_attr, Default as SerdeDefault, TagType};
 use syn::spanned::Spanned;
 
-pub fn expr_for_container(cont: &Container) -> TokenStream {
-    let schema_expr = match &cont.data {
-        Data::Struct(Style::Unit, _) => expr_for_unit_struct(),
-        Data::Struct(Style::Newtype, fields) => expr_for_newtype_struct(&fields[0]),
-        Data::Struct(Style::Tuple, fields) => expr_for_tuple_struct(fields),
-        Data::Struct(Style::Struct, fields) => expr_for_struct(fields, Some(&cont.serde_attrs)),
-        Data::Enum(variants) => expr_for_enum(variants, &cont.serde_attrs),
+pub(crate) fn expr_for_container(cont: &Container, repr_type: Option<syn::Ident>) -> TokenStream {
+    let schema_expr = match (&cont.data, repr_type) {
+        (Data::Struct(Style::Unit, _), None) => expr_for_unit_struct(),
+        (Data::Struct(Style::Newtype, fields), None) => expr_for_newtype_struct(&fields[0]),
+        (Data::Struct(Style::Tuple, fields), None) => expr_for_tuple_struct(fields),
+        (Data::Struct(Style::Struct, fields), None) => expr_for_struct(fields, Some(&cont.serde_attrs)),
+        (Data::Enum(variants), None) => expr_for_enum(variants, &cont.serde_attrs),
+        (Data::Enum(variants), Some(ref t)) => expr_for_repr_enum(variants, &cont.serde_attrs, t),
+        (_, _) => panic!("Cannot derive Schemars_repr for a non-unit enum"),
     };
 
     let doc_metadata = SchemaMetadata::from_attrs(&cont.attrs);
@@ -79,6 +81,21 @@ fn expr_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> TokenS
         TagType::Internal { tag } => expr_for_internal_tagged_enum(variants, tag),
         TagType::Adjacent { tag, content } => expr_for_adjacent_tagged_enum(variants, tag, content),
     }
+}
+
+fn expr_for_repr_enum(variants: &[Variant], _: &serde_attr::Container, repr_type: &syn::Ident) -> TokenStream {
+    let variants = variants
+        .iter()
+        .filter(|v| !v.serde_attrs.skip_deserializing());
+
+    if variants.clone().any(|v| !v.is_unit() || !v.attrs.with.is_none()) {
+        panic!("Non unit variant in repr enum"); // fixme
+    }
+    let idents = variants.map(Variant::ident);
+    schema_object(quote! {
+        instance_type: Some(schemars::schema::InstanceType::Integer.into()),
+        enum_values: Some(vec![#((Self::#idents as #repr_type).into()),*]),
+    })
 }
 
 fn expr_for_external_tagged_enum<'a>(

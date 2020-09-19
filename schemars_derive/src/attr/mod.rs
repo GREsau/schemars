@@ -1,7 +1,7 @@
 mod doc;
 mod schemars_to_serde;
 
-pub use schemars_to_serde::process_serde_attrs;
+pub(crate) use schemars_to_serde::process_serde_attrs;
 
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;

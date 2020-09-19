@@ -1,7 +1,7 @@
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
 use std::collections::HashSet;
-use syn::parse::Parser;
+use syn::parse::{self, Parser};
 use syn::{Attribute, Data, Field, Meta, NestedMeta, Variant};
 
 // List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes which we want serde_derive_internals to parse for us.
@@ -30,16 +30,17 @@ pub(crate) static SERDE_KEYWORDS: &[&str] = &[
 
 // If a struct/variant/field has any #[schemars] attributes, then create copies of them
 // as #[serde] attributes so that serde_derive_internals will parse them for us.
-pub fn process_serde_attrs(input: &mut syn::DeriveInput) -> Result<(), Vec<syn::Error>> {
+pub(crate) fn process_serde_attrs(input: &mut syn::DeriveInput) -> Result<AttributeInfo, Vec<syn::Error>> {
     let ctxt = Ctxt::new();
-    process_attrs(&ctxt, &mut input.attrs);
+    let attr_info = process_attrs(&ctxt, &mut input.attrs);
     match input.data {
         Data::Struct(ref mut s) => process_serde_field_attrs(&ctxt, s.fields.iter_mut()),
         Data::Enum(ref mut e) => process_serde_variant_attrs(&ctxt, e.variants.iter_mut()),
         Data::Union(ref mut u) => process_serde_field_attrs(&ctxt, u.fields.named.iter_mut()),
     };
 
-    ctxt.check()
+    ctxt.check()?;
+    Ok(attr_info)
 }
 
 fn process_serde_variant_attrs<'a>(ctxt: &Ctxt, variants: impl Iterator<Item = &'a mut Variant>) {
@@ -55,7 +56,11 @@ fn process_serde_field_attrs<'a>(ctxt: &Ctxt, fields: impl Iterator<Item = &'a m
     }
 }
 
-fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
+pub(crate) struct AttributeInfo {
+    pub repr_type: Option<syn::Ident>,
+}
+
+fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) -> AttributeInfo {
     let (serde_attrs, other_attrs): (Vec<_>, Vec<_>) =
         attrs.drain(..).partition(|at| at.path.is_ident("serde"));
 
@@ -107,6 +112,24 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
             Ok(ref mut parsed) => attrs.append(parsed),
             Err(e) => ctxt.error_spanned_by(to_tokens(attrs), e),
         }
+    }
+
+    let repr_type = attrs
+        .iter()
+        .filter(|attr| attr.path.is_ident("repr"))
+        .map(|attr| {
+            fn repr_inner(input: parse::ParseStream) -> parse::Result<syn::Ident> {
+                let ident;
+                parenthesized!(ident in input);
+                ident.parse()
+            }
+            repr_inner.parse2(attr.tokens.clone()).ok()
+        })
+        .next()
+        .flatten();
+
+    AttributeInfo {
+        repr_type,
     }
 }
 

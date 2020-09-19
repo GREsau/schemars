@@ -73,6 +73,10 @@ impl<'a> Variant<'a> {
             _ => false,
         }
     }
+
+    pub fn ident(&self) -> &syn::Ident {
+        &self.ident
+    }
 }
 
 impl<'a> Field<'a> {

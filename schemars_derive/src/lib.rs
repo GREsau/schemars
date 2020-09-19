@@ -12,8 +12,15 @@ mod schema_exprs;
 use ast::*;
 use proc_macro2::TokenStream;
 
+
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as syn::DeriveInput);
+    derive_json_schema(input).into()
+}
+
+#[proc_macro_derive(JsonSchema_repr, attributes(schemars, serde))]
+pub fn derive_json_schema_repr_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     derive_json_schema(input).into()
 }
@@ -21,9 +28,10 @@ pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro:
 fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
     add_trait_bounds(&mut input.generics);
 
-    if let Err(e) = attr::process_serde_attrs(&mut input) {
-        return compile_error(&e);
-    }
+    let attrs = match attr::process_serde_attrs(&mut input) {
+        Ok(attrs) => attrs,
+        Err(ref errors) => return compile_error(errors),
+    };
 
     let cont = match Container::from_ast(&input) {
         Ok(c) => c,
@@ -102,7 +110,7 @@ fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
         }
     };
 
-    let schema_expr = schema_exprs::expr_for_container(&cont);
+    let schema_expr = schema_exprs::expr_for_container(&cont, attrs.repr_type);
 
     quote! {
         #[automatically_derived]
