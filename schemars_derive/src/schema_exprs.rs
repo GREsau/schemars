@@ -1,10 +1,12 @@
 use crate::{ast::*, attr::WithAttr, metadata::SchemaMetadata};
+use proc_macro2::Span;
 use proc_macro2::TokenStream;
 use serde_derive_internals::ast::Style;
 use serde_derive_internals::attr::{self as serde_attr, Default as SerdeDefault, TagType};
 use syn::spanned::Spanned;
 
 pub(crate) fn expr_for_container(cont: &Container, repr_type: Option<syn::Ident>) -> TokenStream {
+    let call_site = Span::call_site();
     let schema_expr = match (&cont.data, repr_type) {
         (Data::Struct(Style::Unit, _), None) => expr_for_unit_struct(),
         (Data::Struct(Style::Newtype, fields), None) => expr_for_newtype_struct(&fields[0]),
@@ -12,7 +14,9 @@ pub(crate) fn expr_for_container(cont: &Container, repr_type: Option<syn::Ident>
         (Data::Struct(Style::Struct, fields), None) => expr_for_struct(fields, Some(&cont.serde_attrs)),
         (Data::Enum(variants), None) => expr_for_enum(variants, &cont.serde_attrs),
         (Data::Enum(variants), Some(ref t)) => expr_for_repr_enum(variants, &cont.serde_attrs, t),
-        (_, _) => panic!("Cannot derive Schemars_repr for a non-unit enum"),
+        (_, _) => return crate::compile_error(vec![
+            &syn::Error::new(call_site, "Cannot derive Schemars_repr for a non-unit enum")
+        ]),
     };
 
     let doc_metadata = SchemaMetadata::from_attrs(&cont.attrs);
@@ -89,7 +93,10 @@ fn expr_for_repr_enum(variants: &[Variant], _: &serde_attr::Container, repr_type
         .filter(|v| !v.serde_attrs.skip_deserializing());
 
     if variants.clone().any(|v| !v.is_unit() || !v.attrs.with.is_none()) {
-        panic!("Non unit variant in repr enum"); // fixme
+        let call_site = Span::call_site();
+        return crate::compile_error(vec![
+            &syn::Error::new(call_site, "Cannot derive Schemars_repr for a non-unit enum")
+        ])
     }
     let idents = variants.map(Variant::ident);
     schema_object(quote! {
