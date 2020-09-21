@@ -1,6 +1,4 @@
 mod util;
-
-use super::*;
 use schemars::JsonSchema;
 use util::*;
 
