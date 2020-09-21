@@ -15,10 +15,13 @@ jobs:
         include:
           - rust: 1.36.0
             test_features: "--all-features"
+            allow_failure: false
           - rust: stable
             test_features: "--all-features"
+            allow_failure: false
           - rust: beta
             test_features: "--all-features"
+            allow_failure: false
           - rust: nightly
             test_features: "--all-features"
             allow_failure: true
