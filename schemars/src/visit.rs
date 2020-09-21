@@ -1,5 +1,4 @@
 use crate::schema::{RootSchema, Schema, SchemaObject, SingleOrVec};
-use std::fmt::Debug;
 
 /// TODO document
 pub trait Visitor {

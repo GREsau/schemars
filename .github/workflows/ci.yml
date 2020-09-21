@@ -1,6 +1,6 @@
 name: CI
 
-on: [push, pull_request]
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   ci:
@@ -8,13 +8,13 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.32.0
+          - 1.36.0
           - stable
           - beta
           - nightly
         include:
-          - rust: 1.32.0
-            test_features: "--features impl_json_schema,chrono,indexmap,either,uuid"
+          - rust: 1.36.0
+            test_features: "--all-features"
           - rust: stable
             test_features: "--all-features"
           - rust: beta
