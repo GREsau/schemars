@@ -9,6 +9,12 @@
         "t"
       ],
       "properties": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "Struct"
+          ]
+        },
         "c": {
           "type": "object",
           "required": [
@@ -19,12 +25,6 @@
               "type": "boolean"
             }
           }
-        },
-        "t": {
-          "type": "string",
-          "enum": [
-            "Struct"
-          ]
         }
       }
     },
@@ -35,14 +35,14 @@
         "t"
       ],
       "properties": {
-        "c": {
-          "type": "boolean"
-        },
         "t": {
           "type": "string",
           "enum": [
             "NewType"
           ]
+        },
+        "c": {
+          "type": "boolean"
         }
       }
     },
@@ -53,6 +53,12 @@
         "t"
       ],
       "properties": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "Tuple"
+          ]
+        },
         "c": {
           "type": "array",
           "items": [
@@ -66,12 +72,6 @@
           ],
           "maxItems": 2,
           "minItems": 2
-        },
-        "t": {
-          "type": "string",
-          "enum": [
-            "Tuple"
-          ]
         }
       }
     }

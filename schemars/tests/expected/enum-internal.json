@@ -55,18 +55,18 @@
         "typeProperty"
       ],
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
-        "foo": {
-          "type": "integer",
-          "format": "int32"
-        },
         "typeProperty": {
           "type": "string",
           "enum": [
             "StructNewType"
           ]
+        },
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         }
       }
     },
@@ -78,18 +78,18 @@
         "typeProperty"
       ],
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
-        "foo": {
-          "type": "integer",
-          "format": "int32"
-        },
         "typeProperty": {
           "type": "string",
           "enum": [
             "Struct"
           ]
+        },
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         }
       }
     },

@@ -24,13 +24,13 @@
             "foo"
           ],
           "properties": {
-            "deprecated_field": {
-              "deprecated": true,
-              "type": "boolean"
-            },
             "foo": {
               "type": "integer",
               "format": "int32"
+            },
+            "deprecated_field": {
+              "deprecated": true,
+              "type": "boolean"
             }
           }
         }

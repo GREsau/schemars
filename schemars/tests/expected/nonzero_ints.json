@@ -9,12 +9,10 @@
     "unsigned"
   ],
   "properties": {
-    "nonzero_signed": {
+    "unsigned": {
       "type": "integer",
-      "format": "int32",
-      "not": {
-        "const": 0
-      }
+      "format": "uint32",
+      "minimum": 0.0
     },
     "nonzero_unsigned": {
       "type": "integer",
@@ -25,10 +23,12 @@
       "type": "integer",
       "format": "int32"
     },
-    "unsigned": {
+    "nonzero_signed": {
       "type": "integer",
-      "format": "uint32",
-      "minimum": 0.0
+      "format": "int32",
+      "not": {
+        "const": 0
+      }
     }
   }
 }

@@ -15,6 +15,14 @@
     "foo"
   ],
   "properties": {
+    "foo": {
+      "examples": [
+        8,
+        null
+      ],
+      "type": "integer",
+      "format": "int32"
+    },
     "bar": {
       "type": "boolean"
     },
@@ -26,14 +34,6 @@
         "string",
         "null"
       ]
-    },
-    "foo": {
-      "examples": [
-        8,
-        null
-      ],
-      "type": "integer",
-      "format": "int32"
     }
   }
 }

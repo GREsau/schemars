@@ -10,13 +10,8 @@
     "command_line": {
       "type": "string"
     },
-    "system_cpu_time": {
-      "default": "0.000000000s",
-      "allOf": [
-        {
-          "$ref": "#/definitions/Duration"
-        }
-      ]
+    "wall_time": {
+      "$ref": "#/definitions/Duration"
     },
     "user_cpu_time": {
       "default": {
@@ -29,8 +24,13 @@
         }
       ]
     },
-    "wall_time": {
-      "$ref": "#/definitions/Duration"
+    "system_cpu_time": {
+      "default": "0.000000000s",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Duration"
+        }
+      ]
     }
   },
   "definitions": {
@@ -41,13 +41,13 @@
         "secs"
       ],
       "properties": {
-        "nanos": {
-          "type": "integer",
-          "format": "int32"
-        },
         "secs": {
           "type": "integer",
           "format": "int64"
+        },
+        "nanos": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     }

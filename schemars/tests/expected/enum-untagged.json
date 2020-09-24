@@ -24,12 +24,12 @@
         "foo"
       ],
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
         "foo": {
           "type": "integer",
           "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         }
       }
     },
@@ -53,6 +53,9 @@
     }
   ],
   "definitions": {
+    "UnitStruct": {
+      "type": "null"
+    },
     "Struct": {
       "type": "object",
       "required": [
@@ -60,17 +63,14 @@
         "foo"
       ],
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
         "foo": {
           "type": "integer",
           "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         }
       }
-    },
-    "UnitStruct": {
-      "type": "null"
     }
   }
 }

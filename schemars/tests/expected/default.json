@@ -3,14 +3,14 @@
   "title": "MyStruct",
   "type": "object",
   "properties": {
-    "my_bool": {
-      "default": false,
-      "type": "boolean"
-    },
     "my_int": {
       "default": 0,
       "type": "integer",
       "format": "int32"
+    },
+    "my_bool": {
+      "default": false,
+      "type": "boolean"
     },
     "my_struct2": {
       "default": "i:0 b:false",
@@ -28,14 +28,14 @@
     "MyStruct2": {
       "type": "object",
       "properties": {
-        "my_bool": {
-          "default": true,
-          "type": "boolean"
-        },
         "my_int": {
           "default": 6,
           "type": "integer",
           "format": "int32"
+        },
+        "my_bool": {
+          "default": true,
+          "type": "boolean"
         }
       }
     }
