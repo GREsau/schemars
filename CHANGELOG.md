@@ -14,8 +14,8 @@
 - `SchemaSettings` no longer implements `PartialEq`
 - `SchemaGenerator::into_definitions()` - this has been superseded by `SchemaGenerator::take_definitions()`
 
-### Changed (**BREAKING CHANGES**):
-- Minimum supported rust version is now 1.36.0
+### Changed:
+- **BREAKING CHANGE** Minimum supported rust version is now 1.36.0
 
 ### Fixed:
 - **BREAKING CHANGE** unknown items in `#[schemars(...)]` attributes now cause a compilation error (https://github.com/GREsau/schemars/issues/18)

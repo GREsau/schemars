@@ -1,3 +1,12 @@
+/*!
+JSON Schema generator and settings.
+
+This module is useful if you want more control over how the schema generated then the [`schema_for!`] macro gives you.
+There are two main types in this module:two main types in this module:
+* [`SchemaSettings`], which defines what JSON Schema features should be used when generating schemas (for example, how `Option`s should be represented).
+* [`SchemaGenerator`], which manages the generation of a schema document.
+*/
+
 use crate::flatten::Merge;
 use crate::schema::*;
 use crate::{visit::*, JsonSchema, Map};
@@ -29,7 +38,7 @@ pub struct SchemaSettings {
     /// Defaults to `"http://json-schema.org/draft-07/schema#"`.
     pub meta_schema: Option<String>,
     /// A list of visitors that get applied to all generated root schemas.
-    pub visitors: Vec<Box<dyn Visitor2>>,
+    pub visitors: Vec<Box<dyn GenVisitor>>,
     _hidden: (),
 }
 
@@ -105,7 +114,7 @@ impl SchemaSettings {
     }
 
     /// Appends the given visitor to the list of [visitors](SchemaSettings::visitors) for these `SchemaSettings`.
-    pub fn with_visitor(mut self, visitor: impl Visitor + Debug + DynClone + 'static) -> Self {
+    pub fn with_visitor(mut self, visitor: impl Visitor + Debug + Clone + 'static) -> Self {
         self.visitors.push(Box::new(visitor));
         self
     }
@@ -225,7 +234,7 @@ impl SchemaGenerator {
     }
 
     /// Returns an iterator over the [visitors](SchemaSettings::visitors) being used by this `SchemaGenerator`.
-    pub fn visitors_mut(&mut self) -> impl Iterator<Item = &mut dyn Visitor2> {
+    pub fn visitors_mut(&mut self) -> impl Iterator<Item = &mut dyn GenVisitor> {
         self.settings.visitors.iter_mut().map(|v| v.as_mut())
     }
 
@@ -336,31 +345,31 @@ impl SchemaGenerator {
 /// - [`Visitor`]
 /// - [`std::fmt::Debug`]
 /// - [`std::any::Any`] (implemented for all `'static` types)
-/// - [`dyn_clone::DynClone`] (or [`std::clone::Clone`])
+/// - [`std::clone::Clone`]
 ///
 /// # Example
 /// ```
 /// use schemars::visit::Visitor;
-/// use schemars::gen::Visitor2;
+/// use schemars::gen::GenVisitor;
 ///
 /// #[derive(Debug, Clone)]
 /// struct MyVisitor;
 ///
 /// impl Visitor for MyVisitor { }
 ///
-/// let v: &dyn Visitor2 = &MyVisitor;
-/// assert_eq!(v.as_any().is::<MyVisitor>(), true);
+/// let v: &dyn GenVisitor = &MyVisitor;
+/// assert!(v.as_any().is::<MyVisitor>());
 /// ```
-pub trait Visitor2: Visitor + Debug + DynClone + Any {
+pub trait GenVisitor: Visitor + Debug + DynClone + Any {
     /// Upcasts this visitor into an `Any`, which can be used to inspect and manipulate it as its concrete type.
     fn as_any(&self) -> &dyn Any;
 }
 
-dyn_clone::clone_trait_object!(Visitor2);
+dyn_clone::clone_trait_object!(GenVisitor);
 
-impl<T> Visitor2 for T
+impl<T> GenVisitor for T
 where
-    T: Visitor + Debug + DynClone + Any,
+    T: Visitor + Debug + Clone + Any,
 {
     fn as_any(&self) -> &dyn Any {
         self

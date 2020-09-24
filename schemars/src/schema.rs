@@ -1,3 +1,7 @@
+/*!
+JSON Schema types.
+*/
+
 #[cfg(feature = "impl_json_schema")]
 use crate as schemars;
 #[cfg(feature = "impl_json_schema")]

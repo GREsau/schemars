@@ -227,7 +227,8 @@ pub type Map<K, V> = indexmap::IndexMap<K, V>;
 pub type Set<T> = std::collections::BTreeSet<T>;
 
 /// A view into a single entry in a map, which may either be vacant or occupied.
-/// This is constructed from the `entry` method on `BTreeMap` or `IndexMap`
+//
+/// This is constructed from the `entry` method on `BTreeMap` or `IndexMap`,
 /// depending on whether the `preserve_order` feature flag is set.
 #[cfg(not(feature = "preserve_order"))]
 pub type MapEntry<'a, K, V> = std::collections::btree_map::Entry<'a, K, V>;
@@ -239,11 +240,8 @@ mod json_schema_impls;
 #[macro_use]
 mod macros;
 
-/// JSON Schema generator and settings.
 pub mod gen;
-/// JSON Schema types.
 pub mod schema;
-/// TODO document
 pub mod visit;
 
 #[cfg(feature = "schemars_derive")]
