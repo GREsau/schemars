@@ -141,21 +141,21 @@ impl Visitor for ReplaceBoolSchemas {
     }
 
     fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
-        if !self.skip_additional_properties {
-            visit_schema_object(self, schema);
+        if self.skip_additional_properties {
+            if let Some(obj) = &mut schema.object {
+                if let Some(ap) = &obj.additional_properties {
+                    if let Schema::Bool(_) = ap.as_ref() {
+                        let additional_properties = obj.additional_properties.take();
+                        visit_schema_object(self, schema);
+                        schema.object().additional_properties = additional_properties;
 
-            return;
-        }
-
-        if let Some(obj) = &mut schema.object {
-            if let Some(ap) = &obj.additional_properties {
-                if let Schema::Bool(_) = ap.as_ref() {
-                    let additional_properties = obj.additional_properties.take();
-                    visit_schema_object(self, schema);
-                    schema.object().additional_properties = additional_properties;
+                        return;
+                    }
                 }
             }
         }
+
+        visit_schema_object(self, schema);
     }
 }
 
