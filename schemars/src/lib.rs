@@ -207,7 +207,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - [`indexmap`](https://crates.io/crates/indexmap) (^1.2)
 - [`either`](https://crates.io/crates/either) (^1.3)
 - [`uuid`](https://crates.io/crates/uuid) (^0.8)
-- [`smallvec`](https://crates.io/crates/uuid) (^1.0)
+- [`smallvec`](https://crates.io/crates/smallvec) (^1.0)
 - [`arrayvec`](https://crates.io/crates/arrayvec) (^0.5)
 */
 
