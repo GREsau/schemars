@@ -79,6 +79,23 @@ fn enum_untagged() -> TestResult {
 }
 
 #[derive(Debug, JsonSchema)]
+#[serde(untagged)]
+#[schemars(deny_unknown_fields)]
+pub enum UntaggedDenyUnknownFields {
+    OneWay {
+        foo: i32,
+    },
+    OrTheOther {
+        bar: i32,
+    }
+}
+
+#[test]
+fn enum_untagged_deny_unknown_fields() -> TestResult {
+    test_default_generated_schema::<UntaggedDenyUnknownFields>("enum-untagged-deny-unknown-fields")
+}
+
+#[derive(Debug, JsonSchema)]
 #[schemars(tag = "t", content = "c")]
 pub enum Adjacent {
     UnitOne,

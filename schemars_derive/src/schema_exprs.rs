@@ -74,8 +74,8 @@ fn expr_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> TokenS
         .iter()
         .filter(|v| !v.serde_attrs.skip_deserializing());
     match cattrs.tag() {
-        TagType::External => expr_for_external_tagged_enum(variants),
-        TagType::None => expr_for_untagged_enum(variants),
+        TagType::External => expr_for_external_tagged_enum(variants, None),
+        TagType::None => expr_for_untagged_enum(variants, Some(cattrs)),
         TagType::Internal { tag } => expr_for_internal_tagged_enum(variants, tag),
         TagType::Adjacent { tag, content } => expr_for_adjacent_tagged_enum(variants, tag, content),
     }
@@ -83,6 +83,7 @@ fn expr_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> TokenS
 
 fn expr_for_external_tagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
+    cattrs: Option<&serde_attr::Container>,
 ) -> TokenStream {
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
         variants.partition(|v| v.is_unit() && v.attrs.with.is_none());
@@ -104,7 +105,7 @@ fn expr_for_external_tagged_enum<'a>(
 
     schemas.extend(complex_variants.into_iter().map(|variant| {
         let name = variant.name();
-        let sub_schema = expr_for_untagged_enum_variant(variant);
+        let sub_schema = expr_for_untagged_enum_variant(variant, cattrs);
         let schema_expr = schema_object(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
             object: Some(Box::new(schemars::schema::ObjectValidation {
@@ -179,9 +180,9 @@ fn expr_for_internal_tagged_enum<'a>(
     })
 }
 
-fn expr_for_untagged_enum<'a>(variants: impl Iterator<Item = &'a Variant<'a>>) -> TokenStream {
+fn expr_for_untagged_enum<'a>(variants: impl Iterator<Item = &'a Variant<'a>>, cattrs: Option<&serde_attr::Container>) -> TokenStream {
     let schemas = variants.map(|variant| {
-        let schema_expr = expr_for_untagged_enum_variant(variant);
+        let schema_expr = expr_for_untagged_enum_variant(variant, cattrs);
         let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
         doc_metadata.apply_to_schema(schema_expr)
     });
@@ -203,7 +204,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
         let content_schema = if variant.is_unit() && variant.attrs.with.is_none() {
             None
         } else {
-            Some(expr_for_untagged_enum_variant(variant))
+            Some(expr_for_untagged_enum_variant(variant, None))
         };
 
         let (add_content_to_props, add_content_to_required) = content_schema
@@ -252,7 +253,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
     })
 }
 
-fn expr_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
+fn expr_for_untagged_enum_variant(variant: &Variant, cattrs: Option<&serde_attr::Container>) -> TokenStream {
     if let Some(WithAttr::Type(with)) = &variant.attrs.with {
         return quote_spanned! {variant.original.span()=>
             gen.subschema_for::<#with>()
@@ -263,7 +264,7 @@ fn expr_for_untagged_enum_variant(variant: &Variant) -> TokenStream {
         Style::Unit => expr_for_unit_struct(),
         Style::Newtype => expr_for_field(&variant.fields[0], true),
         Style::Tuple => expr_for_tuple_struct(&variant.fields),
-        Style::Struct => expr_for_struct(&variant.fields, None),
+        Style::Struct => expr_for_struct(&variant.fields, cattrs),
     }
 }
 
