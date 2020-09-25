@@ -7,6 +7,10 @@
     "foo"
   ],
   "properties": {
+    "foo": {
+      "type": "integer",
+      "format": "int32"
+    },
     "bar": {
       "type": "boolean"
     },
@@ -15,10 +19,6 @@
         "string",
         "null"
       ]
-    },
-    "foo": {
-      "type": "integer",
-      "format": "int32"
     }
   }
 }

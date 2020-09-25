@@ -9,14 +9,14 @@
         "typeProperty"
       ],
       "properties": {
-        "foo": {
-          "type": "boolean"
-        },
         "typeProperty": {
           "type": "string",
           "enum": [
             "Struct"
           ]
+        },
+        "foo": {
+          "type": "boolean"
         }
       }
     },

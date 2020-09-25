@@ -55,7 +55,6 @@ mod ffi;
 #[cfg(feature = "indexmap")]
 mod indexmap;
 mod maps;
-#[cfg(num_nonzero_signed)]
 mod nonzero_signed;
 mod nonzero_unsigned;
 mod primitives;

@@ -12,6 +12,12 @@
     "byte_or_bool2": {
       "$ref": "#/definitions/Or_for_uint8_and_Boolean"
     },
+    "unit_or_t2": {
+      "$ref": "#/definitions/Or_for_Null_and_int32"
+    },
+    "s": {
+      "$ref": "#/definitions/Str"
+    },
     "fake_map": {
       "type": "object",
       "additionalProperties": {
@@ -20,26 +26,9 @@
           "type": "string"
         }
       }
-    },
-    "s": {
-      "$ref": "#/definitions/Str"
-    },
-    "unit_or_t2": {
-      "$ref": "#/definitions/Or_for_Null_and_int32"
     }
   },
   "definitions": {
-    "Or_for_Null_and_int32": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "integer",
-          "format": "int32"
-        }
-      ]
-    },
     "Or_for_uint8_and_Boolean": {
       "anyOf": [
         {
@@ -49,6 +38,17 @@
         },
         {
           "type": "boolean"
+        }
+      ]
+    },
+    "Or_for_Null_and_int32": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer",
+          "format": "int32"
         }
       ]
     },

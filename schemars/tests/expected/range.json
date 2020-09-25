@@ -8,17 +8,53 @@
     "range"
   ],
   "properties": {
-    "bound": {
-      "$ref": "#/definitions/Bound_of_String"
+    "range": {
+      "$ref": "#/definitions/Range_of_uint"
     },
     "inclusive": {
       "$ref": "#/definitions/Range_of_double"
     },
-    "range": {
-      "$ref": "#/definitions/Range_of_uint"
+    "bound": {
+      "$ref": "#/definitions/Bound_of_String"
     }
   },
   "definitions": {
+    "Range_of_uint": {
+      "type": "object",
+      "required": [
+        "end",
+        "start"
+      ],
+      "properties": {
+        "start": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        },
+        "end": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0.0
+        }
+      }
+    },
+    "Range_of_double": {
+      "type": "object",
+      "required": [
+        "end",
+        "start"
+      ],
+      "properties": {
+        "start": {
+          "type": "number",
+          "format": "double"
+        },
+        "end": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
     "Bound_of_String": {
       "oneOf": [
         {
@@ -48,42 +84,6 @@
           "const": "Unbounded"
         }
       ]
-    },
-    "Range_of_double": {
-      "type": "object",
-      "required": [
-        "end",
-        "start"
-      ],
-      "properties": {
-        "end": {
-          "type": "number",
-          "format": "double"
-        },
-        "start": {
-          "type": "number",
-          "format": "double"
-        }
-      }
-    },
-    "Range_of_uint": {
-      "type": "object",
-      "required": [
-        "end",
-        "start"
-      ],
-      "properties": {
-        "end": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        },
-        "start": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0.0
-        }
-      }
     }
   }
 }

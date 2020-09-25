@@ -15,6 +15,35 @@
     }
   },
   "definitions": {
+    "Result_of_MyStruct_or_Array_of_String": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "Ok"
+          ],
+          "properties": {
+            "Ok": {
+              "$ref": "#/definitions/MyStruct"
+            }
+          }
+        },
+        {
+          "type": "object",
+          "required": [
+            "Err"
+          ],
+          "properties": {
+            "Err": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
     "MyStruct": {
       "type": "object",
       "required": [
@@ -48,35 +77,6 @@
           "properties": {
             "Err": {
               "type": "null"
-            }
-          }
-        }
-      ]
-    },
-    "Result_of_MyStruct_or_Array_of_String": {
-      "oneOf": [
-        {
-          "type": "object",
-          "required": [
-            "Ok"
-          ],
-          "properties": {
-            "Ok": {
-              "$ref": "#/definitions/MyStruct"
-            }
-          }
-        },
-        {
-          "type": "object",
-          "required": [
-            "Err"
-          ],
-          "properties": {
-            "Err": {
-              "type": "array",
-              "items": {
-                "type": "string"
-              }
             }
           }
         }

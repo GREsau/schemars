@@ -7,9 +7,6 @@
     "writable"
   ],
   "properties": {
-    "included": {
-      "type": "null"
-    },
     "readable": {
       "default": "",
       "readOnly": true,
@@ -19,6 +16,9 @@
       "writeOnly": true,
       "type": "number",
       "format": "float"
+    },
+    "included": {
+      "type": "null"
     }
   }
 }

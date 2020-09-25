@@ -1,6 +1,6 @@
-/// Generates a [`RootSchema`](schema::RootSchema) for the given type using default settings.
+/// Generates a [`RootSchema`](crate::schema::RootSchema) for the given type using default settings.
 ///
-/// The type must implement [`JsonSchema`].
+/// The type must implement [`JsonSchema`](crate::JsonSchema).
 ///
 /// # Example
 /// ```

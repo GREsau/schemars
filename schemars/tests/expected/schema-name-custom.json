@@ -10,9 +10,6 @@
     "w"
   ],
   "properties": {
-    "inner": {
-      "$ref": "#/definitions/another-new-name"
-    },
     "t": {
       "type": "integer",
       "format": "int32"
@@ -28,6 +25,9 @@
       "items": {
         "type": "string"
       }
+    },
+    "inner": {
+      "$ref": "#/definitions/another-new-name"
     }
   },
   "definitions": {

@@ -3,7 +3,7 @@
 [![CI Build](https://img.shields.io/github/workflow/status/GREsau/schemars/CI?logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
 [![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
-[![rustc 1.32+](https://img.shields.io/badge/schemars-rustc_1.32+-lightgray.svg)](https://blog.rust-lang.org/2019/01/17/Rust-1.32.0.html)
+[![rustc 1.36+](https://img.shields.io/badge/schemars-rustc_1.36+-lightgray.svg)](https://blog.rust-lang.org/2019/07/04/Rust-1.36.0.html)
 
 Generate JSON Schema documents from Rust code
 
@@ -213,5 +213,5 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - [`indexmap`](https://crates.io/crates/indexmap) (^1.2)
 - [`either`](https://crates.io/crates/either) (^1.3)
 - [`uuid`](https://crates.io/crates/uuid) (^0.8)
-- [`smallvec`](https://crates.io/crates/uuid) (^1.0)
+- [`smallvec`](https://crates.io/crates/smallvec) (^1.0)
 - [`arrayvec`](https://crates.io/crates/arrayvec) (^0.5)

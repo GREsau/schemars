@@ -7,10 +7,10 @@
     "owned"
   ],
   "properties": {
-    "borrowed": {
+    "owned": {
       "$ref": "#/definitions/OsString"
     },
-    "owned": {
+    "borrowed": {
       "$ref": "#/definitions/OsString"
     }
   },

@@ -10,6 +10,18 @@
     "weekday"
   ],
   "properties": {
+    "weekday": {
+      "type": "string",
+      "enum": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ]
+    },
     "date_time": {
       "type": "string",
       "format": "date-time"
@@ -25,18 +37,6 @@
     "naive_time": {
       "type": "string",
       "format": "partial-date-time"
-    },
-    "weekday": {
-      "type": "string",
-      "enum": [
-        "Mon",
-        "Tue",
-        "Wed",
-        "Thu",
-        "Fri",
-        "Sat",
-        "Sun"
-      ]
     }
   }
 }
