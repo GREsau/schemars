@@ -39,6 +39,10 @@ pub struct SchemaSettings {
     pub meta_schema: Option<String>,
     /// A list of visitors that get applied to all generated root schemas.
     pub visitors: Vec<Box<dyn GenVisitor>>,
+    /// Inline all subschemas instead of using references.
+    ///
+    /// Defaults to `false`.
+    pub inline_subschemas: bool,
     _hidden: (),
 }
 
@@ -57,6 +61,7 @@ impl SchemaSettings {
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
             visitors: vec![Box::new(RemoveRefSiblings)],
+            inline_subschemas: false,
             _hidden: (),
         }
     }
@@ -69,6 +74,7 @@ impl SchemaSettings {
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
             visitors: Vec::default(),
+            inline_subschemas: false,
             _hidden: (),
         }
     }
@@ -92,6 +98,7 @@ impl SchemaSettings {
                     retain_examples: false,
                 }),
             ],
+            inline_subschemas: false,
             _hidden: (),
         }
     }
@@ -196,7 +203,7 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
     /// add them to the `SchemaGenerator`'s schema definitions.
     pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
-        if !T::is_referenceable() {
+        if !T::is_referenceable() || self.settings.inline_subschemas {
             return T::json_schema(self);
         }
 
