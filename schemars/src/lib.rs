@@ -1,3 +1,4 @@
+#![forbid(unsafe_code)]
 /*!
 Generate JSON Schema documents from Rust code
 
