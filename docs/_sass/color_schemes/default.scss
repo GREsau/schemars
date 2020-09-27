@@ -1,0 +1,15 @@
+// Overridable variables at https://github.com/pmarsceill/just-the-docs/blob/master/_sass/support/_variables.scss
+
+$body-text-color: $grey-dk-200;
+
+$nav-child-link-color: $link-color;
+
+$content-width: 900px;
+
+$media-queries: (
+  xs: 320px,
+  sm: 500px,
+  md: $content-width,
+  lg: $content-width + $nav-width,
+  xl: 1400px
+);

@@ -27,9 +27,10 @@ url: "https://graham.cool" # the base hostname & protocol for your site, e.g. ht
 permalink: pretty
 
 # Build settings
-remote_theme: pmarsceill/just-the-docs
+remote_theme: pmarsceill/just-the-docs@v0.3.2
 markdown: CommonMarkGhPages
 
+color_scheme: default
 aux_links:
     '<img src="https://img.shields.io/badge/GitHub--lightgrey?style=social&amp;logo=github" alt="Schemars on GitHub" title="Schemars on GitHub">':
         - "https://github.com/GREsau/schemars"
