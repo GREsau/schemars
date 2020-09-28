@@ -10,6 +10,7 @@ pub struct SchemaMetadata<'a> {
     pub deprecated: bool,
     pub read_only: bool,
     pub write_only: bool,
+    pub crate_name: Option<&'a syn::Path>,
     pub examples: &'a [syn::Path],
     pub default: Option<TokenStream>,
 }
@@ -17,12 +18,14 @@ pub struct SchemaMetadata<'a> {
 impl ToTokens for SchemaMetadata<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let setters = self.make_setters();
+        let default_crate_name: syn::Path = parse_quote!(schemars);
+        let crate_name = self.crate_name.unwrap_or(&default_crate_name);
         if setters.is_empty() {
             tokens.append(Ident::new("None", Span::call_site()))
         } else {
             tokens.extend(quote! {
                 Some({
-                    let mut metadata = schemars::schema::Metadata::default();
+                    let mut metadata = #crate_name::schema::Metadata::default();
                     #(#setters)*
                     metadata
                 })
@@ -38,6 +41,7 @@ impl<'a> SchemaMetadata<'a> {
             description: attrs.description.as_ref().and_then(none_if_empty),
             deprecated: attrs.deprecated,
             examples: &attrs.examples,
+            crate_name: attrs.crate_name.as_ref(),
             read_only: false,
             write_only: false,
             default: None,
@@ -55,6 +59,9 @@ impl<'a> SchemaMetadata<'a> {
 
     fn make_setters(&self) -> Vec<TokenStream> {
         let mut setters = Vec::<TokenStream>::new();
+        
+        let default_crate_name: syn::Path = parse_quote!(schemars);
+        let crate_name = self.crate_name.unwrap_or(&default_crate_name);
 
         if let Some(title) = &self.title {
             setters.push(quote! {
@@ -87,7 +94,7 @@ impl<'a> SchemaMetadata<'a> {
         if !self.examples.is_empty() {
             let examples = self.examples.iter().map(|eg| {
                 quote! {
-                    schemars::_serde_json::value::to_value(#eg())
+                    #crate_name::_serde_json::value::to_value(#eg())
                 }
             });
             setters.push(quote! {
@@ -97,7 +104,7 @@ impl<'a> SchemaMetadata<'a> {
 
         if let Some(default) = &self.default {
             setters.push(quote! {
-                metadata.default = #default.and_then(|d| schemars::_serde_json::value::to_value(d).ok());
+                metadata.default = #default.and_then(|d| #crate_name::_serde_json::value::to_value(d).ok());
             });
         }
 
