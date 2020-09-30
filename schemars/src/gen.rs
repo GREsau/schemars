@@ -240,6 +240,13 @@ impl SchemaGenerator {
         std::mem::replace(&mut self.definitions, Map::default())
     }
 
+    /// Replace the generator's definitions with the given one.
+    /// This can be useful for generating additional referenceable schemas with multiple generators.
+    pub fn with_definitions(mut self, definitions: Map<String, Schema>) -> Self {
+        self.definitions = definitions;
+        self
+    }
+
     /// Returns an iterator over the [visitors](SchemaSettings::visitors) being used by this `SchemaGenerator`.
     pub fn visitors_mut(&mut self) -> impl Iterator<Item = &mut dyn GenVisitor> {
         self.settings.visitors.iter_mut().map(|v| v.as_mut())
