@@ -60,8 +60,6 @@ impl<'a> SchemaMetadata<'a> {
 
     fn make_setters(&self) -> Vec<TokenStream> {
         let mut setters = Vec::<TokenStream>::new();
-        
-        let default_crate_name: syn::Path = parse_quote!(schemars);
         let crate_name = self.crate_name;
 
         if let Some(title) = &self.title {
