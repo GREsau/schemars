@@ -10,7 +10,7 @@ pub struct SchemaMetadata<'a> {
     pub deprecated: bool,
     pub read_only: bool,
     pub write_only: bool,
-    pub crate_name: Option<&'a syn::Path>,
+    pub crate_name: &'a syn::Path,
     pub examples: &'a [syn::Path],
     pub default: Option<TokenStream>,
 }
@@ -18,8 +18,7 @@ pub struct SchemaMetadata<'a> {
 impl ToTokens for SchemaMetadata<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         let setters = self.make_setters();
-        let default_crate_name: syn::Path = parse_quote!(schemars);
-        let crate_name = self.crate_name.unwrap_or(&default_crate_name);
+        let crate_name = self.crate_name;
         if setters.is_empty() {
             tokens.append(Ident::new("None", Span::call_site()))
         } else {
@@ -35,13 +34,15 @@ impl ToTokens for SchemaMetadata<'_> {
 }
 
 impl<'a> SchemaMetadata<'a> {
-    pub fn from_attrs(attrs: &'a Attrs) -> Self {
+    // Crate name is separate, because attrs could be for a variant
+    // instead of a container, and crate is only applicable to containers.
+    pub fn from_attrs(crate_name: &'a syn::Path, attrs: &'a Attrs) -> Self {
         SchemaMetadata {
             title: attrs.title.as_ref().and_then(none_if_empty),
             description: attrs.description.as_ref().and_then(none_if_empty),
             deprecated: attrs.deprecated,
             examples: &attrs.examples,
-            crate_name: attrs.crate_name.as_ref(),
+            crate_name,
             read_only: false,
             write_only: false,
             default: None,
@@ -61,7 +62,7 @@ impl<'a> SchemaMetadata<'a> {
         let mut setters = Vec::<TokenStream>::new();
         
         let default_crate_name: syn::Path = parse_quote!(schemars);
-        let crate_name = self.crate_name.unwrap_or(&default_crate_name);
+        let crate_name = self.crate_name;
 
         if let Some(title) = &self.title {
             setters.push(quote! {
