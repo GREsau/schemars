@@ -17,7 +17,6 @@ pub struct Attrs {
     pub title: Option<String>,
     pub description: Option<String>,
     pub deprecated: bool,
-    pub crate_name: Option<syn::Path>,
     pub examples: Vec<syn::Path>,
 }
 
@@ -116,16 +115,6 @@ impl Attrs {
                 Meta(NameValue(m)) if m.path.is_ident("example") => {
                     if let Ok(fun) = parse_lit_into_path(errors, attr_type, "example", &m.lit) {
                         self.examples.push(fun)
-                    }
-                }
-
-                Meta(NameValue(m)) if m.path.is_ident("crate") => {
-                    if let Ok(p) = parse_lit_into_path(errors, attr_type, "crate", &m.lit) {
-                        if self.crate_name.is_some() {
-                            duplicate_error(m)
-                        } else {
-                            self.crate_name = Some(p)
-                        }
                     }
                 }
 
