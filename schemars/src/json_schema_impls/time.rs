@@ -1,42 +1,34 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
-use std::time::{Duration, SystemTime};
+use time::{Date, Duration, OffsetDateTime, PrimitiveDateTime, Time};
 
-impl JsonSchema for Duration {
-    fn schema_name() -> String {
-        "Duration".to_owned()
-    }
+macro_rules! formatted_string_impl {
+    ($ty:ident, $format:literal) => {
+        formatted_string_impl!($ty, $format, JsonSchema for $ty);
+    };
+    ($ty:ident, $format:literal, $($desc:tt)+) => {
+        impl $($desc)+ {
+            no_ref_schema!();
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = SchemaObject::default();
-        schema.instance_type = Some(InstanceType::Object.into());
-        let obj = schema.object();
-        obj.required.insert("secs".to_owned());
-        obj.required.insert("nanos".to_owned());
-        obj.properties
-            .insert("secs".to_owned(), <u64>::json_schema(gen));
-        obj.properties
-            .insert("nanos".to_owned(), <u32>::json_schema(gen));
-        schema.into()
-    }
+            fn schema_name() -> String {
+                stringify!($ty).to_owned()
+            }
+
+            fn json_schema(_: &mut SchemaGenerator) -> Schema {
+                SchemaObject {
+                    instance_type: Some(InstanceType::String.into()),
+                    format: Some($format.to_owned()),
+                    ..Default::default()
+                }
+                .into()
+            }
+        }
+    };
 }
 
-impl JsonSchema for SystemTime {
-    fn schema_name() -> String {
-        "SystemTime".to_owned()
-    }
-
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = SchemaObject::default();
-        schema.instance_type = Some(InstanceType::Object.into());
-        let obj = schema.object();
-        obj.required.insert("secs_since_epoch".to_owned());
-        obj.required.insert("nanos_since_epoch".to_owned());
-        obj.properties
-            .insert("secs_since_epoch".to_owned(), <u64>::json_schema(gen));
-        obj.properties
-            .insert("nanos_since_epoch".to_owned(), <u32>::json_schema(gen));
-        schema.into()
-    }
-}
+formatted_string_impl!(Date, "date");
+formatted_string_impl!(Time, "time");
+formatted_string_impl!(PrimitiveDateTime, "partial-date-time");
+formatted_string_impl!(OffsetDateTime, "date-time");
+forward_impl!(Duration => std::time::Duration);

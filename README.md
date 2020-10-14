@@ -210,6 +210,7 @@ fn main() {
 ## Optional Dependencies
 Schemars can implement `JsonSchema` on types from several popular crates, enabled via optional dependencies (dependency versions are shown in brackets):
 - [`chrono`](https://crates.io/crates/chrono) (^0.4)
+- [`time`](https://crates.io/crates/time) (^0.2)
 - [`indexmap`](https://crates.io/crates/indexmap) (^1.2)
 - [`either`](https://crates.io/crates/either) (^1.3)
 - [`uuid`](https://crates.io/crates/uuid) (^0.8)
