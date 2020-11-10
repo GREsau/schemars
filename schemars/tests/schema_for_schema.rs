@@ -4,6 +4,11 @@ use schemars::schema::RootSchema;
 use util::*;
 
 #[test]
+fn schema_matches_draft03() -> TestResult {
+    test_generated_schema::<RootSchema>("schema", SchemaSettings::draft03())
+}
+
+#[test]
 fn schema_matches_draft07() -> TestResult {
     test_generated_schema::<RootSchema>("schema", SchemaSettings::draft07())
 }

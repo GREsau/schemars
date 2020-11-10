@@ -53,6 +53,19 @@ impl Default for SchemaSettings {
 }
 
 impl SchemaSettings {
+    /// Creates `SchemaSettings` that conform to [JSON Schema Draft 3](https://json-schema.org/specification-links.html#draft-3).
+    pub fn draft03() -> SchemaSettings {
+        SchemaSettings {
+            option_nullable: false,
+            option_add_null_type: true,
+            definitions_path: "#/definitions/".to_owned(),
+            meta_schema: Some("http://json-schema.org/draft-03/schema#".to_owned()),
+            visitors: vec![Box::new(RemoveRefSiblings)],
+            inline_subschemas: false,
+            _hidden: (),
+        }
+    }
+
     /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7).
     pub fn draft07() -> SchemaSettings {
         SchemaSettings {
