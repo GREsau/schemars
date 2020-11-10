@@ -5,12 +5,12 @@ use util::*;
 
 #[test]
 fn schema_matches_draft03() -> TestResult {
-    test_generated_schema::<RootSchema>("schema", SchemaSettings::draft03())
+    test_generated_schema::<RootSchema>("schema-03", SchemaSettings::draft03())
 }
 
 #[test]
 fn schema_matches_draft07() -> TestResult {
-    test_generated_schema::<RootSchema>("schema", SchemaSettings::draft07())
+    test_generated_schema::<RootSchema>("schema-07", SchemaSettings::draft07())
 }
 
 #[test]
