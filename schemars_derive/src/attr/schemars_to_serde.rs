@@ -117,7 +117,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) -> AttributeInfo {
     let repr_type = attrs
         .iter()
         .filter(|attr| attr.path.is_ident("repr"))
-        .map(|attr| {
+        .flat_map(|attr| {
             fn repr_inner(input: parse::ParseStream) -> parse::Result<syn::Ident> {
                 let ident;
                 parenthesized!(ident in input);
@@ -125,8 +125,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) -> AttributeInfo {
             }
             repr_inner.parse2(attr.tokens.clone()).ok()
         })
-        .next()
-        .flatten();
+        .next();
 
     AttributeInfo {
         repr_type,

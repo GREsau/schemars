@@ -42,11 +42,19 @@ impl_merge!(SchemaObject {
 });
 
 impl Merge for Metadata {
+    /// Merge two instances of metadata, where for those fields for which it is meaningful, the
+    /// values of `other` are appended to `self`, and for the other fields, the values in `self`
+    /// take precendence.
     fn merge(self, other: Self) -> Self {
+        let descriptions: Vec<String> = vec![self.description, other.description]
+            .into_iter()
+            .flatten()
+            .collect();
+        let description = Some(descriptions.join("\n\n"));
         Metadata {
             id: self.id.or(other.id),
             title: self.title.or(other.title),
-            description: self.description.or(other.description),
+            description,
             default: self.default.or(other.default),
             deprecated: self.deprecated || other.deprecated,
             read_only: self.read_only || other.read_only,

@@ -16,16 +16,16 @@ use proc_macro2::TokenStream;
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
-    derive_json_schema(input).into()
+    derive_json_schema(input, false).into()
 }
 
 #[proc_macro_derive(JsonSchema_repr, attributes(schemars, serde))]
 pub fn derive_json_schema_repr_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
-    derive_json_schema(input).into()
+    derive_json_schema(input, true).into()
 }
 
-fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
+fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> TokenStream {
     add_trait_bounds(&mut input.generics);
 
     let attrs = match attr::process_serde_attrs(&mut input) {
@@ -110,7 +110,20 @@ fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
         }
     };
 
-    let schema_expr = schema_exprs::expr_for_container(&cont, attrs.repr_type);
+    let repr_type = if repr {
+        match attrs.repr_type {
+            Some(repr_type) => Some(repr_type),
+            None => {
+                let call_site = proc_macro2::Span::call_site();
+                return crate::compile_error(vec![
+                    &syn::Error::new(call_site, "#[repr(_)] attribute is required for JsonSchema_repr")
+                ])
+            },
+        }
+    } else {
+        None
+    };
+    let schema_expr = schema_exprs::expr_for_container(&cont, repr_type);
 
     quote! {
         #[automatically_derived]

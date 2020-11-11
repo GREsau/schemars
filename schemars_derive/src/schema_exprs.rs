@@ -92,16 +92,34 @@ fn expr_for_repr_enum(variants: &[Variant], _: &serde_attr::Container, repr_type
         .iter()
         .filter(|v| !v.serde_attrs.skip_deserializing());
 
+    // for an enum to be documented as repr, we require that all variants be unit variants.
     if variants.clone().any(|v| !v.is_unit() || !v.attrs.with.is_none()) {
         let call_site = Span::call_site();
         return crate::compile_error(vec![
             &syn::Error::new(call_site, "Cannot derive Schemars_repr for a non-unit enum")
         ])
     }
-    let idents = variants.map(Variant::ident);
+    let idents = variants.clone().map(Variant::ident);
+    let description: String = variants
+        .map(|v| {
+            let value = v.original.discriminant.clone().unwrap().1;
+            format!(
+                "* {} - {}: {}\n",
+                v.ident().to_string(),
+                quote! { #value }.to_string(),
+                v.attrs.description.as_deref().unwrap_or_default(),
+            )
+        })
+        // .map(|v| { dbg!(v.original); "henk".to_string() })
+        .collect();
+    
     schema_object(quote! {
         instance_type: Some(schemars::schema::InstanceType::Integer.into()),
         enum_values: Some(vec![#((Self::#idents as #repr_type).into()),*]),
+        metadata: Some(Box::new(::schemars::schema::Metadata {
+            description: Some(#description.to_string()),
+            ..Default::default()
+        })),
     })
 }
 
