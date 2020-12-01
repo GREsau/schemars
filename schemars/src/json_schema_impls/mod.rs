@@ -64,6 +64,8 @@ mod serdejson;
 mod smallvec;
 mod time;
 mod tuple;
+#[cfg(feature = "url")]
+mod url;
 #[cfg(feature = "uuid")]
 mod uuid;
 mod wrapper;
