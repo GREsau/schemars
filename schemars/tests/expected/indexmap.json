@@ -18,7 +18,8 @@
       "items": {
         "type": "integer",
         "format": "int"
-      }
+      },
+      "uniqueItems": true
     }
   }
 }
