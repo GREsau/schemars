@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+### Fixed
+- Fix use of `#[serde(transparent)]` in combination with `#[schemars(with = ...)]`.
+
 ## [0.8.0] - 2020-09-27
 ### Added:
 - `visit::Visitor`, a trait for updating a schema and all schemas it contains recursively. A `SchemaSettings` can now contain a list of visitors.
