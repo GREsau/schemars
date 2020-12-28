@@ -3,4 +3,4 @@ use crate::schema::*;
 use crate::JsonSchema;
 use bytes::Bytes;
 
-forward_impl!((Bytes JsonSchema) => Vec<A::Item>);
+forward_impl!(JsonSchema for Bytes => Vec<u8>);
