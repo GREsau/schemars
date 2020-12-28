@@ -67,6 +67,10 @@ name = "smallvec"
 required-features = ["smallvec"]
 
 [[test]]
+name = "bytes"
+required-features = ["bytes"]
+
+[[test]]
 name = "arrayvec"
 required-features = ["arrayvec"]
 
