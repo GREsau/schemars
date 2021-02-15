@@ -60,6 +60,8 @@ mod nonzero_unsigned;
 mod primitives;
 mod sequences;
 mod serdejson;
+#[cfg(feature = "semver")]
+mod semver;
 #[cfg(feature = "smallvec")]
 mod smallvec;
 mod time;
