@@ -63,6 +63,10 @@ name = "uuid"
 required-features = ["uuid"]
 
 [[test]]
+name = "ulid"
+required-features = ["ulid"]
+
+[[test]]
 name = "smallvec"
 required-features = ["smallvec"]
 
