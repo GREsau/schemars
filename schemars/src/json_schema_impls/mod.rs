@@ -62,6 +62,8 @@ mod sequences;
 mod serdejson;
 #[cfg(feature = "smallvec")]
 mod smallvec;
+#[cfg(feature = "smol_str")]
+mod smol_str;
 mod time;
 mod tuple;
 #[cfg(feature = "uuid")]
