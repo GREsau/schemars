@@ -335,8 +335,8 @@ impl SchemaGenerator {
     #[doc(hidden)]
     pub fn apply_metadata(&self, schema: Schema, metadata: Option<Metadata>) -> Schema {
         match metadata {
-            None => return schema,
-            Some(ref metadata) if *metadata == Metadata::default() => return schema,
+            None => schema,
+            Some(ref metadata) if *metadata == Metadata::default() => schema,
             Some(metadata) => {
                 let mut schema_obj = schema.into_object();
                 schema_obj.metadata = Some(Box::new(metadata)).merge(schema_obj.metadata);

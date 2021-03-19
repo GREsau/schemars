@@ -98,7 +98,7 @@ fn expr_for_external_tagged_enum<'a>(
     }
 
     let mut schemas = Vec::new();
-    if unit_variants.len() > 0 {
+    if !unit_variants.is_empty() {
         schemas.push(unit_schema);
     }
 

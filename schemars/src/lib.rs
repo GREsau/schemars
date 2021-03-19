@@ -22,10 +22,8 @@ pub enum MyEnum {
     StructVariant { floats: Vec<f32> },
 }
 
-fn main() {
-    let schema = schema_for!(MyStruct);
-    println!("{}", serde_json::to_string_pretty(&schema).unwrap());
-}
+let schema = schema_for!(MyStruct);
+println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 ```
 
 <details>
@@ -128,10 +126,8 @@ pub enum MyEnum {
     StructVariant { floats: Vec<f32> },
 }
 
-fn main() {
-    let schema = schema_for!(MyStruct);
-    println!("{}", serde_json::to_string_pretty(&schema).unwrap());
-}
+let schema = schema_for!(MyStruct);
+println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 ```
 
 <details>
