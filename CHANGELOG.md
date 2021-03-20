@@ -1,6 +1,9 @@
 # Changelog
 
 ## **In-dev** - [0.8.1]
+### Added:
+- `SchemaGenerator::definitions_mut()` which returns a mutable reference to the generator's schema definitions
+
 ### Changed:
 - Deriving JsonSchema on enums now sets `additionalProperties` to false on generated schemas wherever serde doesn't accept unknown properties. This includes non-unit variants of externally tagged enums, and struct-style variants of all enums that have the `deny_unknown_fields` attribute.
 

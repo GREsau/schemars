@@ -231,6 +231,14 @@ impl SchemaGenerator {
         &self.definitions
     }
 
+    /// Mutably borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
+    ///
+    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
+    /// themselves.
+    pub fn definitions_mut(&mut self) -> &mut Map<String, Schema> {
+        &mut self.definitions
+    }
+
     /// Returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated,
     /// leaving an empty map in its place.
     ///
