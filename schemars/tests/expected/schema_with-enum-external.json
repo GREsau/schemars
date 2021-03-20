@@ -19,7 +19,8 @@
             }
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -30,7 +31,8 @@
         "newType": {
           "type": "boolean"
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -52,7 +54,8 @@
           "maxItems": 2,
           "minItems": 2
         }
-      }
+      },
+      "additionalProperties": false
     }
   ]
 }

@@ -1,5 +1,9 @@
 # Changelog
 
+## **In-dev** - [0.8.1]
+### Changed:
+- Deriving JsonSchema on enums now sets `additionalProperties` to false on generated schemas wherever serde doesn't accept unknown properties. This includes non-unit variants of externally tagged enums, and struct-style variants of all enums that have the `deny_unknown_fields` attribute.
+
 ## [0.8.0] - 2020-09-27
 ### Added:
 - `visit::Visitor`, a trait for updating a schema and all schemas it contains recursively. A `SchemaSettings` can now contain a list of visitors.

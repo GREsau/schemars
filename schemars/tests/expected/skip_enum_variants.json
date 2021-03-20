@@ -18,7 +18,8 @@
           "type": "number",
           "format": "float"
         }
-      }
+      },
+      "additionalProperties": false
     }
   ]
 }
