@@ -42,3 +42,12 @@ pub struct Newtype(#[schemars(schema_with = "schema_fn")] DoesntImplementJsonSch
 fn struct_newtype() -> TestResult {
     test_default_generated_schema::<Newtype>("schema_with-newtype")
 }
+
+#[derive(Debug, JsonSchema)]
+#[schemars(transparent)]
+pub struct TransparentNewtype(#[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema);
+
+#[test]
+fn struct_transparent_newtype() -> TestResult {
+    test_default_generated_schema::<TransparentNewtype>("schema_with-transparent-newtype")
+}
