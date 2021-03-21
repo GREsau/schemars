@@ -35,7 +35,8 @@
             "StringNewType": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
         {
           "type": "object",
@@ -58,7 +59,8 @@
                 }
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       ]
     }

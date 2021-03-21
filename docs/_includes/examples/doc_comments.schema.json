@@ -44,7 +44,8 @@
             "StringNewType": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
         {
           "description": "A struct-like enum variant which contains some floats",
@@ -69,7 +70,8 @@
                 }
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       ]
     }

@@ -74,7 +74,8 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
             "StringNewType": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
         {
           "type": "object",
@@ -97,7 +98,8 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
                 }
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       ]
     }
