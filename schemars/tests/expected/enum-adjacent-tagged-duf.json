@@ -1,21 +1,36 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "External",
+  "title": "Adjacent",
   "anyOf": [
     {
-      "type": "string",
-      "enum": [
-        "unitOne",
-        "unitTwo"
-      ]
+      "type": "object",
+      "required": [
+        "t"
+      ],
+      "properties": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "UnitOne"
+          ]
+        }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
       "required": [
-        "stringMap"
+        "c",
+        "t"
       ],
       "properties": {
-        "stringMap": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "StringMap"
+          ]
+        },
+        "c": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
@@ -27,10 +42,17 @@
     {
       "type": "object",
       "required": [
-        "unitStructNewType"
+        "c",
+        "t"
       ],
       "properties": {
-        "unitStructNewType": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "UnitStructNewType"
+          ]
+        },
+        "c": {
           "$ref": "#/definitions/UnitStruct"
         }
       },
@@ -39,10 +61,17 @@
     {
       "type": "object",
       "required": [
-        "structNewType"
+        "c",
+        "t"
       ],
       "properties": {
-        "structNewType": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "StructNewType"
+          ]
+        },
+        "c": {
           "$ref": "#/definitions/Struct"
         }
       },
@@ -51,10 +80,17 @@
     {
       "type": "object",
       "required": [
-        "struct"
+        "c",
+        "t"
       ],
       "properties": {
-        "struct": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "Struct"
+          ]
+        },
+        "c": {
           "type": "object",
           "required": [
             "bar",
@@ -68,7 +104,8 @@
             "bar": {
               "type": "boolean"
             }
-          }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false
@@ -76,10 +113,17 @@
     {
       "type": "object",
       "required": [
-        "tuple"
+        "c",
+        "t"
       ],
       "properties": {
-        "tuple": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "Tuple"
+          ]
+        },
+        "c": {
           "type": "array",
           "items": [
             {
@@ -99,10 +143,32 @@
     {
       "type": "object",
       "required": [
-        "withInt"
+        "t"
       ],
       "properties": {
-        "withInt": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "UnitTwo"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "c",
+        "t"
+      ],
+      "properties": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "WithInt"
+          ]
+        },
+        "c": {
           "type": "integer",
           "format": "int32"
         }

@@ -3,7 +3,7 @@
 [![CI Build](https://img.shields.io/github/workflow/status/GREsau/schemars/CI?logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
 [![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
-[![rustc 1.36+](https://img.shields.io/badge/schemars-rustc_1.36+-lightgray.svg)](https://blog.rust-lang.org/2019/07/04/Rust-1.36.0.html)
+[![rustc 1.37+](https://img.shields.io/badge/schemars-rustc_1.37+-lightgray.svg)](https://blog.rust-lang.org/2019/08/15/Rust-1.37.0.html)
 
 Generate JSON Schema documents from Rust code
 
@@ -27,10 +27,8 @@ pub enum MyEnum {
     StructVariant { floats: Vec<f32> },
 }
 
-fn main() {
-    let schema = schema_for!(MyStruct);
-    println!("{}", serde_json::to_string_pretty(&schema).unwrap());
-}
+let schema = schema_for!(MyStruct);
+println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 ```
 
 <details>
@@ -133,10 +131,8 @@ pub enum MyEnum {
     StructVariant { floats: Vec<f32> },
 }
 
-fn main() {
-    let schema = schema_for!(MyStruct);
-    println!("{}", serde_json::to_string_pretty(&schema).unwrap());
-}
+let schema = schema_for!(MyStruct);
+println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 ```
 
 <details>

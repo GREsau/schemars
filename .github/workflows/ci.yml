@@ -8,12 +8,12 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.36.0
+          - 1.37.0
           - stable
           - beta
           - nightly
         include:
-          - rust: 1.36.0
+          - rust: 1.37.0
             test_features: "--all-features"
             allow_failure: false
           - rust: stable
