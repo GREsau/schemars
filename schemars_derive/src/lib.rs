@@ -38,35 +38,37 @@ fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
     if let Some(transparent_field) = cont.transparent_field() {
         let (ty, type_def) = schema_exprs::type_for_schema(transparent_field, 0);
         return quote! {
-            #[automatically_derived]
-            impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
+            const _: () = {
                 #type_def
 
-                fn is_referenceable() -> bool {
-                    <#ty as schemars::JsonSchema>::is_referenceable()
-                }
+                #[automatically_derived]
+                impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
+                    fn is_referenceable() -> bool {
+                        <#ty as schemars::JsonSchema>::is_referenceable()
+                    }
 
-                fn schema_name() -> std::string::String {
-                    <#ty as schemars::JsonSchema>::schema_name()
-                }
+                    fn schema_name() -> std::string::String {
+                        <#ty as schemars::JsonSchema>::schema_name()
+                    }
 
-                fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-                    <#ty as schemars::JsonSchema>::json_schema(gen)
-                }
+                    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                        <#ty as schemars::JsonSchema>::json_schema(gen)
+                    }
 
-                fn json_schema_for_flatten(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-                    <#ty as schemars::JsonSchema>::json_schema_for_flatten(gen)
-                }
+                    fn json_schema_for_flatten(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                        <#ty as schemars::JsonSchema>::json_schema_for_flatten(gen)
+                    }
 
-                fn add_schema_as_property(
-                    gen: &mut schemars::gen::SchemaGenerator,
-                    parent: &mut schemars::schema::SchemaObject,
-                    name: String,
-                    metadata: Option<schemars::schema::Metadata>,
-                    required: bool,
-                ) {
-                    <#ty as schemars::JsonSchema>::add_schema_as_property(gen, parent, name, metadata, required)
-                }
+                    fn add_schema_as_property(
+                        gen: &mut schemars::gen::SchemaGenerator,
+                        parent: &mut schemars::schema::SchemaObject,
+                        name: String,
+                        metadata: Option<schemars::schema::Metadata>,
+                        required: bool,
+                    ) {
+                        <#ty as schemars::JsonSchema>::add_schema_as_property(gen, parent, name, metadata, required)
+                    }
+                };
             };
         };
     }

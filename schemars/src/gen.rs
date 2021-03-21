@@ -231,6 +231,14 @@ impl SchemaGenerator {
         &self.definitions
     }
 
+    /// Mutably borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
+    ///
+    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
+    /// themselves.
+    pub fn definitions_mut(&mut self) -> &mut Map<String, Schema> {
+        &mut self.definitions
+    }
+
     /// Returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated,
     /// leaving an empty map in its place.
     ///
@@ -335,8 +343,8 @@ impl SchemaGenerator {
     #[doc(hidden)]
     pub fn apply_metadata(&self, schema: Schema, metadata: Option<Metadata>) -> Schema {
         match metadata {
-            None => return schema,
-            Some(ref metadata) if *metadata == Metadata::default() => return schema,
+            None => schema,
+            Some(ref metadata) if *metadata == Metadata::default() => schema,
             Some(metadata) => {
                 let mut schema_obj = schema.into_object();
                 schema_obj.metadata = Some(Box::new(metadata)).merge(schema_obj.metadata);

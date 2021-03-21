@@ -105,7 +105,7 @@ impl<'a> SchemaMetadata<'a> {
     }
 }
 
-fn none_if_empty<'a>(s: &'a String) -> Option<&'a str> {
+fn none_if_empty(s: &String) -> Option<&str> {
     if s.is_empty() {
         None
     } else {
