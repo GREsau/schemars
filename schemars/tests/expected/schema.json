@@ -315,7 +315,8 @@
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "uniqueItems": true
     },
     "properties": {
       "description": "The `properties` keyword.\n\nSee [JSON Schema 9.3.2.1. \"properties\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.1).",
@@ -674,7 +675,8 @@
           "type": "array",
           "items": {
             "type": "string"
-          }
+          },
+          "uniqueItems": true
         },
         "properties": {
           "description": "The `properties` keyword.\n\nSee [JSON Schema 9.3.2.1. \"properties\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.1).",
