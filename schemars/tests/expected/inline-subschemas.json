@@ -1,23 +1,23 @@
 {
-  "$schema":  "https://spec.openapis.org/oas/3.0/schema/2019-04-02#/definitions/Schema",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyJob",
+  "type": "object",
+  "required": [
+    "spec"
+  ],
   "properties": {
     "spec": {
-      "properties": {
-        "replicas": {
-          "format": "uint32",
-          "minimum": 0,
-          "type": "integer"
-        }
-      },
+      "type": "object",
       "required": [
         "replicas"
       ],
-      "type": "object"
+      "properties": {
+        "replicas": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0.0
+        }
+      }
     }
-  },
-  "required": [
-     "spec"
-  ],
-  "title": "MyJob",
-  "type": "object"
+  }
 }
