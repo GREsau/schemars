@@ -23,29 +23,7 @@
       ],
       "properties": {
         "recursive": {
-          "type": "object",
-          "properties": {
-            "direct": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/RecursiveOuter"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            },
-            "indirect": {
-              "anyOf": [
-                {
-                  "$ref": "#/definitions/RecursiveInner"
-                },
-                {
-                  "type": "null"
-                }
-              ]
-            }
-          }
+          "$ref": "#/definitions/RecursiveOuter"
         }
       }
     }
@@ -77,17 +55,6 @@
               "$ref": "#/definitions/RecursiveOuter"
             }
           }
-        }
-      }
-    },
-    "RecursiveInner": {
-      "type": "object",
-      "required": [
-        "recursive"
-      ],
-      "properties": {
-        "recursive": {
-          "$ref": "#/definitions/RecursiveOuter"
         }
       }
     }

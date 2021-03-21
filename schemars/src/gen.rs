@@ -374,11 +374,29 @@ impl SchemaGenerator {
     }
 
     fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, name: &str) -> Schema {
-        self.pending_schema_names.insert(name.to_owned());
-        let schema = T::json_schema(self);
-        // FIXME schema name not removed if previous line panics
-        self.pending_schema_names.remove(name);
-        schema
+        struct PendingSchemaState<'a> {
+            gen: &'a mut SchemaGenerator,
+            name: &'a str,
+            did_add: bool,
+        }
+
+        impl<'a> PendingSchemaState<'a> {
+            fn new(gen: &'a mut SchemaGenerator, name: &'a str) -> Self {
+                let did_add = gen.pending_schema_names.insert(name.to_owned());
+                Self { gen, name, did_add }
+            }
+        }
+
+        impl Drop for PendingSchemaState<'_> {
+            fn drop(&mut self) {
+                if self.did_add {
+                    self.gen.pending_schema_names.remove(self.name);
+                }
+            }
+        }
+
+        let pss = PendingSchemaState::new(self, name);
+        T::json_schema(pss.gen)
     }
 }
 
