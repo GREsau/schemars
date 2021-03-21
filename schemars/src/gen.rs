@@ -41,6 +41,8 @@ pub struct SchemaSettings {
     pub visitors: Vec<Box<dyn GenVisitor>>,
     /// Inline all subschemas instead of using references.
     ///
+    /// Some references may still be generated in schemas for recursive types.
+    ///
     /// Defaults to `false`.
     pub inline_subschemas: bool,
     _hidden: (),

@@ -11,6 +11,8 @@
 
 ### Fixed
 - Fix use of `#[serde(transparent)]` in combination with `#[schemars(with = ...)]` (https://github.com/GREsau/schemars/pull/67)
+- Fix clippy `field_reassign_with_default` warning in schemars_derive generated code in rust <1.51 (https://github.com/GREsau/schemars/pull/65)
+- Prevent stack overflow when using `inline_subschemas` with recursive types
 
 ## [0.8.0] - 2020-09-27
 ### Added:
