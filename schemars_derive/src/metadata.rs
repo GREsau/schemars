@@ -22,9 +22,10 @@ impl ToTokens for SchemaMetadata<'_> {
         } else {
             tokens.extend(quote! {
                 Some({
-                    let mut metadata = schemars::schema::Metadata::default();
-                    #(#setters)*
-                    metadata
+                    schemars::schema::Metadata {
+                        #(#setters)*
+                        ..Default::default()
+                    }
                 })
             })
         }
@@ -58,29 +59,29 @@ impl<'a> SchemaMetadata<'a> {
 
         if let Some(title) = &self.title {
             setters.push(quote! {
-                metadata.title = Some(#title.to_owned());
+                title: Some(#title.to_owned()),
             });
         }
         if let Some(description) = &self.description {
             setters.push(quote! {
-                metadata.description = Some(#description.to_owned());
+                description: Some(#description.to_owned()),
             });
         }
 
         if self.deprecated {
             setters.push(quote! {
-                metadata.deprecated = true;
+                deprecated: true,
             });
         }
 
         if self.read_only {
             setters.push(quote! {
-                metadata.read_only = true;
+                read_only: true,
             });
         }
         if self.write_only {
             setters.push(quote! {
-                metadata.write_only = true;
+                write_only: true,
             });
         }
 
@@ -91,13 +92,13 @@ impl<'a> SchemaMetadata<'a> {
                 }
             });
             setters.push(quote! {
-                metadata.examples = vec![#(#examples),*].into_iter().flatten().collect();
+                examples: vec![#(#examples),*].into_iter().flatten().collect(),
             });
         }
 
         if let Some(default) = &self.default {
             setters.push(quote! {
-                metadata.default = #default.and_then(|d| schemars::_serde_json::value::to_value(d).ok());
+                default: #default.and_then(|d| schemars::_serde_json::value::to_value(d).ok()),
             });
         }
 
