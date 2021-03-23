@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyStruct",
+  "examples": [
+    {
+      "my_bool": true,
+      "my_int": 123,
+      "my_nullable_enum": null
+    }
+  ],
+  "type": "object",
+  "properties": {
+    "my_bool": {
+      "type": "boolean"
+    },
+    "my_int": {
+      "type": "integer",
+      "format": "int32"
+    },
+    "my_nullable_enum": true
+  }
+}

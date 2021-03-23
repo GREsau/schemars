@@ -236,6 +236,7 @@ pub type MapEntry<'a, K, V> = indexmap::map::Entry<'a, K, V>;
 
 mod flatten;
 mod json_schema_impls;
+mod ser;
 #[macro_use]
 mod macros;
 

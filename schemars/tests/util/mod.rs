@@ -18,7 +18,7 @@ pub fn test_default_generated_schema<T: JsonSchema>(file: &str) -> TestResult {
     test_schema(&actual, file)
 }
 
-fn test_schema(actual: &RootSchema, file: &str) -> TestResult {
+pub fn test_schema(actual: &RootSchema, file: &str) -> TestResult {
     let expected_json = match fs::read_to_string(format!("tests/expected/{}.json", file)) {
         Ok(j) => j,
         Err(e) => {
