@@ -14,16 +14,16 @@ jobs:
           - nightly
         include:
           - rust: 1.37.0
-            test_features: "--all-features"
+            test_args: "-- trybuild=SKIP"
             allow_failure: false
           - rust: stable
-            test_features: "--all-features"
+            test_args: ""
             allow_failure: false
           - rust: beta
-            test_features: "--all-features"
+            test_args: ""
             allow_failure: false
           - rust: nightly
-            test_features: "--all-features"
+            test_args: ""
             allow_failure: true
       fail-fast: false
     steps:
@@ -38,7 +38,7 @@ jobs:
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars
       - name: Run tests
-        run: cargo test --verbose ${{ matrix.test_features }} --no-fail-fast
+        run: cargo test --verbose --no-fail-fast --all-features ${{ matrix.test_args }}
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars
       - name: Run derive tests
