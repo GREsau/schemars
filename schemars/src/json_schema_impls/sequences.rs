@@ -57,10 +57,11 @@ macro_rules! set_impl {
     };
 }
 
-
 seq_impl!(<T> JsonSchema for std::collections::BinaryHeap<T>);
-set_impl!(<T> JsonSchema for std::collections::BTreeSet<T>);
-set_impl!(<T, H> JsonSchema for std::collections::HashSet<T, H>);
 seq_impl!(<T> JsonSchema for std::collections::LinkedList<T>);
+seq_impl!(<T> JsonSchema for [T]);
 seq_impl!(<T> JsonSchema for Vec<T>);
 seq_impl!(<T> JsonSchema for std::collections::VecDeque<T>);
+
+set_impl!(<T> JsonSchema for std::collections::BTreeSet<T>);
+set_impl!(<T, H> JsonSchema for std::collections::HashSet<T, H>);

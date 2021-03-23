@@ -3,6 +3,7 @@
 ## **In-dev** - [0.8.1]
 ### Added:
 - `SchemaGenerator::definitions_mut()` which returns a mutable reference to the generator's schema definitions
+- Implement `JsonSchema` for slices
 
 ### Changed:
 - Minimum supported rust version is now 1.37.0
