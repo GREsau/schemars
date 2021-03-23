@@ -1,6 +1,6 @@
 # Changelog
 
-## **In-dev** - [0.8.1]
+## [0.8.1] - 2021-03-23
 ### Added:
 - `SchemaGenerator::definitions_mut()` which returns a mutable reference to the generator's schema definitions
 - Implement `JsonSchema` for slices
