@@ -1,7 +1,7 @@
 /*!
 JSON Schema generator and settings.
 
-This module is useful if you want more control over how the schema generated then the [`schema_for!`] macro gives you.
+This module is useful if you want more control over how the schema generated than the [`schema_for!`] macro gives you.
 There are two main types in this module:two main types in this module:
 * [`SchemaSettings`], which defines what JSON Schema features should be used when generating schemas (for example, how `Option`s should be represented).
 * [`SchemaGenerator`], which manages the generation of a schema document.
@@ -315,7 +315,10 @@ impl SchemaGenerator {
         root
     }
 
-    // TODO document
+    /// Generates a root JSON Schema for the given example value.
+    ///
+    /// If the value implements [`JsonSchema`](crate::JsonSchema), then prefer using the [`root_schema_for()`](Self::root_schema_for())
+    /// function which will generally produce a more precise schema, particularly when the value contains any enums.
     pub fn root_schema_for_value<T: ?Sized + Serialize>(
         &mut self,
         value: &T,
@@ -344,7 +347,10 @@ impl SchemaGenerator {
         Ok(root)
     }
 
-    // TODO document
+    /// Consumes `self` and generates a root JSON Schema for the given example value.
+    ///
+    /// If the value  implements [`JsonSchema`](crate::JsonSchema), then prefer using the [`into_root_schema_for()!`](Self::into_root_schema_for())
+    /// function which will generally produce a more precise schema, particularly when the value contains any enums.
     pub fn into_root_schema_for_value<T: ?Sized + Serialize>(
         mut self,
         value: &T,
