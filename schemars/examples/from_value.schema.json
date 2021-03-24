@@ -5,7 +5,9 @@
     {
       "my_bool": true,
       "my_int": 123,
-      "my_nullable_enum": null
+      "my_nullable_enum": {
+        "StringNewType": "foo"
+      }
     }
   ],
   "type": "object",

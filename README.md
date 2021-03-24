@@ -200,6 +200,68 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 
 `#[serde(...)]` attributes can be overriden using `#[schemars(...)]` attributes, which behave identically (e.g. `#[schemars(rename_all = "camelCase")]`). You may find this useful if you want to change the generated schema without affecting Serde's behaviour, or if you're just not using Serde.
 
+### Schema from Example Values
+
+If you want a schema for a type that can't/doesn't implement `JsonSchema`, but does implement `serde::Serialize`, then you can generate a JSON schema from a value of that type. However, this schema will generally be less precise than if the type implemented `JsonSchema` - particularly when it involves enums, since schemars will not make any assumptions about the structure of an enum based on a single variant.
+
+```rust
+use schemars::schema_for_value;
+use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct MyStruct {
+    pub my_int: i32,
+    pub my_bool: bool,
+    pub my_nullable_enum: Option<MyEnum>,
+}
+
+#[derive(Serialize)]
+pub enum MyEnum {
+    StringNewType(String),
+    StructVariant { floats: Vec<f32> },
+}
+
+fn main() {
+    let schema = schema_for_value!(MyStruct {
+        my_int: 123,
+        my_bool: true,
+        my_nullable_enum: Some(MyEnum::StringNewType("foo".to_string()))
+    });
+    println!("{}", serde_json::to_string_pretty(&schema).unwrap());
+}
+```
+
+<details>
+<summary>Click to see the output JSON schema...</summary>
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyStruct",
+  "examples": [
+    {
+      "my_bool": true,
+      "my_int": 123,
+      "my_nullable_enum": {
+        "StringNewType": "foo"
+      }
+    }
+  ],
+  "type": "object",
+  "properties": {
+    "my_bool": {
+      "type": "boolean"
+    },
+    "my_int": {
+      "type": "integer",
+      "format": "int32"
+    },
+    "my_nullable_enum": true
+  }
+}
+```
+</details>
+
 ## Feature Flags
 - `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro
 - `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
