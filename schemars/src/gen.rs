@@ -319,13 +319,12 @@ impl SchemaGenerator {
     pub fn root_schema_for_value<T: ?Sized + Serialize>(
         &mut self,
         value: &T,
-    ) -> Result<RootSchema, String> {
+    ) -> Result<RootSchema, serde_json::Error> {
         let mut schema = value
             .serialize(crate::ser::Serializer {
                 gen: self,
                 include_title: true,
-            })
-            .map_err(|e| e.0)?
+            })?
             .into_object();
 
         if let Ok(example) = serde_json::to_value(value) {
@@ -346,17 +345,15 @@ impl SchemaGenerator {
     }
 
     // TODO document
-    // TODO consider using a different Error type, maybe just use serde_json::error::Error?
     pub fn into_root_schema_for_value<T: ?Sized + Serialize>(
         mut self,
         value: &T,
-    ) -> Result<RootSchema, String> {
+    ) -> Result<RootSchema, serde_json::Error> {
         let mut schema = value
             .serialize(crate::ser::Serializer {
                 gen: &mut self,
                 include_title: true,
-            })
-            .map_err(|e| e.0)?
+            })?
             .into_object();
 
         if let Ok(example) = serde_json::to_value(value) {

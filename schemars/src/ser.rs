@@ -1,7 +1,7 @@
 use crate::schema::*;
 use crate::JsonSchema;
 use crate::{gen::SchemaGenerator, Map};
-use serde_json::Value;
+use serde_json::{Error, Value};
 use std::{convert::TryInto, fmt::Display};
 
 pub(crate) struct Serializer<'a> {
@@ -25,23 +25,6 @@ pub(crate) struct SerializeMap<'a> {
     properties: Map<String, Schema>,
     current_key: Option<String>,
     title: &'static str,
-}
-
-#[derive(Debug)]
-pub(crate) struct Error(pub(crate) String);
-
-impl serde::ser::Error for Error {
-    fn custom<T: Display>(msg: T) -> Self {
-        Self(msg.to_string())
-    }
-}
-
-impl std::error::Error for Error {}
-
-impl Display for Error {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&self.0)
-    }
 }
 
 macro_rules! forward_to_subschema_for {
@@ -442,7 +425,9 @@ impl serde::ser::SerializeMap for SerializeMap<'_> {
     where
         T: serde::Serialize,
     {
-        let json = serde_json::to_string(key).map_err(|e| Error(e.to_string()))?;
+        // FIXME this is too lenient - we should return an error if serde_json
+        // doesn't allow T to be a key of a map.
+        let json = serde_json::to_string(key)?;
         self.current_key = Some(
             json.trim_start_matches('"')
                 .trim_end_matches('"')
