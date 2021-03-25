@@ -43,6 +43,8 @@ impl_json_schema = ["derive"]
 # derive_json_schema will be removed in a later version
 derive_json_schema = ["impl_json_schema"]
 
+ui_test = []
+
 [[test]]
 name = "chrono"
 required-features = ["chrono"]
@@ -70,6 +72,10 @@ required-features = ["arrayvec"]
 [[test]]
 name = "schema_for_schema"
 required-features = ["impl_json_schema"]
+
+[[test]]
+name = "ui"
+required-features = ["ui_test"]
 
 [package.metadata.docs.rs]
 all-features = true
