@@ -35,6 +35,18 @@ macro_rules! forward_to_subschema_for {
     };
 }
 
+macro_rules! return_instance_type {
+    ($fn:ident, $ty:ty, $instance_type:ident) => {
+        fn $fn(self, _value: $ty) -> Result<Self::Ok, Self::Error> {
+            Ok(SchemaObject {
+                instance_type: Some(InstanceType::$instance_type.into()),
+                ..Default::default()
+            }
+            .into())
+        }
+    };
+}
+
 impl<'a> serde::Serializer for Serializer<'a> {
     type Ok = Schema;
     type Error = Error;
@@ -47,19 +59,20 @@ impl<'a> serde::Serializer for Serializer<'a> {
     type SerializeStruct = SerializeMap<'a>;
     type SerializeStructVariant = Self;
 
+    return_instance_type!(serialize_i8, i8, Integer);
+    return_instance_type!(serialize_i16, i16, Integer);
+    return_instance_type!(serialize_i32, i32, Integer);
+    return_instance_type!(serialize_i64, i64, Integer);
+    return_instance_type!(serialize_i128, i128, Integer);
+    return_instance_type!(serialize_u8, u8, Integer);
+    return_instance_type!(serialize_u16, u16, Integer);
+    return_instance_type!(serialize_u32, u32, Integer);
+    return_instance_type!(serialize_u64, u64, Integer);
+    return_instance_type!(serialize_u128, u128, Integer);
+    return_instance_type!(serialize_f32, f32, Number);
+    return_instance_type!(serialize_f64, f64, Number);
+
     forward_to_subschema_for!(serialize_bool, bool);
-    forward_to_subschema_for!(serialize_i8, i8);
-    forward_to_subschema_for!(serialize_i16, i16);
-    forward_to_subschema_for!(serialize_i32, i32);
-    forward_to_subschema_for!(serialize_i64, i64);
-    forward_to_subschema_for!(serialize_i128, i128);
-    forward_to_subschema_for!(serialize_u8, u8);
-    forward_to_subschema_for!(serialize_u16, u16);
-    forward_to_subschema_for!(serialize_u32, u32);
-    forward_to_subschema_for!(serialize_u64, u64);
-    forward_to_subschema_for!(serialize_u128, u128);
-    forward_to_subschema_for!(serialize_f32, f32);
-    forward_to_subschema_for!(serialize_f64, f64);
     forward_to_subschema_for!(serialize_char, char);
     forward_to_subschema_for!(serialize_str, &str);
     forward_to_subschema_for!(serialize_bytes, &[u8]);
@@ -68,7 +81,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
     where
         T: Display,
     {
-        Ok(self.gen.subschema_for::<String>())
+        Ok(self.gen.subschema_for::<&str>())
     }
 
     fn collect_map<K, V, I>(self, iter: I) -> Result<Self::Ok, Self::Error>
@@ -109,6 +122,10 @@ impl<'a> serde::Serializer for Serializer<'a> {
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
         Ok(self.gen.subschema_for::<Option<Value>>())
+    }
+
+    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
+        self.serialize_none()
     }
 
     fn serialize_some<T: ?Sized>(mut self, value: &T) -> Result<Self::Ok, Self::Error>
@@ -166,12 +183,8 @@ impl<'a> serde::Serializer for Serializer<'a> {
         Ok(schema)
     }
 
-    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
-        Ok(self.gen.subschema_for::<()>())
-    }
-
     fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok, Self::Error> {
-        self.serialize_unit()
+        Ok(self.gen.subschema_for::<()>())
     }
 
     fn serialize_unit_variant(

@@ -26,8 +26,7 @@
   "type": "object",
   "properties": {
     "myInt": {
-      "type": "integer",
-      "format": "int32"
+      "type": "integer"
     },
     "myBool": {
       "type": "boolean"
@@ -39,8 +38,7 @@
         "my_map": {
           "type": "object",
           "additionalProperties": {
-            "type": "number",
-            "format": "double"
+            "type": "number"
           }
         },
         "my_vec": {
@@ -66,9 +64,7 @@
               "minLength": 1
             },
             {
-              "type": "integer",
-              "format": "uint8",
-              "minimum": 0.0
+              "type": "integer"
             }
           ],
           "maxItems": 2,

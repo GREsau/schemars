@@ -1,8 +1,7 @@
 mod util;
-use std::collections::HashMap;
-
-use schemars::gen::SchemaSettings;
+use schemars::gen::{SchemaGenerator, SchemaSettings};
 use serde::Serialize;
+use std::collections::HashMap;
 use util::*;
 
 #[derive(Serialize)]
@@ -74,4 +73,22 @@ fn schema_from_value_matches_openapi3() -> TestResult {
     let actual = gen.into_root_schema_for_value(&make_value())?;
 
     test_schema(&actual, "from_value_openapi3")
+}
+
+#[test]
+fn schema_from_json_value() -> TestResult {
+    let gen = SchemaGenerator::default();
+    let actual = gen.into_root_schema_for_value(&serde_json::json!({
+        "zero": 0,
+        "one": 1,
+        "minusOne": -1,
+        "zeroPointZero": 0.0,
+        "bool": true,
+        "null": null,
+        "object": {
+            "array": ["foo", "bar"]
+        },
+    }))?;
+
+    test_schema(&actual, "from_json_value")
 }
