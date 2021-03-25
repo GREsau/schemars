@@ -17,27 +17,35 @@ use proc_macro2::TokenStream;
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
-    derive_json_schema(input).into()
+    derive_json_schema(input, false)
+        .unwrap_or_else(compile_error)
+        .into()
 }
 
-fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
+#[proc_macro_derive(JsonSchema_repr, attributes(schemars, serde))]
+pub fn derive_json_schema_repr_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let input = parse_macro_input!(input as syn::DeriveInput);
+    derive_json_schema(input, true)
+        .unwrap_or_else(compile_error)
+        .into()
+}
+
+fn derive_json_schema(
+    mut input: syn::DeriveInput,
+    repr: bool,
+) -> Result<TokenStream, Vec<syn::Error>> {
     add_trait_bounds(&mut input.generics);
 
-    if let Err(e) = attr::process_serde_attrs(&mut input) {
-        return compile_error(&e);
-    }
+    attr::process_serde_attrs(&mut input)?;
 
-    let cont = match Container::from_ast(&input) {
-        Ok(c) => c,
-        Err(e) => return compile_error(&e),
-    };
+    let cont = Container::from_ast(&input)?;
 
     let type_name = &cont.ident;
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
     if let Some(transparent_field) = cont.transparent_field() {
         let (ty, type_def) = schema_exprs::type_for_schema(transparent_field, 0);
-        return quote! {
+        return Ok(quote! {
             const _: () = {
                 #type_def
 
@@ -70,7 +78,7 @@ fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
                     }
                 };
             };
-        };
+        });
     }
 
     let mut schema_base_name = cont.name();
@@ -106,9 +114,13 @@ fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
         }
     };
 
-    let schema_expr = schema_exprs::expr_for_container(&cont);
+    let schema_expr = if repr {
+        schema_exprs::expr_for_repr(&cont).map_err(|e| vec![e])?
+    } else {
+        schema_exprs::expr_for_container(&cont)
+    };
 
-    quote! {
+    Ok(quote! {
         #[automatically_derived]
         #[allow(unused_braces)]
         impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
@@ -120,7 +132,7 @@ fn derive_json_schema(mut input: syn::DeriveInput) -> TokenStream {
                 #schema_expr
             }
         };
-    }
+    })
 }
 
 fn add_trait_bounds(generics: &mut syn::Generics) {
@@ -131,8 +143,8 @@ fn add_trait_bounds(generics: &mut syn::Generics) {
     }
 }
 
-fn compile_error<'a>(errors: impl IntoIterator<Item = &'a syn::Error>) -> TokenStream {
-    let compile_errors = errors.into_iter().map(syn::Error::to_compile_error);
+fn compile_error<'a>(errors: Vec<syn::Error>) -> TokenStream {
+    let compile_errors = errors.iter().map(syn::Error::to_compile_error);
     quote! {
         #(#compile_errors)*
     }

@@ -1,5 +1,5 @@
 use crate::{ast::*, attr::WithAttr, metadata::SchemaMetadata};
-use proc_macro2::TokenStream;
+use proc_macro2::{Span, TokenStream};
 use serde_derive_internals::ast::Style;
 use serde_derive_internals::attr::{self as serde_attr, Default as SerdeDefault, TagType};
 use syn::spanned::Spanned;
@@ -19,6 +19,37 @@ pub fn expr_for_container(cont: &Container) -> TokenStream {
 
     let doc_metadata = SchemaMetadata::from_attrs(&cont.attrs);
     doc_metadata.apply_to_schema(schema_expr)
+}
+
+pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
+    let repr_type = cont
+        .attrs
+        .repr
+        .as_ref()
+        .ok_or_else(|| syn::Error::new(Span::call_site(), "missing #[repr(...)] attribute"))?;
+
+    let variants = match &cont.data {
+        Data::Struct(_, _) => return Err(syn::Error::new(Span::call_site(), "oh no!")),
+        Data::Enum(variants) => variants,
+    };
+
+    if let Some(non_unit_error) = variants.iter().find_map(|v| match v.style {
+        Style::Unit => None,
+        _ => Some(syn::Error::new(v.original.span(), "must be a unit variant")),
+    }) {
+        return Err(non_unit_error);
+    };
+
+    let enum_ident = &cont.ident;
+    let variant_idents = variants.iter().map(|v| &v.ident);
+
+    let schema_expr = schema_object(quote! {
+        instance_type: Some(schemars::schema::InstanceType::Integer.into()),
+        enum_values: Some(vec![#((#enum_ident::#variant_idents as #repr_type).into()),*]),
+    });
+
+    let doc_metadata = SchemaMetadata::from_attrs(&cont.attrs);
+    Ok(doc_metadata.apply_to_schema(schema_expr))
 }
 
 fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
@@ -300,7 +331,7 @@ fn expr_for_untagged_enum_variant_for_flatten(
 ) -> Option<TokenStream> {
     if let Some(WithAttr::Type(with)) = &variant.attrs.with {
         return Some(quote_spanned! {variant.original.span()=>
-            <#with>::json_schema(gen)
+            <#with as schemars::JsonSchema>::json_schema(gen)
         });
     }
 
