@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.2] - **In-dev**
+### Added:
+- Enable generating a schema from any serializable value using `schema_for_value!(...)` macro or `SchemaGenerator::root_schema_for_value()`/`SchemaGenerator::into_root_schema_for_value()` methods
+
 ## [0.8.1] - 2021-03-23
 ### Added:
 - `SchemaGenerator::definitions_mut()` which returns a mutable reference to the generator's schema definitions
