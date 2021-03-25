@@ -18,6 +18,7 @@ pub struct Attrs {
     pub description: Option<String>,
     pub deprecated: bool,
     pub examples: Vec<syn::Path>,
+    pub repr: Option<syn::Type>,
 }
 
 #[derive(Debug)]
@@ -33,6 +34,10 @@ impl Attrs {
             .populate(attrs, "serde", true, errors);
 
         result.deprecated = attrs.iter().any(|a| a.path.is_ident("deprecated"));
+        result.repr = attrs
+            .iter()
+            .find(|a| a.path.is_ident("repr"))
+            .and_then(|a| a.parse_args().ok());
 
         let (doc_title, doc_description) = doc::get_title_and_desc_from_doc(attrs);
         result.title = result.title.or(doc_title);
