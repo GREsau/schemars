@@ -20,6 +20,8 @@ If you want more control over how the schema is generated, you can use the [`gen
 
 See the API documentation for more info on how to use those types for custom schema generation.
 
-<!-- TODO: 
+<!-- TODO:
 create and link to example
+
+Generating schema from example value
 -->

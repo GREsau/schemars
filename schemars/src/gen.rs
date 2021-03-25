@@ -1,7 +1,7 @@
 /*!
 JSON Schema generator and settings.
 
-This module is useful if you want more control over how the schema generated then the [`schema_for!`] macro gives you.
+This module is useful if you want more control over how the schema generated than the [`schema_for!`] macro gives you.
 There are two main types in this module:two main types in this module:
 * [`SchemaSettings`], which defines what JSON Schema features should be used when generating schemas (for example, how `Option`s should be represented).
 * [`SchemaGenerator`], which manages the generation of a schema document.
@@ -11,6 +11,7 @@ use crate::flatten::Merge;
 use crate::schema::*;
 use crate::{visit::*, JsonSchema, Map};
 use dyn_clone::DynClone;
+use serde::Serialize;
 use std::{any::Any, collections::HashSet, fmt::Debug};
 
 /// Settings to customize how Schemas are generated.
@@ -312,6 +313,70 @@ impl SchemaGenerator {
         }
 
         root
+    }
+
+    /// Generates a root JSON Schema for the given example value.
+    ///
+    /// If the value implements [`JsonSchema`](crate::JsonSchema), then prefer using the [`root_schema_for()`](Self::root_schema_for())
+    /// function which will generally produce a more precise schema, particularly when the value contains any enums.
+    pub fn root_schema_for_value<T: ?Sized + Serialize>(
+        &mut self,
+        value: &T,
+    ) -> Result<RootSchema, serde_json::Error> {
+        let mut schema = value
+            .serialize(crate::ser::Serializer {
+                gen: self,
+                include_title: true,
+            })?
+            .into_object();
+
+        if let Ok(example) = serde_json::to_value(value) {
+            schema.metadata().examples.push(example);
+        }
+
+        let mut root = RootSchema {
+            meta_schema: self.settings.meta_schema.clone(),
+            definitions: self.definitions.clone(),
+            schema,
+        };
+
+        for visitor in &mut self.settings.visitors {
+            visitor.visit_root_schema(&mut root)
+        }
+
+        Ok(root)
+    }
+
+    /// Consumes `self` and generates a root JSON Schema for the given example value.
+    ///
+    /// If the value  implements [`JsonSchema`](crate::JsonSchema), then prefer using the [`into_root_schema_for()!`](Self::into_root_schema_for())
+    /// function which will generally produce a more precise schema, particularly when the value contains any enums.
+    pub fn into_root_schema_for_value<T: ?Sized + Serialize>(
+        mut self,
+        value: &T,
+    ) -> Result<RootSchema, serde_json::Error> {
+        let mut schema = value
+            .serialize(crate::ser::Serializer {
+                gen: &mut self,
+                include_title: true,
+            })?
+            .into_object();
+
+        if let Ok(example) = serde_json::to_value(value) {
+            schema.metadata().examples.push(example);
+        }
+
+        let mut root = RootSchema {
+            meta_schema: self.settings.meta_schema,
+            definitions: self.definitions,
+            schema,
+        };
+
+        for visitor in &mut self.settings.visitors {
+            visitor.visit_root_schema(&mut root)
+        }
+
+        Ok(root)
     }
 
     /// Attemps to find the schema that the given `schema` is referencing.

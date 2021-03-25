@@ -2,6 +2,9 @@ use crate::schema::*;
 use crate::{Map, Set};
 
 impl Schema {
+    /// This function is only public for use by schemars_derive.
+    ///
+    /// It should not be considered part of the public API.
     #[doc(hidden)]
     pub fn flatten(self, other: Self) -> Schema {
         if is_null_type(&self) {

@@ -25,6 +25,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
                     schema
                 }
                 schema => SchemaObject {
+                    // TODO technically the schema already accepts null, so this may be unnecessary
                     subschemas: Some(Box::new(SubschemaValidation {
                         any_of: Some(vec![schema, <()>::json_schema(gen)]),
                         ..Default::default()
