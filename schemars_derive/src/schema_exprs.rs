@@ -22,20 +22,24 @@ pub fn expr_for_container(cont: &Container) -> TokenStream {
 }
 
 pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
-    let repr_type = cont
-        .attrs
-        .repr
-        .as_ref()
-        .ok_or_else(|| syn::Error::new(Span::call_site(), "missing #[repr(...)] attribute"))?;
+    let repr_type = cont.attrs.repr.as_ref().ok_or_else(|| {
+        syn::Error::new(
+            Span::call_site(),
+            "JsonSchema_repr: missing #[repr(...)] attribute",
+        )
+    })?;
 
     let variants = match &cont.data {
-        Data::Struct(_, _) => return Err(syn::Error::new(Span::call_site(), "oh no!")),
         Data::Enum(variants) => variants,
+        _ => return Err(syn::Error::new(Span::call_site(), "oh no!")),
     };
 
     if let Some(non_unit_error) = variants.iter().find_map(|v| match v.style {
         Style::Unit => None,
-        _ => Some(syn::Error::new(v.original.span(), "must be a unit variant")),
+        _ => Some(syn::Error::new(
+            v.original.span(),
+            "JsonSchema_repr: must be a unit variant",
+        )),
     }) {
         return Err(non_unit_error);
     };

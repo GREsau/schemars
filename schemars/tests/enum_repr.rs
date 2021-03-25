@@ -2,7 +2,7 @@ mod util;
 use schemars::JsonSchema_repr;
 use util::*;
 
-#[derive(Debug, JsonSchema_repr)]
+#[derive(JsonSchema_repr)]
 #[repr(u8)]
 pub enum Enum {
     Zero,
@@ -17,7 +17,7 @@ fn enum_repr() -> TestResult {
     test_default_generated_schema::<Enum>("enum-repr")
 }
 
-#[derive(Debug, JsonSchema_repr)]
+#[derive(JsonSchema_repr)]
 #[repr(i64)]
 #[serde(rename = "Renamed")]
 /// Description from comment
