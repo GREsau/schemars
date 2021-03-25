@@ -253,8 +253,7 @@ fn main() {
       "type": "boolean"
     },
     "my_int": {
-      "type": "integer",
-      "format": "int32"
+      "type": "integer"
     },
     "my_nullable_enum": true
   }
