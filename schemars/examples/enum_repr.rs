@@ -8,6 +8,7 @@ enum SmallPrime {
     Five = 5,
     Seven = 7,
 }
+
 fn main() {
     let schema = schema_for!(SmallPrime);
     println!("{}", serde_json::to_string_pretty(&schema).unwrap());
