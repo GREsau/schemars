@@ -5,7 +5,6 @@ parent: Examples
 nav_order: 8
 summary: >-
   Generating a schema for with a C-like enum compatible with serde_repr.
-nav_exclude: true # schemars 0.8.2 currently unreleased
 ---
 
 # Serialize Enum as Number (serde_repr Compatibility)

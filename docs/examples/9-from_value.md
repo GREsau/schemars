@@ -5,7 +5,6 @@ parent: Examples
 nav_order: 9
 summary: >-
   Generating a schema for a serializable value.
-nav_exclude: true # schemars 0.8.2 currently unreleased
 ---
 
 # Generate Schema from Example Value
