@@ -4,6 +4,7 @@
 ### Added:
 - Enable generating a schema from any serializable value using `schema_for_value!(...)` macro or `SchemaGenerator::root_schema_for_value()`/`SchemaGenerator::into_root_schema_for_value()` methods (https://github.com/GREsau/schemars/pull/75)
 - `#[derive(JsonSchema_repr)]` can be used on C-like enums for generating a serde_repr-compatible schema (https://github.com/GREsau/schemars/pull/76)
+- Implement `JsonSchema` for `url::Url` (https://github.com/GREsau/schemars/pull/63)
 
 ## [0.8.1] - 2021-03-23
 ### Added:
