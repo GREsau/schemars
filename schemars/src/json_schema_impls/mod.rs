@@ -64,6 +64,8 @@ mod serdejson;
 mod smallvec;
 mod time;
 mod tuple;
+#[cfg(feature = "ulid")]
+mod ulid;
 #[cfg(feature = "uuid")]
 mod uuid;
 mod wrapper;
