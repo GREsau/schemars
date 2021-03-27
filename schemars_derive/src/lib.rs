@@ -143,7 +143,7 @@ fn add_trait_bounds(generics: &mut syn::Generics) {
     }
 }
 
-fn compile_error<'a>(errors: Vec<syn::Error>) -> TokenStream {
+fn compile_error(errors: Vec<syn::Error>) -> TokenStream {
     let compile_errors = errors.iter().map(syn::Error::to_compile_error);
     quote! {
         #(#compile_errors)*

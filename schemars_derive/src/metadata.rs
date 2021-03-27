@@ -35,8 +35,8 @@ impl ToTokens for SchemaMetadata<'_> {
 impl<'a> SchemaMetadata<'a> {
     pub fn from_attrs(attrs: &'a Attrs) -> Self {
         SchemaMetadata {
-            title: attrs.title.as_ref().and_then(none_if_empty),
-            description: attrs.description.as_ref().and_then(none_if_empty),
+            title: attrs.title.as_deref().and_then(none_if_empty),
+            description: attrs.description.as_deref().and_then(none_if_empty),
             deprecated: attrs.deprecated,
             examples: &attrs.examples,
             read_only: false,
@@ -106,7 +106,7 @@ impl<'a> SchemaMetadata<'a> {
     }
 }
 
-fn none_if_empty(s: &String) -> Option<&str> {
+fn none_if_empty(s: &str) -> Option<&str> {
     if s.is_empty() {
         None
     } else {

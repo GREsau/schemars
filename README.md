@@ -221,14 +221,12 @@ pub enum MyEnum {
     StructVariant { floats: Vec<f32> },
 }
 
-fn main() {
-    let schema = schema_for_value!(MyStruct {
-        my_int: 123,
-        my_bool: true,
-        my_nullable_enum: Some(MyEnum::StringNewType("foo".to_string()))
-    });
-    println!("{}", serde_json::to_string_pretty(&schema).unwrap());
-}
+let schema = schema_for_value!(MyStruct {
+    my_int: 123,
+    my_bool: true,
+    my_nullable_enum: Some(MyEnum::StringNewType("foo".to_string()))
+});
+println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 ```
 
 <details>

@@ -9,20 +9,22 @@ impl JsonSchema for OsString {
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        let mut unix_schema = SchemaObject::default();
-        unix_schema.instance_type = Some(InstanceType::Object.into());
-        unix_schema.object().required.insert("Unix".to_owned());
-        unix_schema
-            .object()
-            .properties
+        let mut unix_schema = SchemaObject {
+            instance_type: Some(InstanceType::Object.into()),
+            ..Default::default()
+        };
+        let obj = unix_schema.object();
+        obj.required.insert("Unix".to_owned());
+        obj.properties
             .insert("Unix".to_owned(), <Vec<u8>>::json_schema(gen));
 
-        let mut win_schema = SchemaObject::default();
-        win_schema.instance_type = Some(InstanceType::Object.into());
-        win_schema.object().required.insert("Windows".to_owned());
-        win_schema
-            .object()
-            .properties
+        let mut win_schema = SchemaObject {
+            instance_type: Some(InstanceType::Object.into()),
+            ..Default::default()
+        };
+        let obj = win_schema.object();
+        obj.required.insert("Windows".to_owned());
+        obj.properties
             .insert("Windows".to_owned(), <Vec<u16>>::json_schema(gen));
 
         let mut schema = SchemaObject::default();

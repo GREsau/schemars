@@ -9,8 +9,10 @@ impl JsonSchema for Duration {
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = SchemaObject::default();
-        schema.instance_type = Some(InstanceType::Object.into());
+        let mut schema = SchemaObject {
+            instance_type: Some(InstanceType::Object.into()),
+            ..Default::default()
+        };
         let obj = schema.object();
         obj.required.insert("secs".to_owned());
         obj.required.insert("nanos".to_owned());
@@ -28,8 +30,10 @@ impl JsonSchema for SystemTime {
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = SchemaObject::default();
-        schema.instance_type = Some(InstanceType::Object.into());
+        let mut schema = SchemaObject {
+            instance_type: Some(InstanceType::Object.into()),
+            ..Default::default()
+        };
         let obj = schema.object();
         obj.required.insert("secs_since_epoch".to_owned());
         obj.required.insert("nanos_since_epoch".to_owned());
