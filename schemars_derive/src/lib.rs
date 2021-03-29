@@ -9,12 +9,13 @@ extern crate proc_macro;
 mod ast;
 mod attr;
 mod metadata;
+mod regex_syntax;
 mod schema_exprs;
 
 use ast::*;
 use proc_macro2::TokenStream;
 
-#[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
+#[proc_macro_derive(JsonSchema, attributes(schemars, serde, validate))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     derive_json_schema(input, false)
@@ -72,7 +73,7 @@ fn derive_json_schema(
                         parent: &mut schemars::schema::SchemaObject,
                         name: String,
                         metadata: Option<schemars::schema::Metadata>,
-                        required: bool,
+                        required: Option<bool>,
                     ) {
                         <#ty as schemars::JsonSchema>::add_schema_as_property(gen, parent, name, metadata, required)
                     }

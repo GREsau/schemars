@@ -9,6 +9,7 @@ use crate::JsonSchema;
 use crate::{Map, Set};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::ops::Deref;
 
 /// A JSON Schema.
 #[allow(clippy::large_enum_variant)]
@@ -191,7 +192,13 @@ where
 macro_rules! get_or_insert_default_fn {
     ($name:ident, $ret:ty) => {
         get_or_insert_default_fn!(
-            concat!("Returns a mutable reference to this schema's [`", stringify!($ret), "`](#structfield.", stringify!($name), "), creating it if it was `None`."),
+            concat!(
+                "Returns a mutable reference to this schema's [`",
+                stringify!($ret),
+                "`](#structfield.",
+                stringify!($name),
+                "), creating it if it was `None`."
+            ),
             $name,
             $ret
         );
@@ -222,6 +229,13 @@ impl SchemaObject {
     /// Otherwise, returns `false`.
     pub fn is_ref(&self) -> bool {
         self.reference.is_some()
+    }
+
+    // TODO document
+    pub fn has_type(&self, ty: InstanceType) -> bool {
+        self.instance_type
+            .as_ref()
+            .map_or(true, |x| x.contains(&ty))
     }
 
     get_or_insert_default_fn!(metadata, Metadata);
@@ -504,5 +518,15 @@ impl<T> From<T> for SingleOrVec<T> {
 impl<T> From<Vec<T>> for SingleOrVec<T> {
     fn from(vec: Vec<T>) -> Self {
         SingleOrVec::Vec(vec)
+    }
+}
+
+impl<T: PartialEq> SingleOrVec<T> {
+    // TODO document
+    pub fn contains(&self, x: &T) -> bool {
+        match self {
+            SingleOrVec::Single(s) => s.deref() == x,
+            SingleOrVec::Vec(v) => v.contains(x),
+        }
     }
 }

@@ -375,13 +375,13 @@ pub trait JsonSchema {
         parent: &mut SchemaObject,
         name: String,
         metadata: Option<schema::Metadata>,
-        required: bool,
+        required: Option<bool>,
     ) {
         let mut schema = gen.subschema_for::<Self>();
         schema = gen.apply_metadata(schema, metadata);
 
         let object = parent.object();
-        if required {
+        if required.unwrap_or(true) {
             object.required.insert(name.clone());
         }
         object.properties.insert(name, schema);

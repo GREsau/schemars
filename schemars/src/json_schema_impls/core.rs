@@ -62,13 +62,17 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         parent: &mut SchemaObject,
         name: String,
         metadata: Option<Metadata>,
-        _required: bool,
+        required: Option<bool>,
     ) {
-        let mut schema = gen.subschema_for::<Self>();
-        schema = gen.apply_metadata(schema, metadata);
+        if required == Some(true) {
+            T::add_schema_as_property(gen, parent, name, metadata, required)
+        } else {
+            let mut schema = gen.subschema_for::<Self>();
+            schema = gen.apply_metadata(schema, metadata);
 
-        let object = parent.object();
-        object.properties.insert(name, schema);
+            let object = parent.object();
+            object.properties.insert(name, schema);
+        }
     }
 }
 

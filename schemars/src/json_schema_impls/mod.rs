@@ -30,7 +30,7 @@ macro_rules! forward_impl {
                 parent: &mut crate::schema::SchemaObject,
                 name: String,
                 metadata: Option<crate::schema::Metadata>,
-                required: bool,
+                required: Option<bool>,
             ) {
                 <$target>::add_schema_as_property(gen, parent, name, metadata, required)
             }

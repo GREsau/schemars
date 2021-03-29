@@ -1,7 +1,9 @@
 mod doc;
 mod schemars_to_serde;
+mod validation;
 
 pub use schemars_to_serde::process_serde_attrs;
+pub use validation::ValidationAttrs;
 
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
