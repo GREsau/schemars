@@ -268,6 +268,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - [`smallvec`](https://crates.io/crates/smallvec) (^1.0)
 - [`arrayvec`](https://crates.io/crates/arrayvec) (^0.5)
 - [`url`](https://crates.io/crates/url) (^2.0)
+- [`bytes`](https://crates.io/crates/bytes) (^1.0)
 */
 
 /// The map type used by schemars types.
