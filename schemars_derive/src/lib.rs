@@ -13,6 +13,7 @@ mod schema_exprs;
 
 use ast::*;
 use proc_macro2::TokenStream;
+use syn::spanned::Spanned;
 
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -39,6 +40,11 @@ fn derive_json_schema(
     attr::process_serde_attrs(&mut input)?;
 
     let cont = Container::from_ast(&input)?;
+    let crate_alias = cont.attrs.crate_name.as_ref().map(|path| {
+        quote_spanned! {path.span()=>
+            use #path as schemars;
+        }
+    });
 
     let type_name = &cont.ident;
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
@@ -47,6 +53,7 @@ fn derive_json_schema(
         let (ty, type_def) = schema_exprs::type_for_schema(transparent_field, 0);
         return Ok(quote! {
             const _: () = {
+                #crate_alias
                 #type_def
 
                 #[automatically_derived]
@@ -121,16 +128,20 @@ fn derive_json_schema(
     };
 
     Ok(quote! {
-        #[automatically_derived]
-        #[allow(unused_braces)]
-        impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
-            fn schema_name() -> std::string::String {
-                #schema_name
-            }
+        const _: () = {
+            #crate_alias
 
-            fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-                #schema_expr
-            }
+            #[automatically_derived]
+            #[allow(unused_braces)]
+            impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
+                fn schema_name() -> std::string::String {
+                    #schema_name
+                }
+
+                fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                    #schema_expr
+                }
+            };
         };
     })
 }
