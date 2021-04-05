@@ -390,32 +390,36 @@ fn expr_for_struct(
 
     let mut type_defs = Vec::new();
 
-    let properties: Vec<_> = property_fields.into_iter().map(|field| {
-        let name = field.name();
-        let default = field_default_expr(field, set_container_default.is_some());
+    let properties: Vec<_> = property_fields
+        .into_iter()
+        .map(|field| {
+            let name = field.name();
+            let default = field_default_expr(field, set_container_default.is_some());
 
-        let required = match default {
-            Some(_) => quote!(false),
-            None => quote!(true),
-        };
+            let required = match default {
+                Some(_) => quote!(false),
+                None => quote!(true),
+            };
 
-        let metadata = &SchemaMetadata {
-            read_only: field.serde_attrs.skip_deserializing(),
-            write_only: field.serde_attrs.skip_serializing(),
-            default,
-            ..SchemaMetadata::from_attrs(&field.attrs)
-        };
+            let metadata = &SchemaMetadata {
+                read_only: field.serde_attrs.skip_deserializing(),
+                write_only: field.serde_attrs.skip_serializing(),
+                default,
+                ..SchemaMetadata::from_attrs(&field.attrs)
+            };
 
-        let (ty, type_def) = type_for_schema(field, type_defs.len());
-        if let Some(type_def) = type_def {
-            type_defs.push(type_def);
-        }
+            let (ty, type_def) = type_for_schema(field, type_defs.len());
+            if let Some(type_def) = type_def {
+                type_defs.push(type_def);
+            }
 
-        quote_spanned! {ty.span()=>
-            <#ty as schemars::JsonSchema>::add_schema_as_property(gen, &mut schema_object, #name.to_owned(), #metadata, #required);
-        }
+            let args = quote!(gen, &mut schema_object, #name.to_owned(), #metadata, #required);
 
-    }).collect();
+            quote_spanned! {ty.span()=>
+                <#ty as schemars::JsonSchema>::add_schema_as_property(#args);
+            }
+        })
+        .collect();
 
     let flattens: Vec<_> = flattened_fields
         .into_iter()
