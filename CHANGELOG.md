@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.8.3] - **In-dev**
+## [0.8.3] - 2021-04-05
 ### Added:
 - Support for `#[schemars(crate = "...")]` attribute to allow deriving JsonSchema when the schemars crate is aliased to a different name (https://github.com/GREsau/schemars/pull/55 / https://github.com/GREsau/schemars/pull/80)
 - Implement `JsonSchema` for `bytes::Bytes` and `bytes::BytesMut` (https://github.com/GREsau/schemars/pull/68)
