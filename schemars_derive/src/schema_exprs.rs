@@ -59,19 +59,20 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
 fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     let (ty, type_def) = type_for_schema(field, 0);
     let span = field.original.span();
+    let gen = quote!(gen);
 
     if allow_ref {
         quote_spanned! {span=>
             {
                 #type_def
-                gen.subschema_for::<#ty>()
+                #gen.subschema_for::<#ty>()
             }
         }
     } else {
         quote_spanned! {span=>
             {
                 #type_def
-                <#ty as schemars::JsonSchema>::json_schema(gen)
+                <#ty as schemars::JsonSchema>::json_schema(#gen)
             }
         }
     }
@@ -316,8 +317,9 @@ fn expr_for_adjacent_tagged_enum<'a>(
 
 fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) -> TokenStream {
     if let Some(WithAttr::Type(with)) = &variant.attrs.with {
+        let gen = quote!(gen);
         return quote_spanned! {variant.original.span()=>
-            gen.subschema_for::<#with>()
+            #gen.subschema_for::<#with>()
         };
     }
 
@@ -334,8 +336,9 @@ fn expr_for_untagged_enum_variant_for_flatten(
     deny_unknown_fields: bool,
 ) -> Option<TokenStream> {
     if let Some(WithAttr::Type(with)) = &variant.attrs.with {
+        let gen = quote!(gen);
         return Some(quote_spanned! {variant.original.span()=>
-            <#with as schemars::JsonSchema>::json_schema(gen)
+            <#with as schemars::JsonSchema>::json_schema(#gen)
         });
     }
 
@@ -429,8 +432,9 @@ fn expr_for_struct(
                 type_defs.push(type_def);
             }
 
+            let gen = quote!(gen);
             quote_spanned! {ty.span()=>
-                .flatten(<#ty as schemars::JsonSchema>::json_schema_for_flatten(gen))
+                .flatten(<#ty as schemars::JsonSchema>::json_schema_for_flatten(#gen))
             }
         })
         .collect();
