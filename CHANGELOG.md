@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.3] - **In-dev**
+### Fixed:
+- Fix deriving JsonSchema on types defined inside macros (https://github.com/GREsau/schemars/issues/66 / https://github.com/GREsau/schemars/pull/79)
+
 ## [0.8.2] - 2021-03-27
 ### Added:
 - Enable generating a schema from any serializable value using `schema_for_value!(...)` macro or `SchemaGenerator::root_schema_for_value()`/`SchemaGenerator::into_root_schema_for_value()` methods (https://github.com/GREsau/schemars/pull/75)
