@@ -36,6 +36,23 @@
           ]
         }
       }
+    },
+    {
+      "type": [
+        "boolean",
+        "object"
+      ],
+      "required": [
+        "typeProperty"
+      ],
+      "properties": {
+        "typeProperty": {
+          "type": "string",
+          "enum": [
+            "Unit"
+          ]
+        }
+      }
     }
   ]
 }

@@ -57,7 +57,7 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
 }
 
 fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
-    let (ty, type_def) = type_for_schema(field, 0);
+    let (ty, type_def) = type_for_field_schema(field, 0);
     let span = field.original.span();
     let gen = quote!(gen);
 
@@ -78,11 +78,17 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     }
 }
 
-pub fn type_for_schema(field: &Field, local_id: usize) -> (syn::Type, Option<TokenStream>) {
+pub fn type_for_field_schema(field: &Field, local_id: usize) -> (syn::Type, Option<TokenStream>) {
     match &field.attrs.with {
         None => (field.ty.to_owned(), None),
-        Some(WithAttr::Type(ty)) => (ty.to_owned(), None),
-        Some(WithAttr::Function(fun)) => {
+        Some(with_attr) => type_for_schema(with_attr, local_id),
+    }
+}
+
+fn type_for_schema(with_attr: &WithAttr, local_id: usize) -> (syn::Type, Option<TokenStream>) {
+    match with_attr {
+        WithAttr::Type(ty) => (ty.to_owned(), None),
+        WithAttr::Function(fun) => {
             let ty_name = format_ident!("_SchemarsSchemaWithFunction{}", local_id);
             let fn_name = fun.segments.last().unwrap().ident.to_string();
 
@@ -316,10 +322,14 @@ fn expr_for_adjacent_tagged_enum<'a>(
 }
 
 fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) -> TokenStream {
-    if let Some(WithAttr::Type(with)) = &variant.attrs.with {
+    if let Some(with_attr) = &variant.attrs.with {
+        let (ty, type_def) = type_for_schema(with_attr, 0);
         let gen = quote!(gen);
         return quote_spanned! {variant.original.span()=>
-            #gen.subschema_for::<#with>()
+            {
+                #type_def
+                #gen.subschema_for::<#ty>()
+            }
         };
     }
 
@@ -335,10 +345,14 @@ fn expr_for_untagged_enum_variant_for_flatten(
     variant: &Variant,
     deny_unknown_fields: bool,
 ) -> Option<TokenStream> {
-    if let Some(WithAttr::Type(with)) = &variant.attrs.with {
+    if let Some(with_attr) = &variant.attrs.with {
+        let (ty, type_def) = type_for_schema(with_attr, 0);
         let gen = quote!(gen);
         return Some(quote_spanned! {variant.original.span()=>
-            <#with as schemars::JsonSchema>::json_schema(#gen)
+            {
+                #type_def
+                <#ty as schemars::JsonSchema>::json_schema(#gen)
+            }
         });
     }
 
@@ -365,7 +379,7 @@ fn expr_for_tuple_struct(fields: &[Field]) -> TokenStream {
         .iter()
         .filter(|f| !f.serde_attrs.skip_deserializing())
         .enumerate()
-        .map(|(i, f)| type_for_schema(f, i))
+        .map(|(i, f)| type_for_field_schema(f, i))
         .unzip();
     quote! {
         {
@@ -411,7 +425,7 @@ fn expr_for_struct(
                 ..SchemaMetadata::from_attrs(&field.attrs)
             };
 
-            let (ty, type_def) = type_for_schema(field, type_defs.len());
+            let (ty, type_def) = type_for_field_schema(field, type_defs.len());
             if let Some(type_def) = type_def {
                 type_defs.push(type_def);
             }
@@ -427,7 +441,7 @@ fn expr_for_struct(
     let flattens: Vec<_> = flattened_fields
         .into_iter()
         .map(|field| {
-            let (ty, type_def) = type_for_schema(field, type_defs.len());
+            let (ty, type_def) = type_for_field_schema(field, type_defs.len());
             if let Some(type_def) = type_def {
                 type_defs.push(type_def);
             }

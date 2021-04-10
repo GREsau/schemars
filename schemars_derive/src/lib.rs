@@ -50,7 +50,7 @@ fn derive_json_schema(
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
     if let Some(transparent_field) = cont.transparent_field() {
-        let (ty, type_def) = schema_exprs::type_for_schema(transparent_field, 0);
+        let (ty, type_def) = schema_exprs::type_for_field_schema(transparent_field, 0);
         return Ok(quote! {
             const _: () = {
                 #crate_alias

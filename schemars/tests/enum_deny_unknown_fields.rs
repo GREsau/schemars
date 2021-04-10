@@ -14,8 +14,8 @@ pub struct Struct {
     bar: bool,
 }
 
-// Outer container should always have additionalPropreties: false
-// `Struct` variant should have additionalPropreties: false
+// Outer container should always have additionalProperties: false
+// `Struct` variant should have additionalProperties: false
 #[derive(Debug, JsonSchema)]
 #[schemars(rename_all = "camelCase", deny_unknown_fields)]
 pub enum External {
@@ -38,7 +38,7 @@ fn enum_external_tag() -> TestResult {
     test_default_generated_schema::<External>("enum-external-duf")
 }
 
-// Only `Struct` variant should have additionalPropreties: false
+// Only `Struct` variant should have additionalProperties: false
 #[derive(Debug, JsonSchema)]
 #[schemars(tag = "typeProperty", deny_unknown_fields)]
 pub enum Internal {
@@ -60,7 +60,7 @@ fn enum_internal_tag() -> TestResult {
     test_default_generated_schema::<Internal>("enum-internal-duf")
 }
 
-// Only `Struct` variant should have additionalPropreties: false
+// Only `Struct` variant should have additionalProperties: false
 #[derive(Debug, JsonSchema)]
 #[schemars(untagged, deny_unknown_fields)]
 pub enum Untagged {
@@ -82,7 +82,7 @@ fn enum_untagged() -> TestResult {
     test_default_generated_schema::<Untagged>("enum-untagged-duf")
 }
 
-// Outer container and `Struct` variant should have additionalPropreties: false
+// Outer container and `Struct` variant should have additionalProperties: false
 #[derive(Debug, JsonSchema)]
 #[schemars(tag = "t", content = "c", deny_unknown_fields)]
 pub enum Adjacent {

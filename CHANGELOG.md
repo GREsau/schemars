@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.4] - **In-dev**
+### Added:
+- `#[schemars(schema_with = "...")]` attribute can now be set on enum variants.
+
 ## [0.8.3] - 2021-04-05
 ### Added:
 - Support for `#[schemars(crate = "...")]` attribute to allow deriving JsonSchema when the schemars crate is aliased to a different name (https://github.com/GREsau/schemars/pull/55 / https://github.com/GREsau/schemars/pull/80)
