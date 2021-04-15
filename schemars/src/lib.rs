@@ -268,6 +268,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - [`smallvec`](https://crates.io/crates/smallvec) (^1.0)
 - [`arrayvec`](https://crates.io/crates/arrayvec) (^0.5)
 - [`url`](https://crates.io/crates/url) (^2.0)
+- [`bytes`](https://crates.io/crates/bytes) (^1.0)
 */
 
 /// The map type used by schemars types.
@@ -300,6 +301,10 @@ mod ser;
 #[macro_use]
 mod macros;
 
+/// This module is only public for use by `schemars_derive`. It should not need to be used by code
+/// outside of `schemars`, and should not be considered part of the public API.
+#[doc(hidden)]
+pub mod _private;
 pub mod gen;
 pub mod schema;
 pub mod visit;
@@ -313,7 +318,7 @@ pub use schemars_derive::*;
 #[doc(hidden)]
 pub use serde_json as _serde_json;
 
-use schema::{Schema, SchemaObject};
+use schema::Schema;
 
 /// A type which can be described as a JSON Schema document.
 ///
@@ -356,35 +361,16 @@ pub trait JsonSchema {
     /// This should not return a `$ref` schema.
     fn json_schema(gen: &mut gen::SchemaGenerator) -> Schema;
 
-    /// Helper for generating schemas for flattened `Option` fields.
-    ///
-    /// This should not need to be called or implemented by code outside of `schemars`,
-    /// and should not be considered part of the public API.
+    // TODO document and bring into public API?
     #[doc(hidden)]
-    fn json_schema_for_flatten(gen: &mut gen::SchemaGenerator) -> Schema {
+    fn _schemars_private_non_optional_json_schema(gen: &mut gen::SchemaGenerator) -> Schema {
         Self::json_schema(gen)
     }
 
-    /// Helper for generating schemas for `Option` fields.
-    ///
-    /// This should not need to be called or implemented by code outside of `schemars`,
-    /// and should not be considered part of the public API.
+    // TODO document and bring into public API?
     #[doc(hidden)]
-    fn add_schema_as_property(
-        gen: &mut gen::SchemaGenerator,
-        parent: &mut SchemaObject,
-        name: String,
-        metadata: Option<schema::Metadata>,
-        required: Option<bool>,
-    ) {
-        let mut schema = gen.subschema_for::<Self>();
-        schema = gen.apply_metadata(schema, metadata);
-
-        let object = parent.object();
-        if required.unwrap_or(true) {
-            object.required.insert(name.clone());
-        }
-        object.properties.insert(name, schema);
+    fn _schemars_private_is_option() -> bool {
+        false
     }
 }
 

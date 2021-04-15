@@ -13,6 +13,10 @@ use syn::Meta::{List, NameValue};
 use syn::MetaNameValue;
 use syn::NestedMeta::{Lit, Meta};
 
+// FIXME using the same struct for containers+variants+fields means that
+//  with/schema_with are accepted (but ignored) on containers, and
+//  repr/crate_name are accepted (but ignored) on variants and fields etc.
+
 #[derive(Debug, Default)]
 pub struct Attrs {
     pub with: Option<WithAttr>,
@@ -21,6 +25,7 @@ pub struct Attrs {
     pub deprecated: bool,
     pub examples: Vec<syn::Path>,
     pub repr: Option<syn::Type>,
+    pub crate_name: Option<syn::Path>,
 }
 
 #[derive(Debug)]
@@ -122,6 +127,16 @@ impl Attrs {
                 Meta(NameValue(m)) if m.path.is_ident("example") => {
                     if let Ok(fun) = parse_lit_into_path(errors, attr_type, "example", &m.lit) {
                         self.examples.push(fun)
+                    }
+                }
+
+                Meta(NameValue(m)) if m.path.is_ident("crate") && attr_type == "schemars" => {
+                    if let Ok(p) = parse_lit_into_path(errors, attr_type, "crate", &m.lit) {
+                        if self.crate_name.is_some() {
+                            duplicate_error(m)
+                        } else {
+                            self.crate_name = Some(p)
+                        }
                     }
                 }
 

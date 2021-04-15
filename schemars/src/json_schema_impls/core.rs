@@ -45,34 +45,12 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         schema
     }
 
-    fn json_schema_for_flatten(gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = T::json_schema_for_flatten(gen);
-        if let Schema::Object(SchemaObject {
-            object: Some(ref mut object_validation),
-            ..
-        }) = schema
-        {
-            object_validation.required.clear();
-        }
-        schema
+    fn _schemars_private_non_optional_json_schema(gen: &mut SchemaGenerator) -> Schema {
+        T::_schemars_private_non_optional_json_schema(gen)
     }
 
-    fn add_schema_as_property(
-        gen: &mut SchemaGenerator,
-        parent: &mut SchemaObject,
-        name: String,
-        metadata: Option<Metadata>,
-        required: Option<bool>,
-    ) {
-        if required == Some(true) {
-            T::add_schema_as_property(gen, parent, name, metadata, required)
-        } else {
-            let mut schema = gen.subschema_for::<Self>();
-            schema = gen.apply_metadata(schema, metadata);
-
-            let object = parent.object();
-            object.properties.insert(name, schema);
-        }
+    fn _schemars_private_is_option() -> bool {
+        true
     }
 }
 

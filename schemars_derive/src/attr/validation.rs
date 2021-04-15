@@ -125,11 +125,11 @@ impl ValidationAttrs {
         // `schema_object` - the SchemaObject for the struct that contains this field.
         let mut statements = Vec::new();
 
-        if self.required {
-            statements.push(quote! {
-                schema_object.object().required.insert(#field_name.to_owned());
-            });
-        }
+        // if self.required {
+        //     statements.push(quote! {
+        //         schema_object.object().required.insert(#field_name.to_owned());
+        //     });
+        // }
 
         let mut array_validation = Vec::new();
         let mut number_validation = Vec::new();

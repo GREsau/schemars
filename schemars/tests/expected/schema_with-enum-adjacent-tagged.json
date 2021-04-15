@@ -74,6 +74,24 @@
           "minItems": 2
         }
       }
+    },
+    {
+      "type": "object",
+      "required": [
+        "c",
+        "t"
+      ],
+      "properties": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "Unit"
+          ]
+        },
+        "c": {
+          "type": "boolean"
+        }
+      }
     }
   ]
 }

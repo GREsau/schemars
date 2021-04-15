@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.4] - **In-dev**
+### Added:
+- `#[schemars(schema_with = "...")]` attribute can now be set on enum variants.
+
+## [0.8.3] - 2021-04-05
+### Added:
+- Support for `#[schemars(crate = "...")]` attribute to allow deriving JsonSchema when the schemars crate is aliased to a different name (https://github.com/GREsau/schemars/pull/55 / https://github.com/GREsau/schemars/pull/80)
+- Implement `JsonSchema` for `bytes::Bytes` and `bytes::BytesMut` (https://github.com/GREsau/schemars/pull/68)
+
+### Fixed:
+- Fix deriving JsonSchema on types defined inside macros (https://github.com/GREsau/schemars/issues/59 / https://github.com/GREsau/schemars/issues/66 / https://github.com/GREsau/schemars/pull/79)
+
 ## [0.8.2] - 2021-03-27
 ### Added:
 - Enable generating a schema from any serializable value using `schema_for_value!(...)` macro or `SchemaGenerator::root_schema_for_value()`/`SchemaGenerator::into_root_schema_for_value()` methods (https://github.com/GREsau/schemars/pull/75)

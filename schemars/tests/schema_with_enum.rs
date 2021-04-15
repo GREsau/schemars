@@ -2,8 +2,6 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
-// FIXME determine whether schema_with should be allowed on unit variants
-
 fn schema_fn(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
     <bool>::json_schema(gen)
 }
@@ -23,8 +21,8 @@ pub enum External {
         #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,
         i32,
     ),
-    // #[schemars(schema_with = "schema_fn")]
-    // Unit,
+    #[schemars(schema_with = "schema_fn")]
+    Unit,
 }
 
 #[test]
@@ -40,8 +38,8 @@ pub enum Internal {
         foo: DoesntImplementJsonSchema,
     },
     NewType(#[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema),
-    // #[schemars(schema_with = "schema_fn")]
-    // Unit,
+    #[schemars(schema_with = "schema_fn")]
+    Unit,
 }
 
 #[test]
@@ -61,8 +59,8 @@ pub enum Untagged {
         #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,
         i32,
     ),
-    // #[schemars(schema_with = "schema_fn")]
-    // Unit,
+    #[schemars(schema_with = "schema_fn")]
+    Unit,
 }
 
 #[test]
@@ -82,8 +80,8 @@ pub enum Adjacent {
         #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,
         i32,
     ),
-    // #[schemars(schema_with = "schema_fn")]
-    // Unit,
+    #[schemars(schema_with = "schema_fn")]
+    Unit,
 }
 
 #[test]
