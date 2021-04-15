@@ -21,18 +21,12 @@ macro_rules! forward_impl {
                 <$target>::json_schema(gen)
             }
 
-            fn json_schema_for_flatten(gen: &mut SchemaGenerator) -> Schema {
-                <$target>::json_schema_for_flatten(gen)
+            fn _schemars_private_non_optional_json_schema(gen: &mut SchemaGenerator) -> Schema {
+                <$target>::_schemars_private_non_optional_json_schema(gen)
             }
 
-            fn add_schema_as_property(
-                gen: &mut SchemaGenerator,
-                parent: &mut crate::schema::SchemaObject,
-                name: String,
-                metadata: Option<crate::schema::Metadata>,
-                required: bool,
-            ) {
-                <$target>::add_schema_as_property(gen, parent, name, metadata, required)
+            fn _schemars_private_is_option() -> bool {
+                <$target>::_schemars_private_is_option()
             }
         }
     };

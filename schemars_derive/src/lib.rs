@@ -70,18 +70,12 @@ fn derive_json_schema(
                         <#ty as schemars::JsonSchema>::json_schema(gen)
                     }
 
-                    fn json_schema_for_flatten(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-                        <#ty as schemars::JsonSchema>::json_schema_for_flatten(gen)
+                    fn _schemars_private_non_optional_json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(gen)
                     }
 
-                    fn add_schema_as_property(
-                        gen: &mut schemars::gen::SchemaGenerator,
-                        parent: &mut schemars::schema::SchemaObject,
-                        name: String,
-                        metadata: Option<schemars::schema::Metadata>,
-                        required: bool,
-                    ) {
-                        <#ty as schemars::JsonSchema>::add_schema_as_property(gen, parent, name, metadata, required)
+                    fn _schemars_private_is_option() -> bool {
+                        <#ty as schemars::JsonSchema>::_schemars_private_is_option()
                     }
                 };
             };

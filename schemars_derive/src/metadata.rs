@@ -49,7 +49,7 @@ impl<'a> SchemaMetadata<'a> {
         quote! {
             {
                 let schema = #schema_expr;
-                gen.apply_metadata(schema, #self)
+                schemars::_private::apply_metadata(schema, #self)
             }
         }
     }

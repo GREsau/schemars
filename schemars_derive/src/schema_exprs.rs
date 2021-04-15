@@ -433,7 +433,7 @@ fn expr_for_struct(
             let args = quote!(gen, &mut schema_object, #name.to_owned(), #metadata, #required);
 
             quote_spanned! {ty.span()=>
-                <#ty as schemars::JsonSchema>::add_schema_as_property(#args);
+                schemars::_private::add_schema_as_property::<#ty>(#args);
             }
         })
         .collect();
@@ -448,7 +448,7 @@ fn expr_for_struct(
 
             let gen = quote!(gen);
             quote_spanned! {ty.span()=>
-                .flatten(<#ty as schemars::JsonSchema>::json_schema_for_flatten(#gen))
+                .flatten(schemars::_private::json_schema_for_flatten::<#ty>(#gen))
             }
         })
         .collect();

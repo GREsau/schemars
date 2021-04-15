@@ -7,7 +7,6 @@ There are two main types in this module:two main types in this module:
 * [`SchemaGenerator`], which manages the generation of a schema document.
 */
 
-use crate::flatten::Merge;
 use crate::schema::*;
 use crate::{visit::*, JsonSchema, Map};
 use dyn_clone::DynClone;
@@ -419,22 +418,6 @@ impl SchemaGenerator {
                 }
             }
             _ => None,
-        }
-    }
-
-    /// This function is only public for use by schemars_derive.
-    ///
-    /// It should not be considered part of the public API.
-    #[doc(hidden)]
-    pub fn apply_metadata(&self, schema: Schema, metadata: Option<Metadata>) -> Schema {
-        match metadata {
-            None => schema,
-            Some(ref metadata) if *metadata == Metadata::default() => schema,
-            Some(metadata) => {
-                let mut schema_obj = schema.into_object();
-                schema_obj.metadata = Some(Box::new(metadata)).merge(schema_obj.metadata);
-                Schema::Object(schema_obj)
-            }
         }
     }
 
