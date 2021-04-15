@@ -4,9 +4,14 @@ use crate::schema::{Metadata, Schema, SchemaObject};
 use crate::JsonSchema;
 
 // Helper for generating schemas for flattened `Option` fields.
-pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(gen: &mut SchemaGenerator) -> Schema {
+pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
+    gen: &mut SchemaGenerator,
+    required: Option<bool>,
+) -> Schema {
     let mut schema = T::_schemars_private_non_optional_json_schema(gen);
-    if T::_schemars_private_is_option() {
+
+    let required = required.unwrap_or_else(|| !T::_schemars_private_is_option());
+    if !required {
         if let Schema::Object(SchemaObject {
             object: Some(ref mut object_validation),
             ..
@@ -15,6 +20,7 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(gen: &mut SchemaGenerator
             object_validation.required.clear();
         }
     }
+
     schema
 }
 
@@ -28,11 +34,13 @@ pub fn add_schema_as_property<T: ?Sized + JsonSchema>(
 ) {
     let is_type_option = T::_schemars_private_is_option();
     let required = required.unwrap_or(!is_type_option);
+
     let mut schema = if required && is_type_option {
         T::_schemars_private_non_optional_json_schema(gen)
     } else {
         gen.subschema_for::<T>()
     };
+
     schema = apply_metadata(schema, metadata);
 
     let object = parent.object();

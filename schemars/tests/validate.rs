@@ -32,6 +32,14 @@ pub struct Struct {
     map_contains: HashMap<String, ()>,
     #[validate(required)]
     required_option: Option<bool>,
+    #[validate(required)]
+    #[serde(flatten)]
+    required_flattened: Option<Inner>,
+}
+
+#[derive(Debug, JsonSchema)]
+pub struct Inner {
+    x: i32,
 }
 
 #[test]

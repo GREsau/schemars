@@ -449,9 +449,15 @@ fn expr_for_struct(
                 type_defs.push(type_def);
             }
 
-            let gen = quote!(gen);
+            let required = if field.validation_attrs.required {
+                quote!(Some(true))
+            } else {
+                quote!(None)
+            };
+
+            let args = quote!(gen, #required);
             quote_spanned! {ty.span()=>
-                .flatten(schemars::_private::json_schema_for_flatten::<#ty>(#gen))
+                .flatten(schemars::_private::json_schema_for_flatten::<#ty>(#args))
             }
         })
         .collect();

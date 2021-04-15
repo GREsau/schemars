@@ -14,7 +14,8 @@
     "regex_str1",
     "regex_str2",
     "required_option",
-    "tel"
+    "tel",
+    "x"
   ],
   "properties": {
     "min_max": {
@@ -76,6 +77,10 @@
     },
     "required_option": {
       "type": "boolean"
+    },
+    "x": {
+      "type": "integer",
+      "format": "int32"
     }
   }
 }

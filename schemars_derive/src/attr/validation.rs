@@ -120,17 +120,9 @@ impl ValidationAttrs {
         self
     }
 
-    pub fn validation_statements(&self, field_name: &str) -> TokenStream {
+    pub fn validation_statements(&self, field_name: &str) -> Option<TokenStream> {
         // Assume that the result will be interpolated in a context with the local variable
         // `schema_object` - the SchemaObject for the struct that contains this field.
-        let mut statements = Vec::new();
-
-        // if self.required {
-        //     statements.push(quote! {
-        //         schema_object.object().required.insert(#field_name.to_owned());
-        //     });
-        // }
-
         let mut array_validation = Vec::new();
         let mut number_validation = Vec::new();
         let mut object_validation = Vec::new();
@@ -210,7 +202,7 @@ impl ValidationAttrs {
             || string_validation.is_some()
             || format.is_some()
         {
-            statements.push(quote! {
+            Some(quote! {
                 if let Some(schemars::schema::Schema::Object(prop_schema_object)) = schema_object
                     .object
                     .as_mut()
@@ -222,10 +214,10 @@ impl ValidationAttrs {
                     #string_validation
                     #format
                 }
-            });
+            })
+        } else {
+            None
         }
-
-        statements.into_iter().collect()
     }
 }
 
