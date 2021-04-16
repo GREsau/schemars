@@ -61,7 +61,14 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     let span = field.original.span();
     let gen = quote!(gen);
 
-    field.validation_attrs.apply_to_schema(if allow_ref {
+    let schema_expr = if field.validation_attrs.required {
+        quote_spanned! {span=>
+            {
+                #type_def
+                <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
+            }
+        }
+    } else if allow_ref {
         quote_spanned! {span=>
             {
                 #type_def
@@ -75,7 +82,8 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
                 <#ty as schemars::JsonSchema>::json_schema(#gen)
             }
         }
-    })
+    };
+    field.validation_attrs.apply_to_schema(schema_expr)
 }
 
 pub fn type_for_field_schema(field: &Field, local_id: usize) -> (syn::Type, Option<TokenStream>) {
@@ -375,17 +383,25 @@ fn expr_for_newtype_struct(field: &Field) -> TokenStream {
 }
 
 fn expr_for_tuple_struct(fields: &[Field]) -> TokenStream {
-    let (types, type_defs): (Vec<_>, Vec<_>) = fields
+    let fields: Vec<_> = fields
         .iter()
         .filter(|f| !f.serde_attrs.skip_deserializing())
-        .enumerate()
-        .map(|(i, f)| type_for_field_schema(f, i))
-        .unzip();
+        .map(|f| expr_for_field(f, true))
+        .collect();
+    let len = fields.len() as u32;
+
     quote! {
-        {
-            #(#type_defs)*
-            gen.subschema_for::<(#(#types),*)>()
-        }
+        schemars::schema::Schema::Object(
+            schemars::schema::SchemaObject {
+            instance_type: Some(schemars::schema::InstanceType::Array.into()),
+            array: Some(Box::new(schemars::schema::ArrayValidation {
+                items: Some(vec![#(#fields),*].into()),
+                max_items: Some(#len),
+                min_items: Some(#len),
+                ..Default::default()
+            })),
+            ..Default::default()
+        })
     }
 }
 
