@@ -57,7 +57,7 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
 }
 
 fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
-    let (ty, type_def) = type_for_field_schema(field, 0);
+    let (ty, type_def) = type_for_field_schema(field);
     let span = field.original.span();
     let gen = quote!(gen);
 
@@ -86,18 +86,18 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     field.validation_attrs.apply_to_schema(schema_expr)
 }
 
-pub fn type_for_field_schema(field: &Field, local_id: usize) -> (syn::Type, Option<TokenStream>) {
+pub fn type_for_field_schema(field: &Field) -> (syn::Type, Option<TokenStream>) {
     match &field.attrs.with {
         None => (field.ty.to_owned(), None),
-        Some(with_attr) => type_for_schema(with_attr, local_id),
+        Some(with_attr) => type_for_schema(with_attr),
     }
 }
 
-fn type_for_schema(with_attr: &WithAttr, local_id: usize) -> (syn::Type, Option<TokenStream>) {
+fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
     match with_attr {
         WithAttr::Type(ty) => (ty.to_owned(), None),
         WithAttr::Function(fun) => {
-            let ty_name = format_ident!("_SchemarsSchemaWithFunction{}", local_id);
+            let ty_name = syn::Ident::new("_SchemarsSchemaWithFunction", Span::call_site());
             let fn_name = fun.segments.last().unwrap().ident.to_string();
 
             let type_def = quote_spanned! {fun.span()=>
@@ -331,7 +331,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
 
 fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) -> TokenStream {
     if let Some(with_attr) = &variant.attrs.with {
-        let (ty, type_def) = type_for_schema(with_attr, 0);
+        let (ty, type_def) = type_for_schema(with_attr);
         let gen = quote!(gen);
         return quote_spanned! {variant.original.span()=>
             {
@@ -354,7 +354,7 @@ fn expr_for_untagged_enum_variant_for_flatten(
     deny_unknown_fields: bool,
 ) -> Option<TokenStream> {
     if let Some(with_attr) = &variant.attrs.with {
-        let (ty, type_def) = type_for_schema(with_attr, 0);
+        let (ty, type_def) = type_for_schema(with_attr);
         let gen = quote!(gen);
         return Some(quote_spanned! {variant.original.span()=>
             {
@@ -421,18 +421,13 @@ fn expr_for_struct(
         SerdeDefault::Path(path) => Some(quote!(let container_default = #path();)),
     };
 
-    let mut type_defs = Vec::new();
-
     let properties: Vec<_> = property_fields
         .into_iter()
         .map(|field| {
             let name = field.name();
             let default = field_default_expr(field, set_container_default.is_some());
 
-            let (ty, type_def) = type_for_field_schema(field, type_defs.len());
-            if let Some(type_def) = type_def {
-                type_defs.push(type_def);
-            }
+            let (ty, type_def) = type_for_field_schema(field);
 
             let gen = quote!(gen);
             let schema_expr = if field.validation_attrs.required {
@@ -470,8 +465,11 @@ fn expr_for_struct(
             let schema_expr = field.validation_attrs.apply_to_schema(schema_expr);
 
             quote! {
-                object_validation.properties.insert(#name.to_owned(), #schema_expr);
-                #maybe_insert_required
+                {
+                    #type_def
+                    object_validation.properties.insert(#name.to_owned(), #schema_expr);
+                    #maybe_insert_required
+                }
             }
         })
         .collect();
@@ -479,10 +477,7 @@ fn expr_for_struct(
     let flattens: Vec<_> = flattened_fields
         .into_iter()
         .map(|field| {
-            let (ty, type_def) = type_for_field_schema(field, type_defs.len());
-            if let Some(type_def) = type_def {
-                type_defs.push(type_def);
-            }
+            let (ty, type_def) = type_for_field_schema(field);
 
             let required = if field.validation_attrs.required {
                 quote!(Some(true))
@@ -492,7 +487,10 @@ fn expr_for_struct(
 
             let args = quote!(gen, #required);
             quote_spanned! {ty.span()=>
-                .flatten(schemars::_private::json_schema_for_flatten::<#ty>(#args))
+                .flatten({
+                    #type_def
+                    schemars::_private::json_schema_for_flatten::<#ty>(#args)
+                })
             }
         })
         .collect();
@@ -506,7 +504,6 @@ fn expr_for_struct(
     };
     quote! {
         {
-            #(#type_defs)*
             #set_container_default
             let mut schema_object = schemars::schema::SchemaObject {
                 instance_type: Some(schemars::schema::InstanceType::Object.into()),
