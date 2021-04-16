@@ -46,3 +46,11 @@ pub struct Inner {
 fn validate() -> TestResult {
     test_default_generated_schema::<Struct>("validate")
 }
+
+#[derive(Debug, JsonSchema)]
+pub struct NewType(#[validate(range(max = 10))] u8);
+
+#[test]
+fn validate_newtype() -> TestResult {
+    test_default_generated_schema::<NewType>("validate_newtype")
+}

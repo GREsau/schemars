@@ -61,7 +61,7 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     let span = field.original.span();
     let gen = quote!(gen);
 
-    if allow_ref {
+    field.validation_attrs.apply_to_schema(if allow_ref {
         quote_spanned! {span=>
             {
                 #type_def
@@ -75,7 +75,7 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
                 <#ty as schemars::JsonSchema>::json_schema(#gen)
             }
         }
-    }
+    })
 }
 
 pub fn type_for_field_schema(field: &Field, local_id: usize) -> (syn::Type, Option<TokenStream>) {
