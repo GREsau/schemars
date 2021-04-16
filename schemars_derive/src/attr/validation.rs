@@ -2,7 +2,7 @@ use super::parse_lit_str;
 use proc_macro2::TokenStream;
 use syn::ExprLit;
 use syn::NestedMeta;
-use syn::{Expr, Lit, Meta, MetaNameValue, Path};
+use syn::{Expr, Lit, Meta, MetaNameValue};
 
 #[derive(Debug, Default)]
 pub struct ValidationAttrs {
@@ -11,7 +11,7 @@ pub struct ValidationAttrs {
     pub length_equal: Option<Expr>,
     pub range_min: Option<Expr>,
     pub range_max: Option<Expr>,
-    pub regex: Option<Path>,
+    pub regex: Option<Expr>,
     pub contains: Option<String>,
     pub required: bool,
     pub format: Option<&'static str>,
@@ -84,7 +84,9 @@ impl ValidationAttrs {
                     path,
                     lit: Lit::Str(regex),
                     ..
-                })) if path.is_ident("regex") => self.regex = parse_lit_str(regex).ok(),
+                })) if path.is_ident("regex") => {
+                    self.regex = parse_lit_str::<syn::ExprPath>(regex).ok().map(Expr::Path)
+                }
 
                 NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("regex") => {
                     self.regex = meta_list.nested.iter().find_map(|x| match x {
@@ -92,7 +94,17 @@ impl ValidationAttrs {
                             path,
                             lit: Lit::Str(regex),
                             ..
-                        })) if path.is_ident("path") => parse_lit_str(regex).ok(),
+                        })) if path.is_ident("path") => {
+                            parse_lit_str::<syn::ExprPath>(regex).ok().map(Expr::Path)
+                        }
+                        NestedMeta::Meta(Meta::NameValue(MetaNameValue {
+                            path,
+                            lit: Lit::Str(regex),
+                            ..
+                        })) if path.is_ident("pattern") => Some(Expr::Lit(syn::ExprLit {
+                            attrs: Vec::new(),
+                            lit: Lit::Str(regex.clone()),
+                        })),
                         _ => None,
                     });
                 }

@@ -14,6 +14,8 @@ pub struct Struct {
     regex_str1: String,
     #[validate(regex(path = "STARTS_WITH_HELLO", code = "foo"))]
     regex_str2: String,
+    #[validate(regex(pattern = r"^\d+$"))]
+    regex_str3: String,
     #[validate(contains = "substring...")]
     contains_str1: String,
     #[validate(contains(pattern = "substring...", message = "bar"))]
