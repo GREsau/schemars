@@ -413,30 +413,49 @@ fn expr_for_struct(
             let name = field.name();
             let default = field_default_expr(field, set_container_default.is_some());
 
-            let required = match (&default, field.validation_attrs.required) {
-                (Some(_), _) => quote!(Some(false)),
-                (None, false) => quote!(None),
-                (None, true) => quote!(Some(true)),
+            let (ty, type_def) = type_for_field_schema(field, type_defs.len());
+            if let Some(type_def) = type_def {
+                type_defs.push(type_def);
+            }
+
+            let gen = quote!(gen);
+            let schema_expr = if field.validation_attrs.required {
+                quote_spanned! {ty.span()=>
+                    <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
+                }
+            } else {
+                quote_spanned! {ty.span()=>
+                    #gen.subschema_for::<#ty>()
+                }
             };
 
-            let metadata = &SchemaMetadata {
+            let maybe_insert_required = match (&default, field.validation_attrs.required) {
+                (Some(_), _) => TokenStream::new(),
+                (None, false) => {
+                    quote! {
+                        if !<#ty as schemars::JsonSchema>::_schemars_private_is_option() {
+                            object_validation.required.insert(#name.to_owned());
+                        }
+                    }
+                }
+                (None, true) => quote! {
+                    object_validation.required.insert(#name.to_owned());
+                },
+            };
+
+            let metadata = SchemaMetadata {
                 read_only: field.serde_attrs.skip_deserializing(),
                 write_only: field.serde_attrs.skip_serializing(),
                 default,
                 ..SchemaMetadata::from_attrs(&field.attrs)
             };
 
-            let (ty, type_def) = type_for_field_schema(field, type_defs.len());
-            if let Some(type_def) = type_def {
-                type_defs.push(type_def);
-            }
+            let schema_expr = metadata.apply_to_schema(schema_expr);
+            let schema_expr = field.validation_attrs.apply_to_schema(schema_expr);
 
-            let args = quote!(gen, &mut schema_object, #name.to_owned(), #metadata, #required);
-            let validation = field.validation_attrs.validation_statements(&name);
-
-            quote_spanned! {ty.span()=>
-                schemars::_private::add_schema_as_property::<#ty>(#args);
-                #validation
+            quote! {
+                object_validation.properties.insert(#name.to_owned(), #schema_expr);
+                #maybe_insert_required
             }
         })
         .collect();
@@ -464,7 +483,7 @@ fn expr_for_struct(
 
     let set_additional_properties = if deny_unknown_fields {
         quote! {
-            schema_object.object().additional_properties = Some(Box::new(false.into()));
+            object_validation.additional_properties = Some(Box::new(false.into()));
         }
     } else {
         TokenStream::new()
@@ -477,6 +496,7 @@ fn expr_for_struct(
                 instance_type: Some(schemars::schema::InstanceType::Object.into()),
                 ..Default::default()
             };
+            let object_validation = schema_object.object();
             #set_additional_properties
             #(#properties)*
             schemars::schema::Schema::Object(schema_object)

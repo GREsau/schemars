@@ -120,9 +120,7 @@ impl ValidationAttrs {
         self
     }
 
-    pub fn validation_statements(&self, field_name: &str) -> Option<TokenStream> {
-        // Assume that the result will be interpolated in a context with the local variable
-        // `schema_object` - the SchemaObject for the struct that contains this field.
+    pub fn apply_to_schema(&self, schema_expr: TokenStream) -> TokenStream {
         let mut array_validation = Vec::new();
         let mut number_validation = Vec::new();
         let mut object_validation = Vec::new();
@@ -187,7 +185,7 @@ impl ValidationAttrs {
 
         let format = self.format.as_ref().map(|f| {
             quote! {
-                prop_schema_object.format = Some(#f.to_string());
+                schema_object.format = Some(#f.to_string());
             }
         });
 
@@ -202,21 +200,22 @@ impl ValidationAttrs {
             || string_validation.is_some()
             || format.is_some()
         {
-            Some(quote! {
-                if let Some(schemars::schema::Schema::Object(prop_schema_object)) = schema_object
-                    .object
-                    .as_mut()
-                    .and_then(|o| o.properties.get_mut(#field_name))
+            quote! {
                 {
-                    #array_validation
-                    #number_validation
-                    #object_validation
-                    #string_validation
-                    #format
+                    let mut schema = #schema_expr;
+                    if let schemars::schema::Schema::Object(schema_object) = &mut schema
+                    {
+                        #array_validation
+                        #number_validation
+                        #object_validation
+                        #string_validation
+                        #format
+                    }
+                    schema
                 }
-            })
+            }
         } else {
-            None
+            schema_expr
         }
     }
 }
@@ -226,8 +225,8 @@ fn wrap_array_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
         None
     } else {
         Some(quote! {
-            if prop_schema_object.has_type(schemars::schema::InstanceType::Array) {
-                let validation = prop_schema_object.array();
+            if schema_object.has_type(schemars::schema::InstanceType::Array) {
+                let validation = schema_object.array();
                 #(#v)*
             }
         })
@@ -239,9 +238,9 @@ fn wrap_number_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
         None
     } else {
         Some(quote! {
-            if prop_schema_object.has_type(schemars::schema::InstanceType::Integer)
-                || prop_schema_object.has_type(schemars::schema::InstanceType::Number) {
-                let validation = prop_schema_object.number();
+            if schema_object.has_type(schemars::schema::InstanceType::Integer)
+                || schema_object.has_type(schemars::schema::InstanceType::Number) {
+                let validation = schema_object.number();
                 #(#v)*
             }
         })
@@ -253,8 +252,8 @@ fn wrap_object_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
         None
     } else {
         Some(quote! {
-            if prop_schema_object.has_type(schemars::schema::InstanceType::Object) {
-                let validation = prop_schema_object.object();
+            if schema_object.has_type(schemars::schema::InstanceType::Object) {
+                let validation = schema_object.object();
                 #(#v)*
             }
         })
@@ -266,8 +265,8 @@ fn wrap_string_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
         None
     } else {
         Some(quote! {
-            if prop_schema_object.has_type(schemars::schema::InstanceType::String) {
-                let validation = prop_schema_object.string();
+            if schema_object.has_type(schemars::schema::InstanceType::String) {
+                let validation = schema_object.string();
                 #(#v)*
             }
         })

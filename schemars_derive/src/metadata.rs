@@ -1,7 +1,6 @@
 use crate::attr;
 use attr::Attrs;
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::{ToTokens, TokenStreamExt};
+use proc_macro2::TokenStream;
 
 #[derive(Debug, Clone)]
 pub struct SchemaMetadata<'a> {
@@ -12,24 +11,6 @@ pub struct SchemaMetadata<'a> {
     pub write_only: bool,
     pub examples: &'a [syn::Path],
     pub default: Option<TokenStream>,
-}
-
-impl ToTokens for SchemaMetadata<'_> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let setters = self.make_setters();
-        if setters.is_empty() {
-            tokens.append(Ident::new("None", Span::call_site()))
-        } else {
-            tokens.extend(quote! {
-                Some({
-                    schemars::schema::Metadata {
-                        #(#setters)*
-                        ..Default::default()
-                    }
-                })
-            })
-        }
-    }
 }
 
 impl<'a> SchemaMetadata<'a> {
@@ -46,10 +27,15 @@ impl<'a> SchemaMetadata<'a> {
     }
 
     pub fn apply_to_schema(&self, schema_expr: TokenStream) -> TokenStream {
-        quote! {
-            {
-                let schema = #schema_expr;
-                schemars::_private::apply_metadata(schema, #self)
+        let setters = self.make_setters();
+        if setters.is_empty() {
+            schema_expr
+        } else {
+            quote! {
+                schemars::_private::apply_metadata(#schema_expr, schemars::schema::Metadata {
+                    #(#setters)*
+                    ..Default::default()
+                })
             }
         }
     }
