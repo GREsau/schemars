@@ -5,7 +5,7 @@ use serde_derive_internals::attr::{self as serde_attr, Default as SerdeDefault, 
 use syn::spanned::Spanned;
 
 pub fn expr_for_container(cont: &Container) -> TokenStream {
-    let schema_expr = match &cont.data {
+    let mut schema_expr = match &cont.data {
         Data::Struct(Style::Unit, _) => expr_for_unit_struct(),
         Data::Struct(Style::Newtype, fields) => expr_for_newtype_struct(&fields[0]),
         Data::Struct(Style::Tuple, fields) => expr_for_tuple_struct(fields),
@@ -17,8 +17,8 @@ pub fn expr_for_container(cont: &Container) -> TokenStream {
         Data::Enum(variants) => expr_for_enum(variants, &cont.serde_attrs),
     };
 
-    let doc_metadata = SchemaMetadata::from_attrs(&cont.attrs);
-    doc_metadata.apply_to_schema(schema_expr)
+    cont.attrs.as_metadata().apply_to_schema(&mut schema_expr);
+    schema_expr
 }
 
 pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
@@ -47,13 +47,13 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
     let enum_ident = &cont.ident;
     let variant_idents = variants.iter().map(|v| &v.ident);
 
-    let schema_expr = schema_object(quote! {
+    let mut schema_expr = schema_object(quote! {
         instance_type: Some(schemars::schema::InstanceType::Integer.into()),
         enum_values: Some(vec![#((#enum_ident::#variant_idents as #repr_type).into()),*]),
     });
 
-    let doc_metadata = SchemaMetadata::from_attrs(&cont.attrs);
-    Ok(doc_metadata.apply_to_schema(schema_expr))
+    cont.attrs.as_metadata().apply_to_schema(&mut schema_expr);
+    Ok(schema_expr)
 }
 
 fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
@@ -61,29 +61,24 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     let span = field.original.span();
     let gen = quote!(gen);
 
-    let schema_expr = if field.validation_attrs.required {
+    let mut schema_expr = if field.validation_attrs.required {
         quote_spanned! {span=>
-            {
-                #type_def
-                <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
-            }
+            <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
         }
     } else if allow_ref {
         quote_spanned! {span=>
-            {
-                #type_def
-                #gen.subschema_for::<#ty>()
-            }
+            #gen.subschema_for::<#ty>()
         }
     } else {
         quote_spanned! {span=>
-            {
-                #type_def
-                <#ty as schemars::JsonSchema>::json_schema(#gen)
-            }
+            <#ty as schemars::JsonSchema>::json_schema(#gen)
         }
     };
-    field.validation_attrs.apply_to_schema(schema_expr)
+
+    prepend_type_def(type_def, &mut schema_expr);
+    field.validation_attrs.apply_to_schema(&mut schema_expr);
+
+    schema_expr
 }
 
 pub fn type_for_field_schema(field: &Field) -> (syn::Type, Option<TokenStream>) {
@@ -167,7 +162,7 @@ fn expr_for_external_tagged_enum<'a>(
         let name = variant.name();
         let sub_schema = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
 
-        let schema_expr = schema_object(quote! {
+        let mut schema_expr = schema_object(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
             object: Some(Box::new(schemars::schema::ObjectValidation {
                 properties: {
@@ -184,8 +179,13 @@ fn expr_for_external_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
-        let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
-        doc_metadata.apply_to_schema(schema_expr)
+
+        variant
+            .attrs
+            .as_metadata()
+            .apply_to_schema(&mut schema_expr);
+
+        schema_expr
     }));
 
     schema_object(quote! {
@@ -208,7 +208,7 @@ fn expr_for_internal_tagged_enum<'a>(
             enum_values: Some(vec![#name.into()]),
         });
 
-        let tag_schema = schema_object(quote! {
+        let mut tag_schema = schema_object(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
             object: Some(Box::new(schemars::schema::ObjectValidation {
                 properties: {
@@ -224,15 +224,16 @@ fn expr_for_internal_tagged_enum<'a>(
                 ..Default::default()
             })),
         });
-        let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
-        let tag_schema = doc_metadata.apply_to_schema(tag_schema);
 
-        match expr_for_untagged_enum_variant_for_flatten(&variant, deny_unknown_fields) {
-            Some(variant_schema) => quote! {
-                #tag_schema.flatten(#variant_schema)
-            },
-            None => tag_schema,
+        variant.attrs.as_metadata().apply_to_schema(&mut tag_schema);
+
+        if let Some(variant_schema) =
+            expr_for_untagged_enum_variant_for_flatten(&variant, deny_unknown_fields)
+        {
+            tag_schema.extend(quote!(.flatten(#variant_schema)))
         }
+
+        tag_schema
     });
 
     schema_object(quote! {
@@ -248,9 +249,14 @@ fn expr_for_untagged_enum<'a>(
     deny_unknown_fields: bool,
 ) -> TokenStream {
     let schemas = variants.map(|variant| {
-        let schema_expr = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
-        let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
-        doc_metadata.apply_to_schema(schema_expr)
+        let mut schema_expr = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
+
+        variant
+            .attrs
+            .as_metadata()
+            .apply_to_schema(&mut schema_expr);
+
+        schema_expr
     });
 
     schema_object(quote! {
@@ -297,7 +303,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
             TokenStream::new()
         };
 
-        let outer_schema = schema_object(quote! {
+        let mut outer_schema = schema_object(quote! {
             instance_type: Some(schemars::schema::InstanceType::Object.into()),
             object: Some(Box::new(schemars::schema::ObjectValidation {
                 properties: {
@@ -317,8 +323,12 @@ fn expr_for_adjacent_tagged_enum<'a>(
             })),
         });
 
-        let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
-        doc_metadata.apply_to_schema(outer_schema)
+        variant
+            .attrs
+            .as_metadata()
+            .apply_to_schema(&mut outer_schema);
+
+        outer_schema
     });
 
     schema_object(quote! {
@@ -333,12 +343,12 @@ fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) 
     if let Some(with_attr) = &variant.attrs.with {
         let (ty, type_def) = type_for_schema(with_attr);
         let gen = quote!(gen);
-        return quote_spanned! {variant.original.span()=>
-            {
-                #type_def
-                #gen.subschema_for::<#ty>()
-            }
+        let mut schema_expr = quote_spanned! {variant.original.span()=>
+            #gen.subschema_for::<#ty>()
         };
+
+        prepend_type_def(type_def, &mut schema_expr);
+        return schema_expr;
     }
 
     match variant.style {
@@ -356,12 +366,12 @@ fn expr_for_untagged_enum_variant_for_flatten(
     if let Some(with_attr) = &variant.attrs.with {
         let (ty, type_def) = type_for_schema(with_attr);
         let gen = quote!(gen);
-        return Some(quote_spanned! {variant.original.span()=>
-            {
-                #type_def
-                <#ty as schemars::JsonSchema>::json_schema(#gen)
-            }
-        });
+        let mut schema_expr = quote_spanned! {variant.original.span()=>
+            <#ty as schemars::JsonSchema>::json_schema(#gen)
+        };
+
+        prepend_type_def(type_def, &mut schema_expr);
+        return Some(schema_expr);
     }
 
     Some(match variant.style {
@@ -429,17 +439,6 @@ fn expr_for_struct(
 
             let (ty, type_def) = type_for_field_schema(field);
 
-            let gen = quote!(gen);
-            let schema_expr = if field.validation_attrs.required {
-                quote_spanned! {ty.span()=>
-                    <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
-                }
-            } else {
-                quote_spanned! {ty.span()=>
-                    #gen.subschema_for::<#ty>()
-                }
-            };
-
             let maybe_insert_required = match (&default, field.validation_attrs.required) {
                 (Some(_), _) => TokenStream::new(),
                 (None, false) => {
@@ -458,11 +457,22 @@ fn expr_for_struct(
                 read_only: field.serde_attrs.skip_deserializing(),
                 write_only: field.serde_attrs.skip_serializing(),
                 default,
-                ..SchemaMetadata::from_attrs(&field.attrs)
+                ..field.attrs.as_metadata()
             };
 
-            let schema_expr = metadata.apply_to_schema(schema_expr);
-            let schema_expr = field.validation_attrs.apply_to_schema(schema_expr);
+            let gen = quote!(gen);
+            let mut schema_expr = if field.validation_attrs.required {
+                quote_spanned! {ty.span()=>
+                    <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
+                }
+            } else {
+                quote_spanned! {ty.span()=>
+                    #gen.subschema_for::<#ty>()
+                }
+            };
+
+            metadata.apply_to_schema(&mut schema_expr);
+            field.validation_attrs.apply_to_schema(&mut schema_expr);
 
             quote! {
                 {
@@ -486,12 +496,12 @@ fn expr_for_struct(
             };
 
             let args = quote!(gen, #required);
-            quote_spanned! {ty.span()=>
-                .flatten({
-                    #type_def
-                    schemars::_private::json_schema_for_flatten::<#ty>(#args)
-                })
-            }
+            let mut schema_expr = quote_spanned! {ty.span()=>
+                schemars::_private::json_schema_for_flatten::<#ty>(#args)
+            };
+
+            prepend_type_def(type_def, &mut schema_expr);
+            schema_expr
         })
         .collect();
 
@@ -513,7 +523,7 @@ fn expr_for_struct(
             #set_additional_properties
             #(#properties)*
             schemars::schema::Schema::Object(schema_object)
-            #(#flattens)*
+            #(.flatten(#flattens))*
         }
     }
 }
@@ -580,5 +590,16 @@ fn schema_object(properties: TokenStream) -> TokenStream {
             #properties
             ..Default::default()
         })
+    }
+}
+
+fn prepend_type_def(type_def: Option<TokenStream>, schema_expr: &mut TokenStream) {
+    if let Some(type_def) = type_def {
+        *schema_expr = quote! {
+            {
+                #type_def
+                #schema_expr
+            }
+        }
     }
 }

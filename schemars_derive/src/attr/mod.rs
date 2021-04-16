@@ -5,6 +5,7 @@ mod validation;
 pub use schemars_to_serde::process_serde_attrs;
 pub use validation::ValidationAttrs;
 
+use crate::metadata::SchemaMetadata;
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
@@ -51,6 +52,27 @@ impl Attrs {
         result.description = result.description.or(doc_description);
 
         result
+    }
+
+    pub fn as_metadata(&self) -> SchemaMetadata<'_> {
+        #[allow(clippy::ptr_arg)]
+        fn none_if_empty(s: &String) -> Option<&str> {
+            if s.is_empty() {
+                None
+            } else {
+                Some(s)
+            }
+        }
+
+        SchemaMetadata {
+            title: self.title.as_ref().and_then(none_if_empty),
+            description: self.description.as_ref().and_then(none_if_empty),
+            deprecated: self.deprecated,
+            examples: &self.examples,
+            read_only: false,
+            write_only: false,
+            default: None,
+        }
     }
 
     fn populate(

@@ -120,7 +120,7 @@ impl ValidationAttrs {
         self
     }
 
-    pub fn apply_to_schema(&self, schema_expr: TokenStream) -> TokenStream {
+    pub fn apply_to_schema(&self, schema_expr: &mut TokenStream) {
         let mut array_validation = Vec::new();
         let mut number_validation = Vec::new();
         let mut object_validation = Vec::new();
@@ -200,7 +200,7 @@ impl ValidationAttrs {
             || string_validation.is_some()
             || format.is_some()
         {
-            quote! {
+            *schema_expr = quote! {
                 {
                     let mut schema = #schema_expr;
                     if let schemars::schema::Schema::Object(schema_object) = &mut schema
@@ -214,8 +214,6 @@ impl ValidationAttrs {
                     schema
                 }
             }
-        } else {
-            schema_expr
         }
     }
 }
