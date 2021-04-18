@@ -165,10 +165,7 @@ impl Attrs {
                 _ if ignore_errors => {}
 
                 Meta(meta_item) => {
-                    let is_known_serde_keyword = schemars_to_serde::SERDE_KEYWORDS
-                        .iter()
-                        .any(|k| meta_item.path().is_ident(k));
-                    if !is_known_serde_keyword {
+                    if !is_known_serde_or_validation_keyword(meta_item) {
                         let path = meta_item
                             .path()
                             .into_token_stream()
@@ -176,21 +173,28 @@ impl Attrs {
                             .replace(' ', "");
                         errors.error_spanned_by(
                             meta_item.path(),
-                            format!("unknown schemars container attribute `{}`", path),
+                            format!("unknown schemars attribute `{}`", path),
                         );
                     }
                 }
 
                 Lit(lit) => {
-                    errors.error_spanned_by(
-                        lit,
-                        "unexpected literal in schemars container attribute",
-                    );
+                    errors.error_spanned_by(lit, "unexpected literal in schemars attribute");
                 }
             }
         }
         self
     }
+}
+
+fn is_known_serde_or_validation_keyword(meta: &syn::Meta) -> bool {
+    let mut known_keywords = schemars_to_serde::SERDE_KEYWORDS
+        .iter()
+        .chain(validation::VALIDATION_KEYWORDS);
+    meta.path()
+        .get_ident()
+        .map(|i| known_keywords.any(|k| i == k))
+        .unwrap_or(false)
 }
 
 fn get_meta_items(
