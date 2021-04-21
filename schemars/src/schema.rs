@@ -286,6 +286,8 @@ pub struct Metadata {
     /// See [JSON Schema Validation 9.5. "examples"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-9.5).
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub examples: Vec<Value>,
+    /// The `extensions` keyword.
+    pub extensions: Vec<Value>,
 }
 
 #[allow(clippy::trivially_copy_pass_by_ref)]

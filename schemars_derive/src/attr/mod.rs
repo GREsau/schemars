@@ -22,6 +22,7 @@ pub struct Attrs {
     pub description: Option<String>,
     pub deprecated: bool,
     pub examples: Vec<syn::Path>,
+    pub extensions: Vec<syn::Path>,
     pub repr: Option<syn::Type>,
     pub crate_name: Option<syn::Path>,
 }
@@ -135,6 +136,12 @@ impl Attrs {
                         } else {
                             self.crate_name = Some(p)
                         }
+                    }
+                }
+
+                Meta(NameValue(m)) if m.path.is_ident("extension") => {
+                    if let Ok(fun) = parse_lit_into_path(errors, attr_type, "extension", &m.lit) {
+                        self.extensions.push(fun)
                     }
                 }
 

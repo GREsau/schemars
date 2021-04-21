@@ -11,6 +11,7 @@ pub struct SchemaMetadata<'a> {
     pub read_only: bool,
     pub write_only: bool,
     pub examples: &'a [syn::Path],
+    pub extensions: &'a [syn::Path],
     pub default: Option<TokenStream>,
 }
 
@@ -41,6 +42,7 @@ impl<'a> SchemaMetadata<'a> {
             examples: &attrs.examples,
             read_only: false,
             write_only: false,
+            extensions: &attrs.extensions,
             default: None,
         }
     }
@@ -93,6 +95,17 @@ impl<'a> SchemaMetadata<'a> {
             });
             setters.push(quote! {
                 examples: vec![#(#examples),*].into_iter().flatten().collect(),
+            });
+        }
+
+        if !self.extensions.is_empty() {
+            let extensions = self.extensions.iter().map(|eg| {
+                quote! {
+                    schemars::_serde_json::value::to_value(#eg())
+                }
+            });
+            setters.push(quote! {
+                extensions: vec![#(#extensions),*].into_iter().flatten().collect(),
             });
         }
 

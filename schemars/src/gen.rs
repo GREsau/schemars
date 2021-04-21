@@ -62,7 +62,7 @@ impl SchemaSettings {
             option_add_null_type: true,
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            visitors: vec![Box::new(RemoveRefSiblings)],
+            visitors: vec![Box::new(RemoveRefSiblings), Box::new(MoveMetaDataExtensions)],
             inline_subschemas: false,
             _hidden: (),
         }
@@ -75,7 +75,7 @@ impl SchemaSettings {
             option_add_null_type: true,
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
-            visitors: Vec::default(),
+            visitors: vec![Box::new(MoveMetaDataExtensions)],
             inline_subschemas: false,
             _hidden: (),
         }
@@ -99,6 +99,7 @@ impl SchemaSettings {
                 Box::new(SetSingleExample {
                     retain_examples: false,
                 }),
+                Box::new(MoveMetaDataExtensions)
             ],
             inline_subschemas: false,
             _hidden: (),
