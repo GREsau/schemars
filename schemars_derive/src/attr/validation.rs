@@ -22,7 +22,6 @@ pub struct ValidationAttrs {
 
 impl ValidationAttrs {
     pub fn new(attrs: &[syn::Attribute], errors: &Ctxt) -> Self {
-        // TODO allow setting "validate" attributes through #[schemars(...)]
         ValidationAttrs::default()
             .populate(attrs, "schemars", false, errors)
             .populate(attrs, "validate", true, errors)

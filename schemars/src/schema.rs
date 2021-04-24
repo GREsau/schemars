@@ -231,7 +231,11 @@ impl SchemaObject {
         self.reference.is_some()
     }
 
-    // TODO document
+    /// Returns `true` if `self` accepts values of the given type, according to the [`instance_type`] field.
+    ///
+    /// This is a basic check that always returns `true` if no `instance_type` is specified on the schema,
+    /// and does not check any subschemas. Because of this, both `{}` and  `{"not": {}}` accept any type according
+    /// to this method.
     pub fn has_type(&self, ty: InstanceType) -> bool {
         self.instance_type
             .as_ref()
@@ -522,7 +526,20 @@ impl<T> From<Vec<T>> for SingleOrVec<T> {
 }
 
 impl<T: PartialEq> SingleOrVec<T> {
-    // TODO document
+    /// Returns `true` if `self` is either a `Single` equal to `x`, or a `Vec` containing `x`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let s = SingleOrVec::Single(10);
+    /// assert!(s.contains(&10));
+    /// assert!(!s.contains(&20));
+    ///
+    /// let v = SingleOrVec::Vec(vec![10, 20]);
+    /// assert!(s.contains(&10));
+    /// assert!(s.contains(&20));
+    /// assert!(!s.contains(&30));
+    /// ```
     pub fn contains(&self, x: &T) -> bool {
         match self {
             SingleOrVec::Single(s) => s.deref() == x,

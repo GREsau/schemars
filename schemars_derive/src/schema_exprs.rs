@@ -489,11 +489,7 @@ fn expr_for_struct(
         .map(|field| {
             let (ty, type_def) = type_for_field_schema(field);
 
-            let required = if field.validation_attrs.required {
-                quote!(Some(true))
-            } else {
-                quote!(None)
-            };
+            let required = field.validation_attrs.required;
 
             let args = quote!(gen, #required);
             let mut schema_expr = quote_spanned! {ty.span()=>
