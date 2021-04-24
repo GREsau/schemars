@@ -531,14 +531,16 @@ impl<T: PartialEq> SingleOrVec<T> {
     /// # Examples
     ///
     /// ```
-    /// let s = SingleOrVec::Single(10);
+    /// use schemars::schema::SingleOrVec;
+    ///
+    /// let s = SingleOrVec::from(10);
     /// assert!(s.contains(&10));
     /// assert!(!s.contains(&20));
     ///
-    /// let v = SingleOrVec::Vec(vec![10, 20]);
-    /// assert!(s.contains(&10));
-    /// assert!(s.contains(&20));
-    /// assert!(!s.contains(&30));
+    /// let v = SingleOrVec::from(vec![10, 20]);
+    /// assert!(v.contains(&10));
+    /// assert!(v.contains(&20));
+    /// assert!(!v.contains(&30));
     /// ```
     pub fn contains(&self, x: &T) -> bool {
         match self {
