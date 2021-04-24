@@ -56,7 +56,9 @@ build_enum!(
     #[derive(Debug, JsonSchema)]
     OuterEnum {
         #[derive(Debug, JsonSchema)]
-        InnerStruct {}
+        InnerStruct {
+            x: i32
+        }
     }
 
 );

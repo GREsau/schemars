@@ -9,13 +9,14 @@ extern crate proc_macro;
 mod ast;
 mod attr;
 mod metadata;
+mod regex_syntax;
 mod schema_exprs;
 
 use ast::*;
 use proc_macro2::TokenStream;
 use syn::spanned::Spanned;
 
-#[proc_macro_derive(JsonSchema, attributes(schemars, serde))]
+#[proc_macro_derive(JsonSchema, attributes(schemars, serde, validate))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     derive_json_schema(input, false)
@@ -50,7 +51,7 @@ fn derive_json_schema(
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
     if let Some(transparent_field) = cont.transparent_field() {
-        let (ty, type_def) = schema_exprs::type_for_field_schema(transparent_field, 0);
+        let (ty, type_def) = schema_exprs::type_for_field_schema(transparent_field);
         return Ok(quote! {
             const _: () = {
                 #crate_alias

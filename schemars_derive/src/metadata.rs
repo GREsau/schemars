@@ -1,7 +1,4 @@
-use crate::attr;
-use attr::Attrs;
-use proc_macro2::{Ident, Span, TokenStream};
-use quote::{ToTokens, TokenStreamExt};
+use proc_macro2::TokenStream;
 
 #[derive(Debug, Clone)]
 pub struct SchemaMetadata<'a> {
@@ -14,42 +11,15 @@ pub struct SchemaMetadata<'a> {
     pub default: Option<TokenStream>,
 }
 
-impl ToTokens for SchemaMetadata<'_> {
-    fn to_tokens(&self, tokens: &mut TokenStream) {
-        let setters = self.make_setters();
-        if setters.is_empty() {
-            tokens.append(Ident::new("None", Span::call_site()))
-        } else {
-            tokens.extend(quote! {
-                Some({
-                    schemars::schema::Metadata {
-                        #(#setters)*
-                        ..Default::default()
-                    }
-                })
-            })
-        }
-    }
-}
-
 impl<'a> SchemaMetadata<'a> {
-    pub fn from_attrs(attrs: &'a Attrs) -> Self {
-        SchemaMetadata {
-            title: attrs.title.as_ref().and_then(none_if_empty),
-            description: attrs.description.as_ref().and_then(none_if_empty),
-            deprecated: attrs.deprecated,
-            examples: &attrs.examples,
-            read_only: false,
-            write_only: false,
-            default: None,
-        }
-    }
-
-    pub fn apply_to_schema(&self, schema_expr: TokenStream) -> TokenStream {
-        quote! {
-            {
-                let schema = #schema_expr;
-                schemars::_private::apply_metadata(schema, #self)
+    pub fn apply_to_schema(&self, schema_expr: &mut TokenStream) {
+        let setters = self.make_setters();
+        if !setters.is_empty() {
+            *schema_expr = quote! {
+                schemars::_private::apply_metadata(#schema_expr, schemars::schema::Metadata {
+                    #(#setters)*
+                    ..Default::default()
+                })
             }
         }
     }
@@ -103,14 +73,5 @@ impl<'a> SchemaMetadata<'a> {
         }
 
         setters
-    }
-}
-
-#[allow(clippy::ptr_arg)]
-fn none_if_empty(s: &String) -> Option<&str> {
-    if s.is_empty() {
-        None
-    } else {
-        Some(s)
     }
 }

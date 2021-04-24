@@ -1,6 +1,6 @@
 mod from_serde;
 
-use crate::attr::Attrs;
+use crate::attr::{Attrs, ValidationAttrs};
 use from_serde::FromSerde;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::{Ctxt, Derive};
@@ -34,6 +34,7 @@ pub struct Field<'a> {
     pub ty: &'a syn::Type,
     pub original: &'a syn::Field,
     pub attrs: Attrs,
+    pub validation_attrs: ValidationAttrs,
 }
 
 impl<'a> Container<'a> {

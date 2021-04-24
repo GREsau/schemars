@@ -73,6 +73,7 @@ impl<'a> FromSerde for Field<'a> {
             ty: serde.ty,
             original: serde.original,
             attrs: Attrs::new(&serde.original.attrs, errors),
+            validation_attrs: ValidationAttrs::new(&serde.original.attrs, errors),
         })
     }
 }

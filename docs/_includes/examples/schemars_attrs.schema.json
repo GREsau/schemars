@@ -23,7 +23,9 @@
     },
     "myNumber": {
       "type": "integer",
-      "format": "int32"
+      "format": "int32",
+      "maximum": 10.0,
+      "minimum": 1.0
     }
   },
   "additionalProperties": false,
@@ -31,7 +33,8 @@
     "MyEnum": {
       "anyOf": [
         {
-          "type": "string"
+          "type": "string",
+          "format": "phone"
         },
         {
           "type": "object",
@@ -44,7 +47,9 @@
               "items": {
                 "type": "number",
                 "format": "float"
-              }
+              },
+              "maxItems": 100,
+              "minItems": 1
             }
           }
         }
