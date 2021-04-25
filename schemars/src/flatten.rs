@@ -55,6 +55,7 @@ impl Merge for Metadata {
             read_only: self.read_only || other.read_only,
             write_only: self.write_only || other.write_only,
             examples: self.examples.merge(other.examples),
+            extensions: self.extensions.merge(other.extensions)
         }
     }
 }

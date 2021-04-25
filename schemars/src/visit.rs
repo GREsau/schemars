@@ -210,3 +210,31 @@ impl Visitor for SetSingleExample {
         }
     }
 }
+
+/// This visitor moves the [`Metadata`] extensions to [`SchemaObject`].
+#[derive(Debug, Clone)]
+pub struct MoveMetaDataExtensions;
+
+impl Visitor for MoveMetaDataExtensions {
+    fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
+        // Searches for extensions with a tuple
+        if let Some(metadata) = schema.metadata.clone() {
+            metadata.extensions.iter().for_each(|x| {
+                if let Some(arr) = x.as_array() {
+                    match arr.len() {
+                        2 => {
+                            let (key_opt, value) = (&arr[0].as_str(), &arr[1]);
+                            if let Some(key) = key_opt {
+                                schema.extensions.insert(key.to_string(), serde_json::json!(value.clone()));
+                            }
+                        }
+                        _ => {}
+                    }
+                }
+            })
+        }
+
+        // Then delegate to default implementation to visit any subschemas
+        visit_schema_object(self, schema);
+    }
+}
