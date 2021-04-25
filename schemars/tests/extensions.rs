@@ -23,9 +23,7 @@ fn field_tag_1() -> (String, String) {
     ("x-tag-1".into(), "field-tag-1".into())
 }
 
-fn field_tag_2() -> (String, String) {
-    ("x-tag-2".into(), "field-tag-2".into())
-}
+fn field_tag_2() -> (String, String) { ("x-tag-2".into(), "field-tag-2".into()) }
 
 #[test]
 fn extensions() -> TestResult {
