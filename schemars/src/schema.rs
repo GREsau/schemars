@@ -287,6 +287,7 @@ pub struct Metadata {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub examples: Vec<Value>,
     /// The `extensions` keyword.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     pub extensions: Vec<Value>,
 }
 
