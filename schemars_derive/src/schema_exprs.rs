@@ -581,7 +581,7 @@ fn field_default_expr(field: &Field, container_has_default: bool) -> Option<Toke
             quote!(container_default.#member)
         }
         SerdeDefault::Default => quote!(<#ty>::default()),
-        SerdeDefault::Path(path) => quote!(#path()),
+        SerdeDefault::Path(path) => quote!(|| -> #ty { #path() }()),
     };
 
     let default_expr = match field.serde_attrs.skip_serializing_if() {
