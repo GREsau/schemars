@@ -95,7 +95,9 @@
           "properties": {
             "foo": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "minimum": -2147483648.0,
+              "maximum": 2147483647.0
             },
             "bar": {
               "type": "boolean"
@@ -122,7 +124,9 @@
           "items": [
             {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "minimum": -2147483648.0,
+              "maximum": 2147483647.0
             },
             {
               "type": "boolean"
@@ -162,7 +166,9 @@
         },
         "c": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "minimum": -2147483648.0,
+          "maximum": 2147483647.0
         }
       }
     }
@@ -180,7 +186,9 @@
       "properties": {
         "foo": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "minimum": -2147483648.0,
+          "maximum": 2147483647.0
         },
         "bar": {
           "type": "boolean"

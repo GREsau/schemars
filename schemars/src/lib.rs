@@ -44,7 +44,9 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
         },
         "my_int": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "minimum": -2147483648.0,
+            "maximum": 2147483647.0
         },
         "my_nullable_enum": {
             "anyOf": [
@@ -161,7 +163,9 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
         },
         "myNumber": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "minimum": -2147483648.0,
+            "maximum": 2147483647.0
         }
     },
     "additionalProperties": false,
