@@ -176,6 +176,7 @@
       "type": "integer",
       "format": "uint32",
       "minimum": 0.0,
+      "maximum": 4294967295.0,
       "nullable": true
     },
     "minLength": {
@@ -183,6 +184,7 @@
       "type": "integer",
       "format": "uint32",
       "minimum": 0.0,
+      "maximum": 4294967295.0,
       "nullable": true
     },
     "pattern": {
@@ -213,6 +215,7 @@
       "type": "integer",
       "format": "uint32",
       "minimum": 0.0,
+      "maximum": 4294967295.0,
       "nullable": true
     },
     "minItems": {
@@ -220,6 +223,7 @@
       "type": "integer",
       "format": "uint32",
       "minimum": 0.0,
+      "maximum": 4294967295.0,
       "nullable": true
     },
     "uniqueItems": {
@@ -241,6 +245,7 @@
       "type": "integer",
       "format": "uint32",
       "minimum": 0.0,
+      "maximum": 4294967295.0,
       "nullable": true
     },
     "minProperties": {
@@ -248,6 +253,7 @@
       "type": "integer",
       "format": "uint32",
       "minimum": 0.0,
+      "maximum": 4294967295.0,
       "nullable": true
     },
     "required": {
@@ -474,6 +480,7 @@
           "type": "integer",
           "format": "uint32",
           "minimum": 0.0,
+          "maximum": 4294967295.0,
           "nullable": true
         },
         "minLength": {
@@ -481,6 +488,7 @@
           "type": "integer",
           "format": "uint32",
           "minimum": 0.0,
+          "maximum": 4294967295.0,
           "nullable": true
         },
         "pattern": {
@@ -511,6 +519,7 @@
           "type": "integer",
           "format": "uint32",
           "minimum": 0.0,
+          "maximum": 4294967295.0,
           "nullable": true
         },
         "minItems": {
@@ -518,6 +527,7 @@
           "type": "integer",
           "format": "uint32",
           "minimum": 0.0,
+          "maximum": 4294967295.0,
           "nullable": true
         },
         "uniqueItems": {
@@ -539,6 +549,7 @@
           "type": "integer",
           "format": "uint32",
           "minimum": 0.0,
+          "maximum": 4294967295.0,
           "nullable": true
         },
         "minProperties": {
@@ -546,6 +557,7 @@
           "type": "integer",
           "format": "uint32",
           "minimum": 0.0,
+          "maximum": 4294967295.0,
           "nullable": true
         },
         "required": {

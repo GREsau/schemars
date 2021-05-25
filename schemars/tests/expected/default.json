@@ -6,7 +6,9 @@
     "my_int": {
       "default": 0,
       "type": "integer",
-      "format": "int32"
+      "format": "int32",
+      "minimum": -2147483648.0,
+      "maximum": 2147483647.0
     },
     "my_bool": {
       "default": false,
@@ -31,7 +33,9 @@
         "my_int": {
           "default": 6,
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "minimum": -2147483648.0,
+          "maximum": 2147483647.0
         },
         "my_bool": {
           "default": true,

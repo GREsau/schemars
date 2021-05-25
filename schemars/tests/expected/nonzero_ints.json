@@ -12,20 +12,26 @@
     "unsigned": {
       "type": "integer",
       "format": "uint32",
-      "minimum": 0.0
+      "minimum": 0.0,
+      "maximum": 4294967295.0
     },
     "nonzero_unsigned": {
       "type": "integer",
       "format": "uint32",
-      "minimum": 1.0
+      "minimum": 1.0,
+      "maximum": 4294967295.0
     },
     "signed": {
       "type": "integer",
-      "format": "int32"
+      "format": "int32",
+      "minimum": -2147483648.0,
+      "maximum": 2147483647.0
     },
     "nonzero_signed": {
       "type": "integer",
       "format": "int32",
+      "minimum": -2147483648.0,
+      "maximum": 2147483647.0,
       "not": {
         "const": 0
       }
