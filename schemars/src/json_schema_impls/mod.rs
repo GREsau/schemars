@@ -58,6 +58,8 @@ mod sequences;
 mod serdejson;
 #[cfg(feature = "smallvec")]
 mod smallvec;
+#[cfg(feature = "sqlx")]
+mod sqlx;
 mod time;
 mod tuple;
 #[cfg(feature = "url")]
