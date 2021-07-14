@@ -9,8 +9,6 @@ If you don't really care about the specifics, the easiest way to generate a JSON
 ```rust
 use schemars::{schema_for, JsonSchema};
 
-pub const OPENAPI_DISCRIMINATOR_PROPERTY_NAME : &str = "discriminator";
-
 #[derive(JsonSchema)]
 pub struct MyStruct {
     pub my_int: i32,
@@ -321,6 +319,9 @@ pub use schemars_derive::*;
 pub use serde_json as _serde_json;
 
 use schema::Schema;
+
+// https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
+pub const OPENAPI_DISCRIMINATOR_PROPERTY_NAME : &str = "discriminator";
 
 /// A type which can be described as a JSON Schema document.
 ///
