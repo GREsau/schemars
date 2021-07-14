@@ -219,12 +219,13 @@ impl Visitor for SetSingleExample {
 #[derive(Debug, Clone)]
 pub struct SetTypeTags;
 
-impl schemars::Visitor for SetTypeTags {
+impl Visitor for SetTypeTags {
     fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
         visit_schema_object(self, schema);
 
-        let discriminator
-            = schema.openapi_discriminator_property_name();
+        let discriminator = schema
+            .openapi_discriminator_property_name()
+            .map(ToString::to_string);
 
         // if this schemaobject has subschemas
         if let Some(subs) = &mut schema.subschemas().any_of {
@@ -232,14 +233,14 @@ impl schemars::Visitor for SetTypeTags {
                 // if the current object has a discriminator property extension,
                 // then make sure that property is present in the subschema
                 // that is referred to.
-                if let Some(name) = discriminator {
+                if let Some(name) = &discriminator {
                     if let Schema::Object(subobj) = sub {
-                        if let Some(val) = &subobj.object {
+                        if let Some(val) = &mut subobj.object {
                             val.required.insert(name.to_owned());
                             val.properties.insert(
                                 name.to_owned(),
                                 SchemaGenerator::default().subschema_for::<String>()
-                            )
+                            );
                         }
                     }
                 }
