@@ -9,6 +9,8 @@ If you don't really care about the specifics, the easiest way to generate a JSON
 ```rust
 use schemars::{schema_for, JsonSchema};
 
+pub const OPENAPI_DISCRIMINATOR_PROPERTY_NAME : &str = "discriminator";
+
 #[derive(JsonSchema)]
 pub struct MyStruct {
     pub my_int: i32,
