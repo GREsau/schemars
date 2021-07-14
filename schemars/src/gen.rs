@@ -99,6 +99,7 @@ impl SchemaSettings {
                 Box::new(SetSingleExample {
                     retain_examples: false,
                 }),
+                Box::new(SetTypeTags)
             ],
             inline_subschemas: false,
             _hidden: (),

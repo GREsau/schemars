@@ -26,6 +26,7 @@ impl Visitor for MyVisitor {
 ```
 */
 use crate::schema::{RootSchema, Schema, SchemaObject, SingleOrVec};
+use crate::gen::SchemaGenerator;
 
 /// Trait used to recursively modify a constructed schema and its subschemas.
 pub trait Visitor {
@@ -207,6 +208,42 @@ impl Visitor for SetSingleExample {
 
         if let Some(example) = first_example {
             schema.extensions.insert("example".to_owned(), example);
+        }
+    }
+}
+
+/// This visitor will ensure that children of enum types that have an OpenApi discriminator
+/// property, contain the discriminator property in their schema.
+///
+///
+#[derive(Debug, Clone)]
+pub struct SetTypeTags;
+
+impl schemars::Visitor for SetTypeTags {
+    fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
+        visit_schema_object(self, schema);
+
+        let discriminator
+            = schema.openapi_discriminator_property_name();
+
+        // if this schemaobject has subschemas
+        if let Some(subs) = &mut schema.subschemas().any_of {
+            for sub in subs {
+                // if the current object has a discriminator property extension,
+                // then make sure that property is present in the subschema
+                // that is referred to.
+                if let Some(name) = discriminator {
+                    if let Schema::Object(subobj) = sub {
+                        if let Some(val) = &subobj.object {
+                            val.required.insert(name.to_owned());
+                            val.properties.insert(
+                                name.to_owned(),
+                                SchemaGenerator::default().subschema_for::<String>()
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
