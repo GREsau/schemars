@@ -12,12 +12,14 @@ use crate::{visit::*, JsonSchema, Map};
 use dyn_clone::DynClone;
 use serde::Serialize;
 use std::{any::Any, collections::HashSet, fmt::Debug};
+use derivative::*;
 
 /// Settings to customize how Schemas are generated.
 ///
 /// The default settings currently conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
 /// If you require your generated schemas to conform to draft 7, consider using the [`draft07`](#method.draft07) method.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Derivative)]
+#[derivative(PartialEq)]
 pub struct SchemaSettings {
     /// If `true`, schemas for [`Option<T>`](Option) will include a `nullable` property.
     ///
@@ -38,6 +40,7 @@ pub struct SchemaSettings {
     /// Defaults to `"http://json-schema.org/draft-07/schema#"`.
     pub meta_schema: Option<String>,
     /// A list of visitors that get applied to all generated root schemas.
+    #[derivative(PartialEq="ignore")]
     pub visitors: Vec<Box<dyn GenVisitor>>,
     /// Inline all subschemas instead of using references.
     ///
