@@ -227,11 +227,22 @@ fn expr_for_internal_tagged_enum<'a>(
         }
     });
 
+    let discriminator_ext = quote!{
+        serde_json::json!({ "discriminator": { "propertyName": #tag_name } })
+    };
+
     schema_object(quote! {
         subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
             any_of: Some(vec![#(#variant_schemas),*]),
             ..Default::default()
         })),
+        // todo: there is probably an easier way of converting serde_json::Map to schemars::Map
+        extensions: #discriminator_ext
+            .as_object()
+            .unwrap()
+            .clone()
+            .into_iter()
+            .collect(),
     })
 }
 

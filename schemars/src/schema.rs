@@ -224,6 +224,21 @@ impl SchemaObject {
         self.reference.is_some()
     }
 
+    // https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
+    pub fn has_openapi_discriminator(&self) -> bool {
+        self.extensions.contains_key(crate::OPENAPI_DISCRIMINATOR_PROPERTY_NAME)
+    }
+
+    // https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
+    pub fn openapi_discriminator_property_name(&self) -> Option<&str> {
+        self
+            .extensions
+            .get(crate::OPENAPI_DISCRIMINATOR_PROPERTY_NAME)
+            .map(|v| v
+                .as_str())
+            .flatten()
+    }
+
     get_or_insert_default_fn!(metadata, Metadata);
     get_or_insert_default_fn!(subschemas, SubschemaValidation);
     get_or_insert_default_fn!(number, NumberValidation);

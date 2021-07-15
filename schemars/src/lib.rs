@@ -320,6 +320,9 @@ pub use serde_json as _serde_json;
 
 use schema::Schema;
 
+// https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
+pub const OPENAPI_DISCRIMINATOR_PROPERTY_NAME : &str = "discriminator";
+
 /// A type which can be described as a JSON Schema document.
 ///
 /// This is implemented for many Rust primitive and standard library types.
