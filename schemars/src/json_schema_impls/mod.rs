@@ -47,6 +47,8 @@ mod chrono;
 mod core;
 #[cfg(feature = "either")]
 mod either;
+#[cfg(feature = "enumset")]
+mod enumset;
 mod ffi;
 #[cfg(feature = "indexmap")]
 mod indexmap;
