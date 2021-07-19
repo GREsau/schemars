@@ -15,7 +15,8 @@ jobs:
         include:
           - rust: 1.37.0
             # exclude ui_test as the output is slightly different in rustc 1.37
-            test_features: "--features impl_json_schema,chrono,indexmap,either,uuid,smallvec,arrayvec,enumset"
+            # exclude enumset as it fails on Rust 1.37
+            test_features: "--features impl_json_schema,chrono,indexmap,either,uuid,smallvec,arrayvec"
             allow_failure: false
           - rust: stable
             test_features: "--all-features"
