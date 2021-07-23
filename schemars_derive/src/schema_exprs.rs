@@ -182,7 +182,7 @@ fn expr_for_external_tagged_enum<'a>(
 
     schema_object(quote! {
         subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-            any_of: Some(vec![#(#schemas),*]),
+            one_of: Some(vec![#(#schemas),*]),
             ..Default::default()
         })),
     })
@@ -233,7 +233,7 @@ fn expr_for_internal_tagged_enum<'a>(
 
     schema_object(quote! {
         subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-            any_of: Some(vec![#(#variant_schemas),*]),
+            one_of: Some(vec![#(#variant_schemas),*]),
             ..Default::default()
         })),
         // todo: there is probably an easier way of converting serde_json::Map to schemars::Map
@@ -258,7 +258,7 @@ fn expr_for_untagged_enum<'a>(
 
     schema_object(quote! {
         subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-            any_of: Some(vec![#(#schemas),*]),
+            one_of: Some(vec![#(#schemas),*]),
             ..Default::default()
         })),
     })
@@ -326,7 +326,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
 
     schema_object(quote! {
         subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-            any_of: Some(vec![#(#schemas),*]),
+            one_of: Some(vec![#(#schemas),*]),
             ..Default::default()
         })),
     })
