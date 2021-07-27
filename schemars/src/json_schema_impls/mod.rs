@@ -50,6 +50,8 @@ mod either;
 mod ffi;
 #[cfg(feature = "indexmap")]
 mod indexmap;
+#[cfg(feature = "mac_address")]
+mod mac_address;
 mod maps;
 mod nonzero_signed;
 mod nonzero_unsigned;
