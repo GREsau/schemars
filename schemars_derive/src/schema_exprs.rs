@@ -193,43 +193,67 @@ fn expr_for_internal_tagged_enum<'a>(
     tag_name: &str,
     deny_unknown_fields: bool,
 ) -> TokenStream {
-    let variant_schemas = variants.map(|variant| {
+    let variants = variants.collect::<Vec<_>>();
+    let enum_values = variants
+        .iter()
+        .map(|variant| variant.name())
+        .collect::<Vec<_>>();
+    let variant_schemas = variants.iter().map(|variant| {
         let name = variant.name();
-        let type_schema = schema_object(quote! {
-            instance_type: Some(schemars::schema::InstanceType::String.into()),
-            enum_values: Some(vec![#name.into()]),
-        });
+        let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
 
-        let tag_schema = schema_object(quote! {
-            instance_type: Some(schemars::schema::InstanceType::Object.into()),
+        let const_schema = schema_object(quote!(
+            const_value: Some(#name.into()),
+        ));
+
+        let if_schema = schema_object(quote! {
             object: Some(Box::new(schemars::schema::ObjectValidation {
                 properties: {
                     let mut props = schemars::Map::new();
-                    props.insert(#tag_name.to_owned(), #type_schema);
+                    props.insert(#tag_name.to_owned(), #const_schema);
                     props
-                },
-                required: {
-                    let mut required = schemars::Set::new();
-                    required.insert(#tag_name.to_owned());
-                    required
                 },
                 ..Default::default()
             })),
         });
-        let doc_metadata = SchemaMetadata::from_attrs(&variant.attrs);
-        let tag_schema = doc_metadata.apply_to_schema(tag_schema);
 
-        match expr_for_untagged_enum_variant_for_flatten(&variant, deny_unknown_fields) {
-            Some(variant_schema) => quote! {
-                #tag_schema.flatten(#variant_schema)
-            },
-            None => tag_schema,
-        }
+        let variant_schema =
+            expr_for_untagged_enum_variant_for_flatten(&variant, deny_unknown_fields)
+                .unwrap_or(quote! {schemars::schema::Schema::Bool(true)}); // TODO?
+
+        let variant_schema = schema_object(quote! {
+            subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
+                if_schema: Some(Box::new(#if_schema)),
+                then_schema: Some(Box::new(#variant_schema)),
+                ..Default::default()
+            })),
+        });
+        let variant_schema = doc_metadata.apply_to_schema(variant_schema);
+        variant_schema
+    });
+
+    let type_schema = schema_object(quote! {
+        instance_type: Some(schemars::schema::InstanceType::String.into()),
+        enum_values: Some(vec![#(#enum_values.into()),*]),
     });
 
     schema_object(quote! {
+        instance_type: Some(schemars::schema::InstanceType::Object.into()),
+        object: Some(Box::new(schemars::schema::ObjectValidation {
+            properties: {
+                let mut props = schemars::Map::new();
+                props.insert(#tag_name.to_owned(), #type_schema);
+                props
+            },
+            required: {
+                let mut required = schemars::Set::new();
+                required.insert(#tag_name.to_owned());
+                required
+            },
+            ..Default::default()
+        })),
         subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-            any_of: Some(vec![#(#variant_schemas),*]),
+            all_of: Some(vec![#(#variant_schemas),*]),
             ..Default::default()
         })),
     })
