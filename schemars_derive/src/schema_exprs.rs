@@ -253,7 +253,7 @@ fn expr_for_internal_tagged_enum<'a>(
             ..Default::default()
         })),
         subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-            any_of: Some(vec![#(#variant_schemas),*]),
+            all_of: Some(vec![#(#variant_schemas),*]),
             ..Default::default()
         })),
     })
