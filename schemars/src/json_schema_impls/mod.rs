@@ -65,3 +65,6 @@ mod url;
 #[cfg(feature = "uuid")]
 mod uuid;
 mod wrapper;
+
+#[cfg(feature = "ipnet")]
+mod ipnet;

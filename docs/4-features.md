@@ -28,3 +28,4 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - [`arrayvec`](https://crates.io/crates/arrayvec) (^0.5)
 - [`url`](https://crates.io/crates/url) (^2.0)
 - [`bytes`](https://crates.io/crates/bytes) (^1.0)
+- [`ipnet`](https://crates.io/crates/ipnet (^2.3)

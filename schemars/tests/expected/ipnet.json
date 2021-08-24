@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "IpNet",
+    "description": "Represents a generic network range. This type can have two variants: the v4 and the v6 case.",
+    "examples": [
+      "192.168.0.0/24",
+      "fc00::/7"
+    ],
+    "anyOf": [
+      {
+        "$ref": "#/definitions/Ipv4Net"
+      },
+      {
+        "$ref": "#/definitions/Ipv6Net"
+      }
+    ],
+    "definitions": {
+      "Ipv4Network": {
+        "description": "Represents a network range where the IP addresses are of v4",
+        "examples": [
+          "192.168.0.0/24"
+        ],
+        "type": "string",
+        "format": "ipv4-cidr"
+      },
+      "Ipv6Network": {
+        "description": "Represents a network range where the IP addresses are of v6",
+        "examples": [
+          "fc00::/7"
+        ],
+        "type": "string",
+        "format": "ipv6-cidr"
+      }
+    }
+  } 
