@@ -1,23 +1,48 @@
 use super::{get_lit_str, get_meta_items, parse_lit_into_path, parse_lit_str};
 use proc_macro2::TokenStream;
 use serde_derive_internals::Ctxt;
-use syn::{Expr, ExprLit, ExprPath, Lit, Meta, MetaNameValue, NestedMeta};
+use syn::{Expr, ExprLit, ExprPath, Lit, Meta, MetaNameValue, NestedMeta, Path};
 
 pub(crate) static VALIDATION_KEYWORDS: &[&str] = &[
     "range", "regex", "contains", "email", "phone", "url", "length", "required",
 ];
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+enum Format {
+    Email,
+    Uri,
+    Phone,
+}
+
+impl Format {
+    fn attr_str(self) -> &'static str {
+        match self {
+            Format::Email => "email",
+            Format::Uri => "url",
+            Format::Phone => "phone",
+        }
+    }
+
+    fn schema_str(self) -> &'static str {
+        match self {
+            Format::Email => "email",
+            Format::Uri => "uri",
+            Format::Phone => "phone",
+        }
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct ValidationAttrs {
-    pub length_min: Option<Expr>,
-    pub length_max: Option<Expr>,
-    pub length_equal: Option<Expr>,
-    pub range_min: Option<Expr>,
-    pub range_max: Option<Expr>,
-    pub regex: Option<Expr>,
-    pub contains: Option<String>,
-    pub required: bool,
-    pub format: Option<&'static str>,
+    length_min: Option<Expr>,
+    length_max: Option<Expr>,
+    length_equal: Option<Expr>,
+    range_min: Option<Expr>,
+    range_max: Option<Expr>,
+    regex: Option<Expr>,
+    contains: Option<String>,
+    required: bool,
+    format: Option<Format>,
 }
 
 impl ValidationAttrs {
@@ -27,6 +52,10 @@ impl ValidationAttrs {
             .populate(attrs, "validate", true, errors)
     }
 
+    pub fn required(&self) -> bool {
+        self.required
+    }
+
     fn populate(
         mut self,
         attrs: &[syn::Attribute],
@@ -34,23 +63,37 @@ impl ValidationAttrs {
         ignore_errors: bool,
         errors: &Ctxt,
     ) -> Self {
-        let duplicate_error = |meta: &MetaNameValue| {
+        let duplicate_error = |path: &Path| {
             if !ignore_errors {
                 let msg = format!(
                     "duplicate schemars attribute `{}`",
-                    meta.path.get_ident().unwrap()
+                    path.get_ident().unwrap()
                 );
-                errors.error_spanned_by(meta, msg)
+                errors.error_spanned_by(path, msg)
             }
         };
-        let mutual_exclusive_error = |meta: &MetaNameValue, other: &str| {
+        let mutual_exclusive_error = |path: &Path, other: &str| {
             if !ignore_errors {
                 let msg = format!(
                     "schemars attribute cannot contain both `{}` and `{}`",
-                    meta.path.get_ident().unwrap(),
+                    path.get_ident().unwrap(),
                     other,
                 );
-                errors.error_spanned_by(meta, msg)
+                errors.error_spanned_by(path, msg)
+            }
+        };
+        let duplicate_format_error = |existing: Format, new: Format, path: &syn::Path| {
+            if !ignore_errors {
+                let msg = if existing == new {
+                    format!("duplicate schemars attribute `{}`", existing.attr_str())
+                } else {
+                    format!(
+                        "schemars attribute cannot contain both `{}` and `{}`",
+                        existing.attr_str(),
+                        new.attr_str(),
+                    )
+                };
+                errors.error_spanned_by(path, msg)
             }
         };
 
@@ -65,29 +108,29 @@ impl ValidationAttrs {
                         match nested {
                             NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("min") => {
                                 if self.length_min.is_some() {
-                                    duplicate_error(nv)
+                                    duplicate_error(&nv.path)
                                 } else if self.length_equal.is_some() {
-                                    mutual_exclusive_error(nv, "equal")
+                                    mutual_exclusive_error(&nv.path, "equal")
                                 } else {
                                     self.length_min = str_or_num_to_expr(&errors, "min", &nv.lit);
                                 }
                             }
                             NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("max") => {
                                 if self.length_max.is_some() {
-                                    duplicate_error(nv)
+                                    duplicate_error(&nv.path)
                                 } else if self.length_equal.is_some() {
-                                    mutual_exclusive_error(nv, "equal")
+                                    mutual_exclusive_error(&nv.path, "equal")
                                 } else {
                                     self.length_max = str_or_num_to_expr(&errors, "max", &nv.lit);
                                 }
                             }
                             NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("equal") => {
                                 if self.length_equal.is_some() {
-                                    duplicate_error(nv)
+                                    duplicate_error(&nv.path)
                                 } else if self.length_min.is_some() {
-                                    mutual_exclusive_error(nv, "min")
+                                    mutual_exclusive_error(&nv.path, "min")
                                 } else if self.length_max.is_some() {
-                                    mutual_exclusive_error(nv, "max")
+                                    mutual_exclusive_error(&nv.path, "max")
                                 } else {
                                     self.length_equal =
                                         str_or_num_to_expr(&errors, "equal", &nv.lit);
@@ -110,14 +153,14 @@ impl ValidationAttrs {
                         match nested {
                             NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("min") => {
                                 if self.range_min.is_some() {
-                                    duplicate_error(nv)
+                                    duplicate_error(&nv.path)
                                 } else {
                                     self.range_min = str_or_num_to_expr(&errors, "min", &nv.lit);
                                 }
                             }
                             NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("max") => {
                                 if self.range_max.is_some() {
-                                    duplicate_error(nv)
+                                    duplicate_error(&nv.path)
                                 } else {
                                     self.range_max = str_or_num_to_expr(&errors, "max", &nv.lit);
                                 }
@@ -140,53 +183,74 @@ impl ValidationAttrs {
                     self.required = true;
                 }
 
-                // TODO cause compile error if format is already Some
-                // FIXME #[validate(...)] overrides #[schemars(...)] - should be other way around!
-                NestedMeta::Meta(Meta::Path(m)) if m.is_ident("email") => {
-                    self.format = Some("email");
+                NestedMeta::Meta(Meta::Path(p)) if p.is_ident(Format::Email.attr_str()) => {
+                    match self.format {
+                        Some(f) => duplicate_format_error(f, Format::Email, p),
+                        None => self.format = Some(Format::Email),
+                    }
                 }
-                NestedMeta::Meta(Meta::Path(m)) if m.is_ident("url") => {
-                    self.format = Some("uri");
+                NestedMeta::Meta(Meta::Path(p)) if p.is_ident(Format::Uri.attr_str()) => {
+                    match self.format {
+                        Some(f) => duplicate_format_error(f, Format::Uri, p),
+                        None => self.format = Some(Format::Uri),
+                    }
                 }
-                NestedMeta::Meta(Meta::Path(m)) if m.is_ident("phone") => {
-                    self.format = Some("phone");
+                NestedMeta::Meta(Meta::Path(p)) if p.is_ident(Format::Phone.attr_str()) => {
+                    match self.format {
+                        Some(f) => duplicate_format_error(f, Format::Phone, p),
+                        None => self.format = Some(Format::Phone),
+                    }
                 }
 
-                // TODO cause compile error if regex/contains are specified more than once
-                // FIXME #[validate(...)] overrides #[schemars(...)] - should be other way around!
-                NestedMeta::Meta(Meta::NameValue(MetaNameValue { path, lit, .. }))
-                    if path.is_ident("regex") =>
-                {
-                    self.regex = parse_lit_into_expr_path(errors, attr_type, "regex", lit).ok()
+                NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("regex") => {
+                    match (&self.regex, &self.contains) {
+                        (Some(_), _) => duplicate_error(&nv.path),
+                        (None, Some(_)) => mutual_exclusive_error(&nv.path, "contains"),
+                        (None, None) => {
+                            self.regex =
+                                parse_lit_into_expr_path(errors, attr_type, "regex", &nv.lit).ok()
+                        }
+                    }
                 }
 
                 NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("regex") => {
-                    for x in meta_list.nested.iter() {
-                        match x {
-                            NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                path, lit, ..
-                            })) if path.is_ident("path") => {
-                                self.regex =
-                                    parse_lit_into_expr_path(errors, attr_type, "path", lit).ok()
-                            }
-                            NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                path, lit, ..
-                            })) if path.is_ident("pattern") => {
-                                self.regex = get_lit_str(errors, attr_type, "pattern", lit)
-                                    .ok()
-                                    .map(|litstr| {
-                                        Expr::Lit(syn::ExprLit {
-                                            attrs: Vec::new(),
-                                            lit: Lit::Str(litstr.clone()),
-                                        })
-                                    })
-                            }
-                            meta => {
-                                if !ignore_errors {
-                                    errors.error_spanned_by(
-                                        meta,
-                                        format!("unknown item in schemars regex attribute"),
-                                    );
+                    match (&self.regex, &self.contains) {
+                        (Some(_), _) => duplicate_error(&meta_list.path),
+                        (None, Some(_)) => mutual_exclusive_error(&meta_list.path, "contains"),
+                        (None, None) => {
+                            for x in meta_list.nested.iter() {
+                                match x {
+                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
+                                        path,
+                                        lit,
+                                        ..
+                                    })) if path.is_ident("path") => {
+                                        self.regex =
+                                            parse_lit_into_expr_path(errors, attr_type, "path", lit)
+                                                .ok()
+                                    }
+                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
+                                        path,
+                                        lit,
+                                        ..
+                                    })) if path.is_ident("pattern") => {
+                                        self.regex = get_lit_str(errors, attr_type, "pattern", lit)
+                                            .ok()
+                                            .map(|litstr| {
+                                                Expr::Lit(syn::ExprLit {
+                                                    attrs: Vec::new(),
+                                                    lit: Lit::Str(litstr.clone()),
+                                                })
+                                            })
+                                    }
+                                    meta => {
+                                        if !ignore_errors {
+                                            errors.error_spanned_by(
+                                                meta,
+                                                format!("unknown item in schemars regex attribute"),
+                                            );
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -196,27 +260,44 @@ impl ValidationAttrs {
                 NestedMeta::Meta(Meta::NameValue(MetaNameValue { path, lit, .. }))
                     if path.is_ident("contains") =>
                 {
-                    self.contains = get_lit_str(errors, attr_type, "contains", lit)
-                        .ok()
-                        .map(|litstr| litstr.value())
+                    match (&self.contains, &self.regex) {
+                        (Some(_), _) => duplicate_error(&path),
+                        (None, Some(_)) => mutual_exclusive_error(&path, "regex"),
+                        (None, None) => {
+                            self.contains = get_lit_str(errors, attr_type, "contains", lit)
+                                .map(|litstr| litstr.value())
+                                .ok()
+                        }
+                    }
                 }
 
                 NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("contains") => {
-                    for x in meta_list.nested.iter() {
-                        match x {
-                            NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                path, lit, ..
-                            })) if path.is_ident("pattern") => {
-                                self.contains = get_lit_str(errors, attr_type, "contains", lit)
-                                    .ok()
-                                    .map(|litstr| litstr.value())
-                            }
-                            meta => {
-                                if !ignore_errors {
-                                    errors.error_spanned_by(
-                                        meta,
-                                        format!("unknown item in schemars contains attribute"),
-                                    );
+                    match (&self.contains, &self.regex) {
+                        (Some(_), _) => duplicate_error(&meta_list.path),
+                        (None, Some(_)) => mutual_exclusive_error(&meta_list.path, "regex"),
+                        (None, None) => {
+                            for x in meta_list.nested.iter() {
+                                match x {
+                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
+                                        path,
+                                        lit,
+                                        ..
+                                    })) if path.is_ident("pattern") => {
+                                        self.contains =
+                                            get_lit_str(errors, attr_type, "contains", lit)
+                                                .ok()
+                                                .map(|litstr| litstr.value())
+                                    }
+                                    meta => {
+                                        if !ignore_errors {
+                                            errors.error_spanned_by(
+                                                meta,
+                                                format!(
+                                                    "unknown item in schemars contains attribute"
+                                                ),
+                                            );
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -293,6 +374,7 @@ impl ValidationAttrs {
         }
 
         let format = self.format.as_ref().map(|f| {
+            let f = f.schema_str();
             quote! {
                 schema_object.format = Some(#f.to_string());
             }

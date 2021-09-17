@@ -62,12 +62,14 @@ pub struct Struct2 {
     min_max: f32,
     #[schemars(range(min = "MIN", max = "MAX"))]
     min_max2: f32,
+    #[validate(regex = "overridden")]
     #[schemars(regex = "STARTS_WITH_HELLO")]
     regex_str1: String,
     #[schemars(regex(path = "STARTS_WITH_HELLO"))]
     regex_str2: String,
     #[schemars(regex(pattern = r"^\d+$"))]
     regex_str3: String,
+    #[validate(regex = "overridden")]
     #[schemars(contains = "substring...")]
     contains_str1: String,
     #[schemars(contains(pattern = "substring..."))]

@@ -61,7 +61,7 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     let span = field.original.span();
     let gen = quote!(gen);
 
-    let mut schema_expr = if field.validation_attrs.required {
+    let mut schema_expr = if field.validation_attrs.required() {
         quote_spanned! {span=>
             <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
         }
@@ -439,7 +439,7 @@ fn expr_for_struct(
 
             let (ty, type_def) = type_for_field_schema(field);
 
-            let maybe_insert_required = match (&default, field.validation_attrs.required) {
+            let maybe_insert_required = match (&default, field.validation_attrs.required()) {
                 (Some(_), _) => TokenStream::new(),
                 (None, false) => {
                     quote! {
@@ -461,7 +461,7 @@ fn expr_for_struct(
             };
 
             let gen = quote!(gen);
-            let mut schema_expr = if field.validation_attrs.required {
+            let mut schema_expr = if field.validation_attrs.required() {
                 quote_spanned! {ty.span()=>
                     <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
                 }
@@ -489,7 +489,7 @@ fn expr_for_struct(
         .map(|field| {
             let (ty, type_def) = type_for_field_schema(field);
 
-            let required = field.validation_attrs.required;
+            let required = field.validation_attrs.required();
 
             let args = quote!(gen, #required);
             let mut schema_expr = quote_spanned! {ty.span()=>
