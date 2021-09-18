@@ -3,6 +3,7 @@
 ## [0.8.4] - **In-dev**
 ### Added:
 - `#[schemars(schema_with = "...")]` attribute can now be set on enum variants.
+- Deriving JsonSchema will now take into account `#[validate(...)]` attributes, compatible with the [validator](https://github.com/Keats/validator) crate (https://github.com/GREsau/schemars/pull/78)
 
 ## [0.8.3] - 2021-04-05
 ### Added:
