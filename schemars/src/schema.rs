@@ -9,6 +9,7 @@ use crate::JsonSchema;
 use crate::{Map, Set};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use std::ops::Deref;
 
 /// A JSON Schema.
 #[allow(clippy::large_enum_variant)]
@@ -191,7 +192,13 @@ where
 macro_rules! get_or_insert_default_fn {
     ($name:ident, $ret:ty) => {
         get_or_insert_default_fn!(
-            concat!("Returns a mutable reference to this schema's [`", stringify!($ret), "`](#structfield.", stringify!($name), "), creating it if it was `None`."),
+            concat!(
+                "Returns a mutable reference to this schema's [`",
+                stringify!($ret),
+                "`](#structfield.",
+                stringify!($name),
+                "), creating it if it was `None`."
+            ),
             $name,
             $ret
         );
@@ -222,6 +229,17 @@ impl SchemaObject {
     /// Otherwise, returns `false`.
     pub fn is_ref(&self) -> bool {
         self.reference.is_some()
+    }
+
+    /// Returns `true` if `self` accepts values of the given type, according to the [`instance_type`] field.
+    ///
+    /// This is a basic check that always returns `true` if no `instance_type` is specified on the schema,
+    /// and does not check any subschemas. Because of this, both `{}` and  `{"not": {}}` accept any type according
+    /// to this method.
+    pub fn has_type(&self, ty: InstanceType) -> bool {
+        self.instance_type
+            .as_ref()
+            .map_or(true, |x| x.contains(&ty))
     }
 
     get_or_insert_default_fn!(metadata, Metadata);
@@ -504,5 +522,30 @@ impl<T> From<T> for SingleOrVec<T> {
 impl<T> From<Vec<T>> for SingleOrVec<T> {
     fn from(vec: Vec<T>) -> Self {
         SingleOrVec::Vec(vec)
+    }
+}
+
+impl<T: PartialEq> SingleOrVec<T> {
+    /// Returns `true` if `self` is either a `Single` equal to `x`, or a `Vec` containing `x`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use schemars::schema::SingleOrVec;
+    ///
+    /// let s = SingleOrVec::from(10);
+    /// assert!(s.contains(&10));
+    /// assert!(!s.contains(&20));
+    ///
+    /// let v = SingleOrVec::from(vec![10, 20]);
+    /// assert!(v.contains(&10));
+    /// assert!(v.contains(&20));
+    /// assert!(!v.contains(&30));
+    /// ```
+    pub fn contains(&self, x: &T) -> bool {
+        match self {
+            SingleOrVec::Single(s) => s.deref() == x,
+            SingleOrVec::Vec(v) => v.contains(x),
+        }
     }
 }

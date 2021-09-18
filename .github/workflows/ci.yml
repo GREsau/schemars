@@ -38,6 +38,8 @@ jobs:
         run: cargo check --verbose --no-default-features
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars
+      - if: matrix.rust == '1.37.0'
+        run: cargo update -p indexmap --precise 1.6.2
       - name: Run tests
         run: cargo test --verbose ${{ matrix.test_features }} --no-fail-fast
         continue-on-error: ${{ matrix.allow_failure }}
