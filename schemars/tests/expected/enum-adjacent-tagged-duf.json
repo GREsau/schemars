@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Adjacent",
-  "anyOf": [
+  "oneOf": [
     {
       "type": "object",
       "required": [
@@ -24,17 +24,17 @@
         "t"
       ],
       "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "StringMap"
-          ]
-        },
         "c": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "t": {
+          "type": "string",
+          "enum": [
+            "StringMap"
+          ]
         }
       },
       "additionalProperties": false
@@ -46,14 +46,14 @@
         "t"
       ],
       "properties": {
+        "c": {
+          "$ref": "#/definitions/UnitStruct"
+        },
         "t": {
           "type": "string",
           "enum": [
             "UnitStructNewType"
           ]
-        },
-        "c": {
-          "$ref": "#/definitions/UnitStruct"
         }
       },
       "additionalProperties": false
@@ -65,14 +65,14 @@
         "t"
       ],
       "properties": {
+        "c": {
+          "$ref": "#/definitions/Struct"
+        },
         "t": {
           "type": "string",
           "enum": [
             "StructNewType"
           ]
-        },
-        "c": {
-          "$ref": "#/definitions/Struct"
         }
       },
       "additionalProperties": false
@@ -84,12 +84,6 @@
         "t"
       ],
       "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "Struct"
-          ]
-        },
         "c": {
           "type": "object",
           "required": [
@@ -97,15 +91,21 @@
             "foo"
           ],
           "properties": {
+            "bar": {
+              "type": "boolean"
+            },
             "foo": {
               "type": "integer",
               "format": "int32"
-            },
-            "bar": {
-              "type": "boolean"
             }
           },
           "additionalProperties": false
+        },
+        "t": {
+          "type": "string",
+          "enum": [
+            "Struct"
+          ]
         }
       },
       "additionalProperties": false
@@ -117,12 +117,6 @@
         "t"
       ],
       "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "Tuple"
-          ]
-        },
         "c": {
           "type": "array",
           "items": [
@@ -136,6 +130,12 @@
           ],
           "maxItems": 2,
           "minItems": 2
+        },
+        "t": {
+          "type": "string",
+          "enum": [
+            "Tuple"
+          ]
         }
       },
       "additionalProperties": false
@@ -162,24 +162,21 @@
         "t"
       ],
       "properties": {
+        "c": {
+          "type": "integer",
+          "format": "int32"
+        },
         "t": {
           "type": "string",
           "enum": [
             "WithInt"
           ]
-        },
-        "c": {
-          "type": "integer",
-          "format": "int32"
         }
       },
       "additionalProperties": false
     }
   ],
   "definitions": {
-    "UnitStruct": {
-      "type": "null"
-    },
     "Struct": {
       "type": "object",
       "required": [
@@ -187,14 +184,17 @@
         "foo"
       ],
       "properties": {
+        "bar": {
+          "type": "boolean"
+        },
         "foo": {
           "type": "integer",
           "format": "int32"
-        },
-        "bar": {
-          "type": "boolean"
         }
       }
+    },
+    "UnitStruct": {
+      "type": "null"
     }
   }
 }
