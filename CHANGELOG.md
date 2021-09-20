@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.5] - 2021-09-20
+### Fixed:
+- Allow fields with plain `#[validate]` attributes (https://github.com/GREsau/schemars/issues/109)
+
 ## [0.8.4] - 2021-09-19
 ### Added:
 - `#[schemars(schema_with = "...")]` attribute can now be set on enum variants.
