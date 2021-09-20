@@ -104,7 +104,7 @@ impl Attrs {
 
         for meta_item in attrs
             .iter()
-            .flat_map(|attr| get_meta_items(attr, attr_type, errors))
+            .flat_map(|attr| get_meta_items(attr, attr_type, errors, ignore_errors))
             .flatten()
         {
             match &meta_item {
@@ -201,6 +201,7 @@ fn get_meta_items(
     attr: &syn::Attribute,
     attr_type: &'static str,
     errors: &Ctxt,
+    ignore_errors: bool,
 ) -> Result<Vec<syn::NestedMeta>, ()> {
     if !attr.path.is_ident(attr_type) {
         return Ok(Vec::new());
@@ -209,11 +210,15 @@ fn get_meta_items(
     match attr.parse_meta() {
         Ok(List(meta)) => Ok(meta.nested.into_iter().collect()),
         Ok(other) => {
-            errors.error_spanned_by(other, format!("expected #[{}(...)]", attr_type));
+            if !ignore_errors {
+                errors.error_spanned_by(other, format!("expected #[{}(...)]", attr_type))
+            }
             Err(())
         }
         Err(err) => {
-            errors.error_spanned_by(attr, err);
+            if !ignore_errors {
+                errors.error_spanned_by(attr, err)
+            }
             Err(())
         }
     }

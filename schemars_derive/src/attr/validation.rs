@@ -99,7 +99,7 @@ impl ValidationAttrs {
 
         for meta_item in attrs
             .iter()
-            .flat_map(|attr| get_meta_items(attr, attr_type, errors))
+            .flat_map(|attr| get_meta_items(attr, attr_type, errors, ignore_errors))
             .flatten()
         {
             match &meta_item {

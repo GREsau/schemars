@@ -42,6 +42,7 @@ pub struct Struct {
     #[validate(required)]
     required_option: Option<bool>,
     #[validate(required)]
+    #[validate]
     #[serde(flatten)]
     required_flattened: Option<Inner>,
 }
