@@ -1,7 +1,7 @@
 # Changelog
 
 ## [0.8.6] - 2021-09-26
-### Fixed:
+### Changed:
 - Use `oneOf` instead of `anyOf` for enums when possible (https://github.com/GREsau/schemars/issues/108)
 
 ## [0.8.5] - 2021-09-20
