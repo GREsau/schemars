@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.6] - 2021-09-26
+### Fixed:
+- Use `oneOf` instead of `anyOf` for enums when possible (https://github.com/GREsau/schemars/issues/108)
+
 ## [0.8.5] - 2021-09-20
 ### Fixed:
 - Allow fields with plain `#[validate]` attributes (https://github.com/GREsau/schemars/issues/109)
