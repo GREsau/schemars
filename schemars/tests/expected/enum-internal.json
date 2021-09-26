@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Internal",
-  "anyOf": [
+  "oneOf": [
     {
       "type": "object",
       "required": [
@@ -55,18 +55,18 @@
         "typeProperty"
       ],
       "properties": {
-        "typeProperty": {
-          "type": "string",
-          "enum": [
-            "StructNewType"
-          ]
+        "bar": {
+          "type": "boolean"
         },
         "foo": {
           "type": "integer",
           "format": "int32"
         },
-        "bar": {
-          "type": "boolean"
+        "typeProperty": {
+          "type": "string",
+          "enum": [
+            "StructNewType"
+          ]
         }
       }
     },
@@ -78,18 +78,18 @@
         "typeProperty"
       ],
       "properties": {
-        "typeProperty": {
-          "type": "string",
-          "enum": [
-            "Struct"
-          ]
+        "bar": {
+          "type": "boolean"
         },
         "foo": {
           "type": "integer",
           "format": "int32"
         },
-        "bar": {
-          "type": "boolean"
+        "typeProperty": {
+          "type": "string",
+          "enum": [
+            "Struct"
+          ]
         }
       }
     },

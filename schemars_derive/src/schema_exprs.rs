@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use crate::{ast::*, attr::WithAttr, metadata::SchemaMetadata};
 use proc_macro2::{Span, TokenStream};
 use serde_derive_internals::ast::Style;
@@ -140,8 +142,14 @@ fn expr_for_external_tagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
     deny_unknown_fields: bool,
 ) -> TokenStream {
-    let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
-        variants.partition(|v| v.is_unit() && v.attrs.with.is_none());
+    let mut unique_names = HashSet::<String>::new();
+    let mut count = 0;
+    let (unit_variants, complex_variants): (Vec<_>, Vec<_>) = variants
+        .inspect(|v| {
+            unique_names.insert(v.name());
+            count += 1;
+        })
+        .partition(|v| v.is_unit() && v.attrs.with.is_none());
 
     let unit_names = unit_variants.iter().map(|v| v.name());
     let unit_schema = schema_object(quote! {
@@ -188,12 +196,7 @@ fn expr_for_external_tagged_enum<'a>(
         schema_expr
     }));
 
-    schema_object(quote! {
-        subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-            any_of: Some(vec![#(#schemas),*]),
-            ..Default::default()
-        })),
-    })
+    variant_subschemas(unique_names.len() == count, schemas)
 }
 
 fn expr_for_internal_tagged_enum<'a>(
@@ -201,70 +204,71 @@ fn expr_for_internal_tagged_enum<'a>(
     tag_name: &str,
     deny_unknown_fields: bool,
 ) -> TokenStream {
-    let variant_schemas = variants.map(|variant| {
-        let name = variant.name();
-        let type_schema = schema_object(quote! {
-            instance_type: Some(schemars::schema::InstanceType::String.into()),
-            enum_values: Some(vec![#name.into()]),
-        });
+    let mut unique_names = HashSet::new();
+    let mut count = 0;
+    let variant_schemas = variants
+        .map(|variant| {
+            unique_names.insert(variant.name());
+            count += 1;
 
-        let mut tag_schema = schema_object(quote! {
-            instance_type: Some(schemars::schema::InstanceType::Object.into()),
-            object: Some(Box::new(schemars::schema::ObjectValidation {
-                properties: {
-                    let mut props = schemars::Map::new();
-                    props.insert(#tag_name.to_owned(), #type_schema);
-                    props
-                },
-                required: {
-                    let mut required = schemars::Set::new();
-                    required.insert(#tag_name.to_owned());
-                    required
-                },
-                ..Default::default()
-            })),
-        });
+            let name = variant.name();
+            let type_schema = schema_object(quote! {
+                instance_type: Some(schemars::schema::InstanceType::String.into()),
+                enum_values: Some(vec![#name.into()]),
+            });
 
-        variant.attrs.as_metadata().apply_to_schema(&mut tag_schema);
+            let mut tag_schema = schema_object(quote! {
+                instance_type: Some(schemars::schema::InstanceType::Object.into()),
+                object: Some(Box::new(schemars::schema::ObjectValidation {
+                    properties: {
+                        let mut props = schemars::Map::new();
+                        props.insert(#tag_name.to_owned(), #type_schema);
+                        props
+                    },
+                    required: {
+                        let mut required = schemars::Set::new();
+                        required.insert(#tag_name.to_owned());
+                        required
+                    },
+                    ..Default::default()
+                })),
+            });
 
-        if let Some(variant_schema) =
-            expr_for_untagged_enum_variant_for_flatten(&variant, deny_unknown_fields)
-        {
-            tag_schema.extend(quote!(.flatten(#variant_schema)))
-        }
+            variant.attrs.as_metadata().apply_to_schema(&mut tag_schema);
 
-        tag_schema
-    });
+            if let Some(variant_schema) =
+                expr_for_untagged_enum_variant_for_flatten(variant, deny_unknown_fields)
+            {
+                tag_schema.extend(quote!(.flatten(#variant_schema)))
+            }
 
-    schema_object(quote! {
-        subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-            any_of: Some(vec![#(#variant_schemas),*]),
-            ..Default::default()
-        })),
-    })
+            tag_schema
+        })
+        .collect();
+
+    variant_subschemas(unique_names.len() == count, variant_schemas)
 }
 
 fn expr_for_untagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
     deny_unknown_fields: bool,
 ) -> TokenStream {
-    let schemas = variants.map(|variant| {
-        let mut schema_expr = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
+    let schemas = variants
+        .map(|variant| {
+            let mut schema_expr = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
 
-        variant
-            .attrs
-            .as_metadata()
-            .apply_to_schema(&mut schema_expr);
+            variant
+                .attrs
+                .as_metadata()
+                .apply_to_schema(&mut schema_expr);
 
-        schema_expr
-    });
+            schema_expr
+        })
+        .collect();
 
-    schema_object(quote! {
-        subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-            any_of: Some(vec![#(#schemas),*]),
-            ..Default::default()
-        })),
-    })
+    // Untagged enums can easily have variants whose schemas overlap; rather
+    // that checking the exclusivity of each subschema we simply us `any_of`.
+    variant_subschemas(false, schemas)
 }
 
 fn expr_for_adjacent_tagged_enum<'a>(
@@ -273,70 +277,92 @@ fn expr_for_adjacent_tagged_enum<'a>(
     content_name: &str,
     deny_unknown_fields: bool,
 ) -> TokenStream {
-    let schemas = variants.map(|variant| {
-        let content_schema = if variant.is_unit() && variant.attrs.with.is_none() {
-            None
-        } else {
-            Some(expr_for_untagged_enum_variant(variant, deny_unknown_fields))
-        };
+    let mut unique_names = HashSet::new();
+    let mut count = 0;
+    let schemas = variants
+        .map(|variant| {
+            unique_names.insert(variant.name());
+            count += 1;
 
-        let (add_content_to_props, add_content_to_required) = content_schema
-            .map(|content_schema| {
-                (
-                    quote!(props.insert(#content_name.to_owned(), #content_schema);),
-                    quote!(required.insert(#content_name.to_owned());),
-                )
-            })
-            .unwrap_or_default();
+            let content_schema = if variant.is_unit() && variant.attrs.with.is_none() {
+                None
+            } else {
+                Some(expr_for_untagged_enum_variant(variant, deny_unknown_fields))
+            };
 
-        let name = variant.name();
-        let tag_schema = schema_object(quote! {
-            instance_type: Some(schemars::schema::InstanceType::String.into()),
-            enum_values: Some(vec![#name.into()]),
-        });
+            let (add_content_to_props, add_content_to_required) = content_schema
+                .map(|content_schema| {
+                    (
+                        quote!(props.insert(#content_name.to_owned(), #content_schema);),
+                        quote!(required.insert(#content_name.to_owned());),
+                    )
+                })
+                .unwrap_or_default();
 
-        let set_additional_properties = if deny_unknown_fields {
-            quote! {
-                additional_properties: Some(Box::new(false.into())),
-            }
-        } else {
-            TokenStream::new()
-        };
+            let name = variant.name();
+            let tag_schema = schema_object(quote! {
+                instance_type: Some(schemars::schema::InstanceType::String.into()),
+                enum_values: Some(vec![#name.into()]),
+            });
 
-        let mut outer_schema = schema_object(quote! {
-            instance_type: Some(schemars::schema::InstanceType::Object.into()),
-            object: Some(Box::new(schemars::schema::ObjectValidation {
-                properties: {
-                    let mut props = schemars::Map::new();
-                    props.insert(#tag_name.to_owned(), #tag_schema);
-                    #add_content_to_props
-                    props
-                },
-                required: {
-                    let mut required = schemars::Set::new();
-                    required.insert(#tag_name.to_owned());
-                    #add_content_to_required
-                    required
-                },
-                #set_additional_properties
+            let set_additional_properties = if deny_unknown_fields {
+                quote! {
+                    additional_properties: Some(Box::new(false.into())),
+                }
+            } else {
+                TokenStream::new()
+            };
+
+            let mut outer_schema = schema_object(quote! {
+                instance_type: Some(schemars::schema::InstanceType::Object.into()),
+                object: Some(Box::new(schemars::schema::ObjectValidation {
+                    properties: {
+                        let mut props = schemars::Map::new();
+                        props.insert(#tag_name.to_owned(), #tag_schema);
+                        #add_content_to_props
+                        props
+                    },
+                    required: {
+                        let mut required = schemars::Set::new();
+                        required.insert(#tag_name.to_owned());
+                        #add_content_to_required
+                        required
+                    },
+                    #set_additional_properties
+                    ..Default::default()
+                })),
+            });
+
+            variant
+                .attrs
+                .as_metadata()
+                .apply_to_schema(&mut outer_schema);
+
+            outer_schema
+        })
+        .collect();
+
+    variant_subschemas(unique_names.len() == count, schemas)
+}
+
+/// Callers must determine if all subschemas are mutually exclusive. This can
+/// be done for most tagging regimes by checking that all tag names are unique.
+fn variant_subschemas(unique: bool, schemas: Vec<TokenStream>) -> TokenStream {
+    if unique {
+        schema_object(quote! {
+            subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
+                one_of: Some(vec![#(#schemas),*]),
                 ..Default::default()
             })),
-        });
-
-        variant
-            .attrs
-            .as_metadata()
-            .apply_to_schema(&mut outer_schema);
-
-        outer_schema
-    });
-
-    schema_object(quote! {
-        subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-            any_of: Some(vec![#(#schemas),*]),
-            ..Default::default()
-        })),
-    })
+        })
+    } else {
+        schema_object(quote! {
+            subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
+                any_of: Some(vec![#(#schemas),*]),
+                ..Default::default()
+            })),
+        })
+    }
 }
 
 fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) -> TokenStream {
