@@ -50,6 +50,8 @@ mod either;
 mod ffi;
 #[cfg(feature = "indexmap")]
 mod indexmap;
+#[cfg(feature = "ipnetwork")]
+mod ipnetwork;
 mod maps;
 mod nonzero_signed;
 mod nonzero_unsigned;
