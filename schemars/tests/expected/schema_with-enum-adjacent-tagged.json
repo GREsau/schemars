@@ -26,7 +26,8 @@
             "Struct"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -44,7 +45,8 @@
             "NewType"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -73,7 +75,8 @@
             "Tuple"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -91,7 +94,8 @@
             "Unit"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     }
   ]
 }

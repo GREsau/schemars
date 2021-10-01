@@ -14,7 +14,8 @@
             "UnitOne"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -35,7 +36,8 @@
             "StringMap"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -53,7 +55,8 @@
             "UnitStructNewType"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -71,7 +74,8 @@
             "StructNewType"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -102,7 +106,8 @@
             "Struct"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -131,7 +136,8 @@
             "Tuple"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -145,7 +151,8 @@
             "UnitTwo"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -164,7 +171,8 @@
             "WithInt"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     }
   ],
   "definitions": {

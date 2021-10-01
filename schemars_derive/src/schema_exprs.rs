@@ -305,14 +305,6 @@ fn expr_for_adjacent_tagged_enum<'a>(
                 enum_values: Some(vec![#name.into()]),
             });
 
-            let set_additional_properties = if deny_unknown_fields {
-                quote! {
-                    additional_properties: Some(Box::new(false.into())),
-                }
-            } else {
-                TokenStream::new()
-            };
-
             let mut outer_schema = schema_object(quote! {
                 instance_type: Some(schemars::schema::InstanceType::Object.into()),
                 object: Some(Box::new(schemars::schema::ObjectValidation {
@@ -328,7 +320,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
                         #add_content_to_required
                         required
                     },
-                    #set_additional_properties
+                    additional_properties: Some(Box::new(false.into())),
                     ..Default::default()
                 })),
             });
