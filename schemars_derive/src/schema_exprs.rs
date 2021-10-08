@@ -183,6 +183,12 @@ fn expr_for_external_tagged_enum<'a>(
                     required.insert(#name.to_owned());
                     required
                 },
+                // Externally tagged variants must prohibit additional
+                // properties irrespective of the disposition of
+                // `deny_unknown_fields`. If additional properties were allowed
+                // one could easily construct an object that validated against
+                // multiple variants since here it's the properties rather than
+                // the values of a property that distingish between variants.
                 additional_properties: Some(Box::new(false.into())),
                 ..Default::default()
             })),
@@ -206,6 +212,13 @@ fn expr_for_internal_tagged_enum<'a>(
 ) -> TokenStream {
     let mut unique_names = HashSet::new();
     let mut count = 0;
+    let set_additional_properties = if deny_unknown_fields {
+        quote! {
+            additional_properties: Some(Box::new(false.into())),
+        }
+    } else {
+        TokenStream::new()
+    };
     let variant_schemas = variants
         .map(|variant| {
             unique_names.insert(variant.name());
@@ -230,6 +243,9 @@ fn expr_for_internal_tagged_enum<'a>(
                         required.insert(#tag_name.to_owned());
                         required
                     },
+                    // As we're creating a "wrapper" object, we can honor the
+                    // disposition of deny_unknown_fields.
+                    #set_additional_properties
                     ..Default::default()
                 })),
             });
@@ -328,6 +344,8 @@ fn expr_for_adjacent_tagged_enum<'a>(
                         #add_content_to_required
                         required
                     },
+                    // As we're creating a "wrapper" object, we can honor the
+                    // disposition of deny_unknown_fields.
                     #set_additional_properties
                     ..Default::default()
                 })),
