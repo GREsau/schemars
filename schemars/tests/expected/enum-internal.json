@@ -28,9 +28,6 @@
             "StringMap"
           ]
         }
-      },
-      "additionalProperties": {
-        "type": "string"
       }
     },
     {

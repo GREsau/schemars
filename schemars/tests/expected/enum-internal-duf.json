@@ -14,7 +14,8 @@
             "UnitOne"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -45,7 +46,8 @@
             "UnitStructNewType"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -106,7 +108,8 @@
             "UnitTwo"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": [
@@ -124,7 +127,8 @@
             "WithInt"
           ]
         }
-      }
+      },
+      "additionalProperties": false
     }
   ]
 }
