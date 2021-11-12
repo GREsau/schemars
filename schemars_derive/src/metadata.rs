@@ -8,6 +8,7 @@ pub struct SchemaMetadata<'a> {
     pub read_only: bool,
     pub write_only: bool,
     pub examples: &'a [syn::Path],
+    pub example_sets: &'a [syn::Path],
     pub default: Option<TokenStream>,
 }
 
@@ -55,15 +56,43 @@ impl<'a> SchemaMetadata<'a> {
             });
         }
 
-        if !self.examples.is_empty() {
-            let examples = self.examples.iter().map(|eg| {
-                quote! {
-                    schemars::_serde_json::value::to_value(#eg())
-                }
-            });
-            setters.push(quote! {
-                examples: vec![#(#examples),*].into_iter().flatten().collect(),
-            });
+        let examples = self.examples.iter().map(|eg| {
+            quote! {
+                schemars::_serde_json::value::to_value(#eg())
+            }
+        });
+
+        let example_sets = self.example_sets.iter().map(|eg| {
+            quote! {
+                #eg().into_iter().map(schemars::_serde_json::value::to_value)
+            }
+        });
+
+        // generate different code when one of the collections is empty,
+        // otherwise rustc has trouble inferring the element type for the empty vec
+        match (!self.example_sets.is_empty(), !self.examples.is_empty()) {
+            (true, true) => setters.push(quote! {
+                examples: vec![#(#example_sets),*]
+                    .into_iter()
+                    .flatten() // example sets to single examples
+                    .chain(vec![#(#examples),*])
+                    .flatten() // remove err variants from to_value results
+                    .collect(),
+            }),
+            (false, true) => setters.push(quote! {
+                examples: vec![#(#examples),*]
+                    .into_iter()
+                    .flatten() // remove err variants from to_value results
+                    .collect(),
+            }),
+            (true, false) => setters.push(quote! {
+                examples: vec![#(#example_sets),*]
+                    .into_iter()
+                    .flatten() // example sets to single examples
+                    .flatten() // remove err variants from to_value results
+                    .collect(),
+            }),
+            (false, false) => {}
         }
 
         if let Some(default) = &self.default {

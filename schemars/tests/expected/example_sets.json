@@ -1,0 +1,69 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "StructExampleSet",
+  "examples": [
+    "rust",
+    "cpp",
+    "c",
+    {
+      "bar": false,
+      "baz": null,
+      "foo": 0
+    }
+  ],
+  "type": "object",
+  "required": [
+    "bar",
+    "foo"
+  ],
+  "properties": {
+    "bar": {
+      "examples": [
+        60,
+        120,
+        180,
+        240
+      ],
+      "type": "integer",
+      "format": "uint",
+      "minimum": 0.0
+    },
+    "baz": {
+      "examples": [
+        "rust",
+        "cpp",
+        "c"
+      ],
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "foo": {
+      "examples": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        null
+      ],
+      "type": "integer",
+      "format": "int32"
+    }
+  }
+}
