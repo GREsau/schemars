@@ -68,7 +68,7 @@ impl<'a> SchemaMetadata<'a> {
 
         if let Some(default) = &self.default {
             setters.push(quote! {
-                default: #default.and_then(|d| schemars::_serde_json::value::to_value(d).ok()),
+                default: #default.and_then(|d| schemars::_schemars_maybe_to_value!(d)),
             });
         }
 
