@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.7] - 2021-11-14
+### Added:
+- Implement `JsonSchema` for `EnumSet` (https://github.com/GREsau/schemars/pull/92)
+
+### Fixed:
+- Do not cause compile error when using a default value that doesn't implement `Serialize` (https://github.com/GREsau/schemars/issues/115)
+
 ## [0.8.6] - 2021-09-26
 ### Changed:
 - Use `oneOf` instead of `anyOf` for enums when possible (https://github.com/GREsau/schemars/issues/108)
