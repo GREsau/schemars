@@ -33,7 +33,7 @@
   "definitions": {
     "MyEnum": {
       "title": "My Amazing Enum",
-      "anyOf": [
+      "oneOf": [
         {
           "description": "A wrapper around a `String`",
           "type": "object",

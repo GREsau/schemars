@@ -18,7 +18,7 @@
       "minimum": 1.0
     },
     "my_nullable_enum": {
-      "anyOf": [
+      "oneOf": [
         {
           "type": "object",
           "required": [
