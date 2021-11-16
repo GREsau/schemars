@@ -275,3 +275,10 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - [`url`](https://crates.io/crates/url) (^2.0)
 - [`bytes`](https://crates.io/crates/bytes) (^1.0)
 - [`enumset`](https://crates.io/crates/enumset) (^1.0)
+
+As an example, to enable `JsonSchema` types for the `chrono` crate, load `schemars` like this in your `cargo.toml`:
+
+```toml
+[dependencies]
+schemars = { version = "0.8", features = ["chrono"] }
+```
