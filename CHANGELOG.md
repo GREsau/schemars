@@ -1,8 +1,24 @@
 # Changelog
 
-## [0.8.4] - **In-dev**
+## [0.8.7] - 2021-11-14
+### Added:
+- Implement `JsonSchema` for `EnumSet` (https://github.com/GREsau/schemars/pull/92)
+
+### Fixed:
+- Do not cause compile error when using a default value that doesn't implement `Serialize` (https://github.com/GREsau/schemars/issues/115)
+
+## [0.8.6] - 2021-09-26
+### Changed:
+- Use `oneOf` instead of `anyOf` for enums when possible (https://github.com/GREsau/schemars/issues/108)
+
+## [0.8.5] - 2021-09-20
+### Fixed:
+- Allow fields with plain `#[validate]` attributes (https://github.com/GREsau/schemars/issues/109)
+
+## [0.8.4] - 2021-09-19
 ### Added:
 - `#[schemars(schema_with = "...")]` attribute can now be set on enum variants.
+- Deriving JsonSchema will now take into account `#[validate(...)]` attributes, compatible with the [validator](https://github.com/Keats/validator) crate (https://github.com/GREsau/schemars/pull/78)
 
 ## [0.8.3] - 2021-04-05
 ### Added:

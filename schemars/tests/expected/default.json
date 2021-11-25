@@ -22,6 +22,9 @@
     },
     "my_struct2_default_skipped": {
       "$ref": "#/definitions/MyStruct2"
+    },
+    "not_serialize": {
+      "$ref": "#/definitions/NotSerialize"
     }
   },
   "definitions": {
@@ -38,6 +41,9 @@
           "type": "boolean"
         }
       }
+    },
+    "NotSerialize": {
+      "type": "null"
     }
   }
 }

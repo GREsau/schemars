@@ -25,7 +25,7 @@
   },
   "definitions": {
     "MyEnum": {
-      "anyOf": [
+      "oneOf": [
         {
           "type": "object",
           "required": [

@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "OuterEnum",
-  "anyOf": [
+  "oneOf": [
     {
       "type": "object",
       "required": [
@@ -17,7 +17,16 @@
   ],
   "definitions": {
     "InnerStruct": {
-      "type": "object"
+      "type": "object",
+      "required": [
+        "x"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
     }
   }
 }
