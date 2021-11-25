@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.8] - 2021-11-25
+### Added:
+- Implement `JsonSchema` for types from `rust_decimal` and `bigdecimal` crates (https://github.com/GREsau/schemars/pull/101)
+
+### Fixed:
+- Fixes for internally tagged enums and flattening additional_properties (https://github.com/GREsau/schemars/pull/113)
+
 ## [0.8.7] - 2021-11-14
 ### Added:
 - Implement `JsonSchema` for `EnumSet` (https://github.com/GREsau/schemars/pull/92)
