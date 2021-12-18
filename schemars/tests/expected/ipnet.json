@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IpNetTypes",
+  "type": "object",
+  "required": [
+    "ipnet",
+    "ipv4net",
+    "ipv6net"
+  ],
+  "properties": {
+    "ipnet": {
+      "type": "string",
+      "format": "ipnet"
+    },
+    "ipv4net": {
+      "type": "string",
+      "format": "ipv4net"
+    },
+    "ipv6net": {
+      "type": "string",
+      "format": "ipv6net"
+    }
+  }
+}
