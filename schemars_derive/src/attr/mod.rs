@@ -1,8 +1,11 @@
 mod doc;
 mod schemars_to_serde;
+mod validation;
 
 pub use schemars_to_serde::process_serde_attrs;
+pub use validation::ValidationAttrs;
 
+use crate::metadata::SchemaMetadata;
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
@@ -52,6 +55,28 @@ impl Attrs {
         result
     }
 
+    pub fn as_metadata(&self) -> SchemaMetadata<'_> {
+        #[allow(clippy::ptr_arg)]
+        fn none_if_empty(s: &String) -> Option<&str> {
+            if s.is_empty() {
+                None
+            } else {
+                Some(s)
+            }
+        }
+
+        SchemaMetadata {
+            title: self.title.as_ref().and_then(none_if_empty),
+            description: self.description.as_ref().and_then(none_if_empty),
+            deprecated: self.deprecated,
+            examples: &self.examples,
+            read_only: false,
+            write_only: false,
+            extensions: &self.extensions,
+            default: None,
+        }
+    }
+
     fn populate(
         mut self,
         attrs: &[syn::Attribute],
@@ -81,7 +106,7 @@ impl Attrs {
 
         for meta_item in attrs
             .iter()
-            .flat_map(|attr| get_meta_items(attr, attr_type, errors))
+            .flat_map(|attr| get_meta_items(attr, attr_type, errors, ignore_errors))
             .flatten()
         {
             match &meta_item {
@@ -148,10 +173,7 @@ impl Attrs {
                 _ if ignore_errors => {}
 
                 Meta(meta_item) => {
-                    let is_known_serde_keyword = schemars_to_serde::SERDE_KEYWORDS
-                        .iter()
-                        .any(|k| meta_item.path().is_ident(k));
-                    if !is_known_serde_keyword {
+                    if !is_known_serde_or_validation_keyword(meta_item) {
                         let path = meta_item
                             .path()
                             .into_token_stream()
@@ -159,16 +181,13 @@ impl Attrs {
                             .replace(' ', "");
                         errors.error_spanned_by(
                             meta_item.path(),
-                            format!("unknown schemars container attribute `{}`", path),
+                            format!("unknown schemars attribute `{}`", path),
                         );
                     }
                 }
 
                 Lit(lit) => {
-                    errors.error_spanned_by(
-                        lit,
-                        "unexpected literal in schemars container attribute",
-                    );
+                    errors.error_spanned_by(lit, "unexpected literal in schemars attribute");
                 }
             }
         }
@@ -176,10 +195,21 @@ impl Attrs {
     }
 }
 
+fn is_known_serde_or_validation_keyword(meta: &syn::Meta) -> bool {
+    let mut known_keywords = schemars_to_serde::SERDE_KEYWORDS
+        .iter()
+        .chain(validation::VALIDATION_KEYWORDS);
+    meta.path()
+        .get_ident()
+        .map(|i| known_keywords.any(|k| i == k))
+        .unwrap_or(false)
+}
+
 fn get_meta_items(
     attr: &syn::Attribute,
     attr_type: &'static str,
     errors: &Ctxt,
+    ignore_errors: bool,
 ) -> Result<Vec<syn::NestedMeta>, ()> {
     if !attr.path.is_ident(attr_type) {
         return Ok(Vec::new());
@@ -188,11 +218,15 @@ fn get_meta_items(
     match attr.parse_meta() {
         Ok(List(meta)) => Ok(meta.nested.into_iter().collect()),
         Ok(other) => {
-            errors.error_spanned_by(other, format!("expected #[{}(...)]", attr_type));
+            if !ignore_errors {
+                errors.error_spanned_by(other, format!("expected #[{}(...)]", attr_type))
+            }
             Err(())
         }
         Err(err) => {
-            errors.error_spanned_by(attr, err);
+            if !ignore_errors {
+                errors.error_spanned_by(attr, err)
+            }
             Err(())
         }
     }

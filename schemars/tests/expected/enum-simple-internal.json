@@ -1,30 +1,23 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Internal",
+  "title": "SimpleInternal",
   "oneOf": [
     {
       "type": "object",
       "required": [
-        "foo",
         "typeProperty"
       ],
       "properties": {
-        "foo": {
-          "type": "boolean"
-        },
         "typeProperty": {
           "type": "string",
           "enum": [
-            "Struct"
+            "A"
           ]
         }
       }
     },
     {
-      "type": [
-        "boolean",
-        "object"
-      ],
+      "type": "object",
       "required": [
         "typeProperty"
       ],
@@ -32,16 +25,13 @@
         "typeProperty": {
           "type": "string",
           "enum": [
-            "NewType"
+            "B"
           ]
         }
       }
     },
     {
-      "type": [
-        "boolean",
-        "object"
-      ],
+      "type": "object",
       "required": [
         "typeProperty"
       ],
@@ -49,7 +39,7 @@
         "typeProperty": {
           "type": "string",
           "enum": [
-            "Unit"
+            "C"
           ]
         }
       }

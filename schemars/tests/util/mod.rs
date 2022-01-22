@@ -22,7 +22,7 @@ pub fn test_schema(actual: &RootSchema, file: &str) -> TestResult {
     let expected_json = match fs::read_to_string(format!("tests/expected/{}.json", file)) {
         Ok(j) => j,
         Err(e) => {
-            write_actual_to_file(&actual, file)?;
+            write_actual_to_file(actual, file)?;
             return Err(Box::from(e));
         }
     };
@@ -32,7 +32,7 @@ pub fn test_schema(actual: &RootSchema, file: &str) -> TestResult {
         write_actual_to_file(actual, file)?;
     }
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
     Ok(())
 }
 

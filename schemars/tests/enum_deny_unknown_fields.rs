@@ -104,3 +104,16 @@ pub enum Adjacent {
 fn enum_adjacent_tagged() -> TestResult {
     test_default_generated_schema::<Adjacent>("enum-adjacent-tagged-duf")
 }
+
+#[derive(Debug, JsonSchema)]
+#[schemars(tag = "typeProperty", deny_unknown_fields)]
+pub enum SimpleInternal {
+    A,
+    B,
+    C,
+}
+
+#[test]
+fn enum_simple_internal_tag() -> TestResult {
+    test_default_generated_schema::<SimpleInternal>("enum-simple-internal-duf")
+}

@@ -45,8 +45,12 @@ mod bytes;
 #[cfg(feature = "chrono")]
 mod chrono;
 mod core;
+#[cfg(any(feature = "rust_decimal", feature="bigdecimal"))]
+mod decimal;
 #[cfg(feature = "either")]
 mod either;
+#[cfg(feature = "enumset")]
+mod enumset;
 mod ffi;
 #[cfg(feature = "indexmap")]
 mod indexmap;

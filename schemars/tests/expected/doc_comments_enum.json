@@ -2,7 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "This is the enum's title",
   "description": "This is the enum's description.",
-  "anyOf": [
+  "oneOf": [
     {
       "type": "string",
       "enum": [

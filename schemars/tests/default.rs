@@ -1,6 +1,5 @@
 mod util;
 use schemars::JsonSchema;
-use serde::{Deserialize, Serialize};
 use util::*;
 
 fn is_default<T: Default + PartialEq>(value: &T) -> bool {
@@ -25,7 +24,7 @@ where
     ser.collect_str(&format_args!("i:{} b:{}", value.my_int, value.my_bool))
 }
 
-#[derive(Default, Deserialize, Serialize, JsonSchema, Debug)]
+#[derive(Default, JsonSchema, Debug)]
 #[serde(default)]
 pub struct MyStruct {
     pub my_int: i32,
@@ -37,15 +36,19 @@ pub struct MyStruct {
         skip_serializing_if = "is_default"
     )]
     pub my_struct2_default_skipped: MyStruct2,
+    pub not_serialize: NotSerialize,
 }
 
-#[derive(Default, Deserialize, Serialize, JsonSchema, Debug, PartialEq)]
+#[derive(Default, JsonSchema, Debug, PartialEq)]
 #[serde(default = "ten_and_true")]
 pub struct MyStruct2 {
     #[serde(default = "six")]
     pub my_int: i32,
     pub my_bool: bool,
 }
+
+#[derive(Default, JsonSchema, Debug)]
+pub struct NotSerialize;
 
 #[test]
 fn schema_default_values() -> TestResult {
