@@ -1,7 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
-use serde_json::json;
 use ipnetwork::{Ipv4Network, Ipv6Network};
 
 impl JsonSchema for Ipv4Network {
@@ -43,7 +42,7 @@ impl JsonSchema for Ipv6Network {
             string: Some(Box::new(StringValidation {
                 // Very rough approximation. IPv4 mapped/embedded addresses make generic regexp really hard
                 // (see https://datatracker.ietf.org/doc/html/rfc5952).
-                pattern: Some(r"^[0-9a-f:.]+/1?[0-9][0-9]?$".to_string()),
+                pattern: Some(r"^[0-9a-f:\.]+/1?[0-9][0-9]?$".to_string()),
                 ..Default::default()
             })),
             metadata: Some(Box::new(Metadata {
