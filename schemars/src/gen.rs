@@ -225,6 +225,7 @@ impl SchemaGenerator {
             if !self.definitions.contains_key(&name) {
                 self.insert_new_subschema_for::<T>(name);
             }
+            // TODO URL-encode reference, taking special care of ~ and / (see https://datatracker.ietf.org/doc/html/rfc6901#section-3)
             Schema::new_ref(reference)
         } else {
             self.json_schema_internal::<T>(&name)

@@ -5,19 +5,12 @@ use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV
 use std::path::{Path, PathBuf};
 
 macro_rules! simple_impl {
-    ($type:ty => $instance_type:ident) => {
-        simple_impl!($type => $instance_type, stringify!($instance_type), None);
-    };
     ($type:ty => $instance_type:ident, $format:literal) => {
-        simple_impl!($type => $instance_type, $format, Some($format.to_owned()));
+        simple_impl!($type => $instance_type, Some($format.to_owned()));
     };
-    ($type:ty => $instance_type:ident, $name:expr, $format:expr) => {
+    ($type:ty => $instance_type:ident, $format:expr) => {
         impl JsonSchema for $type {
             no_ref_schema!();
-
-            fn schema_name() -> String {
-                $name.to_owned()
-            }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
                 SchemaObject {
@@ -31,9 +24,8 @@ macro_rules! simple_impl {
     };
 }
 
-simple_impl!(str => String);
-simple_impl!(String => String);
-simple_impl!(bool => Boolean);
+simple_impl!(str => String, None);
+simple_impl!(bool => Boolean, None);
 simple_impl!(f32 => Number, "float");
 simple_impl!(f64 => Number, "double");
 simple_impl!(i8 => Integer, "int8");
@@ -42,27 +34,23 @@ simple_impl!(i32 => Integer, "int32");
 simple_impl!(i64 => Integer, "int64");
 simple_impl!(i128 => Integer, "int128");
 simple_impl!(isize => Integer, "int");
-simple_impl!(() => Null);
-
-simple_impl!(Path => String);
-simple_impl!(PathBuf => String);
+simple_impl!(() => Null, None);
 
 simple_impl!(Ipv4Addr => String, "ipv4");
 simple_impl!(Ipv6Addr => String, "ipv6");
 simple_impl!(IpAddr => String, "ip");
 
-simple_impl!(SocketAddr => String);
-simple_impl!(SocketAddrV4 => String);
-simple_impl!(SocketAddrV6 => String);
+forward_impl!(String => str);
+forward_impl!(Path => str);
+forward_impl!(PathBuf => str);
+forward_impl!(SocketAddr => str);
+forward_impl!(SocketAddrV4 => str);
+forward_impl!(SocketAddrV6 => str);
 
 macro_rules! unsigned_impl {
     ($type:ty => $instance_type:ident, $format:expr) => {
         impl JsonSchema for $type {
             no_ref_schema!();
-
-            fn schema_name() -> String {
-                $format.to_owned()
-            }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
                 let mut schema = SchemaObject {
@@ -86,10 +74,6 @@ unsigned_impl!(usize => Integer, "uint");
 
 impl JsonSchema for char {
     no_ref_schema!();
-
-    fn schema_name() -> String {
-        "Character".to_owned()
-    }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
         SchemaObject {

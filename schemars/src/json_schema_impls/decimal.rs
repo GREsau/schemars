@@ -2,30 +2,28 @@ use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 
-macro_rules! decimal_impl {
-    ($type:ty) => {
-        decimal_impl!($type => Number, "Number");
-    };
-    ($type:ty => $instance_type:ident, $name:expr) => {
-        impl JsonSchema for $type {
-            no_ref_schema!();
+#[cfg(feature = "rust_decimal")]
+impl JsonSchema for rust_decimal::Decimal {
+    no_ref_schema!();
 
-            fn schema_name() -> String {
-                $name.to_owned()
-            }
-
-            fn json_schema(_: &mut SchemaGenerator) -> Schema {
-                SchemaObject {
-                    instance_type: Some(InstanceType::$instance_type.into()),
-                    ..Default::default()
-                }
-                .into()
-            }
+    fn json_schema(_: &mut SchemaGenerator) -> Schema {
+        SchemaObject {
+            instance_type: Some(InstanceType::Number.into()),
+            ..Default::default()
         }
-    };
+        .into()
+    }
 }
 
-#[cfg(feature="rust_decimal")]
-decimal_impl!(rust_decimal::Decimal);
-#[cfg(feature="bigdecimal")]
-decimal_impl!(bigdecimal::BigDecimal);
+#[cfg(feature = "bigdecimal")]
+impl JsonSchema for bigdecimal::BigDecimal {
+    no_ref_schema!();
+
+    fn json_schema(_: &mut SchemaGenerator) -> Schema {
+        SchemaObject {
+            instance_type: Some(InstanceType::Number.into()),
+            ..Default::default()
+        }
+        .into()
+    }
+}

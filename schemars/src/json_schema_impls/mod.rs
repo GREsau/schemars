@@ -7,7 +7,7 @@ macro_rules! no_ref_schema {
 }
 
 macro_rules! forward_impl {
-    (($($impl:tt)+) => $target:ty) => {
+    ($(impl)? ($($impl:tt)+) => $target:ty) => {
         impl $($impl)+ {
             fn is_referenceable() -> bool {
                 <$target>::is_referenceable()
@@ -15,6 +15,10 @@ macro_rules! forward_impl {
 
             fn schema_name() -> String {
                 <$target>::schema_name()
+            }
+
+            fn schema_id() -> std::borrow::Cow<'static, str> {
+                <$target>::schema_id()
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
@@ -45,7 +49,7 @@ mod bytes;
 #[cfg(feature = "chrono")]
 mod chrono;
 mod core;
-#[cfg(any(feature = "rust_decimal", feature="bigdecimal"))]
+#[cfg(any(feature = "rust_decimal", feature = "bigdecimal"))]
 mod decimal;
 #[cfg(feature = "either")]
 mod either;

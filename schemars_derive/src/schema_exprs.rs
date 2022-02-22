@@ -105,6 +105,10 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
                         false
                     }
 
+                    fn schema_id() -> std::borrow::Cow<'static, str> {
+                        std::borrow::Cow::Borrowed(#fn_name)
+                    }
+
                     fn schema_name() -> std::string::String {
                         #fn_name.to_string()
                     }

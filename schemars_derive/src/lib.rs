@@ -67,6 +67,10 @@ fn derive_json_schema(
                         <#ty as schemars::JsonSchema>::schema_name()
                     }
 
+                    fn schema_id() -> std::borrow::Cow<'static, str> {
+                        <#ty as schemars::JsonSchema>::schema_id()
+                    }
+
                     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
                         <#ty as schemars::JsonSchema>::json_schema(gen)
                     }

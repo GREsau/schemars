@@ -329,6 +329,7 @@ pub use schemars_derive::*;
 pub use serde_json as _serde_json;
 
 use schema::Schema;
+use std::borrow::Cow;
 
 /// A type which can be described as a JSON Schema document.
 ///
@@ -348,6 +349,7 @@ use schema::Schema;
 /// let my_schema = schema_for!(MyStruct);
 /// ```
 pub trait JsonSchema {
+    // TODO replace (and invert) with always_inline - maybe as an associated const?
     /// Whether JSON Schemas generated for this type should be re-used where possible using the `$ref` keyword.
     ///
     /// For trivial types (such as primitives), this should return `false`. For more complex types, it should return `true`.
@@ -358,10 +360,18 @@ pub trait JsonSchema {
         true
     }
 
+    // TODO consider changing to Cow<'static, str>
     /// The name of the generated JSON Schema.
     ///
     /// This is used as the title for root schemas, and the key within the root's `definitions` property for subschemas.
-    fn schema_name() -> String;
+    fn schema_name() -> String {
+        // TODO strip off leading module path(s)?
+        Self::schema_id().into_owned()
+    }
+
+    fn schema_id() -> Cow<'static, str>; /* {
+                                             Cow::Borrowed(std::any::type_name::<Self>())
+                                         }*/
 
     /// Generates a JSON Schema for this type.
     ///

@@ -1,11 +1,16 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::borrow::Cow;
 use std::ffi::{CStr, CString, OsStr, OsString};
 
 impl JsonSchema for OsString {
     fn schema_name() -> String {
         "OsString".to_owned()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed("std::ffi::os_str::OsString")
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {

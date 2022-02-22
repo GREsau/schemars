@@ -2,6 +2,7 @@ use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use arrayvec::{Array, ArrayString, ArrayVec};
+use std::borrow::Cow;
 use std::convert::TryInto;
 
 // Do not set maxLength on the schema as that describes length in characters, but we only
@@ -14,12 +15,12 @@ where
 {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        format!(
-            "Array_up_to_size_{}_of_{}",
-            A::CAPACITY,
-            A::Item::schema_name()
-        )
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Owned(format!(
+            "arrayvec::ArrayVec<{}, {}>",
+            A::Item::schema_id(),
+            A: CAPACITY
+        ))
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
