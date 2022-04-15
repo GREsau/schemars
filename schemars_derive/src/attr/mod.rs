@@ -27,6 +27,7 @@ pub struct Attrs {
     pub examples: Vec<syn::Path>,
     pub repr: Option<syn::Type>,
     pub crate_name: Option<syn::Path>,
+    pub aliases: Vec<String>,
 }
 
 #[derive(Debug)]
@@ -159,6 +160,12 @@ impl Attrs {
                         } else {
                             self.crate_name = Some(p)
                         }
+                    }
+                }
+
+                Meta(NameValue(m)) if m.path.is_ident("alias") && attr_type == "serde" => {
+                    if let Ok(alias) = get_lit_str(errors, attr_type, "alias", &m.lit) {
+                        self.aliases.push(alias.value())
                     }
                 }
 

@@ -112,3 +112,15 @@ pub enum SimpleInternal {
 fn enum_simple_internal_tag() -> TestResult {
     test_default_generated_schema::<SimpleInternal>("enum-simple-internal")
 }
+
+#[derive(Debug, JsonSchema)]
+pub enum Aliased {
+    #[schemars(alias = "v1", alias = "variant1")]
+    V1,
+    #[schemars(alias = "v2", alias = "variant2")]
+    V2,
+}
+#[test]
+fn enum_aliased() -> TestResult {
+    test_default_generated_schema::<Aliased>("enum-aliased")
+}

@@ -151,7 +151,12 @@ fn expr_for_external_tagged_enum<'a>(
         })
         .partition(|v| v.is_unit() && v.attrs.with.is_none());
 
-    let unit_names = unit_variants.iter().map(|v| v.name());
+    let unit_names = unit_variants.iter().map(|v| {
+        let mut names: Vec<String> = Vec::with_capacity(1 + v.attrs.aliases.len());
+        names.extend_from_slice(&v.attrs.aliases);
+        names.push(v.name());
+        names
+    }).flatten();
     let unit_schema = schema_object(quote! {
         instance_type: Some(schemars::schema::InstanceType::String.into()),
         enum_values: Some(vec![#(#unit_names.into()),*]),
@@ -188,7 +193,7 @@ fn expr_for_external_tagged_enum<'a>(
                 // `deny_unknown_fields`. If additional properties were allowed
                 // one could easily construct an object that validated against
                 // multiple variants since here it's the properties rather than
-                // the values of a property that distingish between variants.
+                // the values of a property that distinguish between variants.
                 additional_properties: Some(Box::new(false.into())),
                 ..Default::default()
             })),
