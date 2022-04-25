@@ -1,33 +1,29 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
-use arrayvec::{Array, ArrayString, ArrayVec};
+use arrayvec::{ArrayString, ArrayVec};
 use std::convert::TryInto;
 
 // Do not set maxLength on the schema as that describes length in characters, but we only
 // know max length in bytes.
-forward_impl!((<A> JsonSchema for ArrayString<A> where A: Array<Item = u8> + Copy) => String);
+forward_impl!((<const CAP: usize> JsonSchema for ArrayString<CAP>) => String);
 
-impl<A: Array> JsonSchema for ArrayVec<A>
+impl<T, const CAP: usize> JsonSchema for ArrayVec<T, CAP>
 where
-    A::Item: JsonSchema,
+    T: JsonSchema,
 {
     no_ref_schema!();
 
     fn schema_name() -> String {
-        format!(
-            "Array_up_to_size_{}_of_{}",
-            A::CAPACITY,
-            A::Item::schema_name()
-        )
+        format!("Array_up_to_size_{}_of_{}", CAP, T::schema_name())
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         SchemaObject {
             instance_type: Some(InstanceType::Array.into()),
             array: Some(Box::new(ArrayValidation {
-                items: Some(gen.subschema_for::<A::Item>().into()),
-                max_items: A::CAPACITY.try_into().ok(),
+                items: Some(gen.subschema_for::<T>().into()),
+                max_items: CAP.try_into().ok(),
                 ..Default::default()
             })),
             ..Default::default()
