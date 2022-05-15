@@ -1,8 +1,12 @@
 mod util;
 use util::*;
-use uuid::Uuid;
 
 #[test]
-fn uuid() -> TestResult {
-    test_default_generated_schema::<Uuid>("uuid")
+fn uuid08() -> TestResult {
+    test_default_generated_schema::<uuid08::Uuid>("uuid")
+}
+
+#[test]
+fn uuid1() -> TestResult {
+    test_default_generated_schema::<uuid1::Uuid>("uuid")
 }
