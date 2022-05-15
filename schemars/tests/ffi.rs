@@ -3,7 +3,8 @@ use schemars::JsonSchema;
 use std::ffi::{OsStr, OsString};
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct OsStrings {
     owned: OsString,
     borrowed: &'static OsStr,

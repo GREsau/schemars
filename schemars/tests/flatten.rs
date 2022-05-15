@@ -2,7 +2,8 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct Flat {
     f: f32,
     b: bool,
@@ -12,7 +13,8 @@ struct Flat {
     v: Vec<i32>,
 }
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 #[schemars(rename = "Flat")]
 struct Deep1 {
     f: f32,
@@ -21,8 +23,8 @@ struct Deep1 {
     v: Vec<i32>,
 }
 
-#[allow(clippy::option_option)]
-#[derive(Debug, JsonSchema)]
+#[allow(clippy::option_option, dead_code)]
+#[derive(JsonSchema)]
 struct Deep2 {
     b: bool,
     #[serde(flatten)]
@@ -31,12 +33,14 @@ struct Deep2 {
     deep4: Box<Option<Option<Box<Deep4>>>>,
 }
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct Deep3 {
     s: &'static str,
 }
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct Deep4 {
     #[serde(default)]
     os: &'static str,

@@ -3,7 +3,8 @@ use chrono::prelude::*;
 use schemars::JsonSchema;
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct ChronoTypes {
     weekday: Weekday,
     date_time: DateTime<Utc>,

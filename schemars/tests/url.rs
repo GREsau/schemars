@@ -3,7 +3,8 @@ use schemars::JsonSchema;
 use url::Url;
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct UrlTypes {
     url: Url,
 }

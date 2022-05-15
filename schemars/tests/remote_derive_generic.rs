@@ -5,10 +5,9 @@ use serde::Serialize;
 use std::collections::{HashMap, HashSet};
 use util::*;
 
+#[allow(dead_code)]
 enum Or<A, B> {
-    #[allow(dead_code)]
     A(A),
-    #[allow(dead_code)]
     B(B),
 }
 

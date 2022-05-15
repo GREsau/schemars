@@ -9,7 +9,7 @@ fn schema_fn(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Sche
 #[derive(Debug)]
 pub struct DoesntImplementJsonSchema;
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 #[schemars(rename_all = "camelCase")]
 pub enum External {
     Struct {
@@ -30,7 +30,7 @@ fn enum_external_tag() -> TestResult {
     test_default_generated_schema::<External>("schema_with-enum-external")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 #[schemars(tag = "typeProperty")]
 pub enum Internal {
     Struct {
@@ -47,7 +47,7 @@ fn enum_internal_tag() -> TestResult {
     test_default_generated_schema::<Internal>("schema_with-enum-internal")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 #[schemars(untagged)]
 pub enum Untagged {
     Struct {
@@ -68,7 +68,7 @@ fn enum_untagged() -> TestResult {
     test_default_generated_schema::<Untagged>("schema_with-enum-untagged")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 #[schemars(tag = "t", content = "c")]
 pub enum Adjacent {
     Struct {

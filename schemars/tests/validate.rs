@@ -9,7 +9,8 @@ static STARTS_WITH_HELLO: &'static str = r"^[Hh]ello\b";
 const MIN: u32 = 1;
 const MAX: u32 = 1000;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 pub struct Struct {
     #[validate(range(min = 0.01, max = 100))]
     min_max: f32,
@@ -47,7 +48,8 @@ pub struct Struct {
     required_flattened: Option<Inner>,
 }
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 pub struct Inner {
     x: i32,
 }
@@ -57,7 +59,8 @@ fn validate() -> TestResult {
     test_default_generated_schema::<Struct>("validate")
 }
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 pub struct Struct2 {
     #[schemars(range(min = 0.01, max = 100))]
     min_max: f32,
@@ -101,7 +104,7 @@ fn validate_schemars_attrs() -> TestResult {
     test_default_generated_schema::<Struct>("validate_schemars_attrs")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 pub struct Tuple(
     #[validate(range(max = 10))] u8,
     #[validate(required)] Option<bool>,
@@ -112,7 +115,7 @@ fn validate_tuple() -> TestResult {
     test_default_generated_schema::<Tuple>("validate_tuple")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 pub struct NewType(#[validate(range(max = 10))] u8);
 
 #[test]

@@ -2,7 +2,8 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct MyStruct {
     unsigned: u32,
     nonzero_unsigned: std::num::NonZeroU32,

@@ -5,20 +5,22 @@ use util::*;
 // Ensure that schemars_derive uses the full path to std::string::String
 pub struct String;
 
-#[derive(Debug, JsonSchema)]
-pub struct UnitStruct;
+#[derive(JsonSchema)]
+struct UnitStruct;
 
-#[derive(Debug, JsonSchema)]
-pub struct Struct {
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct Struct {
     foo: i32,
     bar: bool,
 }
 
 // Outer container should always have additionalProperties: false
 // `Struct` variant should have additionalProperties: false
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 #[schemars(rename_all = "camelCase", deny_unknown_fields)]
-pub enum External {
+enum External {
     UnitOne,
     StringMap(Map<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
@@ -39,9 +41,10 @@ fn enum_external_tag() -> TestResult {
 }
 
 // Only `Struct` variant should have additionalProperties: false
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 #[schemars(tag = "typeProperty", deny_unknown_fields)]
-pub enum Internal {
+enum Internal {
     UnitOne,
     StringMap(Map<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
@@ -61,9 +64,10 @@ fn enum_internal_tag() -> TestResult {
 }
 
 // Only `Struct` variant should have additionalProperties: false
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 #[schemars(untagged, deny_unknown_fields)]
-pub enum Untagged {
+enum Untagged {
     UnitOne,
     StringMap(Map<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
@@ -83,9 +87,10 @@ fn enum_untagged() -> TestResult {
 }
 
 // Outer container and `Struct` variant should have additionalProperties: false
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 #[schemars(tag = "t", content = "c", deny_unknown_fields)]
-pub enum Adjacent {
+enum Adjacent {
     UnitOne,
     StringMap(Map<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
@@ -105,9 +110,10 @@ fn enum_adjacent_tagged() -> TestResult {
     test_default_generated_schema::<Adjacent>("enum-adjacent-tagged-duf")
 }
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 #[schemars(tag = "typeProperty", deny_unknown_fields)]
-pub enum SimpleInternal {
+enum SimpleInternal {
     A,
     B,
     C,

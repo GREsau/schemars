@@ -2,12 +2,14 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct MyStruct {
     foo: i32,
 }
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct Container {
     result1: Result<MyStruct, Vec<String>>,
     result2: Result<bool, ()>,

@@ -24,41 +24,44 @@ where
     ser.collect_str(&format_args!("i:{} b:{}", value.my_int, value.my_bool))
 }
 
-#[derive(Default, JsonSchema, Debug)]
+#[allow(dead_code)]
+#[derive(Default, JsonSchema)]
 #[serde(default)]
-pub struct MyStruct {
-    pub my_int: i32,
-    pub my_bool: bool,
+struct MyStruct {
+    my_int: i32,
+    my_bool: bool,
     #[serde(serialize_with = "custom_serialize")]
-    pub my_struct2: MyStruct2,
+    my_struct2: MyStruct2,
     #[serde(
         serialize_with = "custom_serialize",
         skip_serializing_if = "is_default"
     )]
-    pub my_struct2_default_skipped: MyStruct2,
-    pub not_serialize: NotSerialize,
+    my_struct2_default_skipped: MyStruct2,
+    not_serialize: NotSerialize,
 }
 
-#[derive(Default, JsonSchema, Debug, PartialEq)]
+#[allow(dead_code)]
+#[derive(Default, JsonSchema, PartialEq)]
 #[serde(default = "ten_and_true")]
-pub struct MyStruct2 {
+struct MyStruct2 {
     #[serde(default = "six")]
-    pub my_int: i32,
-    pub my_bool: bool,
+    my_int: i32,
+    my_bool: bool,
 }
 
-#[derive(Default, JsonSchema, Debug)]
-pub struct NotSerialize;
+#[derive(Default, JsonSchema)]
+struct NotSerialize;
 
 #[test]
 fn schema_default_values() -> TestResult {
     test_default_generated_schema::<MyStruct>("default")
 }
 
-#[derive(JsonSchema, Debug)]
-pub struct StructWithGenericDefaults {
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct StructWithGenericDefaults {
     #[serde(default = "Vec::new")]
-    pub a_vec: Vec<String>,
+    a_vec: Vec<String>,
 }
 
 #[test]

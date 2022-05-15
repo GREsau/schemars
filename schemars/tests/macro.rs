@@ -6,7 +6,8 @@ macro_rules! build_struct {
     (
         $id:ident { $($t:tt)* }
     ) => {
-        #[derive(Debug, JsonSchema)]
+        #[allow(dead_code)]
+        #[derive(JsonSchema)]
         pub struct $id {
             x: u8,
             $($t)*
@@ -53,9 +54,9 @@ macro_rules! build_enum {
 }
 
 build_enum!(
-    #[derive(Debug, JsonSchema)]
+    #[derive(JsonSchema)]
     OuterEnum {
-        #[derive(Debug, JsonSchema)]
+        #[derive(JsonSchema)]
         InnerStruct {
             x: i32
         }

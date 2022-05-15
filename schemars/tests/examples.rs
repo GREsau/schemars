@@ -3,9 +3,9 @@ use schemars::JsonSchema;
 use serde::Serialize;
 use util::*;
 
-#[derive(Default, Debug, JsonSchema, Serialize)]
+#[derive(Default, JsonSchema, Serialize)]
 #[schemars(example = "Struct::default", example = "null")]
-pub struct Struct {
+struct Struct {
     #[schemars(example = "eight", example = "null")]
     foo: i32,
     bar: bool,

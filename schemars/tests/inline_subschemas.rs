@@ -3,14 +3,16 @@ use schemars::gen::SchemaSettings;
 use schemars::JsonSchema;
 use util::*;
 
-#[derive(Debug, JsonSchema)]
-pub struct MyJob {
-    pub spec: MyJobSpec,
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct MyJob {
+    spec: MyJobSpec,
 }
 
-#[derive(Debug, JsonSchema)]
-pub struct MyJobSpec {
-    pub replicas: u32,
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct MyJobSpec {
+    replicas: u32,
 }
 
 #[test]
@@ -20,15 +22,17 @@ fn struct_normal() -> TestResult {
     test_generated_schema::<MyJob>("inline-subschemas", settings)
 }
 
-#[derive(Debug, JsonSchema)]
-pub struct RecursiveOuter {
-    pub direct: Option<Box<RecursiveOuter>>,
-    pub indirect: Option<Box<RecursiveInner>>,
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct RecursiveOuter {
+    direct: Option<Box<RecursiveOuter>>,
+    indirect: Option<Box<RecursiveInner>>,
 }
 
-#[derive(Debug, JsonSchema)]
-pub struct RecursiveInner {
-    pub recursive: RecursiveOuter,
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct RecursiveInner {
+    recursive: RecursiveOuter,
 }
 
 #[test]

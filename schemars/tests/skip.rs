@@ -2,7 +2,8 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct MyStruct {
     #[schemars(skip)]
     skipped1: i32,
@@ -20,7 +21,7 @@ fn skip_struct_fields() -> TestResult {
     test_default_generated_schema::<MyStruct>("skip_struct_fields")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 struct TupleStruct(
     #[schemars(skip)] i32,
     #[serde(skip)] bool,
@@ -34,7 +35,7 @@ fn skip_tuple_fields() -> TestResult {
     test_default_generated_schema::<TupleStruct>("skip_tuple_fields")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 pub enum MyEnum {
     #[schemars(skip)]
     Skipped1(i32),
