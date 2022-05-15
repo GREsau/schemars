@@ -1,8 +1,9 @@
 # Changelog
 
 ## [0.8.9] - **in-dev**
-### Changed:
+### Added:
 - Support generic default values in `default` attributes (https://github.com/GREsau/schemars/pull/83)
+- Add missing MIT licence text for usage of code from regex_syntax crate (https://github.com/GREsau/schemars/pull/132)
 
 ## [0.8.8] - 2021-11-25
 ### Added:
