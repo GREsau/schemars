@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.8.9] - **in-dev**
+### Changed:
+- Support generic default values in `default` attributes (https://github.com/GREsau/schemars/pull/83)
+
 ## [0.8.8] - 2021-11-25
 ### Added:
 - Implement `JsonSchema` for types from `rust_decimal` and `bigdecimal` crates (https://github.com/GREsau/schemars/pull/101)
