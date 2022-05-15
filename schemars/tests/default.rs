@@ -55,7 +55,7 @@ fn schema_default_values() -> TestResult {
     test_default_generated_schema::<MyStruct>("default")
 }
 
-#[derive(Default, Deserialize, Serialize, JsonSchema, Debug, PartialEq)]
+#[derive(JsonSchema, Debug)]
 pub struct StructWithGenericDefaults {
     #[serde(default = "Vec::new")]
     pub a_vec: Vec<String>,
