@@ -69,3 +69,5 @@ mod url;
 #[cfg(feature = "uuid")]
 mod uuid;
 mod wrapper;
+#[cfg(feature = "rocket_impl")]
+mod rocket;
