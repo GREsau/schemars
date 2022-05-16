@@ -4,6 +4,9 @@
 ### Added:
 - Support generic default values in `default` attributes (https://github.com/GREsau/schemars/pull/83)
 - Add missing MIT licence text for usage of code from regex_syntax crate (https://github.com/GREsau/schemars/pull/132)
+- Support uuid v1 and arrayvec 0.7 via feature flags `uuid1` and `arrayvec07` (https://github.com/GREsau/schemars/pull/142)
+    - This also adds `uuid08` and `arrayvec05` feature flags for the previously supported versions of these crates. The existing `uuid` and `arrayvec` flags are still supported for backward-compatibility, but they are **deprecated**.
+    - Similarly, `indexmap1` feature flag is added, and `indexmap` flag is **deprecated**.
 
 ## [0.8.8] - 2021-11-25
 ### Added:
