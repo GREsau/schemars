@@ -56,15 +56,3 @@ struct NotSerialize;
 fn schema_default_values() -> TestResult {
     test_default_generated_schema::<MyStruct>("default")
 }
-
-#[allow(dead_code)]
-#[derive(JsonSchema)]
-struct StructWithGenericDefaults {
-    #[serde(default = "Vec::new")]
-    a_vec: Vec<String>,
-}
-
-#[test]
-fn schema_with_generic_default_value() -> TestResult {
-    test_default_generated_schema::<StructWithGenericDefaults>("generic_default")
-}
