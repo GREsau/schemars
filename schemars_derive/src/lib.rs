@@ -130,7 +130,7 @@ fn derive_json_schema(
             #[allow(unused_braces)]
             impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
                 fn schema_name() -> std::string::String {
-                    #schema_name
+                    format!("{}::{}", module_path!(), #schema_name)
                 }
 
                 fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
