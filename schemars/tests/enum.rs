@@ -118,3 +118,21 @@ enum SimpleInternal {
 fn enum_simple_internal_tag() -> TestResult {
     test_default_generated_schema::<SimpleInternal>("enum-simple-internal")
 }
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+enum SoundOfMusic {
+    /// # A deer
+    ///
+    /// A female deer
+    Do,
+    /// A drop of golden sun
+    Re,
+    /// A name I call myself
+    Mi,
+}
+
+#[test]
+fn enum_unit_with_doc_comments() -> TestResult {
+    test_default_generated_schema::<SoundOfMusic>("enum-unit-doc")
+}
