@@ -185,6 +185,21 @@ impl Attrs {
         }
         self
     }
+
+    pub fn is_default(&self) -> bool {
+        match self {
+            Self {
+                with: None,
+                title: None,
+                description: None,
+                deprecated: false,
+                examples,
+                repr: None,
+                crate_name: None,
+            } if examples.is_empty() => true,
+            _ => false,
+        }
+    }
 }
 
 fn is_known_serde_or_validation_keyword(meta: &syn::Meta) -> bool {
