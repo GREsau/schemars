@@ -280,8 +280,6 @@ For example, to implement `JsonSchema` on types from `chrono`, enable it as a fe
 [dependencies]
 schemars = { version = "0.8", features = ["chrono"] }
 ```
-
-```
 */
 
 /// The map type used by schemars types.
