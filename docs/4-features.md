@@ -16,6 +16,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `either` - [either](https://crates.io/crates/either) (^1.3)
 - `uuid08` - [uuid](https://crates.io/crates/uuid) (^0.8)
 - `uuid1` - [uuid](https://crates.io/crates/uuid) (^1.0)
+- `ulid` - [ulid](https://crates.io/crates/rusty_ulid) (^1.0)
 - `smallvec` - [smallvec](https://crates.io/crates/smallvec) (^1.0)
 - `arrayvec05` - [arrayvec](https://crates.io/crates/arrayvec) (^0.5)
 - `arrayvec07` - [arrayvec](https://crates.io/crates/arrayvec) (^0.7)
