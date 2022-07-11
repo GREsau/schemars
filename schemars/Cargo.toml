@@ -26,6 +26,7 @@ uuid1 = { version = "1.0", default-features = false, optional = true, package = 
 smallvec = { version = "1.0", optional = true }
 arrayvec05 = { version = "0.5", default-features = false, optional = true, package = "arrayvec" }
 arrayvec07 = { version = "0.7", default-features = false, optional = true, package = "arrayvec" }
+tinyvec = { version = "1.6", optional = true, features = ["alloc"] }
 url = { version = "2.0", default-features = false, optional = true }
 bytes = { version = "1.0", optional = true }
 rust_decimal = { version = "1", default-features = false, optional = true }
@@ -77,6 +78,10 @@ required-features = ["uuid08", "uuid1"]
 [[test]]
 name = "smallvec"
 required-features = ["smallvec"]
+
+[[test]]
+name = "tinyvec"
+required-features = ["tinyvec"]
 
 [[test]]
 name = "bytes"
