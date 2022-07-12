@@ -282,7 +282,7 @@ schemars = { version = "0.8", features = ["chrono"] }
 ```
 
 ```
-*/
+ */
 
 /// The map type used by schemars types.
 ///
@@ -293,6 +293,57 @@ schemars = { version = "0.8", features = ["chrono"] }
 pub type Map<K, V> = std::collections::BTreeMap<K, V>;
 #[cfg(feature = "preserve_order")]
 pub type Map<K, V> = indexmap::IndexMap<K, V>;
+
+#[cfg(not(feature = "preserve_order"))]
+pub mod map_serde_seq {
+    use serde::{Serializer, Deserializer};
+    use crate::Map;
+
+
+    #[cfg(not(feature = "preserve_order"))]
+    fn serialize<S, K, V>(map: &Map<K, V>, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+    {
+        todo!("Implemnet serializer");
+    }
+
+    fn deserialize<'de, D, K, V>(a: D) -> Result<Map<K, V>, D::Error>
+        where
+            D: Deserializer<'de>,
+    {
+        todo!("Implemnet deserializer");
+    }
+}
+
+#[cfg(feature = "preserve_order")]
+pub mod map_serde_seq {
+    use serde::{Serializer, Deserializer, Serialize, Deserialize};
+
+    use crate::Map;
+    use core::hash::Hash;
+
+
+    pub fn serialize<K, V, T>(map: &Map<K, V>, serializer: T) -> Result<T::Ok, T::Error>
+        where
+            K: Serialize + Hash + Eq,
+            V: Serialize,
+            T: Serializer,
+    {
+        indexmap::serde_seq::serialize(map, serializer)
+    }
+
+    pub fn deserialize<'de, D, K, V>(deserializer: D) -> Result<Map<K, V>, D::Error>
+        where
+            D: Deserializer<'de>,
+            K: Deserialize<'de> + Eq + Hash,
+            V: Deserialize<'de>,
+    {
+        indexmap::serde_seq::deserialize(deserializer)
+    }
+}
+
+
 /// The set type used by schemars types.
 ///
 /// Currently a `BTreeSet`, but this may change to a different implementation
@@ -324,6 +375,7 @@ pub mod visit;
 
 #[cfg(feature = "schemars_derive")]
 extern crate schemars_derive;
+
 #[cfg(feature = "schemars_derive")]
 pub use schemars_derive::*;
 
