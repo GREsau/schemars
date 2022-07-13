@@ -295,8 +295,8 @@ pub type Map<K, V> = std::collections::BTreeMap<K, V>;
 pub type Map<K, V> = indexmap::IndexMap<K, V>;
 
 #[cfg(not(feature = "preserve_order"))]
-pub mod map_serde_seq {
-    use serde::{Serializer, Deserializer};
+pub mod map_serde {
+    use serde::{Serializer, Deserializer, Serialize, Deserialize};
     use crate::Map;
 
 
@@ -317,7 +317,7 @@ pub mod map_serde_seq {
 }
 
 #[cfg(feature = "preserve_order")]
-pub mod map_serde_seq {
+pub mod map_serde {
     use serde::{Serializer, Deserializer, Serialize, Deserialize};
 
     use crate::Map;
