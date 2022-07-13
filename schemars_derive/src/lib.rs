@@ -14,7 +14,7 @@ mod schema_exprs;
 
 use ast::*;
 use proc_macro2::TokenStream;
-use syn::spanned::Spanned;
+use syn::{punctuated::Punctuated, spanned::Spanned, WhereClause};
 
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde, validate))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -49,6 +49,14 @@ fn derive_json_schema(
 
     let type_name = &cont.ident;
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
+    let mut where_clause = where_clause.cloned();
+    if let Some(bounds) = cont.serde_attrs.ser_bound() {
+        let where_clause = where_clause.get_or_insert_with(|| WhereClause {
+            where_token: <Token![where]>::default(),
+            predicates: Punctuated::new(),
+        });
+        where_clause.predicates.extend(bounds.iter().cloned());
+    }
 
     if let Some(transparent_field) = cont.transparent_field() {
         let (ty, type_def) = schema_exprs::type_for_field_schema(transparent_field);

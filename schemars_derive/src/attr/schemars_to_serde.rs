@@ -20,6 +20,7 @@ pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     "flatten",
     "remote",
     "transparent",
+    "bound",
     // Special cases - `with`/`serialize_with` are passed to serde but not copied from schemars attrs to serde attrs.
     // This is because we want to preserve any serde attribute's `serialize_with` value to determine whether the field's
     // default value should be serialized. We also check the `with` value on schemars/serde attrs e.g. to support deriving
