@@ -294,35 +294,55 @@ pub type Map<K, V> = std::collections::BTreeMap<K, V>;
 #[cfg(feature = "preserve_order")]
 pub type Map<K, V> = indexmap::IndexMap<K, V>;
 
+/// The exposed module offers feature aware serialization/deserialization of the [`Map`] type via serde.
+/// It proxies the ser/de functions to its corresponding backends of the specific [`Map`] type.
+///
+/// ## IndexMap
+///
+/// The Map type [indexmap](https://crates.io/crates/indexmap) already offers custom functions for ser/de via the module [serde_seq](https://docs.rs/indexmap/latest/indexmap/serde_seq/index.html).
+///
+/// ## Example
+///
+/// The map_serde module offers serde functionality regardless of used Map type.
+///
+/// ```
+/// #[derive(Deserialize, Serialize)]
+/// struct Data {
+///     #[serde(with = "schemars::map_serde")]
+///     map: Map<i32, u64>,
+///     // ...
+/// }
+/// ```
 #[cfg(not(feature = "preserve_order"))]
 pub mod map_serde {
     use serde::{Serializer, Deserializer, Serialize, Deserialize};
     use crate::Map;
 
-
     #[cfg(not(feature = "preserve_order"))]
-    fn serialize<S, K, V>(map: &Map<K, V>, serializer: S) -> Result<S::Ok, S::Error>
+    pub fn serialize<S, K, V>(map: &Map<K, V>, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: Serializer,
+            K: Serialize + std::cmp::Ord,
+            V: Serialize,
     {
-        todo!("Implemnet serializer");
+        Serialize::serialize(map,serializer)
     }
 
-    fn deserialize<'de, D, K, V>(a: D) -> Result<Map<K, V>, D::Error>
+    pub fn deserialize<'de, D, K, V>(deserializer: D) -> Result<Map<K, V>, D::Error>
         where
             D: Deserializer<'de>,
+            K: Deserialize<'de> + std::cmp::Ord,
+            V: Deserialize<'de>,
     {
-        todo!("Implemnet deserializer");
+        Deserialize::deserialize(deserializer)
     }
 }
-
 #[cfg(feature = "preserve_order")]
 pub mod map_serde {
     use serde::{Serializer, Deserializer, Serialize, Deserialize};
 
     use crate::Map;
     use core::hash::Hash;
-
 
     pub fn serialize<K, V, T>(map: &Map<K, V>, serializer: T) -> Result<T::Ok, T::Error>
         where
