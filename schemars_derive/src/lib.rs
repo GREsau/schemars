@@ -14,7 +14,7 @@ mod schema_exprs;
 
 use ast::*;
 use proc_macro2::TokenStream;
-use syn::{punctuated::Punctuated, spanned::Spanned, WhereClause};
+use syn::spanned::Spanned;
 
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde, validate))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
@@ -36,11 +36,10 @@ fn derive_json_schema(
     mut input: syn::DeriveInput,
     repr: bool,
 ) -> Result<TokenStream, Vec<syn::Error>> {
-    add_trait_bounds(&mut input.generics);
-
     attr::process_serde_attrs(&mut input)?;
 
-    let cont = Container::from_ast(&input)?;
+    let mut cont = Container::from_ast(&input)?;
+    add_trait_bounds(&mut cont);
     let crate_alias = cont.attrs.crate_name.as_ref().map(|path| {
         quote_spanned! {path.span()=>
             use #path as schemars;
@@ -49,15 +48,6 @@ fn derive_json_schema(
 
     let type_name = &cont.ident;
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
-    let mut where_clause = where_clause.cloned();
-    if let Some(bounds) = cont.serde_attrs.ser_bound() {
-        let where_clause = where_clause.get_or_insert_with(|| WhereClause {
-            where_token: <Token![where]>::default(),
-            predicates: Punctuated::new(),
-        });
-        where_clause.predicates.extend(bounds.iter().cloned());
-    }
-
     if let Some(transparent_field) = cont.transparent_field() {
         let (ty, type_def) = schema_exprs::type_for_field_schema(transparent_field);
         return Ok(quote! {
@@ -149,10 +139,16 @@ fn derive_json_schema(
     })
 }
 
-fn add_trait_bounds(generics: &mut syn::Generics) {
-    for param in &mut generics.params {
-        if let syn::GenericParam::Type(ref mut type_param) = *param {
-            type_param.bounds.push(parse_quote!(schemars::JsonSchema));
+fn add_trait_bounds(cont: &mut Container) {
+    if let Some(bounds) = cont.serde_attrs.ser_bound() {
+        let where_clause = cont.generics.make_where_clause();
+        where_clause.predicates.extend(bounds.iter().cloned());
+    } else {
+        // No explicit trait bounds specified, assume the Rust convention of adding the trait to each type parameter
+        for param in &mut cont.generics.params {
+            if let syn::GenericParam::Type(ref mut type_param) = *param {
+                type_param.bounds.push(parse_quote!(schemars::JsonSchema));
+            }
         }
     }
 }
