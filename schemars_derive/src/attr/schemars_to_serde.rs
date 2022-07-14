@@ -29,6 +29,12 @@ pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     "with",
 ];
 
+// List of keywords that we do not want to inherit from #[serde(...)] (but do want to serde to parse from #[schemars(...)])
+static SERDE_UNINHERITED_KEYWORDS: &[&str] = &[
+    // Used to be ignored completely by schemars
+    "bound",
+];
+
 // If a struct/variant/field has any #[schemars] attributes, then create copies of them
 // as #[serde] attributes so that serde_derive_internals will parse them for us.
 pub fn process_serde_attrs(input: &mut syn::DeriveInput) -> Result<(), Vec<syn::Error>> {
@@ -92,7 +98,10 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         .flatten()
     {
         if let Ok(i) = get_meta_ident(&ctxt, &meta) {
-            if !schemars_meta_names.contains(&i) && SERDE_KEYWORDS.contains(&i.as_ref()) {
+            if !schemars_meta_names.contains(&i)
+                && SERDE_KEYWORDS.contains(&i.as_ref())
+                && !SERDE_UNINHERITED_KEYWORDS.contains(&i.as_ref())
+            {
                 serde_meta.push(meta);
             }
         }
