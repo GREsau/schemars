@@ -30,6 +30,7 @@ pub struct Attrs {
 }
 
 #[derive(Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum WithAttr {
     Type(syn::Type),
     Function(syn::Path),

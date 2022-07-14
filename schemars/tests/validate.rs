@@ -4,7 +4,7 @@ use std::collections::HashMap;
 use util::*;
 
 // In real code, this would typically be a Regex, potentially created in a `lazy_static!`.
-static STARTS_WITH_HELLO: &'static str = r"^[Hh]ello\b";
+static STARTS_WITH_HELLO: &str = r"^[Hh]ello\b";
 
 const MIN: u32 = 1;
 const MAX: u32 = 1000;

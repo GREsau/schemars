@@ -112,7 +112,7 @@ impl ValidationAttrs {
                                 } else if self.length_equal.is_some() {
                                     mutual_exclusive_error(&nv.path, "equal")
                                 } else {
-                                    self.length_min = str_or_num_to_expr(&errors, "min", &nv.lit);
+                                    self.length_min = str_or_num_to_expr(errors, "min", &nv.lit);
                                 }
                             }
                             NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("max") => {
@@ -121,7 +121,7 @@ impl ValidationAttrs {
                                 } else if self.length_equal.is_some() {
                                     mutual_exclusive_error(&nv.path, "equal")
                                 } else {
-                                    self.length_max = str_or_num_to_expr(&errors, "max", &nv.lit);
+                                    self.length_max = str_or_num_to_expr(errors, "max", &nv.lit);
                                 }
                             }
                             NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("equal") => {
@@ -133,14 +133,14 @@ impl ValidationAttrs {
                                     mutual_exclusive_error(&nv.path, "max")
                                 } else {
                                     self.length_equal =
-                                        str_or_num_to_expr(&errors, "equal", &nv.lit);
+                                        str_or_num_to_expr(errors, "equal", &nv.lit);
                                 }
                             }
                             meta => {
                                 if !ignore_errors {
                                     errors.error_spanned_by(
                                         meta,
-                                        format!("unknown item in schemars length attribute"),
+                                        "unknown item in schemars length attribute".to_string(),
                                     );
                                 }
                             }
@@ -155,21 +155,21 @@ impl ValidationAttrs {
                                 if self.range_min.is_some() {
                                     duplicate_error(&nv.path)
                                 } else {
-                                    self.range_min = str_or_num_to_expr(&errors, "min", &nv.lit);
+                                    self.range_min = str_or_num_to_expr(errors, "min", &nv.lit);
                                 }
                             }
                             NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("max") => {
                                 if self.range_max.is_some() {
                                     duplicate_error(&nv.path)
                                 } else {
-                                    self.range_max = str_or_num_to_expr(&errors, "max", &nv.lit);
+                                    self.range_max = str_or_num_to_expr(errors, "max", &nv.lit);
                                 }
                             }
                             meta => {
                                 if !ignore_errors {
                                     errors.error_spanned_by(
                                         meta,
-                                        format!("unknown item in schemars range attribute"),
+                                        "unknown item in schemars range attribute".to_string(),
                                     );
                                 }
                             }
@@ -247,7 +247,8 @@ impl ValidationAttrs {
                                         if !ignore_errors {
                                             errors.error_spanned_by(
                                                 meta,
-                                                format!("unknown item in schemars regex attribute"),
+                                                "unknown item in schemars regex attribute"
+                                                    .to_string(),
                                             );
                                         }
                                     }
@@ -261,8 +262,8 @@ impl ValidationAttrs {
                     if path.is_ident("contains") =>
                 {
                     match (&self.contains, &self.regex) {
-                        (Some(_), _) => duplicate_error(&path),
-                        (None, Some(_)) => mutual_exclusive_error(&path, "regex"),
+                        (Some(_), _) => duplicate_error(path),
+                        (None, Some(_)) => mutual_exclusive_error(path, "regex"),
                         (None, None) => {
                             self.contains = get_lit_str(errors, attr_type, "contains", lit)
                                 .map(|litstr| litstr.value())
@@ -292,9 +293,8 @@ impl ValidationAttrs {
                                         if !ignore_errors {
                                             errors.error_spanned_by(
                                                 meta,
-                                                format!(
-                                                    "unknown item in schemars contains attribute"
-                                                ),
+                                                "unknown item in schemars contains attribute"
+                                                    .to_string(),
                                             );
                                         }
                                     }
@@ -316,11 +316,7 @@ impl ValidationAttrs {
         let mut object_validation = Vec::new();
         let mut string_validation = Vec::new();
 
-        if let Some(length_min) = self
-            .length_min
-            .as_ref()
-            .or_else(|| self.length_equal.as_ref())
-        {
+        if let Some(length_min) = self.length_min.as_ref().or(self.length_equal.as_ref()) {
             string_validation.push(quote! {
                 validation.min_length = Some(#length_min as u32);
             });
@@ -329,11 +325,7 @@ impl ValidationAttrs {
             });
         }
 
-        if let Some(length_max) = self
-            .length_max
-            .as_ref()
-            .or_else(|| self.length_equal.as_ref())
-        {
+        if let Some(length_max) = self.length_max.as_ref().or(self.length_equal.as_ref()) {
             string_validation.push(quote! {
                 validation.max_length = Some(#length_max as u32);
             });

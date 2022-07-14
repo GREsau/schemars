@@ -100,7 +100,8 @@ fn derive_json_schema(
     } else if schema_is_renamed {
         let mut schema_name_fmt = schema_base_name;
         for tp in &type_params {
-            schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
+            use std::fmt::Write;
+            write!(schema_name_fmt, "{{{}:.0}}", tp).expect("pushing into a string is infallible");
         }
         quote! {
             format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())*)
