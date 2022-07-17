@@ -72,4 +72,6 @@ mod url;
 mod uuid08;
 #[cfg(feature = "uuid1")]
 mod uuid1;
+#[cfg(feature = "ordered-float")]
+mod ordered_float;
 mod wrapper;
