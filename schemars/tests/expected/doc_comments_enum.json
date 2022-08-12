@@ -6,7 +6,8 @@
     {
       "type": "string",
       "enum": [
-        "UndocumentedUnit"
+        "UndocumentedUnit",
+        "UndocumentedUnit2"
       ]
     },
     {
