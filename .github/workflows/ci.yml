@@ -5,6 +5,9 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   ci:
     runs-on: ubuntu-latest
+    env:
+      # work-around https://github.com/rust-lang/cargo/issues/10303
+      CARGO_NET_GIT_FETCH_WITH_CLI: ${{ matrix.rust == '1.45.0' }}
     strategy:
       matrix:
         rust:
