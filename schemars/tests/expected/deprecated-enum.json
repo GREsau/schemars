@@ -6,7 +6,13 @@
     {
       "type": "string",
       "enum": [
-        "Unit",
+        "Unit"
+      ]
+    },
+    {
+      "deprecated": true,
+      "type": "string",
+      "enum": [
         "DeprecatedUnitVariant"
       ]
     },

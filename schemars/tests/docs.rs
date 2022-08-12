@@ -31,7 +31,8 @@ struct MyUnitStruct;
 #[doc = " the enum's description."]
 enum MyEnum {
     UndocumentedUnit,
-    /// This comment is not included in the generated schema :(
+    UndocumentedUnit2,
+    /// This comment is included in the generated schema :)
     DocumentedUnit,
     /// ## Complex variant
     /// This is a struct-like variant.

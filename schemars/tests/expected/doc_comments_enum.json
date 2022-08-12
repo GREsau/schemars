@@ -7,6 +7,13 @@
       "type": "string",
       "enum": [
         "UndocumentedUnit",
+        "UndocumentedUnit2"
+      ]
+    },
+    {
+      "description": "This comment is included in the generated schema :)",
+      "type": "string",
+      "enum": [
         "DocumentedUnit"
       ]
     },
