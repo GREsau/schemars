@@ -8,14 +8,13 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.37.0
+          - 1.45.0
           - stable
           - beta
           - nightly
         include:
-          - rust: 1.37.0
-            # exclude ui_test as the output is slightly different in rustc 1.37
-            test_features: "--features impl_json_schema,chrono,indexmap,either,uuid08,smallvec,arrayvec05,enumset"
+          - rust: 1.45.0          
+            test_features: "--all-features"
             allow_failure: false
           - rust: stable
             test_features: "--all-features"
@@ -38,8 +37,6 @@ jobs:
         run: cargo check --verbose --no-default-features
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars
-      - if: matrix.rust == '1.37.0'
-        run: cargo update -p indexmap --precise 1.6.2
       - name: Run tests
         run: cargo test --verbose ${{ matrix.test_features }} --no-fail-fast
         continue-on-error: ${{ matrix.allow_failure }}

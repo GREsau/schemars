@@ -1,5 +1,10 @@
 # Changelog
 
+## **in-dev**
+### Changed:
+- Derived `JsonSchema` now respects attributes on unit enum variants (https://github.com/GREsau/schemars/pull/152)
+- Minimum supported rust version is now 1.45.0
+
 ## [0.8.10] - 2022-05-17
 - Undo "Support generic default values in default attributes (https://github.com/GREsau/schemars/pull/83)" as it inadvertently introduced a breaking change (https://github.com/GREsau/schemars/issues/144)
 

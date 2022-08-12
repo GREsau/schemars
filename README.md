@@ -3,7 +3,7 @@
 [![CI Build](https://img.shields.io/github/workflow/status/GREsau/schemars/CI?logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
 [![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
-[![rustc 1.37+](https://img.shields.io/badge/schemars-rustc_1.37+-lightgray.svg)](https://blog.rust-lang.org/2019/08/15/Rust-1.37.0.html)
+[![rustc 1.45+](https://img.shields.io/badge/schemars-rustc_1.45+-lightgray.svg)](https://blog.rust-lang.org/2020/07/16/Rust-1.45.0.html)
 
 Generate JSON Schema documents from Rust code
 
