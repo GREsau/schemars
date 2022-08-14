@@ -27,6 +27,7 @@ pub struct Attrs {
     pub examples: Vec<syn::Path>,
     pub repr: Option<syn::Type>,
     pub crate_name: Option<syn::Path>,
+    pub is_renamed: bool
 }
 
 #[derive(Debug)]
@@ -152,6 +153,10 @@ impl Attrs {
                     }
                 }
 
+                Meta(NameValue(m)) if m.path.is_ident("rename") => {
+                    self.is_renamed = true
+                }
+
                 Meta(NameValue(m)) if m.path.is_ident("crate") && attr_type == "schemars" => {
                     if let Ok(p) = parse_lit_into_path(errors, attr_type, "crate", &m.lit) {
                         if self.crate_name.is_some() {
@@ -196,6 +201,7 @@ impl Attrs {
                 examples,
                 repr: None,
                 crate_name: None,
+                is_renamed: _,
             } if examples.is_empty() => true,
             _ => false,
         }

@@ -20,6 +20,7 @@ pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     "flatten",
     "remote",
     "transparent",
+    "bound",
     // Special cases - `with`/`serialize_with` are passed to serde but not copied from schemars attrs to serde attrs.
     // This is because we want to preserve any serde attribute's `serialize_with` value to determine whether the field's
     // default value should be serialized. We also check the `with` value on schemars/serde attrs e.g. to support deriving
@@ -56,9 +57,9 @@ fn process_serde_field_attrs<'a>(ctxt: &Ctxt, fields: impl Iterator<Item = &'a m
 }
 
 fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
+    // Remove #[serde(...)] attributes (some may be re-added later) 
     let (serde_attrs, other_attrs): (Vec<_>, Vec<_>) =
         attrs.drain(..).partition(|at| at.path.is_ident("serde"));
-
     *attrs = other_attrs;
 
     let schemars_attrs: Vec<_> = attrs
@@ -66,6 +67,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         .filter(|at| at.path.is_ident("schemars"))
         .collect();
 
+    // Copy appropriate #[schemars(...)] attributes to #[serde(...)] attributes
     let (mut serde_meta, mut schemars_meta_names): (Vec<_>, HashSet<_>) = schemars_attrs
         .iter()
         .flat_map(|at| get_meta_items(&ctxt, at))
@@ -85,6 +87,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         schemars_meta_names.insert("skip_deserializing".to_string());
     }
 
+    // Re-add #[serde(...)] attributes that weren't overridden by #[schemars(...)] attributes
     for meta in serde_attrs
         .into_iter()
         .flat_map(|at| get_meta_items(&ctxt, &at))

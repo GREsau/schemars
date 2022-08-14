@@ -36,11 +36,11 @@ fn derive_json_schema(
     mut input: syn::DeriveInput,
     repr: bool,
 ) -> Result<TokenStream, Vec<syn::Error>> {
-    add_trait_bounds(&mut input.generics);
-
     attr::process_serde_attrs(&mut input)?;
 
-    let cont = Container::from_ast(&input)?;
+    let mut cont = Container::from_ast(&input)?;
+    add_trait_bounds(&mut cont);
+
     let crate_alias = cont.attrs.crate_name.as_ref().map(|path| {
         quote_spanned! {path.span()=>
             use #path as schemars;
@@ -84,9 +84,8 @@ fn derive_json_schema(
     }
 
     let mut schema_base_name = cont.name();
-    let schema_is_renamed = *type_name != schema_base_name;
 
-    if !schema_is_renamed {
+    if !cont.attrs.is_renamed {
         if let Some(path) = cont.serde_attrs.remote() {
             if let Some(segment) = path.segments.last() {
                 schema_base_name = segment.ident.to_string();
@@ -94,12 +93,13 @@ fn derive_json_schema(
         }
     }
 
+    // FIXME improve handling of generic type params which may not implement JsonSchema
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
-    let schema_name = if type_params.is_empty() {
+    let schema_name = if type_params.is_empty() || (cont.attrs.is_renamed && !schema_base_name.contains('{')) {
         quote! {
             #schema_base_name.to_owned()
         }
-    } else if schema_is_renamed {
+    } else if cont.attrs.is_renamed {
         let mut schema_name_fmt = schema_base_name;
         for tp in &type_params {
             schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
@@ -141,10 +141,17 @@ fn derive_json_schema(
     })
 }
 
-fn add_trait_bounds(generics: &mut syn::Generics) {
-    for param in &mut generics.params {
-        if let syn::GenericParam::Type(ref mut type_param) = *param {
-            type_param.bounds.push(parse_quote!(schemars::JsonSchema));
+fn add_trait_bounds(cont: &mut Container) {
+    if let Some(bounds) = cont.serde_attrs.ser_bound() {
+        let where_clause = cont.generics.make_where_clause();
+        where_clause.predicates.extend(bounds.iter().cloned());
+    } else {
+        // No explicit trait bounds specified, assume the Rust convention of adding the trait to each type parameter
+        // TODO consider also adding trait bound to associated types when used as fields - I think Serde does this?
+        for param in &mut cont.generics.params {
+            if let syn::GenericParam::Type(ref mut type_param) = *param {
+                type_param.bounds.push(parse_quote!(schemars::JsonSchema));
+            }
         }
     }
 }
