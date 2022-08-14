@@ -29,6 +29,8 @@ permalink: pretty
 # Build settings
 remote_theme: pmarsceill/just-the-docs@v0.3.2
 markdown: CommonMarkGhPages
+commonmark:
+  options: ["UNSAFE", "FOOTNOTES"]
 
 color_scheme: default
 aux_links:
