@@ -189,7 +189,7 @@ mod tests {
                 #[serde(skip_serializing_if = "some_fn")]
                 field1: i32,
                 #[schemars(with = "with", bound = "bound")]
-                #[serde(serialize_with = "se")]
+                #[serde(bound = "bound", serialize_with = "se")]
                 field2: i32,
                 #[schemars(skip)]
                 #[serde(skip)]
