@@ -1,6 +1,9 @@
 # Changelog
 
 ## **in-dev**
+### Added:
+- Replace auto-inferred trait bounds with bounds specified in `#[schemars(bound = "...")]` attribute
+
 ### Changed:
 - Derived `JsonSchema` now respects attributes on unit enum variants (https://github.com/GREsau/schemars/pull/152)
 - Minimum supported rust version is now 1.45.0
