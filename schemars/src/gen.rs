@@ -2,7 +2,7 @@
 JSON Schema generator and settings.
 
 This module is useful if you want more control over how the schema generated than the [`schema_for!`] macro gives you.
-There are two main types in this module:two main types in this module:
+There are two main types in this module:
 * [`SchemaSettings`], which defines what JSON Schema features should be used when generating schemas (for example, how `Option`s should be represented).
 * [`SchemaGenerator`], which manages the generation of a schema document.
 */
