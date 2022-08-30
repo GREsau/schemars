@@ -25,6 +25,7 @@ pub struct Attrs {
     pub description: Option<String>,
     pub deprecated: bool,
     pub examples: Vec<syn::Path>,
+    pub example_sets: Vec<syn::Path>,
     pub repr: Option<syn::Type>,
     pub crate_name: Option<syn::Path>,
 }
@@ -69,6 +70,7 @@ impl Attrs {
             description: self.description.as_ref().and_then(none_if_empty),
             deprecated: self.deprecated,
             examples: &self.examples,
+            example_sets: &self.example_sets,
             read_only: false,
             write_only: false,
             default: None,
@@ -149,6 +151,12 @@ impl Attrs {
                 Meta(NameValue(m)) if m.path.is_ident("example") => {
                     if let Ok(fun) = parse_lit_into_path(errors, attr_type, "example", &m.lit) {
                         self.examples.push(fun)
+                    }
+                }
+
+                Meta(NameValue(m)) if m.path.is_ident("examples") => {
+                    if let Ok(fun) = parse_lit_into_path(errors, attr_type, "examples", &m.lit) {
+                        self.example_sets.push(fun)
                     }
                 }
 
