@@ -23,18 +23,18 @@ pub(crate) trait Merge: Sized {
 }
 
 macro_rules! impl_merge {
-    ($ty:ident { merge: $($merge_field:ident)*, or: $($or_field:ident)*, }) => {
-        impl Merge for $ty {
+    ($typ:ty { merge: $($merge_field:ident)*, or: $($or_field:ident)*, }) => {
+        impl Merge for $typ  {
             fn merge(self, other: Self) -> Self {
-                $ty {
+                Self {
                     $($merge_field: self.$merge_field.merge(other.$merge_field),)*
                     $($or_field: self.$or_field.or(other.$or_field),)*
                 }
             }
         }
     };
-    ($ty:ident { or: $($or_field:ident)*, }) => {
-        impl_merge!( $ty { merge: , or: $($or_field)*, });
+    ($typ:ty { or: $($or_field:ident)*, }) => {
+        impl_merge!( $typ { merge: , or: $($or_field)*, });
     };
 }
 
@@ -65,7 +65,7 @@ impl Merge for Option<Box<Schema>> {
 
 impl_merge!(SchemaObject {
     merge: extensions instance_type enum_values
-        metadata subschemas number string array object,
+        metadata subschemas numeric string array object,
     or: format const_value reference,
 });
 
@@ -88,7 +88,14 @@ impl_merge!(SubschemaValidation {
     or: all_of any_of one_of not if_schema then_schema else_schema,
 });
 
-impl_merge!(NumberValidation {
+type NumberValidationF64 = NumberValidation<f64>;
+type NumberValidationI64 = NumberValidation<i64>;
+
+impl_merge!(NumberValidationF64 {
+    or: multiple_of maximum exclusive_maximum minimum exclusive_minimum,
+});
+
+impl_merge!(NumberValidationI64 {
     or: multiple_of maximum exclusive_maximum minimum exclusive_minimum,
 });
 
@@ -104,6 +111,19 @@ impl_merge!(ObjectValidation {
     merge: required properties pattern_properties additional_properties,
     or: max_properties min_properties property_names,
 });
+
+impl Merge for NumericValidation {
+    fn merge(self, other: Self) -> Self {
+        if self == other {
+            return self;
+        }
+
+        Self {
+            integer: self.integer.merge(other.integer),
+            number: self.number.merge(other.number),
+        }
+    }
+}
 
 impl<T: Merge> Merge for Option<T> {
     fn merge(self, other: Self) -> Self {

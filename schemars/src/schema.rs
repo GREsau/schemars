@@ -7,7 +7,7 @@ use crate as schemars;
 #[cfg(feature = "impl_json_schema")]
 use crate::JsonSchema;
 use crate::{Map, Set};
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use serde_json::Value;
 use std::ops::Deref;
 
@@ -145,9 +145,8 @@ pub struct SchemaObject {
     /// Properties of the [`SchemaObject`] which define validation assertions in terms of other schemas.
     #[serde(flatten, deserialize_with = "skip_if_default")]
     pub subschemas: Option<Box<SubschemaValidation>>,
-    /// Properties of the [`SchemaObject`] which define validation assertions for numbers.
     #[serde(flatten, deserialize_with = "skip_if_default")]
-    pub number: Option<Box<NumberValidation>>,
+    pub numeric: Option<Box<NumericValidation>>,
     /// Properties of the [`SchemaObject`] which define validation assertions for strings.
     #[serde(flatten, deserialize_with = "skip_if_default")]
     pub string: Option<Box<StringValidation>>,
@@ -242,9 +241,24 @@ impl SchemaObject {
             .map_or(true, |x| x.contains(&ty))
     }
 
+    pub fn integer(&mut self) -> &mut Box<NumberValidation<i64>> {
+        let validation = self
+            .numeric
+            .get_or_insert_with(|| Box::new(Default::default()));
+
+        validation.integer.get_or_insert(Default::default())
+    }
+
+    pub fn number(&mut self) -> &mut Box<NumberValidation<f64>> {
+        let validation = self
+            .numeric
+            .get_or_insert_with(|| Box::new(Default::default()));
+
+        validation.number.get_or_insert(Default::default())
+    }
+
     get_or_insert_default_fn!(metadata, Metadata);
     get_or_insert_default_fn!(subschemas, SubschemaValidation);
-    get_or_insert_default_fn!(number, NumberValidation);
     get_or_insert_default_fn!(string, StringValidation);
     get_or_insert_default_fn!(array, ArrayValidation);
     get_or_insert_default_fn!(object, ObjectValidation);
@@ -353,37 +367,121 @@ pub struct SubschemaValidation {
     pub else_schema: Option<Box<Schema>>,
 }
 
+#[derive(Serialize, Debug, Clone, PartialEq, Default)]
+#[cfg_attr(feature = "impl_json_schema", derive(JsonSchema))]
+#[serde(rename_all = "camelCase", default)]
+pub struct NumericValidation {
+    /// Properties of the [`SchemaObject`] which define validation assertions for integers.
+    #[serde(flatten, deserialize_with = "skip_if_default")]
+    pub integer: Option<Box<NumberValidation<i64>>>,
+    /// Properties of the [`SchemaObject`] which define validation assertions for numbers.
+    #[serde(flatten, deserialize_with = "skip_if_default")]
+    pub number: Option<Box<NumberValidation<f64>>>,
+}
+
+impl<'de> Deserialize<'de> for NumericValidation {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let number = NumberValidation::<Value>::deserialize(deserializer)?;
+
+        if number == Default::default() {
+            return Ok(Self::default());
+        }
+
+        if number.contains_i64() {
+            Ok(Self {
+                integer: Some(Box::new(number.into())),
+                ..Default::default()
+            })
+        } else {
+            Ok(Self {
+                number: Some(Box::new(number.into())),
+                ..Default::default()
+            })
+        }
+    }
+}
+
 /// Properties of a [`SchemaObject`] which define validation assertions for numbers.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 #[cfg_attr(feature = "impl_json_schema", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", default)]
-pub struct NumberValidation {
+pub struct NumberValidation<T: Default> {
     /// The `multipleOf` keyword.
     ///
     /// See [JSON Schema Validation 6.2.1. "multipleOf"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.1).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub multiple_of: Option<f64>,
+    #[serde(bound(deserialize = "T: PartialEq"))]
+    pub multiple_of: Option<T>,
     /// The `maximum` keyword.
     ///
     /// See [JSON Schema Validation 6.2.2. "maximum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.2).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub maximum: Option<f64>,
+    pub maximum: Option<T>,
     /// The `exclusiveMaximum` keyword.
     ///
     /// See [JSON Schema Validation 6.2.3. "exclusiveMaximum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.3).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub exclusive_maximum: Option<f64>,
+    pub exclusive_maximum: Option<T>,
     /// The `minimum` keyword.
     ///
     /// See [JSON Schema Validation 6.2.4. "minimum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.4).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub minimum: Option<f64>,
+    pub minimum: Option<T>,
     /// The `exclusiveMinimum` keyword.
     ///
     /// See [JSON Schema Validation 6.2.5. "exclusiveMinimum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.5).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub exclusive_minimum: Option<f64>,
+    pub exclusive_minimum: Option<T>,
 }
+
+impl From<NumberValidation<f64>> for NumberValidation<i64> {
+    fn from(value: NumberValidation<f64>) -> Self {
+        Self {
+            multiple_of: value.multiple_of.map(|v| v as i64),
+            maximum: value.maximum.map(|v| v as i64),
+            exclusive_maximum: value.exclusive_maximum.map(|v| v as i64),
+            minimum: value.minimum.map(|v| v as i64),
+            exclusive_minimum: value.exclusive_minimum.map(|v| v as i64),
+        }
+    }
+}
+
+impl NumberValidation<Value> {
+    pub fn contains_i64(&self) -> bool {
+        [
+            &self.multiple_of,
+            &self.maximum,
+            &self.exclusive_maximum,
+            &self.minimum,
+            &self.exclusive_minimum,
+        ]
+        .iter()
+        .filter_map(|v| v.as_ref())
+        .any(|f| f.is_i64())
+    }
+}
+
+macro_rules! number_to {
+    ($t:ident, $f:ident) => {
+        impl From<NumberValidation<Value>> for NumberValidation<$t> {
+            fn from(value: NumberValidation<Value>) -> Self {
+                Self {
+                    multiple_of: value.multiple_of.and_then(|v| v.$f()),
+                    maximum: value.maximum.and_then(|v| v.$f()),
+                    exclusive_maximum: value.exclusive_maximum.and_then(|v| v.$f()),
+                    minimum: value.minimum.and_then(|v| v.$f()),
+                    exclusive_minimum: value.exclusive_minimum.and_then(|v| v.$f()),
+                }
+            }
+        }
+    };
+}
+
+number_to!(i64, as_i64);
+number_to!(f64, as_f64);
 
 /// Properties of a [`SchemaObject`] which define validation assertions for strings.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]

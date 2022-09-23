@@ -6,13 +6,13 @@ use util::*;
 // In real code, this would typically be a Regex, potentially created in a `lazy_static!`.
 static STARTS_WITH_HELLO: &'static str = r"^[Hh]ello\b";
 
-const MIN: u32 = 1;
-const MAX: u32 = 1000;
+const MIN: f32 = 1.0;
+const MAX: f32 = 1000.0;
 
 #[allow(dead_code)]
 #[derive(JsonSchema)]
 pub struct Struct {
-    #[validate(range(min = 0.01, max = 100))]
+    #[validate(range(min = 0.01, max = 100.0))]
     min_max: f32,
     #[validate(range(min = "MIN", max = "MAX"))]
     min_max2: f32,
@@ -121,4 +121,28 @@ pub struct NewType(#[validate(range(max = 10))] u8);
 #[test]
 fn validate_newtype() -> TestResult {
     test_default_generated_schema::<NewType>("validate_newtype")
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct MyStructWithNumber {
+    #[schemars(range(min = 0.01))]
+    number: f64,
+}
+
+#[test]
+fn validate_number() -> TestResult {
+    test_default_generated_schema::<MyStructWithNumber>("validate_number")
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct MyStructWithInteger {
+    #[schemars(range(min = 2, max = 4))]
+    number: i64,
+}
+
+#[test]
+fn validate_integer() -> TestResult {
+    test_default_generated_schema::<MyStructWithInteger>("validate_integer")
 }

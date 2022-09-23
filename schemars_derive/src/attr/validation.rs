@@ -344,13 +344,13 @@ impl ValidationAttrs {
 
         if let Some(range_min) = &self.range_min {
             number_validation.push(quote! {
-                validation.minimum = Some(#range_min as f64);
+                validation.minimum = Some(#range_min as _);
             });
         }
 
         if let Some(range_max) = &self.range_max {
             number_validation.push(quote! {
-                validation.maximum = Some(#range_max as f64);
+                validation.maximum = Some(#range_max as _);
             });
         }
 
@@ -442,9 +442,11 @@ fn wrap_number_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
         None
     } else {
         Some(quote! {
-            if schema_object.has_type(schemars::schema::InstanceType::Integer)
-                || schema_object.has_type(schemars::schema::InstanceType::Number) {
+            if schema_object.has_type(schemars::schema::InstanceType::Number) {
                 let validation = schema_object.number();
+                #(#v)*
+            } else if schema_object.has_type(schemars::schema::InstanceType::Integer) {
+                let validation = schema_object.integer();
                 #(#v)*
             }
         })
