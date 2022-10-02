@@ -1,6 +1,6 @@
 # Changelog
 
-## **in-dev**
+## [0.8.11] - 2022-10-02
 ### Added:
 - Replace auto-inferred trait bounds with bounds specified in `#[schemars(bound = "...")]` attribute
 
