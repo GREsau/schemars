@@ -62,6 +62,8 @@ mod nonzero_unsigned;
 mod primitives;
 mod sequences;
 mod serdejson;
+#[cfg(feature = "serde_yaml")]
+mod serdeyaml;
 #[cfg(feature = "smallvec")]
 mod smallvec;
 mod time;
