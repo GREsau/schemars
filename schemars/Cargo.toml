@@ -104,5 +104,9 @@ required-features = ["url"]
 name = "enumset"
 required-features = ["enumset"]
 
+[[test]]
+name = "conflicting_types"
+required-features = ["unique-definitions"]
+
 [package.metadata.docs.rs]
 all-features = true
