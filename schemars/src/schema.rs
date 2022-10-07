@@ -6,7 +6,7 @@ JSON Schema types.
 use crate as schemars;
 #[cfg(feature = "impl_json_schema")]
 use crate::JsonSchema;
-use crate::{Map, Set};
+use crate::{Map, Set, TypeId};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::ops::Deref;
@@ -106,7 +106,7 @@ pub struct RootSchema {
     /// See [JSON Schema 8.2.5. Schema Re-Use With "$defs"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5),
     /// and [JSON Schema (draft 07) 9. Schema Re-Use With "definitions"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-01#section-9).
     #[serde(alias = "$defs", skip_serializing_if = "Map::is_empty")]
-    pub definitions: Map<String, Schema>,
+    pub definitions: Map<TypeId, Schema>,
 }
 
 /// A JSON Schema object.

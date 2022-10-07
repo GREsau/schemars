@@ -8,7 +8,7 @@ There are two main types in this module:
 */
 
 use crate::schema::*;
-use crate::{visit::*, JsonSchema, Map};
+use crate::{visit::*, JsonSchema, Map, TypeId};
 use dyn_clone::DynClone;
 use serde::Serialize;
 use std::{any::Any, collections::HashSet, fmt::Debug};
@@ -151,8 +151,12 @@ impl SchemaSettings {
 #[derive(Debug, Default)]
 pub struct SchemaGenerator {
     settings: SchemaSettings,
-    definitions: Map<String, Schema>,
-    pending_schema_names: HashSet<String>,
+    definitions: Map<TypeId, Schema>,
+    pending_schema_names: HashSet<TypeId>,
+
+    /// A map from type IDs to the index of the corresponding schema in `definitions`.
+    #[cfg(feature = "unique-definitions")]
+    unique_type_refs: Map<usize, TypeId>,
 }
 
 impl Clone for SchemaGenerator {
@@ -161,6 +165,9 @@ impl Clone for SchemaGenerator {
             settings: self.settings.clone(),
             definitions: self.definitions.clone(),
             pending_schema_names: HashSet::new(),
+
+            #[cfg(feature = "unique-definitions")]
+            unique_type_refs: self.unique_type_refs.clone(),
         }
     }
 }
@@ -208,6 +215,18 @@ impl SchemaGenerator {
         Schema::Bool(false)
     }
 
+    #[cfg(not(feature = "unique-definitions"))]
+    fn get_id<T: ?Sized + JsonSchema>(&self) -> String {
+        T::schema_name()
+    }
+
+    #[cfg(feature = "unique-definitions")]
+    fn get_id<T: ?Sized>(&mut self) -> usize {
+        let id = type_id_of::<T>();
+        let idx = self.definitions.len();
+        *self.unique_type_refs.entry(id).or_insert(idx)
+    }
+
     /// Generates a JSON Schema for the type `T`, and returns either the schema itself or a `$ref` schema referencing `T`'s schema.
     ///
     /// If `T` is [referenceable](JsonSchema::is_referenceable), this will add `T`'s schema to this generator's definitions, and
@@ -216,36 +235,54 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
     /// add them to the `SchemaGenerator`'s schema definitions.
     pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
+        let id = self.get_id::<T>();
         let name = T::schema_name();
+
         let return_ref = T::is_referenceable()
-            && (!self.settings.inline_subschemas || self.pending_schema_names.contains(&name));
+            && (!self.settings.inline_subschemas || self.pending_schema_names.contains(&id));
 
         if return_ref {
-            let reference = format!("{}{}", self.settings().definitions_path, name);
+            let reference = format!("{}{}", self.settings().definitions_path, id);
+            #[cfg(not(feature = "unique-definitions"))]
             if !self.definitions.contains_key(&name) {
                 self.insert_new_subschema_for::<T>(name);
             }
+            #[cfg(feature = "unique-definitions")]
+            if !self.unique_type_refs.contains_key(&id) {
+                self.insert_new_subschema_for::<T>(id, name);
+            }
             Schema::new_ref(reference)
         } else {
-            self.json_schema_internal::<T>(&name)
+            self.json_schema_internal::<T>(&id)
         }
     }
 
-    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: String) {
+    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(
+        &mut self,
+        id: TypeId,
+        #[cfg(feature = "unique-definitions")] name: String,
+    ) {
         let dummy = Schema::Bool(false);
         // insert into definitions BEFORE calling json_schema to avoid infinite recursion
-        self.definitions.insert(name.clone(), dummy);
+        self.definitions.insert(id.clone(), dummy);
 
-        let schema = self.json_schema_internal::<T>(&name);
+        let schema = self.json_schema_internal::<T>(&id);
 
-        self.definitions.insert(name, schema);
+        #[cfg(feature = "unique-definitions")]
+        let schema = {
+            let mut object = schema.into_object();
+            object.metadata().title = Some(name);
+            object.into()
+        };
+
+        self.definitions.insert(id, schema);
     }
 
     /// Borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn definitions(&self) -> &Map<String, Schema> {
+    pub fn definitions(&self) -> &Map<TypeId, Schema> {
         &self.definitions
     }
 
@@ -253,7 +290,7 @@ impl SchemaGenerator {
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn definitions_mut(&mut self) -> &mut Map<String, Schema> {
+    pub fn definitions_mut(&mut self) -> &mut Map<TypeId, Schema> {
         &mut self.definitions
     }
 
@@ -262,7 +299,7 @@ impl SchemaGenerator {
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn take_definitions(&mut self) -> Map<String, Schema> {
+    pub fn take_definitions(&mut self) -> Map<TypeId, Schema> {
         std::mem::replace(&mut self.definitions, Map::default())
     }
 
@@ -277,8 +314,11 @@ impl SchemaGenerator {
     /// add them to the `SchemaGenerator`'s schema definitions and include them in the returned `SchemaObject`'s
     /// [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> RootSchema {
+        let id = self.get_id::<T>();
         let name = T::schema_name();
-        let mut schema = self.json_schema_internal::<T>(&name).into_object();
+
+        let mut schema = self.json_schema_internal::<T>(&id).into_object();
+
         schema.metadata().title.get_or_insert(name);
         let mut root = RootSchema {
             meta_schema: self.settings.meta_schema.clone(),
@@ -298,8 +338,10 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
     /// include them in the returned `SchemaObject`'s [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> RootSchema {
+        let id = self.get_id::<T>();
         let name = T::schema_name();
-        let mut schema = self.json_schema_internal::<T>(&name).into_object();
+
+        let mut schema = self.json_schema_internal::<T>(&id).into_object();
         schema.metadata().title.get_or_insert(name);
         let mut root = RootSchema {
             meta_schema: self.settings.meta_schema,
@@ -411,8 +453,11 @@ impl SchemaGenerator {
             }) => {
                 let definitions_path = &self.settings().definitions_path;
                 if schema_ref.starts_with(definitions_path) {
-                    let name = &schema_ref[definitions_path.len()..];
-                    self.definitions.get(name)
+                    let type_id = &schema_ref[definitions_path.len()..];
+                    type_id
+                        .parse::<TypeId>()
+                        .ok()
+                        .and_then(|id| self.definitions.get(&id))
                 } else {
                     None
                 }
@@ -421,31 +466,44 @@ impl SchemaGenerator {
         }
     }
 
-    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, name: &str) -> Schema {
+    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, id: &TypeId) -> Schema {
         struct PendingSchemaState<'a> {
             gen: &'a mut SchemaGenerator,
-            name: &'a str,
+            id: &'a TypeId,
             did_add: bool,
         }
 
         impl<'a> PendingSchemaState<'a> {
-            fn new(gen: &'a mut SchemaGenerator, name: &'a str) -> Self {
-                let did_add = gen.pending_schema_names.insert(name.to_owned());
-                Self { gen, name, did_add }
+            fn new(gen: &'a mut SchemaGenerator, id: &'a TypeId) -> Self {
+                let did_add = gen.pending_schema_names.insert(id.to_owned());
+                Self { gen, id, did_add }
             }
         }
 
         impl Drop for PendingSchemaState<'_> {
             fn drop(&mut self) {
                 if self.did_add {
-                    self.gen.pending_schema_names.remove(self.name);
+                    self.gen.pending_schema_names.remove(self.id);
                 }
             }
         }
 
-        let pss = PendingSchemaState::new(self, name);
+        let pss = PendingSchemaState::new(self, id);
         T::json_schema(pss.gen)
     }
+}
+
+/// Returns a unique typeid for any type `T`.
+///
+/// This is used to generate unique names for each type in the schema definitions.
+///
+/// Caution: This is not consistent across different runs of the program.
+///
+/// <https://github.com/sagebind/castaway/pull/6/files#diff-23af5356f6001cd3993cd3c801fb7716ea02d1e504081b9fb569332db6107e80R30-R37>
+#[inline(always)]
+#[cfg(feature = "unique-definitions")]
+fn type_id_of<T: ?Sized>() -> usize {
+    type_id_of::<T> as usize
 }
 
 /// A [Visitor](Visitor) which implements additional traits required to be included in a [SchemaSettings].
