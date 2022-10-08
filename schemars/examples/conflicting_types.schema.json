@@ -33,6 +33,26 @@
           "type": "null"
         }
       ]
+    },
+    "my_nullable_enum3": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/0"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "my_nullable_enum4": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/1"
+        },
+        {
+          "type": "null"
+        }
+      ]
     }
   },
   "definitions": {
