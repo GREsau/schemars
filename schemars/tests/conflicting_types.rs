@@ -30,6 +30,6 @@ pub struct MyStruct {
 }
 
 #[test]
-fn transparent_struct() -> TestResult {
+fn conflicting_types() -> TestResult {
     test_default_generated_schema::<MyStruct>("conflicting_types")
 }
