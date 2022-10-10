@@ -54,7 +54,7 @@ pub trait Visitor {
 /// Visits all subschemas of the [`RootSchema`].
 pub fn visit_root_schema<V: Visitor + ?Sized>(v: &mut V, root: &mut RootSchema) {
     v.visit_schema_object(&mut root.schema);
-    visit_map_values(v, &mut root.definitions);
+    visit_map_values(v, root.definitions.values_mut());
 }
 
 /// Visits all subschemas of the [`Schema`].
@@ -83,8 +83,8 @@ pub fn visit_schema_object<V: Visitor + ?Sized>(v: &mut V, schema: &mut SchemaOb
     }
 
     if let Some(obj) = &mut schema.object {
-        visit_map_values(v, &mut obj.properties);
-        visit_map_values(v, &mut obj.pattern_properties);
+        visit_map_values(v, obj.properties.values_mut());
+        visit_map_values(v, obj.pattern_properties.values_mut());
         visit_box(v, &mut obj.additional_properties);
         visit_box(v, &mut obj.property_names);
     }
@@ -104,8 +104,11 @@ fn visit_vec<V: Visitor + ?Sized>(v: &mut V, target: &mut Option<Vec<Schema>>) {
     }
 }
 
-fn visit_map_values<V: Visitor + ?Sized>(v: &mut V, target: &mut crate::Map<String, Schema>) {
-    for s in target.values_mut() {
+fn visit_map_values<'a, V: Visitor + ?Sized>(
+    v: &mut V,
+    schemas: impl Iterator<Item = &'a mut Schema>,
+) {
+    for s in schemas {
         v.visit_schema(s)
     }
 }

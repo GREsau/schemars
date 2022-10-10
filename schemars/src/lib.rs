@@ -331,6 +331,12 @@ pub use schemars_derive::*;
 #[doc(hidden)]
 pub use serde_json as _serde_json;
 
+#[cfg(feature = "unique-definitions")]
+pub type TypeId = usize;
+
+#[cfg(not(feature = "unique-definitions"))]
+pub type TypeId = String;
+
 use schema::Schema;
 
 /// A type which can be described as a JSON Schema document.
