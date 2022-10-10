@@ -548,13 +548,16 @@ impl SchemaGenerator {
     }
 }
 
-/// Returns a unique typeid for any type `T`.
+/// Returns a unique discriminant for the given type.
 ///
-/// This is used to generate unique names for each type in the schema definitions.
+/// This is used to disambiguate between different types which have the same name in the definitions map.
 ///
-/// Caution: This is not consistent across different runs of the program.
+/// Adapted from <https://github.com/sagebind/castaway/pull/6/files#diff-23af5356f6001cd3993cd3c801fb7716ea02d1e504081b9fb569332db6107e80R30-R37>
 ///
-/// <https://github.com/sagebind/castaway/pull/6/files#diff-23af5356f6001cd3993cd3c801fb7716ea02d1e504081b9fb569332db6107e80R30-R37>
+/// ### Caution
+///
+/// Although the value returned here is unique for every type, it is also runtime-dependent,
+/// therefore, it is not guaranteed to be consistent across runs. Do not export.
 #[inline(always)]
 #[cfg(feature = "unique-definitions")]
 fn type_id_of<T: ?Sized>() -> usize {
