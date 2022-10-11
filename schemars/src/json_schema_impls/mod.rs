@@ -46,6 +46,8 @@ mod atomic;
 mod bytes;
 #[cfg(feature = "chrono")]
 mod chrono;
+#[cfg(feature = "ipnetwork")]
+mod ipnetwork;
 mod core;
 #[cfg(any(feature = "rust_decimal", feature = "bigdecimal"))]
 mod decimal;

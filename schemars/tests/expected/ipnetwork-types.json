@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "IpNetworkTypes",
+  "type": "object",
+  "required": [
+    "ipv4_net_field",
+    "ipv6_net_field"
+  ],
+  "properties": {
+    "ipv4_net_field": {
+      "examples": [
+        "1.2.3.0/24",
+        "1.2.3.4/24",
+        "1.2.3.4/32",
+        "0.0.0.0/0"
+      ],
+      "type": "string",
+      "pattern": "^[12]?[0-9]?[0-9]\\.[12]?[0-9]?[0-9]\\.[12]?[0-9]?[0-9]\\.[12]?[0-9]?[0-9]/[1-3]?[0-9]$"
+    },
+    "ipv6_net_field": {
+      "examples": [
+        "2001:db8::0/64",
+        "2001:db8::1/64",
+        "2001:db8::1/128",
+        "::ffff:192.0.2.1/128",
+        "::/0"
+      ],
+      "type": "string",
+      "pattern": "^[0-9a-f:\\.]+/1?[0-9][0-9]?$"
+    }
+  }
+}
