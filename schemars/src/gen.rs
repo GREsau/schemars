@@ -17,6 +17,7 @@ use std::{any::Any, collections::HashSet, fmt::Debug};
 ///
 /// The default settings currently conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
 /// If you require your generated schemas to conform to draft 7, consider using the [`draft07`](#method.draft07) method.
+#[non_exhaustive]
 #[derive(Debug, Clone)]
 pub struct SchemaSettings {
     /// If `true`, schemas for [`Option<T>`](Option) will include a `nullable` property.
@@ -45,7 +46,6 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `false`.
     pub inline_subschemas: bool,
-    _hidden: (),
 }
 
 impl Default for SchemaSettings {
@@ -64,7 +64,6 @@ impl SchemaSettings {
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
             visitors: vec![Box::new(RemoveRefSiblings)],
             inline_subschemas: false,
-            _hidden: (),
         }
     }
 
@@ -77,7 +76,6 @@ impl SchemaSettings {
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
             visitors: Vec::default(),
             inline_subschemas: false,
-            _hidden: (),
         }
     }
 
@@ -101,7 +99,6 @@ impl SchemaSettings {
                 }),
             ],
             inline_subschemas: false,
-            _hidden: (),
         }
     }
 
@@ -263,7 +260,8 @@ impl SchemaGenerator {
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
     pub fn take_definitions(&mut self) -> Map<String, Schema> {
-        std::mem::replace(&mut self.definitions, Map::default())
+        // Set `self.definitions` to the default value (empty).
+        std::mem::take(&mut self.definitions)
     }
 
     /// Returns an iterator over the [visitors](SchemaSettings::visitors) being used by this `SchemaGenerator`.

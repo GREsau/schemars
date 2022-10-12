@@ -44,6 +44,7 @@ fn escape_into(text: &str, buf: &mut String) {
 }
 
 fn is_meta_character(c: char) -> bool {
+    #[allow(clippy::match_like_matches_macro)]
     match c {
         '\\' | '.' | '+' | '*' | '?' | '(' | ')' | '|' | '[' | ']' | '{' | '}' | '^' | '$'
         | '#' | '&' | '-' | '~' => true,

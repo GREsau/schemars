@@ -3,7 +3,7 @@ name: CI
 on: [push, pull_request, workflow_dispatch]
 
 jobs:
-  ci:
+  test:
     runs-on: ubuntu-latest
     env:
       # work-around https://github.com/rust-lang/cargo/issues/10303
@@ -51,3 +51,25 @@ jobs:
         run: cargo test --verbose --all-features --no-fail-fast
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars_derive
+  format:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Format
+      run: cargo fmt -- --check
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Linting
+      run: cargo clippy
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Audit
+      run: |
+        cargo update
+        cargo audit
+      # Allowed to fail but this will notify us that some dependency might need an update.
+      continue-on-error: true

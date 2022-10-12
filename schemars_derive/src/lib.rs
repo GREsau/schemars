@@ -14,6 +14,7 @@ mod schema_exprs;
 
 use ast::*;
 use proc_macro2::TokenStream;
+use std::fmt::Write;
 use syn::spanned::Spanned;
 
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde, validate))]
@@ -95,26 +96,28 @@ fn derive_json_schema(
 
     // FIXME improve handling of generic type params which may not implement JsonSchema
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
-    let schema_name = if type_params.is_empty() || (cont.attrs.is_renamed && !schema_base_name.contains('{')) {
-        quote! {
-            #schema_base_name.to_owned()
-        }
-    } else if cont.attrs.is_renamed {
-        let mut schema_name_fmt = schema_base_name;
-        for tp in &type_params {
-            schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
-        }
-        quote! {
-            format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())*)
-        }
-    } else {
-        let mut schema_name_fmt = schema_base_name;
-        schema_name_fmt.push_str("_for_{}");
-        schema_name_fmt.push_str(&"_and_{}".repeat(type_params.len() - 1));
-        quote! {
-            format!(#schema_name_fmt #(,#type_params::schema_name())*)
-        }
-    };
+    let schema_name =
+        if type_params.is_empty() || (cont.attrs.is_renamed && !schema_base_name.contains('{')) {
+            quote! {
+                #schema_base_name.to_owned()
+            }
+        } else if cont.attrs.is_renamed {
+            let mut schema_name_fmt = schema_base_name;
+            for tp in &type_params {
+                // Append to string
+                write!(schema_name_fmt, "{{{}:.0}}", tp).expect("Appending failed");
+            }
+            quote! {
+                format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())*)
+            }
+        } else {
+            let mut schema_name_fmt = schema_base_name;
+            schema_name_fmt.push_str("_for_{}");
+            schema_name_fmt.push_str(&"_and_{}".repeat(type_params.len() - 1));
+            quote! {
+                format!(#schema_name_fmt #(,#type_params::schema_name())*)
+            }
+        };
 
     let schema_expr = if repr {
         schema_exprs::expr_for_repr(&cont).map_err(|e| vec![e])?

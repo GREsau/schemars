@@ -257,7 +257,7 @@ impl From<Schema> for SchemaObject {
 }
 
 /// Properties which annotate a [`SchemaObject`] which typically have no effect when an object is being validated against the schema.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "impl_json_schema", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", default)]
 pub struct Metadata {
@@ -386,7 +386,7 @@ pub struct NumberValidation {
 }
 
 /// Properties of a [`SchemaObject`] which define validation assertions for strings.
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq, Default)]
 #[cfg_attr(feature = "impl_json_schema", derive(JsonSchema))]
 #[serde(rename_all = "camelCase", default)]
 pub struct StringValidation {

@@ -27,10 +27,11 @@ pub struct Attrs {
     pub examples: Vec<syn::Path>,
     pub repr: Option<syn::Type>,
     pub crate_name: Option<syn::Path>,
-    pub is_renamed: bool
+    pub is_renamed: bool,
 }
 
 #[derive(Debug)]
+#[allow(clippy::large_enum_variant)]
 pub enum WithAttr {
     Type(syn::Type),
     Function(syn::Path),
@@ -153,9 +154,7 @@ impl Attrs {
                     }
                 }
 
-                Meta(NameValue(m)) if m.path.is_ident("rename") => {
-                    self.is_renamed = true
-                }
+                Meta(NameValue(m)) if m.path.is_ident("rename") => self.is_renamed = true,
 
                 Meta(NameValue(m)) if m.path.is_ident("crate") && attr_type == "schemars" => {
                     if let Ok(p) = parse_lit_into_path(errors, attr_type, "crate", &m.lit) {
@@ -192,6 +191,7 @@ impl Attrs {
     }
 
     pub fn is_default(&self) -> bool {
+        #[allow(clippy::match_like_matches_macro)]
         match self {
             Self {
                 with: None,
