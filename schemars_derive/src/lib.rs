@@ -95,24 +95,29 @@ fn derive_json_schema(
 
     // FIXME improve handling of generic type params which may not implement JsonSchema
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
-    let schema_name = if type_params.is_empty() || (cont.attrs.is_renamed && !schema_base_name.contains('{')) {
+    let const_params: Vec<_> = cont.generics.const_params().map(|c| &c.ident).collect();
+    let params: Vec<_> = type_params.iter().chain(const_params.iter()).collect();
+
+    let schema_name = if params.is_empty()
+        || (cont.attrs.is_renamed && !schema_base_name.contains('{'))
+    {
         quote! {
             #schema_base_name.to_owned()
         }
     } else if cont.attrs.is_renamed {
         let mut schema_name_fmt = schema_base_name;
-        for tp in &type_params {
+        for tp in &params {
             schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
         }
         quote! {
-            format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())*)
+            format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())* #(,#const_params=#const_params)*)
         }
     } else {
         let mut schema_name_fmt = schema_base_name;
         schema_name_fmt.push_str("_for_{}");
-        schema_name_fmt.push_str(&"_and_{}".repeat(type_params.len() - 1));
+        schema_name_fmt.push_str(&"_and_{}".repeat(params.len() - 1));
         quote! {
-            format!(#schema_name_fmt #(,#type_params::schema_name())*)
+            format!(#schema_name_fmt #(,#type_params::schema_name())* #(,#const_params)*)
         }
     };
 
