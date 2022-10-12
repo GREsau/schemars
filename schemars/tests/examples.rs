@@ -17,7 +17,7 @@ fn eight() -> i32 {
     8
 }
 
-fn null() -> () {}
+fn null() {}
 
 #[test]
 fn examples() -> TestResult {
