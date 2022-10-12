@@ -50,28 +50,32 @@ fn overriden_with_rename_multiple_type_params() -> TestResult {
     )
 }
 
-#[allow(dead_code)]
-#[derive(JsonSchema)]
-#[schemars(rename = "const-generics-{BAR}-")]
-struct ConstGenericStruct<const FOO: usize, const BAR: char> {
-    foo: i32,
-}
+if_rust_version::if_rust_version! {
+    >= 1.51 {
+        #[allow(dead_code)]
+        #[derive(JsonSchema)]
+        #[schemars(rename = "const-generics-{BAR}-")]
+        struct ConstGenericStruct<const FOO: usize, const BAR: char> {
+            foo: i32,
+        }
 
-#[test]
-fn overriden_with_rename_const_generics() -> TestResult {
-    test_default_generated_schema::<ConstGenericStruct<42, 'z'>>("schema-name-const-generics")
-}
+        #[test]
+        fn overriden_with_rename_const_generics() -> TestResult {
+            test_default_generated_schema::<ConstGenericStruct<42, 'z'>>("schema-name-const-generics")
+        }
 
-#[allow(dead_code)]
-#[derive(JsonSchema)]
-struct MixedGenericStruct<T, const FOO: usize, const BAR: char> {
-    generic: T,
-    foo: i32,
-}
+        #[allow(dead_code)]
+        #[derive(JsonSchema)]
+        struct MixedGenericStruct<T, const FOO: usize, const BAR: char> {
+            generic: T,
+            foo: i32,
+        }
 
-#[test]
-fn default_name_mixed_generics() -> TestResult {
-    test_default_generated_schema::<MixedGenericStruct<MyStruct<i32, (), bool, Vec<String>>, 42, 'z'>>(
-        "schema-name-mixed-generics",
-    )
+        #[test]
+        fn default_name_mixed_generics() -> TestResult {
+            test_default_generated_schema::<
+                MixedGenericStruct<MyStruct<i32, (), bool, Vec<String>>, 42, 'z'>,
+            >("schema-name-mixed-generics")
+        }
+    }
 }
