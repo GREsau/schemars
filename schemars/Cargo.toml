@@ -60,6 +60,8 @@ uuid = ["uuid08"]
 arrayvec = ["arrayvec05"]
 indexmap1 = ["indexmap"]
 
+raw_value = ["serde_json/raw_value"]
+
 ui_test = []
 
 [[test]]
