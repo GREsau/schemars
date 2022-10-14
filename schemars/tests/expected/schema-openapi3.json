@@ -10,14 +10,14 @@
       "nullable": true
     },
     "definitions": {
-      "description": "The `definitions` keyword.\n\nIn JSON Schema draft 2019-09 this was replaced by $defs, but in Schemars this is still serialized as `definitions` for backward-compatibility.\n\nSee [JSON Schema 8.2.5. Schema Re-Use With \"$defs\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5), and [JSON Schema (draft 07) 9. Schema Re-Use With \"definitions\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-01#section-9).",
+      "description": "The `definitions` keyword.\n\nIn JSON Schema draft 2019-09 this was replaced by $defs, but in Schemars this is still\nserialized as `definitions` for backward-compatibility.\n\nSee [JSON Schema 8.2.5. Schema Re-Use With \"$defs\"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-8.2.5),\nand [JSON Schema (draft 07) 9. Schema Re-Use With \"definitions\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-01#section-9).",
       "type": "object",
       "additionalProperties": {
         "$ref": "#/components/schemas/Schema"
       }
     },
     "type": {
-      "description": "The `type` keyword.\n\nSee [JSON Schema Validation 6.1.1. \"type\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.1) and [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).",
+      "description": "The `type` keyword.\n\nSee [JSON Schema Validation 6.1.1. \"type\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.1)\nand [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).",
       "allOf": [
         {
           "$ref": "#/components/schemas/SingleOrVec_for_InstanceType"
@@ -297,7 +297,7 @@
       "description": "A JSON Schema.",
       "anyOf": [
         {
-          "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false` matches nothing (always fails validation).",
+          "description": "A trivial boolean JSON Schema.\n\nThe schema `true` matches everything (always passes validation), whereas the schema `false`\nmatches nothing (always fails validation).",
           "type": "boolean"
         },
         {
@@ -315,7 +315,7 @@
       "type": "object",
       "properties": {
         "type": {
-          "description": "The `type` keyword.\n\nSee [JSON Schema Validation 6.1.1. \"type\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.1) and [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).",
+          "description": "The `type` keyword.\n\nSee [JSON Schema Validation 6.1.1. \"type\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.1.1)\nand [JSON Schema 4.2.1. Instance Data Model](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-4.2.1).",
           "allOf": [
             {
               "$ref": "#/components/schemas/SingleOrVec_for_InstanceType"
