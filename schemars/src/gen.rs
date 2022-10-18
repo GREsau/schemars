@@ -37,6 +37,12 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `"http://json-schema.org/draft-07/schema#"`.
     pub meta_schema: Option<String>,
+    /// If `true`, raw descriptions will be used in generated schemas.
+    ///
+    /// This option should be set to `true` if markup language is used in descriptions.
+    ///
+    /// Defaults to `false`
+    pub raw_description_text: bool,
     /// A list of visitors that get applied to all generated root schemas.
     pub visitors: Vec<Box<dyn GenVisitor>>,
     /// Inline all subschemas instead of using references.
@@ -64,6 +70,7 @@ impl SchemaSettings {
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
             visitors: vec![Box::new(RemoveRefSiblings)],
             inline_subschemas: false,
+            raw_description_text: false,
             _hidden: (),
         }
     }
@@ -77,6 +84,7 @@ impl SchemaSettings {
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
             visitors: Vec::default(),
             inline_subschemas: false,
+            raw_description_text: false,
             _hidden: (),
         }
     }
@@ -101,6 +109,7 @@ impl SchemaSettings {
                 }),
             ],
             inline_subschemas: false,
+            raw_description_text: false,
             _hidden: (),
         }
     }

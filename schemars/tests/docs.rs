@@ -89,3 +89,37 @@ struct OverrideDocs {
 fn doc_comments_override() -> TestResult {
     test_default_generated_schema::<OverrideDocs>("doc_comments_override")
 }
+
+/// # RawDescriptionText struct
+///
+/// This struct is commented using markdown.
+///
+/// ## Example
+///
+/// A code:
+///
+/// ```
+/// let _json = serde_json::to_string(&MarkupDocs { my_int: 10 }).unwrap();
+/// ```
+///
+/// A table:
+///
+/// | Col1     | Col2     |
+/// |----------|----------|
+/// | schemars | schemars |
+/// | serde    | serde    |
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct RawDescriptionText {
+    /// # Documented field
+    ///
+    /// This is first line of a description
+    /// This is second line of a description
+    my_int: i32,
+}
+
+#[test]
+fn raw_description_text() -> TestResult {
+    let settings = SchemaSettings::draft07().with(|s| s.raw_description_text = true);
+    test_generated_schema::<RawDescriptionText>("raw_description_text", settings)
+}

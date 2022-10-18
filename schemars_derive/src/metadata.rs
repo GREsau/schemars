@@ -27,14 +27,35 @@ impl<'a> SchemaMetadata<'a> {
     fn make_setters(&self) -> Vec<TokenStream> {
         let mut setters = Vec::<TokenStream>::new();
 
+        let gen = quote!(gen);
+
         if let Some(title) = &self.title {
             setters.push(quote! {
                 title: Some(#title.to_owned()),
             });
         }
+
         if let Some(description) = &self.description {
             setters.push(quote! {
-                description: Some(#description.to_owned()),
+                description: if !#gen.settings().raw_description_text {
+                    let description: Vec<_> = #description.split("\n\n").filter_map(|line| {
+                        let line = line.trim();
+
+                        if line.is_empty() {
+                            return None;
+                        }
+
+                        Some(line.replace('\n', " "))
+                    }).collect();
+
+                    if description.is_empty() {
+                        None
+                    } else {
+                        Some(description.join("\n\n"))
+                    }
+                } else {
+                    Some(#description.to_owned())
+                },
             });
         }
 

@@ -1,0 +1,17 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RawDescriptionText struct",
+  "description": "This struct is commented using markdown.\n\n## Example\n\nA code:\n\n```\nlet _json = serde_json::to_string(&MarkupDocs { my_int: 10 }).unwrap();\n```\n\nA table:\n\n| Col1     | Col2     |\n|----------|----------|\n| schemars | schemars |\n| serde    | serde    |",
+  "type": "object",
+  "required": [
+    "my_int"
+  ],
+  "properties": {
+    "my_int": {
+      "title": "Documented field",
+      "description": "This is first line of a description\nThis is second line of a description",
+      "type": "integer",
+      "format": "int32"
+    }
+  }
+}
