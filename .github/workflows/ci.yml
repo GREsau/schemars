@@ -36,6 +36,12 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.rust }}
           override: true
+      - if: matrix.rust == '1.45.0'
+        # Minimum Supported Rust Version
+        # Use fixed version for creates to support MSRV.
+        # Once_cell switched to MSRV 1.56.0 in 1.15.0
+        # pretty_assertions switched to MSRV 1.54.0 in 1.3.0
+        run: cargo update -p once_cell --precise 1.14.0 && cargo update -p pretty_assertions --precise 1.2.1
       - name: Check with no feature flags
         run: cargo check --verbose --no-default-features
         continue-on-error: ${{ matrix.allow_failure }}
