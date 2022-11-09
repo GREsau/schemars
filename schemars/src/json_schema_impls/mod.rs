@@ -60,6 +60,8 @@ mod maps;
 mod nonzero_signed;
 mod nonzero_unsigned;
 mod primitives;
+#[cfg(feature = "rocket")]
+mod rocket;
 mod sequences;
 mod serdejson;
 #[cfg(feature = "smallvec")]
