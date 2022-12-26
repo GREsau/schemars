@@ -13,7 +13,10 @@ impl JsonSchema for Version {
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
         SchemaObject {
             instance_type: Some(InstanceType::String.into()),
-            format: Some("version".to_owned()),
+            string: Some(Box::new(StringValidation {
+                pattern: Some(r"^\d+\.\d+\.\d+([\-\+].+)?$".to_owned()),
+                ..Default::default()
+            })),
             ..Default::default()
         }
         .into()
