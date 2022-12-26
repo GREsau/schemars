@@ -6,7 +6,7 @@
   "properties": {
     "version": {
       "type": "string",
-      "format": "version"
+      "pattern": "^\\d+\\.\\d+\\.\\d+([\\-\\+].+)?$"
     }
   }
 }
