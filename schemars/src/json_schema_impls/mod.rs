@@ -65,6 +65,8 @@ mod serdejson;
 #[cfg(feature = "smallvec")]
 mod smallvec;
 mod time;
+#[cfg(feature = "time3")]
+mod time3;
 mod tuple;
 #[cfg(feature = "url")]
 mod url;
