@@ -71,6 +71,9 @@ mod decimal;
 #[cfg(feature = "either1")]
 mod either1;
 
+#[cfg(feature = "im15")]
+mod im15;
+
 #[cfg(feature = "indexmap2")]
 mod indexmap2;
 
