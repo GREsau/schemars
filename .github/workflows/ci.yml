@@ -38,7 +38,7 @@ jobs:
           override: true          
       - if: matrix.rust == '1.45.0'
         # work-around https://github.com/serde-rs/serde/issues/2255 and similar crate/rustc compatibility issues
-        run: cargo update -p serde --precise 1.0.142 && cargo update -p once_cell --precise 1.10.0 && cargo update -p pretty_assertions --precise 1.2.1
+        run: sed -i '/serde_with =/d' schemars/Cargo.toml && cargo update -p serde --precise 1.0.142 && cargo update -p once_cell --precise 1.10.0 && cargo update -p pretty_assertions --precise 1.2.1
       - name: Check with no feature flags
         run: cargo check --verbose --no-default-features
         continue-on-error: ${{ matrix.allow_failure }}
