@@ -61,6 +61,8 @@ mod nonzero_signed;
 mod nonzero_unsigned;
 mod primitives;
 mod sequences;
+#[cfg(feature = "serde_with")]
+mod serde_with;
 mod serdejson;
 #[cfg(feature = "smallvec")]
 mod smallvec;
