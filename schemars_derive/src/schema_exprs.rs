@@ -490,7 +490,8 @@ fn expr_for_struct(
             let (ty, type_def) = type_for_field_schema(field);
 
             let maybe_insert_required = match (&default, field.validation_attrs.required()) {
-                (Ok(_) | Err(true), _) => TokenStream::new(),
+                (Ok(_), _) => TokenStream::new(),
+                (Err(true), _) => TokenStream::new(),
                 (Err(false), false) => {
                     quote! {
                         if !<#ty as schemars::JsonSchema>::_schemars_private_is_option() {
