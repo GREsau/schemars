@@ -139,7 +139,10 @@ where
     }
 }
 
-impl<T: Ord> Merge for Set<T> {
+impl<T> Merge for Set<T>
+where
+    T: std::hash::Hash + Ord,
+{
     fn merge(mut self, other: Self) -> Self {
         self.extend(other);
         self

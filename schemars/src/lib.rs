@@ -295,9 +295,13 @@ pub type Map<K, V> = std::collections::BTreeMap<K, V>;
 pub type Map<K, V> = indexmap::IndexMap<K, V>;
 /// The set type used by schemars types.
 ///
-/// Currently a `BTreeSet`, but this may change to a different implementation
+/// Currently a `BTreeSet` or `IndexSet`, but this may change to a different implementation
 /// with a similar interface in a future version of schemars.
+/// The `IndexSet` will be used when the `preserve_order` feature flag is set.
+#[cfg(not(feature = "preserve_order"))]
 pub type Set<T> = std::collections::BTreeSet<T>;
+#[cfg(feature = "preserve_order")]
+pub type Set<T> = indexmap::IndexSet<T>;
 
 /// A view into a single entry in a map, which may either be vacant or occupied.
 //
