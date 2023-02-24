@@ -2,8 +2,10 @@ use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 
+pub struct EmptyArray<T>(pub [T; 0]);
+
 // Does not require T: JsonSchema.
-impl<T> JsonSchema for [T; 0] {
+impl<T> JsonSchema for EmptyArray<T> {
     no_ref_schema!();
 
     fn schema_name() -> String {
@@ -23,39 +25,29 @@ impl<T> JsonSchema for [T; 0] {
     }
 }
 
-macro_rules! array_impls {
-    ($($len:tt)+) => {
-        $(
-            impl<T: JsonSchema> JsonSchema for [T; $len] {
-                no_ref_schema!();
+impl<T: JsonSchema, const N: usize> JsonSchema for [T; N] {
+    no_ref_schema!();
 
-                fn schema_name() -> String {
-                    format!("Array_size_{}_of_{}", $len, T::schema_name())
-                }
-
-                fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                    SchemaObject {
-                        instance_type: Some(InstanceType::Array.into()),
-                        array: Some(Box::new(ArrayValidation {
-                            items: Some(gen.subschema_for::<T>().into()),
-                            max_items: Some($len),
-                            min_items: Some($len),
-                            ..Default::default()
-                        })),
-                        ..Default::default()
-                    }
-                    .into()
-                }
-            }
-        )+
+    fn schema_name() -> String {
+        match N {
+            0 => "EmptyArray".to_owned(),
+            n => format!("Array_size_{}_of_{}", n, T::schema_name()),
+        }
     }
-}
 
-array_impls! {
-     1  2  3  4  5  6  7  8  9 10
-    11 12 13 14 15 16 17 18 19 20
-    21 22 23 24 25 26 27 28 29 30
-    31 32
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        SchemaObject {
+            instance_type: Some(InstanceType::Array.into()),
+            array: Some(Box::new(ArrayValidation {
+                items: Some(gen.subschema_for::<T>().into()),
+                max_items: Some(N as u32),
+                min_items: Some(N as u32),
+                ..Default::default()
+            })),
+            ..Default::default()
+        }
+        .into()
+    }
 }
 
 #[cfg(test)]
@@ -85,7 +77,7 @@ mod tests {
 
     #[test]
     fn schema_for_empty_array() {
-        let schema = schema_object_for::<[SomeStruct; 0]>();
+        let schema = schema_object_for::<EmptyArray<SomeStruct>>();
         assert_eq!(
             schema.instance_type,
             Some(SingleOrVec::from(InstanceType::Array))
