@@ -16,7 +16,7 @@ jobs:
           - beta
           - nightly
         include:
-          - rust: 1.45.0          
+          - rust: 1.45.0
             test_features: "--features impl_json_schema"
             allow_failure: false
           - rust: stable
@@ -35,10 +35,10 @@ jobs:
         with:
           profile: minimal
           toolchain: ${{ matrix.rust }}
-          override: true          
+          override: true
       - if: matrix.rust == '1.45.0'
         # work-around https://github.com/serde-rs/serde/issues/2255 and similar crate/rustc compatibility issues
-        run: cargo update -p serde --precise 1.0.142 && cargo update -p once_cell --precise 1.10.0 && cargo update -p pretty_assertions --precise 1.2.1
+        run: cargo update -p serde --precise 1.0.142 && cargo update -p once_cell --precise 1.10.0 && cargo update -p pretty_assertions --precise 1.2.1 && cargo update -p trybuild --precise 1.0.64
       - name: Check with no feature flags
         run: cargo check --verbose --no-default-features
         continue-on-error: ${{ matrix.allow_failure }}
