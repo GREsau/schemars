@@ -263,7 +263,7 @@ impl SchemaGenerator {
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
     pub fn take_definitions(&mut self) -> Map<String, Schema> {
-        std::mem::replace(&mut self.definitions, Map::default())
+        std::mem::take(&mut self.definitions)
     }
 
     /// Returns an iterator over the [visitors](SchemaSettings::visitors) being used by this `SchemaGenerator`.
