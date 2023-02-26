@@ -80,13 +80,8 @@ name = "smallvec"
 required-features = ["smallvec"]
 
 [[test]]
-<<<<<<< smol_str
-name = "smol_str"
-required-features = ["smol_str"]
-=======
 name = "bytes"
 required-features = ["bytes"]
->>>>>>> master
 
 [[test]]
 name = "arrayvec"
@@ -107,6 +102,10 @@ required-features = ["url"]
 [[test]]
 name = "enumset"
 required-features = ["enumset"]
+
+[[test]]
+name = "smol_str"
+required-features = ["smol_str"]
 
 [package.metadata.docs.rs]
 all-features = true
