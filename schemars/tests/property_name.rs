@@ -2,7 +2,8 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 #[serde(rename_all = "camelCase")]
 struct MyStruct {
     camel_case: i32,

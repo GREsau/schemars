@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "External",
-  "anyOf": [
+  "oneOf": [
     {
       "type": "string",
       "enum": [
@@ -21,7 +21,8 @@
             "type": "string"
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -32,7 +33,8 @@
         "unitStructNewType": {
           "$ref": "#/definitions/UnitStruct"
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -43,7 +45,8 @@
         "structNewType": {
           "$ref": "#/definitions/Struct"
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -58,16 +61,17 @@
             "foo"
           ],
           "properties": {
+            "bar": {
+              "type": "boolean"
+            },
             "foo": {
               "type": "integer",
               "format": "int32"
-            },
-            "bar": {
-              "type": "boolean"
             }
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -89,7 +93,8 @@
           "maxItems": 2,
           "minItems": 2
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -101,13 +106,11 @@
           "type": "integer",
           "format": "int32"
         }
-      }
+      },
+      "additionalProperties": false
     }
   ],
   "definitions": {
-    "UnitStruct": {
-      "type": "null"
-    },
     "Struct": {
       "type": "object",
       "required": [
@@ -115,14 +118,17 @@
         "foo"
       ],
       "properties": {
+        "bar": {
+          "type": "boolean"
+        },
         "foo": {
           "type": "integer",
           "format": "int32"
-        },
-        "bar": {
-          "type": "boolean"
         }
       }
+    },
+    "UnitStruct": {
+      "type": "null"
     }
   }
 }

@@ -2,23 +2,25 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 pub struct OuterStruct {
     inner: TransparentStruct,
 }
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 #[serde(transparent)]
 pub struct TransparentStruct {
     #[serde(with = "TransparentNewType")]
     inner: (),
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 #[schemars(transparent)]
 pub struct TransparentNewType(Option<InnerStruct>);
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 pub struct InnerStruct(String, i32);
 
 #[test]

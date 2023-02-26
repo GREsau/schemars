@@ -2,7 +2,8 @@ mod util;
 use schemars::{gen::SchemaSettings, JsonSchema};
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 /**
  *
  * # This is the struct's title
@@ -10,26 +11,28 @@ use util::*;
  * This is the struct's description.
  *
  */
-pub struct MyStruct {
+struct MyStruct {
     /// # An integer
-    pub my_int: i32,
-    pub my_undocumented_bool: bool,
+    my_int: i32,
+    my_undocumented_bool: bool,
     /// A unit struct instance
-    pub my_unit: MyUnitStruct,
+    my_unit: MyUnitStruct,
 }
 
 /// # A Unit
 ///
-#[derive(Debug, JsonSchema)]
-pub struct MyUnitStruct;
+#[derive(JsonSchema)]
+struct MyUnitStruct;
 
+#[allow(dead_code)]
 #[doc = " # This is the enum's title "]
 #[doc = " This is "]
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 #[doc = " the enum's description."]
-pub enum MyEnum {
+enum MyEnum {
     UndocumentedUnit,
-    /// This comment is not included in the generated schema :(
+    UndocumentedUnit2,
+    /// This comment is included in the generated schema :)
     DocumentedUnit,
     /// ## Complex variant
     /// This is a struct-like variant.
@@ -69,16 +72,17 @@ fn doc_comments_enum() -> TestResult {
 
 /// # OverrideDocs struct
 /// This description should be overridden
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 #[schemars(description = "New description")]
-pub struct OverrideDocs {
+struct OverrideDocs {
     /// # Overridden
     #[schemars(title = "My integer", description = "This is an i32")]
-    pub my_int: i32,
+    my_int: i32,
     /// # Overridden
     /// Also overridden
     #[schemars(title = "", description = "")]
-    pub my_undocumented_bool: bool,
+    my_undocumented_bool: bool,
 }
 
 #[test]

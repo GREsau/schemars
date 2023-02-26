@@ -3,7 +3,8 @@ use schemars::JsonSchema;
 use std::ops::{Bound, Range, RangeInclusive};
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct MyStruct {
     range: Range<usize>,
     inclusive: RangeInclusive<f64>,

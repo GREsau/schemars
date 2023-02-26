@@ -2,8 +2,6 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
-// FIXME determine whether schema_with should be allowed on unit variants
-
 fn schema_fn(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
     <bool>::json_schema(gen)
 }
@@ -11,7 +9,7 @@ fn schema_fn(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Sche
 #[derive(Debug)]
 pub struct DoesntImplementJsonSchema;
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 #[schemars(rename_all = "camelCase")]
 pub enum External {
     Struct {
@@ -23,8 +21,8 @@ pub enum External {
         #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,
         i32,
     ),
-    // #[schemars(schema_with = "schema_fn")]
-    // Unit,
+    #[schemars(schema_with = "schema_fn")]
+    Unit,
 }
 
 #[test]
@@ -32,7 +30,7 @@ fn enum_external_tag() -> TestResult {
     test_default_generated_schema::<External>("schema_with-enum-external")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 #[schemars(tag = "typeProperty")]
 pub enum Internal {
     Struct {
@@ -40,8 +38,8 @@ pub enum Internal {
         foo: DoesntImplementJsonSchema,
     },
     NewType(#[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema),
-    // #[schemars(schema_with = "schema_fn")]
-    // Unit,
+    #[schemars(schema_with = "schema_fn")]
+    Unit,
 }
 
 #[test]
@@ -49,7 +47,7 @@ fn enum_internal_tag() -> TestResult {
     test_default_generated_schema::<Internal>("schema_with-enum-internal")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 #[schemars(untagged)]
 pub enum Untagged {
     Struct {
@@ -61,8 +59,8 @@ pub enum Untagged {
         #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,
         i32,
     ),
-    // #[schemars(schema_with = "schema_fn")]
-    // Unit,
+    #[schemars(schema_with = "schema_fn")]
+    Unit,
 }
 
 #[test]
@@ -70,7 +68,7 @@ fn enum_untagged() -> TestResult {
     test_default_generated_schema::<Untagged>("schema_with-enum-untagged")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 #[schemars(tag = "t", content = "c")]
 pub enum Adjacent {
     Struct {
@@ -82,8 +80,8 @@ pub enum Adjacent {
         #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,
         i32,
     ),
-    // #[schemars(schema_with = "schema_fn")]
-    // Unit,
+    #[schemars(schema_with = "schema_fn")]
+    Unit,
 }
 
 #[test]

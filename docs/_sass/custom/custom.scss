@@ -32,3 +32,8 @@ code {
 .main-content summary:focus {
     outline: none;
 }
+
+.main-content summary {
+    display: list-item;
+    font-style: italic;
+}

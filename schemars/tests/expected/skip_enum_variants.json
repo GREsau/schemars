@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyEnum",
-  "anyOf": [
+  "oneOf": [
     {
       "type": "string",
       "enum": [
@@ -18,7 +18,8 @@
           "type": "number",
           "format": "float"
         }
-      }
+      },
+      "additionalProperties": false
     }
   ]
 }

@@ -20,6 +20,15 @@ If you want more control over how the schema is generated, you can use the [`gen
 
 See the API documentation for more info on how to use those types for custom schema generation.
 
-<!-- TODO: 
+## Schema from Example Value
+
+If you want a schema for a type that can't/doesn't implement `JsonSchema`, but does implement `serde::Serialize`, then you can generate a JSON schema from a value of that type using the [`schema_for_value!` macro](https://docs.rs/schemars/latest/schemars/macro.schema_for_value.html). However, this schema will generally be less precise than if the type implemented `JsonSchema` - particularly when it involves enums, since schemars will not make any assumptions about the structure of an enum based on a single variant.
+
+```rust
+let value = MyStruct { foo = 123 };
+let my_schema = schema_for_value!(value);
+```
+
+<!-- TODO:
 create and link to example
 -->

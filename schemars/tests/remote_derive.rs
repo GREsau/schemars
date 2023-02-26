@@ -6,14 +6,14 @@ use serde::Serialize;
 use util::*;
 
 mod other_crate {
-    #[derive(Debug, Default)]
+    #[derive(Default)]
     pub struct Duration {
         pub secs: i64,
         pub nanos: i32,
     }
 }
 
-#[derive(Debug, JsonSchema, Serialize)]
+#[derive(JsonSchema, Serialize)]
 #[serde(remote = "Duration")]
 struct DurationDef {
     secs: i64,
@@ -27,7 +27,7 @@ where
     ser.collect_str(&format_args!("{}.{:09}s", value.secs, value.nanos))
 }
 
-#[derive(Debug, JsonSchema, Serialize)]
+#[derive(JsonSchema, Serialize)]
 struct Process {
     command_line: String,
     #[serde(with = "DurationDef")]

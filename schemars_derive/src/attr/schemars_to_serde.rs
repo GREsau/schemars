@@ -20,6 +20,8 @@ pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     "flatten",
     "remote",
     "transparent",
+    // Special case - `bound` is removed from serde attrs, so is only respected when present in schemars attr.
+    "bound",
     // Special cases - `with`/`serialize_with` are passed to serde but not copied from schemars attrs to serde attrs.
     // This is because we want to preserve any serde attribute's `serialize_with` value to determine whether the field's
     // default value should be serialized. We also check the `with` value on schemars/serde attrs e.g. to support deriving
@@ -56,9 +58,9 @@ fn process_serde_field_attrs<'a>(ctxt: &Ctxt, fields: impl Iterator<Item = &'a m
 }
 
 fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
+    // Remove #[serde(...)] attributes (some may be re-added later)
     let (serde_attrs, other_attrs): (Vec<_>, Vec<_>) =
         attrs.drain(..).partition(|at| at.path.is_ident("serde"));
-
     *attrs = other_attrs;
 
     let schemars_attrs: Vec<_> = attrs
@@ -66,6 +68,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         .filter(|at| at.path.is_ident("schemars"))
         .collect();
 
+    // Copy appropriate #[schemars(...)] attributes to #[serde(...)] attributes
     let (mut serde_meta, mut schemars_meta_names): (Vec<_>, HashSet<_>) = schemars_attrs
         .iter()
         .flat_map(|at| get_meta_items(&ctxt, at))
@@ -85,13 +88,17 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         schemars_meta_names.insert("skip_deserializing".to_string());
     }
 
+    // Re-add #[serde(...)] attributes that weren't overridden by #[schemars(...)] attributes
     for meta in serde_attrs
         .into_iter()
         .flat_map(|at| get_meta_items(&ctxt, &at))
         .flatten()
     {
         if let Ok(i) = get_meta_ident(&ctxt, &meta) {
-            if !schemars_meta_names.contains(&i) && SERDE_KEYWORDS.contains(&i.as_ref()) {
+            if !schemars_meta_names.contains(&i)
+                && SERDE_KEYWORDS.contains(&i.as_ref())
+                && i != "bound"
+            {
                 serde_meta.push(meta);
             }
         }
@@ -163,10 +170,10 @@ mod tests {
             #[misc]
             struct MyStruct {
                 /// blah blah blah
-                #[serde(skip_serializing_if = "some_fn")]
+                #[serde(skip_serializing_if = "some_fn", bound = "removed")]
                 field1: i32,
                 #[serde(serialize_with = "se", deserialize_with = "de")]
-                #[schemars(with = "with")]
+                #[schemars(with = "with", bound = "bound")]
                 field2: i32,
                 #[schemars(skip)]
                 #[serde(skip_serializing)]
@@ -181,8 +188,8 @@ mod tests {
                 #[doc = r" blah blah blah"]
                 #[serde(skip_serializing_if = "some_fn")]
                 field1: i32,
-                #[schemars(with = "with")]
-                #[serde(serialize_with = "se")]
+                #[schemars(with = "with", bound = "bound")]
+                #[serde(bound = "bound", serialize_with = "se")]
                 field2: i32,
                 #[schemars(skip)]
                 #[serde(skip)]

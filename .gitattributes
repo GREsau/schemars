@@ -1,1 +1,2 @@
 *.json text eol=lf
+*.stderr text eol=lf

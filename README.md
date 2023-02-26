@@ -1,9 +1,9 @@
 # Schemars
 
-[![CI Build](https://img.shields.io/github/workflow/status/GREsau/schemars/CI?logo=GitHub)](https://github.com/GREsau/schemars/actions)
+[![CI Build](https://img.shields.io/github/actions/workflow/status/GREsau/schemars/ci.yml?branch=master&logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
 [![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
-[![rustc 1.36+](https://img.shields.io/badge/schemars-rustc_1.36+-lightgray.svg)](https://blog.rust-lang.org/2019/07/04/Rust-1.36.0.html)
+[![rustc 1.45+](https://img.shields.io/badge/schemars-rustc_1.45+-lightgray.svg)](https://blog.rust-lang.org/2020/07/16/Rust-1.45.0.html)
 
 Generate JSON Schema documents from Rust code
 
@@ -27,10 +27,8 @@ pub enum MyEnum {
     StructVariant { floats: Vec<f32> },
 }
 
-fn main() {
-    let schema = schema_for!(MyStruct);
-    println!("{}", serde_json::to_string_pretty(&schema).unwrap());
-}
+let schema = schema_for!(MyStruct);
+println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 ```
 
 <details>
@@ -76,7 +74,8 @@ fn main() {
             "StringNewType": {
               "type": "string"
             }
-          }
+          },
+          "additionalProperties": false
         },
         {
           "type": "object",
@@ -99,7 +98,8 @@ fn main() {
                 }
               }
             }
-          }
+          },
+          "additionalProperties": false
         }
       ]
     }
@@ -133,10 +133,8 @@ pub enum MyEnum {
     StructVariant { floats: Vec<f32> },
 }
 
-fn main() {
-    let schema = schema_for!(MyStruct);
-    println!("{}", serde_json::to_string_pretty(&schema).unwrap());
-}
+let schema = schema_for!(MyStruct);
+println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 ```
 
 <details>
@@ -202,16 +200,88 @@ fn main() {
 
 `#[serde(...)]` attributes can be overriden using `#[schemars(...)]` attributes, which behave identically (e.g. `#[schemars(rename_all = "camelCase")]`). You may find this useful if you want to change the generated schema without affecting Serde's behaviour, or if you're just not using Serde.
 
+### Schema from Example Value
+
+If you want a schema for a type that can't/doesn't implement `JsonSchema`, but does implement `serde::Serialize`, then you can generate a JSON schema from a value of that type. However, this schema will generally be less precise than if the type implemented `JsonSchema` - particularly when it involves enums, since schemars will not make any assumptions about the structure of an enum based on a single variant.
+
+```rust
+use schemars::schema_for_value;
+use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct MyStruct {
+    pub my_int: i32,
+    pub my_bool: bool,
+    pub my_nullable_enum: Option<MyEnum>,
+}
+
+#[derive(Serialize)]
+pub enum MyEnum {
+    StringNewType(String),
+    StructVariant { floats: Vec<f32> },
+}
+
+let schema = schema_for_value!(MyStruct {
+    my_int: 123,
+    my_bool: true,
+    my_nullable_enum: Some(MyEnum::StringNewType("foo".to_string()))
+});
+println!("{}", serde_json::to_string_pretty(&schema).unwrap());
+```
+
+<details>
+<summary>Click to see the output JSON schema...</summary>
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "MyStruct",
+  "examples": [
+    {
+      "my_bool": true,
+      "my_int": 123,
+      "my_nullable_enum": {
+        "StringNewType": "foo"
+      }
+    }
+  ],
+  "type": "object",
+  "properties": {
+    "my_bool": {
+      "type": "boolean"
+    },
+    "my_int": {
+      "type": "integer"
+    },
+    "my_nullable_enum": true
+  }
+}
+```
+</details>
+
 ## Feature Flags
 - `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro
 - `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
 - `preserve_order` - keep the order of struct fields in `Schema` and `SchemaObject`
 
-## Optional Dependencies
-Schemars can implement `JsonSchema` on types from several popular crates, enabled via optional dependencies (dependency versions are shown in brackets):
-- [`chrono`](https://crates.io/crates/chrono) (^0.4)
-- [`indexmap`](https://crates.io/crates/indexmap) (^1.2)
-- [`either`](https://crates.io/crates/either) (^1.3)
-- [`uuid`](https://crates.io/crates/uuid) (^0.8)
-- [`smallvec`](https://crates.io/crates/smallvec) (^1.0)
-- [`arrayvec`](https://crates.io/crates/arrayvec) (^0.5)
+Schemars can implement `JsonSchema` on types from several popular crates, enabled via feature flags (dependency versions are shown in brackets):
+- `chrono` - [chrono](https://crates.io/crates/chrono) (^0.4)
+- `indexmap1` - [indexmap](https://crates.io/crates/indexmap) (^1.2)
+- `either` - [either](https://crates.io/crates/either) (^1.3)
+- `uuid08` - [uuid](https://crates.io/crates/uuid) (^0.8)
+- `uuid1` - [uuid](https://crates.io/crates/uuid) (^1.0)
+- `smallvec` - [smallvec](https://crates.io/crates/smallvec) (^1.0)
+- `arrayvec05` - [arrayvec](https://crates.io/crates/arrayvec) (^0.5)
+- `arrayvec07` - [arrayvec](https://crates.io/crates/arrayvec) (^0.7)
+- `url` - [url](https://crates.io/crates/url) (^2.0)
+- `bytes` - [bytes](https://crates.io/crates/bytes) (^1.0)
+- `enumset` - [enumset](https://crates.io/crates/enumset) (^1.0)
+- `rust_decimal` - [rust_decimal](https://crates.io/crates/rust_decimal) (^1.0)
+- `bigdecimal` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.3)
+
+For example, to implement `JsonSchema` on types from `chrono`, enable it as a feature in the `schemars` dependency in your `Cargo.toml` like so:
+
+```toml
+[dependencies]
+schemars = { version = "0.8", features = ["chrono"] }
+```

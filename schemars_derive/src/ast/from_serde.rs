@@ -25,7 +25,7 @@ impl<'a> FromSerde for Container<'a> {
             ident: serde.ident,
             serde_attrs: serde.attrs,
             data: Data::from_serde(errors, serde.data)?,
-            generics: serde.generics,
+            generics: serde.generics.clone(),
             original: serde.original,
             // FIXME this allows with/schema_with attribute on containers
             attrs: Attrs::new(&serde.original.attrs, errors),
@@ -73,6 +73,7 @@ impl<'a> FromSerde for Field<'a> {
             ty: serde.ty,
             original: serde.original,
             attrs: Attrs::new(&serde.original.attrs, errors),
+            validation_attrs: ValidationAttrs::new(&serde.original.attrs, errors),
         })
     }
 }

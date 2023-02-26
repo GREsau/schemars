@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 #[schemars(rename_all = "camelCase", deny_unknown_fields)]
 pub struct MyStruct {
     #[serde(rename = "thisIsOverridden")]
-    #[schemars(rename = "myNumber")]
+    #[schemars(rename = "myNumber", range(min = 1, max = 10))]
     pub my_int: i32,
     pub my_bool: bool,
     #[schemars(default)]
@@ -15,8 +15,11 @@ pub struct MyStruct {
 #[derive(Deserialize, Serialize, JsonSchema)]
 #[schemars(untagged)]
 pub enum MyEnum {
-    StringNewType(String),
-    StructVariant { floats: Vec<f32> },
+    StringNewType(#[schemars(phone)] String),
+    StructVariant {
+        #[schemars(length(min = 1, max = 100))]
+        floats: Vec<f32>,
+    },
 }
 
 fn main() {

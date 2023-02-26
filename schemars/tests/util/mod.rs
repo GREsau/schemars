@@ -2,7 +2,6 @@ use pretty_assertions::assert_eq;
 use schemars::{gen::SchemaSettings, schema::RootSchema, schema_for, JsonSchema};
 use std::error::Error;
 use std::fs;
-use std::panic;
 
 pub type TestResult = Result<(), Box<dyn Error>>;
 
@@ -18,11 +17,11 @@ pub fn test_default_generated_schema<T: JsonSchema>(file: &str) -> TestResult {
     test_schema(&actual, file)
 }
 
-fn test_schema(actual: &RootSchema, file: &str) -> TestResult {
+pub fn test_schema(actual: &RootSchema, file: &str) -> TestResult {
     let expected_json = match fs::read_to_string(format!("tests/expected/{}.json", file)) {
         Ok(j) => j,
         Err(e) => {
-            write_actual_to_file(&actual, file)?;
+            write_actual_to_file(actual, file)?;
             return Err(Box::from(e));
         }
     };
@@ -32,7 +31,7 @@ fn test_schema(actual: &RootSchema, file: &str) -> TestResult {
         write_actual_to_file(actual, file)?;
     }
 
-    assert_eq!(actual, expected);
+    assert_eq!(expected, actual);
     Ok(())
 }
 

@@ -2,6 +2,9 @@ use crate::schema::*;
 use crate::{Map, Set};
 
 impl Schema {
+    /// This function is only public for use by schemars_derive.
+    ///
+    /// It should not be considered part of the public API.
     #[doc(hidden)]
     pub fn flatten(self, other: Self) -> Schema {
         if is_null_type(&self) {
@@ -33,6 +36,31 @@ macro_rules! impl_merge {
     ($ty:ident { or: $($or_field:ident)*, }) => {
         impl_merge!( $ty { merge: , or: $($or_field)*, });
     };
+}
+
+// For ObjectValidation::additional_properties.
+impl Merge for Option<Box<Schema>> {
+    fn merge(self, other: Self) -> Self {
+        match (self.map(|x| *x), other.map(|x| *x)) {
+            // Perfer permissive schemas.
+            (Some(Schema::Bool(true)), _) => Some(Box::new(true.into())),
+            (_, Some(Schema::Bool(true))) => Some(Box::new(true.into())),
+            (None, _) => None,
+            (_, None) => None,
+
+            // Merge if we have two non-trivial schemas.
+            (Some(Schema::Object(s1)), Some(Schema::Object(s2))) => {
+                Some(Box::new(Schema::Object(s1.merge(s2))))
+            }
+
+            // Perfer the more permissive schema.
+            (Some(s1 @ Schema::Object(_)), Some(Schema::Bool(false))) => Some(Box::new(s1)),
+            (Some(Schema::Bool(false)), Some(s2 @ Schema::Object(_))) => Some(Box::new(s2)),
+
+            // Default to the null schema.
+            (Some(Schema::Bool(false)), Some(Schema::Bool(false))) => Some(Box::new(false.into())),
+        }
+    }
 }
 
 impl_merge!(SchemaObject {
@@ -73,8 +101,8 @@ impl_merge!(ArrayValidation {
 });
 
 impl_merge!(ObjectValidation {
-    merge: required properties pattern_properties,
-    or: max_properties min_properties additional_properties property_names,
+    merge: required properties pattern_properties additional_properties,
+    or: max_properties min_properties property_names,
 });
 
 impl<T: Merge> Merge for Option<T> {

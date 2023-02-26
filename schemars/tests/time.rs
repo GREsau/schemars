@@ -3,7 +3,8 @@ use schemars::JsonSchema;
 use std::time::{Duration, SystemTime};
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct MyStruct {
     duration: Duration,
     time: SystemTime,

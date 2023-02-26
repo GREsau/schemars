@@ -1,8 +1,9 @@
 use schemars::{gen::SchemaGenerator, JsonSchema};
 use std::ptr;
 
-#[derive(Debug, JsonSchema)]
-pub struct Struct {
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct Struct {
     foo: i32,
     bar: bool,
 }

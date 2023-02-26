@@ -21,18 +21,12 @@ macro_rules! forward_impl {
                 <$target>::json_schema(gen)
             }
 
-            fn json_schema_for_flatten(gen: &mut SchemaGenerator) -> Schema {
-                <$target>::json_schema_for_flatten(gen)
+            fn _schemars_private_non_optional_json_schema(gen: &mut SchemaGenerator) -> Schema {
+                <$target>::_schemars_private_non_optional_json_schema(gen)
             }
 
-            fn add_schema_as_property(
-                gen: &mut SchemaGenerator,
-                parent: &mut crate::schema::SchemaObject,
-                name: String,
-                metadata: Option<crate::schema::Metadata>,
-                required: bool,
-            ) {
-                <$target>::add_schema_as_property(gen, parent, name, metadata, required)
+            fn _schemars_private_is_option() -> bool {
+                <$target>::_schemars_private_is_option()
             }
         }
     };
@@ -42,15 +36,23 @@ macro_rules! forward_impl {
 }
 
 mod array;
-#[cfg(feature = "arrayvec")]
-mod arrayvec;
+#[cfg(feature = "arrayvec05")]
+mod arrayvec05;
+#[cfg(feature = "arrayvec07")]
+mod arrayvec07;
 #[cfg(std_atomic)]
 mod atomic;
+#[cfg(feature = "bytes")]
+mod bytes;
 #[cfg(feature = "chrono")]
 mod chrono;
 mod core;
+#[cfg(any(feature = "rust_decimal", feature = "bigdecimal"))]
+mod decimal;
 #[cfg(feature = "either")]
 mod either;
+#[cfg(feature = "enumset")]
+mod enumset;
 mod ffi;
 #[cfg(feature = "indexmap")]
 mod indexmap;
@@ -66,6 +68,10 @@ mod smallvec;
 mod smol_str;
 mod time;
 mod tuple;
-#[cfg(feature = "uuid")]
-mod uuid;
+#[cfg(feature = "url")]
+mod url;
+#[cfg(feature = "uuid08")]
+mod uuid08;
+#[cfg(feature = "uuid1")]
+mod uuid1;
 mod wrapper;

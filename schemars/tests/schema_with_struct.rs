@@ -6,11 +6,11 @@ fn schema_fn(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Sche
     <bool>::json_schema(gen)
 }
 
-#[derive(Debug)]
 struct DoesntImplementJsonSchema;
 
-#[derive(Debug, JsonSchema)]
-pub struct Struct {
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct Struct {
     #[schemars(schema_with = "schema_fn")]
     foo: DoesntImplementJsonSchema,
     bar: i32,
@@ -23,7 +23,7 @@ fn struct_normal() -> TestResult {
     test_default_generated_schema::<Struct>("schema_with-struct")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 pub struct Tuple(
     #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,
     i32,
@@ -35,10 +35,19 @@ fn struct_tuple() -> TestResult {
     test_default_generated_schema::<Tuple>("schema_with-tuple")
 }
 
-#[derive(Debug, JsonSchema)]
+#[derive(JsonSchema)]
 pub struct Newtype(#[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema);
 
 #[test]
 fn struct_newtype() -> TestResult {
     test_default_generated_schema::<Newtype>("schema_with-newtype")
+}
+
+#[derive(JsonSchema)]
+#[schemars(transparent)]
+pub struct TransparentNewtype(#[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema);
+
+#[test]
+fn struct_transparent_newtype() -> TestResult {
+    test_default_generated_schema::<TransparentNewtype>("schema_with-transparent-newtype")
 }

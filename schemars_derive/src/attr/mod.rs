@@ -1,8 +1,11 @@
 mod doc;
 mod schemars_to_serde;
+mod validation;
 
 pub use schemars_to_serde::process_serde_attrs;
+pub use validation::ValidationAttrs;
 
+use crate::metadata::SchemaMetadata;
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
@@ -11,6 +14,10 @@ use syn::Meta::{List, NameValue};
 use syn::MetaNameValue;
 use syn::NestedMeta::{Lit, Meta};
 
+// FIXME using the same struct for containers+variants+fields means that
+//  with/schema_with are accepted (but ignored) on containers, and
+//  repr/crate_name are accepted (but ignored) on variants and fields etc.
+
 #[derive(Debug, Default)]
 pub struct Attrs {
     pub with: Option<WithAttr>,
@@ -18,6 +25,9 @@ pub struct Attrs {
     pub description: Option<String>,
     pub deprecated: bool,
     pub examples: Vec<syn::Path>,
+    pub repr: Option<syn::Type>,
+    pub crate_name: Option<syn::Path>,
+    pub is_renamed: bool
 }
 
 #[derive(Debug)]
@@ -33,12 +43,37 @@ impl Attrs {
             .populate(attrs, "serde", true, errors);
 
         result.deprecated = attrs.iter().any(|a| a.path.is_ident("deprecated"));
+        result.repr = attrs
+            .iter()
+            .find(|a| a.path.is_ident("repr"))
+            .and_then(|a| a.parse_args().ok());
 
         let (doc_title, doc_description) = doc::get_title_and_desc_from_doc(attrs);
         result.title = result.title.or(doc_title);
         result.description = result.description.or(doc_description);
 
         result
+    }
+
+    pub fn as_metadata(&self) -> SchemaMetadata<'_> {
+        #[allow(clippy::ptr_arg)]
+        fn none_if_empty(s: &String) -> Option<&str> {
+            if s.is_empty() {
+                None
+            } else {
+                Some(s)
+            }
+        }
+
+        SchemaMetadata {
+            title: self.title.as_ref().and_then(none_if_empty),
+            description: self.description.as_ref().and_then(none_if_empty),
+            deprecated: self.deprecated,
+            examples: &self.examples,
+            read_only: false,
+            write_only: false,
+            default: None,
+        }
     }
 
     fn populate(
@@ -70,7 +105,7 @@ impl Attrs {
 
         for meta_item in attrs
             .iter()
-            .flat_map(|attr| get_meta_items(attr, attr_type, errors))
+            .flat_map(|attr| get_meta_items(attr, attr_type, errors, ignore_errors))
             .flatten()
         {
             match &meta_item {
@@ -118,13 +153,24 @@ impl Attrs {
                     }
                 }
 
+                Meta(NameValue(m)) if m.path.is_ident("rename") => {
+                    self.is_renamed = true
+                }
+
+                Meta(NameValue(m)) if m.path.is_ident("crate") && attr_type == "schemars" => {
+                    if let Ok(p) = parse_lit_into_path(errors, attr_type, "crate", &m.lit) {
+                        if self.crate_name.is_some() {
+                            duplicate_error(m)
+                        } else {
+                            self.crate_name = Some(p)
+                        }
+                    }
+                }
+
                 _ if ignore_errors => {}
 
                 Meta(meta_item) => {
-                    let is_known_serde_keyword = schemars_to_serde::SERDE_KEYWORDS
-                        .iter()
-                        .any(|k| meta_item.path().is_ident(k));
-                    if !is_known_serde_keyword {
+                    if !is_known_serde_or_validation_keyword(meta_item) {
                         let path = meta_item
                             .path()
                             .into_token_stream()
@@ -132,27 +178,51 @@ impl Attrs {
                             .replace(' ', "");
                         errors.error_spanned_by(
                             meta_item.path(),
-                            format!("unknown schemars container attribute `{}`", path),
+                            format!("unknown schemars attribute `{}`", path),
                         );
                     }
                 }
 
                 Lit(lit) => {
-                    errors.error_spanned_by(
-                        lit,
-                        "unexpected literal in schemars container attribute",
-                    );
+                    errors.error_spanned_by(lit, "unexpected literal in schemars attribute");
                 }
             }
         }
         self
     }
+
+    pub fn is_default(&self) -> bool {
+        match self {
+            Self {
+                with: None,
+                title: None,
+                description: None,
+                deprecated: false,
+                examples,
+                repr: None,
+                crate_name: None,
+                is_renamed: _,
+            } if examples.is_empty() => true,
+            _ => false,
+        }
+    }
+}
+
+fn is_known_serde_or_validation_keyword(meta: &syn::Meta) -> bool {
+    let mut known_keywords = schemars_to_serde::SERDE_KEYWORDS
+        .iter()
+        .chain(validation::VALIDATION_KEYWORDS);
+    meta.path()
+        .get_ident()
+        .map(|i| known_keywords.any(|k| i == k))
+        .unwrap_or(false)
 }
 
 fn get_meta_items(
     attr: &syn::Attribute,
     attr_type: &'static str,
     errors: &Ctxt,
+    ignore_errors: bool,
 ) -> Result<Vec<syn::NestedMeta>, ()> {
     if !attr.path.is_ident(attr_type) {
         return Ok(Vec::new());
@@ -161,11 +231,15 @@ fn get_meta_items(
     match attr.parse_meta() {
         Ok(List(meta)) => Ok(meta.nested.into_iter().collect()),
         Ok(other) => {
-            errors.error_spanned_by(other, format!("expected #[{}(...)]", attr_type));
+            if !ignore_errors {
+                errors.error_spanned_by(other, format!("expected #[{}(...)]", attr_type))
+            }
             Err(())
         }
         Err(err) => {
-            errors.error_spanned_by(attr, err);
+            if !ignore_errors {
+                errors.error_spanned_by(attr, err)
+            }
             Err(())
         }
     }

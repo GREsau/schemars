@@ -3,7 +3,8 @@ use indexmap::{IndexMap, IndexSet};
 use schemars::JsonSchema;
 use util::*;
 
-#[derive(Debug, JsonSchema)]
+#[allow(dead_code)]
+#[derive(JsonSchema)]
 struct IndexMapTypes {
     map: IndexMap<i32, bool>,
     set: IndexSet<isize>,

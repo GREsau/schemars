@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "External",
-  "anyOf": [
+  "oneOf": [
     {
       "type": "object",
       "required": [
@@ -19,7 +19,8 @@
             }
           }
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -30,7 +31,8 @@
         "newType": {
           "type": "boolean"
         }
-      }
+      },
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -52,7 +54,20 @@
           "maxItems": 2,
           "minItems": 2
         }
-      }
+      },
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "required": [
+        "unit"
+      ],
+      "properties": {
+        "unit": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
     }
   ]
 }

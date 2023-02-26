@@ -1,7 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
-use arrayvec::{Array, ArrayString, ArrayVec};
+use arrayvec05::{Array, ArrayString, ArrayVec};
 use std::convert::TryInto;
 
 // Do not set maxLength on the schema as that describes length in characters, but we only
