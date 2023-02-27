@@ -46,14 +46,14 @@ pub fn process_serde_attrs(input: &mut syn::DeriveInput) -> Result<(), Vec<syn::
 
 fn process_serde_variant_attrs<'a>(ctxt: &Ctxt, variants: impl Iterator<Item = &'a mut Variant>) {
     for v in variants {
-        process_attrs(&ctxt, &mut v.attrs);
-        process_serde_field_attrs(&ctxt, v.fields.iter_mut());
+        process_attrs(ctxt, &mut v.attrs);
+        process_serde_field_attrs(ctxt, v.fields.iter_mut());
     }
 }
 
 fn process_serde_field_attrs<'a>(ctxt: &Ctxt, fields: impl Iterator<Item = &'a mut Field>) {
     for f in fields {
-        process_attrs(&ctxt, &mut f.attrs);
+        process_attrs(ctxt, &mut f.attrs);
     }
 }
 
@@ -71,10 +71,10 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
     // Copy appropriate #[schemars(...)] attributes to #[serde(...)] attributes
     let (mut serde_meta, mut schemars_meta_names): (Vec<_>, HashSet<_>) = schemars_attrs
         .iter()
-        .flat_map(|at| get_meta_items(&ctxt, at))
+        .flat_map(|at| get_meta_items(ctxt, at))
         .flatten()
         .filter_map(|meta| {
-            let keyword = get_meta_ident(&ctxt, &meta).ok()?;
+            let keyword = get_meta_ident(ctxt, &meta).ok()?;
             if keyword.ends_with("with") || !SERDE_KEYWORDS.contains(&keyword.as_ref()) {
                 None
             } else {
@@ -91,10 +91,10 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
     // Re-add #[serde(...)] attributes that weren't overridden by #[schemars(...)] attributes
     for meta in serde_attrs
         .into_iter()
-        .flat_map(|at| get_meta_items(&ctxt, &at))
+        .flat_map(|at| get_meta_items(ctxt, &at))
         .flatten()
     {
-        if let Ok(i) = get_meta_ident(&ctxt, &meta) {
+        if let Ok(i) = get_meta_ident(ctxt, &meta) {
             if !schemars_meta_names.contains(&i)
                 && SERDE_KEYWORDS.contains(&i.as_ref())
                 && i != "bound"

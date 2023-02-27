@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.12] - 2023-02-26
+### Added:
+- Implement `JsonSchema` for `smol_str::SmolStr` (https://github.com/GREsau/schemars/pull/72)
+
+### Changed:
+- Change `serde_json` dependency min version to 1.0.25 (was 1.0.0) (https://github.com/GREsau/schemars/pull/192)
+
 ## [0.8.11] - 2022-10-02
 ### Added:
 - Replace auto-inferred trait bounds with bounds specified in `#[schemars(bound = "...")]` attribute

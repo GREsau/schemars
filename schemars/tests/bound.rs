@@ -18,7 +18,10 @@ impl Iterator for MyIterator {
 // which MyIterator does not.
 #[derive(JsonSchema)]
 #[schemars(bound = "T::Item: JsonSchema", rename = "MyContainer")]
-pub struct MyContainer<T> where T: Iterator {
+pub struct MyContainer<T>
+where
+    T: Iterator,
+{
     pub associated: T::Item,
     pub generic: PhantomData<T>,
 }

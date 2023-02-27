@@ -1,6 +1,6 @@
 # Schemars
 
-[![CI Build](https://img.shields.io/github/workflow/status/GREsau/schemars/CI?logo=GitHub)](https://github.com/GREsau/schemars/actions)
+[![CI Build](https://img.shields.io/github/actions/workflow/status/GREsau/schemars/ci.yml?branch=master&logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
 [![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
 [![rustc 1.45+](https://img.shields.io/badge/schemars-rustc_1.45+-lightgray.svg)](https://blog.rust-lang.org/2020/07/16/Rust-1.45.0.html)
@@ -278,6 +278,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `enumset` - [enumset](https://crates.io/crates/enumset) (^1.0)
 - `rust_decimal` - [rust_decimal](https://crates.io/crates/rust_decimal) (^1.0)
 - `bigdecimal` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.3)
+- `smol_str` - [smol_str](https://crates.io/crates/smol_str) (^0.1.17)
 - `semver` - [semver](https://crates.io/crates/semver) (^1.0.9)
 
 For example, to implement `JsonSchema` on types from `chrono`, enable it as a feature in the `schemars` dependency in your `Cargo.toml` like so:

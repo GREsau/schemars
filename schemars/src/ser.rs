@@ -128,7 +128,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
         self.serialize_none()
     }
 
-    fn serialize_some<T: ?Sized>(mut self, value: &T) -> Result<Self::Ok, Self::Error>
+    fn serialize_some<T: ?Sized>(self, value: &T) -> Result<Self::Ok, Self::Error>
     where
         T: serde::Serialize,
     {
@@ -153,7 +153,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
         if self.gen.settings().option_add_null_type {
             schema = match schema {
                 Schema::Bool(true) => Schema::Bool(true),
-                Schema::Bool(false) => <()>::json_schema(&mut self.gen),
+                Schema::Bool(false) => <()>::json_schema(self.gen),
                 Schema::Object(SchemaObject {
                     instance_type: Some(ref mut instance_type),
                     ..
@@ -163,7 +163,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
                 }
                 schema => SchemaObject {
                     subschemas: Some(Box::new(SubschemaValidation {
-                        any_of: Some(vec![schema, <()>::json_schema(&mut self.gen)]),
+                        any_of: Some(vec![schema, <()>::json_schema(self.gen)]),
                         ..Default::default()
                     })),
                     ..Default::default()
