@@ -36,6 +36,7 @@ macro_rules! forward_impl {
 }
 
 mod array;
+pub use array::EmptyArray;
 #[cfg(feature = "arrayvec05")]
 mod arrayvec05;
 #[cfg(feature = "arrayvec07")]
