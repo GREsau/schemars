@@ -45,6 +45,10 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `false`.
     pub inline_subschemas: bool,
+    /// Inline all subschemas instead of using references, no matter if they are recursive or not.
+    ///
+    /// This will lose type information for recursive types.
+    pub strict_inline_subschemas: bool,
     _hidden: (),
 }
 
@@ -64,6 +68,7 @@ impl SchemaSettings {
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
             visitors: vec![Box::new(RemoveRefSiblings)],
             inline_subschemas: false,
+            strict_inline_subschemas: false,
             _hidden: (),
         }
     }
@@ -77,6 +82,7 @@ impl SchemaSettings {
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
             visitors: Vec::default(),
             inline_subschemas: false,
+            strict_inline_subschemas: false,
             _hidden: (),
         }
     }
@@ -101,6 +107,7 @@ impl SchemaSettings {
                 }),
             ],
             inline_subschemas: false,
+            strict_inline_subschemas: false,
             _hidden: (),
         }
     }
@@ -217,10 +224,22 @@ impl SchemaGenerator {
     /// add them to the `SchemaGenerator`'s schema definitions.
     pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
         let name = T::schema_name();
+        let is_recursive = self.pending_schema_names.contains(&name);
         let return_ref = T::is_referenceable()
-            && (!self.settings.inline_subschemas || self.pending_schema_names.contains(&name));
+            && (!(self.settings.inline_subschemas || self.settings.strict_inline_subschemas)
+                || is_recursive);
 
-        if return_ref {
+        if self.settings.strict_inline_subschemas && is_recursive {
+            SchemaObject {
+                instance_type: Some(InstanceType::Object.into()),
+                object: Some(Box::new(ObjectValidation {
+                    additional_properties: Some(Box::new(true.into())),
+                    ..Default::default()
+                })),
+                ..Default::default()
+            }
+            .into()
+        } else if return_ref {
             let reference = format!("{}{}", self.settings().definitions_path, name);
             if !self.definitions.contains_key(&name) {
                 self.insert_new_subschema_for::<T>(name);

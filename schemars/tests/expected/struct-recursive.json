@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RecursiveStruct",
+  "type": "object",
+  "required": [
+    "foo"
+  ],
+  "properties": {
+    "foo": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/RecursiveStruct"
+      }
+    }
+  },
+  "definitions": {
+    "RecursiveStruct": {
+      "type": "object",
+      "required": [
+        "foo"
+      ],
+      "properties": {
+        "foo": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/RecursiveStruct"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,5 +1,5 @@
 mod util;
-use schemars::JsonSchema;
+use schemars::{gen::SchemaSettings, JsonSchema};
 use util::*;
 
 // Ensure that schemars_derive uses the full path to std::string::String
@@ -40,4 +40,22 @@ pub struct Unit;
 #[test]
 fn struct_unit() -> TestResult {
     test_default_generated_schema::<Unit>("struct-unit")
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+pub struct RecursiveStruct {
+    foo: Vec<RecursiveStruct>,
+}
+
+#[test]
+fn struct_recursive() -> TestResult {
+    test_default_generated_schema::<RecursiveStruct>("struct-recursive")
+}
+
+#[test]
+fn struct_recursive_strict_inline() -> TestResult {
+    let mut settings = SchemaSettings::default();
+    settings.strict_inline_subschemas = true;
+    test_generated_schema::<RecursiveStruct>("struct-recursive-strict-inline", settings)
 }
