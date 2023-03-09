@@ -14,7 +14,8 @@ impl JsonSchema for Version {
         SchemaObject {
             instance_type: Some(InstanceType::String.into()),
             string: Some(Box::new(StringValidation {
-                pattern: Some(r"^\d+\.\d+\.\d+([\-\+].+)?$".to_owned()),
+                // https://semver.org/#is-there-a-suggested-regular-expression-regex-to-check-a-semver-string
+                pattern: Some(r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$".to_owned()),
                 ..Default::default()
             })),
             ..Default::default()
