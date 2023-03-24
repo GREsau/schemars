@@ -4,6 +4,10 @@ use crate::JsonSchema;
 use time::OffsetDateTime;
 
 impl JsonSchema for OffsetDateTime {
+    fn is_referenceable() -> bool {
+        false
+    }
+
     fn schema_name() -> String {
         "DateTime".into()
     }
