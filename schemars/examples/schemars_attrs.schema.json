@@ -24,8 +24,8 @@
     "myNumber": {
       "type": "integer",
       "format": "int32",
-      "maximum": 10.0,
-      "minimum": 1.0
+      "maximum": 10,
+      "minimum": 1
     }
   },
   "additionalProperties": false,

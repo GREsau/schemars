@@ -353,6 +353,44 @@ pub struct SubschemaValidation {
     pub else_schema: Option<Box<Schema>>,
 }
 
+/// Represents a JSON number
+#[derive(Deserialize, Debug, Clone, PartialEq, Default)]
+pub struct Number(f64);
+
+impl Serialize for Number {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        if self.0.fract() == 0.0 {
+            serializer.serialize_i64(self.0 as i64)
+        } else {
+            serializer.serialize_f64(self.0)
+        }
+    }
+}
+
+impl From<f64> for Number {
+    fn from(value: f64) -> Self {
+        Self(value)
+    }
+}
+
+#[cfg(feature = "impl_json_schema")]
+impl JsonSchema for Number {
+    fn is_referenceable() -> bool {
+        false
+    }
+
+    fn schema_name() -> String {
+        f64::schema_name()
+    }
+
+    fn json_schema(gen: &mut crate::gen::SchemaGenerator) -> Schema {
+        f64::json_schema(gen)
+    }
+}
+
 /// Properties of a [`SchemaObject`] which define validation assertions for numbers.
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Default)]
 #[cfg_attr(feature = "impl_json_schema", derive(JsonSchema))]
@@ -362,27 +400,27 @@ pub struct NumberValidation {
     ///
     /// See [JSON Schema Validation 6.2.1. "multipleOf"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.1).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub multiple_of: Option<f64>,
+    pub multiple_of: Option<Number>,
     /// The `maximum` keyword.
     ///
     /// See [JSON Schema Validation 6.2.2. "maximum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.2).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub maximum: Option<f64>,
+    pub maximum: Option<Number>,
     /// The `exclusiveMaximum` keyword.
     ///
     /// See [JSON Schema Validation 6.2.3. "exclusiveMaximum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.3).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub exclusive_maximum: Option<f64>,
+    pub exclusive_maximum: Option<Number>,
     /// The `minimum` keyword.
     ///
     /// See [JSON Schema Validation 6.2.4. "minimum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.4).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub minimum: Option<f64>,
+    pub minimum: Option<Number>,
     /// The `exclusiveMinimum` keyword.
     ///
     /// See [JSON Schema Validation 6.2.5. "exclusiveMinimum"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.2.5).
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub exclusive_minimum: Option<f64>,
+    pub exclusive_minimum: Option<Number>,
 }
 
 /// Properties of a [`SchemaObject`] which define validation assertions for strings.

@@ -70,7 +70,7 @@ macro_rules! unsigned_impl {
                     format: Some($format.to_owned()),
                     ..Default::default()
                 };
-                schema.number().minimum = Some(0.0);
+                schema.number().minimum = Some(0.0.into());
                 schema.into()
             }
         }

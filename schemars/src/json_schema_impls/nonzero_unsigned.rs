@@ -14,7 +14,7 @@ macro_rules! nonzero_unsigned_impl {
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
                 let mut schema: SchemaObject = <$primitive>::json_schema(gen).into();
-                schema.number().minimum = Some(1.0);
+                schema.number().minimum = Some(1.0.into());
                 schema.into()
             }
         }
@@ -37,7 +37,7 @@ mod tests {
     #[test]
     fn schema_for_nonzero_u32() {
         let schema = schema_object_for::<NonZeroU32>();
-        assert_eq!(schema.number.unwrap().minimum, Some(1.0));
+        assert_eq!(schema.number.unwrap().minimum, Some(1.0.into()));
         assert_eq!(schema.instance_type, Some(InstanceType::Integer.into()));
         assert_eq!(schema.format, Some("uint32".to_owned()));
     }

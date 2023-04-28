@@ -342,13 +342,13 @@ impl ValidationAttrs {
 
         if let Some(range_min) = &self.range_min {
             number_validation.push(quote! {
-                validation.minimum = Some(#range_min as f64);
+                validation.minimum = Some((#range_min as f64).into());
             });
         }
 
         if let Some(range_max) = &self.range_max {
             number_validation.push(quote! {
-                validation.maximum = Some(#range_max as f64);
+                validation.maximum = Some((#range_max as f64).into());
             });
         }
 
