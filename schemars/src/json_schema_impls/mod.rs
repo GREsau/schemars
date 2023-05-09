@@ -70,6 +70,10 @@ mod time;
 mod tuple;
 #[cfg(feature = "url")]
 mod url;
+#[cfg(feature = "uuid06")]
+mod uuid06;
+#[cfg(feature = "uuid07")]
+mod uuid07;
 #[cfg(feature = "uuid08")]
 mod uuid08;
 #[cfg(feature = "uuid1")]
