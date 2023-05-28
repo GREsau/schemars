@@ -13,19 +13,14 @@ impl<T> JsonSchema for BitFlags<T> where T: JsonSchema + RawBitFlags {
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        let t = gen.subschema_for::<T>();
-        let r = u64::json_schema(gen);
-        match r {
-            Schema::Object(mut o) => {
-               match t {
-                   Schema::Object(mut to) => {
-                      o.metadata = to.metadata;
-                   },
-                   _ => ()
-               }
+        let target = gen.subschema_for::<T>();
+        let repr = u64::json_schema(gen);
+        match (repr, target) {
+            (Schema::Object(mut o), Schema::Object(target)) => {
+                o.metadata = target.metadata;
+                Schema::Object(o).into()
             },
-            _ => ()
+            (repr, _) => repr,
         }
-        r
     }
 }
