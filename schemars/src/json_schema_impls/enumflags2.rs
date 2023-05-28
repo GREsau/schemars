@@ -29,5 +29,3 @@ impl<T> JsonSchema for BitFlags<T> where T: JsonSchema + RawBitFlags {
         r
     }
 }
-
-forward_impl!((<T> JsonSchema for BitFlags<T> where T: RawBitFlags) => u64);
