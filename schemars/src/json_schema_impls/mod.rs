@@ -77,3 +77,5 @@ mod uuid1;
 mod wrapper;
 #[cfg(feature = "netidx-core")]
 mod netidx;
+#[cfg(feature = "enumflags2")]
+mod enumflags2;
