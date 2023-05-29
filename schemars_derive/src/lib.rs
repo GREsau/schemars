@@ -163,3 +163,42 @@ fn compile_error(errors: Vec<syn::Error>) -> TokenStream {
         #(#compile_errors)*
     }
 }
+
+#[proc_macro_attribute]
+pub fn bitflags_schemars(_attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    let ast = syn::parse_macro_input!(item as syn::DeriveInput);
+    let name = &ast.ident;
+    let variants = match &ast.data {
+        syn::Data::Enum(v) => &v.variants,
+        _ => panic!("bitflags_schemars only works on enums"),
+    };
+    let enum_values: Vec<_> = variants.iter().map(|v| {
+        let ident = &v.ident;
+        quote! { json!(BitFlags::from_flag(#name::#ident).bits()) }
+    }).collect();
+    let enum_names: Vec<_> = variants.iter().map(|v| {
+        let ident = &v.ident;
+        quote! { stringify!(#ident) }
+    }).collect();
+    let stream = quote! {
+        impl JsonStream for #name {
+            fn schema_name() -> String {
+                stringify!(#name).to_string()
+            }
+
+            fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
+                use schemars::schema::{InstanceType, SchemaObject};
+                use serde_json::json;
+                let mut schema = SchemaObject::default();
+                schema.instance_type = Some(InstanceType::Number.into());
+                schema.enum_values = Some(vec![ #(#enum_values),* ]);
+                schema.extensions.insert(
+                    "x-enumNames".to_string(),
+                    json!([ #(#enum_names),* ])
+                );
+                schema.into()
+            }
+        }
+    };
+    stream.into()
+}
