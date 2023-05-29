@@ -48,7 +48,10 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
 
     let enum_ident = &cont.ident;
     let variant_idents = variants.iter().map(|v| &v.ident);
-    let variant_names = variants.iter().map(|v| &v.ident);
+    let variant_names = variants.iter().map(|v| {
+        let ident = &v.ident;
+        quote! { stringify!(#ident) }
+    });
 
     let mut schema_expr = schema_object(quote! {
         instance_type: Some(schemars::schema::InstanceType::Integer.into()),
@@ -56,7 +59,7 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
         extensions: [(
             "x-enumNames".to_string(),
             json!([ #(#variant_names),* ])
-        )].collect()
+        )].into_iter().collect()
     });
 
     cont.attrs.as_metadata().apply_to_schema(&mut schema_expr);
