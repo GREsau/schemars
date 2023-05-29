@@ -164,9 +164,15 @@ fn compile_error(errors: Vec<syn::Error>) -> TokenStream {
     }
 }
 
-#[proc_macro_attribute]
-pub fn bitflags_schemars(_attr: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+#[proc_macro]
+pub fn bitflags_schemars(item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let ast = syn::parse_macro_input!(item as syn::DeriveInput);
+    // let cont = Container::from_ast(&ast).unwrap();
+    // let crate_alias = cont.attrs.crate_name.as_ref().map(|path| {
+    //     quote_spanned! {path.span()=>
+    //         use #path as schemars;
+    //     }
+    // });
     let name = &ast.ident;
     let variants = match &ast.data {
         syn::Data::Enum(v) => &v.variants,
