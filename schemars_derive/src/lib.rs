@@ -181,7 +181,7 @@ pub fn bitflags_schemars(_attr: proc_macro::TokenStream, item: proc_macro::Token
         quote! { stringify!(#ident) }
     }).collect();
     let stream = quote! {
-        impl JsonStream for #name {
+        impl schemars::JsonStream for #name {
             fn schema_name() -> String {
                 stringify!(#name).to_string()
             }
