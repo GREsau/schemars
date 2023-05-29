@@ -53,6 +53,7 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
         quote! { stringify!(#ident) }
     });
 
+    // CR alee: make x-enumNames generation optional
     let mut schema_expr = schema_object(quote! {
         instance_type: Some(schemars::schema::InstanceType::Integer.into()),
         enum_values: Some(vec![#((#enum_ident::#variant_idents as #repr_type).into()),*]),
