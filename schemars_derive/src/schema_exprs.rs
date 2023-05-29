@@ -59,7 +59,7 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
         extensions: [(
             "x-enumNames".to_string(),
             json!([ #(#variant_names),* ])
-        )].into_iter().collect()
+        )].into_iter().collect(),
     });
 
     cont.attrs.as_metadata().apply_to_schema(&mut schema_expr);
