@@ -108,5 +108,9 @@ required-features = ["enumset"]
 name = "smol_str"
 required-features = ["smol_str"]
 
+[[test]]
+name = "enumflags2"
+required-features = ["enumflags2"]
+
 [package.metadata.docs.rs]
 all-features = true
