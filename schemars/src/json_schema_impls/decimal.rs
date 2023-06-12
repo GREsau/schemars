@@ -8,6 +8,8 @@ macro_rules! decimal_impl {
     };
     ($type:ty => $instance_type:ident, $name:expr) => {
         impl JsonSchema for $type {
+            no_ref_schema!();
+
             fn schema_name() -> String {
                 $name.to_owned()
             }
@@ -24,6 +26,6 @@ macro_rules! decimal_impl {
 }
 
 #[cfg(feature = "rust_decimal")]
-decimal_impl!(rust_decimal::Decimal => String, "Decimal");
+decimal_impl!(rust_decimal::Decimal);
 #[cfg(feature = "bigdecimal")]
 decimal_impl!(bigdecimal::BigDecimal);
