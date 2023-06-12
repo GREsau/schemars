@@ -51,6 +51,8 @@ mod core;
 mod decimal;
 #[cfg(feature = "either")]
 mod either;
+#[cfg(feature = "enumflags2")]
+mod enumflags2;
 #[cfg(feature = "enumset")]
 mod enumset;
 mod ffi;
@@ -75,7 +77,3 @@ mod uuid08;
 #[cfg(feature = "uuid1")]
 mod uuid1;
 mod wrapper;
-#[cfg(feature = "netidx-core")]
-mod netidx;
-#[cfg(feature = "enumflags2")]
-mod enumflags2;
