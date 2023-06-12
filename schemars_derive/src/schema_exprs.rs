@@ -66,12 +66,18 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
         }
     }).collect();
 
-    let mut schema_expr =
+    let mut schema_expr = if extensions.is_empty() {
         schema_object(quote! {
             instance_type: Some(schemars::schema::InstanceType::Integer.into()),
             enum_values: Some(vec![#((#enum_ident::#variant_idents as #repr_type).into()),*]),
-            extensions: [ #(#extensions),* ].into(),
-        });
+        })
+    } else {
+        schema_object(quote! {
+            instance_type: Some(schemars::schema::InstanceType::Integer.into()),
+            enum_values: Some(vec![#((#enum_ident::#variant_idents as #repr_type).into()),*]),
+            extensions: [ #(#extensions),* ].iter().map(|i| i.clone()).collect(),
+        })
+    };
 
     cont.attrs.as_metadata().apply_to_schema(&mut schema_expr);
     Ok(schema_expr)
