@@ -29,6 +29,7 @@ impl<'a> FromSerde for Container<'a> {
             original: serde.original,
             // FIXME this allows with/schema_with attribute on containers
             attrs: Attrs::new(&serde.original.attrs, errors),
+            extensions: Vec::new(),
         })
     }
 }

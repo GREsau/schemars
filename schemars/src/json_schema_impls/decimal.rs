@@ -25,3 +25,5 @@ macro_rules! decimal_impl {
 
 #[cfg(feature = "rust_decimal")]
 decimal_impl!(rust_decimal::Decimal => String, "Decimal");
+#[cfg(feature = "bigdecimal")]
+decimal_impl!(bigdecimal::BigDecimal);

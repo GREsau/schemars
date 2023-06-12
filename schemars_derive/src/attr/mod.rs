@@ -27,7 +27,7 @@ pub struct Attrs {
     pub examples: Vec<syn::Path>,
     pub repr: Option<syn::Type>,
     pub crate_name: Option<syn::Path>,
-    pub is_renamed: bool,
+    pub is_renamed: bool
 }
 
 #[derive(Debug)]
