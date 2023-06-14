@@ -42,12 +42,14 @@ mod arrayvec05;
 mod arrayvec07;
 #[cfg(std_atomic)]
 mod atomic;
+#[cfg(feature = "bigdecimal")]
+mod bigdecimal;
 #[cfg(feature = "bytes")]
 mod bytes;
 #[cfg(feature = "chrono")]
 mod chrono;
 mod core;
-#[cfg(any(feature = "rust_decimal", feature = "bigdecimal"))]
+#[cfg(feature = "rust_decimal")]
 mod decimal;
 #[cfg(feature = "either")]
 mod either;

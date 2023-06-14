@@ -60,6 +60,10 @@ indexmap1 = ["indexmap"]
 ui_test = []
 
 [[test]]
+name = "bigdecimal"
+required-features = ["bigdecimal"]
+
+[[test]]
 name = "chrono"
 required-features = ["chrono"]
 
