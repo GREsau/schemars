@@ -13,9 +13,23 @@ impl JsonSchema for BigDecimal {
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
         SchemaObject {
-            instance_type: Some(InstanceType::String.into()),
-            string: Some(Box::new(StringValidation {
-                pattern: Some("^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$".to_string()),
+            subschemas: Some(Box::new(SubschemaValidation {
+                any_of: Some(vec![
+                    SchemaObject {
+                        instance_type: Some(InstanceType::Number.into()),
+                        ..Default::default()
+                    }
+                    .into(),
+                    SchemaObject {
+                        instance_type: Some(InstanceType::String.into()),
+                        string: Some(Box::new(StringValidation {
+                            pattern: Some("^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$".to_string()),
+                            ..Default::default()
+                        })),
+                        ..Default::default()
+                    }
+                    .into(),
+                ]),
                 ..Default::default()
             })),
             ..Default::default()
