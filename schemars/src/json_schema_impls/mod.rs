@@ -56,6 +56,8 @@ mod enumset;
 mod ffi;
 #[cfg(feature = "indexmap")]
 mod indexmap;
+#[cfg(feature = "indexmap2")]
+mod indexmap2;
 mod maps;
 mod nonzero_signed;
 mod nonzero_unsigned;
