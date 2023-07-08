@@ -1,11 +1,13 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use crate::{Map, Set};
 
 macro_rules! map_impl {
     ($($desc:tt)+) => {
         impl $($desc)+
         where
+            K: JsonSchema,
             V: JsonSchema,
         {
             no_ref_schema!();
@@ -15,11 +17,33 @@ macro_rules! map_impl {
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                let subschema = gen.subschema_for::<V>();
+                let k_subschema = gen.subschema_for::<K>();
+                let v_subschema = gen.subschema_for::<V>();
+                if let Schema::Object(schema_object)  = k_subschema {
+                    let mut schemas: Vec<Schema> = vec![];
+                    if let Some(values) = schema_object.enum_values {
+                        for value in values {
+                            let schema = SchemaObject {
+                                instance_type: Some(InstanceType::Object.into()),
+                                object: Some(Box::new(ObjectValidation {
+                                    required: Set::from([value.to_string()]),
+                                    properties: Map::from([(value.to_string(), v_subschema.clone())]),
+                                    ..Default::default()
+                                })),
+                                ..Default::default()
+                            };
+                            schemas.push(schema.into());
+                        }
+                        let mut schema = SchemaObject::default();
+                        schema.subschemas().one_of = Some(schemas);
+                        return schema.into();
+                    }
+                }
+
                 SchemaObject {
                     instance_type: Some(InstanceType::Object.into()),
                     object: Some(Box::new(ObjectValidation {
-                        additional_properties: Some(Box::new(subschema)),
+                        additional_properties: Some(Box::new(v_subschema)),
                         ..Default::default()
                     })),
                     ..Default::default()
