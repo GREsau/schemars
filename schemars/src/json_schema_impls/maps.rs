@@ -26,11 +26,15 @@ macro_rules! map_impl {
                     let mut schemas: Vec<Schema> = vec![];
                     if let Some(values) = &schema_object.enum_values {
                         for value in values {
+                            // enum values all have quotes around them, so remove them
+                            let str_value = &value.to_string();
+                            let value = format!("{}", &str_value[1..str_value.len()-1]);
+
                             let schema = SchemaObject {
                                 instance_type: Some(InstanceType::Object.into()),
                                 object: Some(Box::new(ObjectValidation {
-                                    required: Set::from([value.to_string()]),
-                                    properties: Map::from([(value.to_string(), v_subschema.clone())]),
+                                    required: Set::from([value.clone()]),
+                                    properties: Map::from([(value, v_subschema.clone())]),
                                     ..Default::default()
                                 })),
                                 ..Default::default()
