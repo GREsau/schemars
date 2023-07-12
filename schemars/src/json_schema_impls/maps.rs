@@ -19,9 +19,12 @@ macro_rules! map_impl {
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
                 let k_subschema = gen.subschema_for::<K>();
                 let v_subschema = gen.subschema_for::<V>();
-                if let Schema::Object(schema_object)  = k_subschema {
+                // if the map's key is a reference to another schema, and that schema is an
+                // enum, our final schema should require that the map has key values
+                // that are one of the enum values
+                if let Some(Schema::Object(schema_object)) = gen.dereference(&k_subschema) {
                     let mut schemas: Vec<Schema> = vec![];
-                    if let Some(values) = schema_object.enum_values {
+                    if let Some(values) = &schema_object.enum_values {
                         for value in values {
                             let schema = SchemaObject {
                                 instance_type: Some(InstanceType::Object.into()),
@@ -39,7 +42,8 @@ macro_rules! map_impl {
                         return schema.into();
                     }
                 }
-
+                // if the key's schema is not a reference, or if the dereferenced key is not an enum,
+                // we can only enforce map values and not the map keys
                 SchemaObject {
                     instance_type: Some(InstanceType::Object.into()),
                     object: Some(Box::new(ObjectValidation {
