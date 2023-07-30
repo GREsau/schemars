@@ -48,19 +48,12 @@ pub struct ValidationAttrs {
 
 impl ValidationAttrs {
     pub fn new(attrs: &[syn::Attribute], errors: &Ctxt) -> Self {
-        let schemars_meta = attrs
-            .iter()
-            .flat_map(|attr| get_meta_items(attr, "schemars", errors, false))
-            .flatten();
-
-        let validate_meta = attrs
-            .iter()
-            .flat_map(|attr| get_meta_items(attr, "validate", errors, true))
-            .flatten();
+        let schemars_items = get_meta_items(attrs, "schemars", errors, false);
+        let validate_items = get_meta_items(attrs, "validate", errors, true);
 
         ValidationAttrs::default()
-            .populate(schemars_meta, "schemars", false, errors)
-            .populate(validate_meta, "validate", true, errors)
+            .populate(schemars_items, "schemars", false, errors)
+            .populate(validate_items, "validate", true, errors)
     }
 
     pub fn required(&self) -> bool {
@@ -69,7 +62,7 @@ impl ValidationAttrs {
 
     fn populate(
         mut self,
-        meta_items: impl Iterator<Item = syn::NestedMeta>,
+        meta_items: Vec<syn::NestedMeta>,
         attr_type: &'static str,
         ignore_errors: bool,
         errors: &Ctxt,
@@ -316,7 +309,7 @@ impl ValidationAttrs {
                         Some(_) => duplicate_error(&meta_list.path),
                         None => {
                             let inner_attrs = ValidationAttrs::default().populate(
-                                meta_list.nested.clone().into_iter(),
+                                meta_list.nested.clone().into_iter().collect(),
                                 attr_type,
                                 ignore_errors,
                                 errors,

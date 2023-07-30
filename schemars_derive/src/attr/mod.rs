@@ -103,11 +103,7 @@ impl Attrs {
             }
         };
 
-        for meta_item in attrs
-            .iter()
-            .flat_map(|attr| get_meta_items(attr, attr_type, errors, ignore_errors))
-            .flatten()
-        {
+        for meta_item in get_meta_items(attrs, attr_type, errors, ignore_errors) {
             match &meta_item {
                 Meta(NameValue(m)) if m.path.is_ident("with") => {
                     if let Ok(ty) = parse_lit_into_ty(errors, attr_type, "with", &m.lit) {
@@ -220,30 +216,25 @@ fn is_known_serde_or_validation_keyword(meta: &syn::Meta) -> bool {
 }
 
 fn get_meta_items(
-    attr: &syn::Attribute,
+    attrs: &[syn::Attribute],
     attr_type: &'static str,
     errors: &Ctxt,
     ignore_errors: bool,
-) -> Result<Vec<syn::NestedMeta>, ()> {
-    if !attr.path.is_ident(attr_type) {
-        return Ok(Vec::new());
-    }
-
-    match attr.parse_meta() {
-        Ok(List(meta)) => Ok(meta.nested.into_iter().collect()),
-        Ok(other) => {
-            if !ignore_errors {
+) -> Vec<syn::NestedMeta> {
+    attrs.iter().fold(vec![], |mut acc, attr| {
+        if !attr.path.is_ident(attr_type) {
+            return acc;
+        }
+        match attr.parse_meta() {
+            Ok(List(meta)) => acc.extend(meta.nested),
+            Ok(other) if !ignore_errors => {
                 errors.error_spanned_by(other, format!("expected #[{}(...)]", attr_type))
             }
-            Err(())
+            Err(err) if !ignore_errors => errors.error_spanned_by(attr, err),
+            _ => (),
         }
-        Err(err) => {
-            if !ignore_errors {
-                errors.error_spanned_by(attr, err)
-            }
-            Err(())
-        }
-    }
+        acc
+    })
 }
 
 fn get_lit_str<'a>(
