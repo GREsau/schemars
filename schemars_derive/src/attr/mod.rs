@@ -167,6 +167,12 @@ impl Attrs {
 
                 _ if ignore_errors => {}
 
+                Meta(List(m)) if m.path.is_ident("inner") && attr_type == "schemars" => {
+                    // This will be processed with the validation attributes.
+                    // It's allowed only for the schemars attribute because the
+                    // validator crate doesn't support it yet.
+                }
+
                 Meta(meta_item) => {
                     if !is_known_serde_or_validation_keyword(meta_item) {
                         let path = meta_item
