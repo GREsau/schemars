@@ -190,8 +190,7 @@ impl Attrs {
     }
 
     pub fn is_default(&self) -> bool {
-        match self {
-            Self {
+        matches!(self, Self {
                 with: None,
                 title: None,
                 description: None,
@@ -200,9 +199,7 @@ impl Attrs {
                 repr: None,
                 crate_name: None,
                 is_renamed: _,
-            } if examples.is_empty() => true,
-            _ => false,
-        }
+            } if examples.is_empty())
     }
 }
 

@@ -18,6 +18,7 @@ use std::{any::Any, collections::HashSet, fmt::Debug};
 /// The default settings currently conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
 /// If you require your generated schemas to conform to draft 7, consider using the [`draft07`](#method.draft07) method.
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct SchemaSettings {
     /// If `true`, schemas for [`Option<T>`](Option) will include a `nullable` property.
     ///
@@ -45,7 +46,6 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `false`.
     pub inline_subschemas: bool,
-    _hidden: (),
 }
 
 impl Default for SchemaSettings {
@@ -64,7 +64,6 @@ impl SchemaSettings {
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
             visitors: vec![Box::new(RemoveRefSiblings)],
             inline_subschemas: false,
-            _hidden: (),
         }
     }
 
@@ -77,7 +76,6 @@ impl SchemaSettings {
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
             visitors: Vec::default(),
             inline_subschemas: false,
-            _hidden: (),
         }
     }
 
@@ -101,7 +99,6 @@ impl SchemaSettings {
                 }),
             ],
             inline_subschemas: false,
-            _hidden: (),
         }
     }
 
