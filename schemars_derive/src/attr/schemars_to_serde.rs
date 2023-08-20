@@ -28,6 +28,8 @@ pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     // JsonSchema on remote types, but we parse that ourselves rather than using serde_derive_internals.
     "serialize_with",
     "with",
+    // Special case - `extension` is removed from serde attrs, so is only respected when present in schemars attr.
+    "extension"
 ];
 
 // If a struct/variant/field has any #[schemars] attributes, then create copies of them
@@ -75,7 +77,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         .flatten()
         .filter_map(|meta| {
             let keyword = get_meta_ident(ctxt, &meta).ok()?;
-            if keyword.ends_with("with") || !SERDE_KEYWORDS.contains(&keyword.as_ref()) {
+            if keyword.ends_with("with") || keyword.ends_with("extension") || !SERDE_KEYWORDS.contains(&keyword.as_ref()) {
                 None
             } else {
                 Some((meta, keyword))
@@ -98,6 +100,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
             if !schemars_meta_names.contains(&i)
                 && SERDE_KEYWORDS.contains(&i.as_ref())
                 && i != "bound"
+                && i != "extensions"
             {
                 serde_meta.push(meta);
             }

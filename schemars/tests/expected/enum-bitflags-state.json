@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BitFlags_EnumState",
+  "type": "integer",
+  "format": "uint64",
+  "minimum": 0.0,
+  "definitions": {
+    "EnumState": {
+      "type": "integer",
+      "enum": [
+        1,
+        2,
+        4,
+        8
+      ],
+      "x-enumNames": [
+        "A",
+        "B",
+        "C",
+        "D"
+      ]
+    }
+  }
+}

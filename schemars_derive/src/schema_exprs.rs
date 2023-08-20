@@ -49,10 +49,35 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
     let enum_ident = &cont.ident;
     let variant_idents = variants.iter().map(|v| &v.ident);
 
-    let mut schema_expr = schema_object(quote! {
-        instance_type: Some(schemars::schema::InstanceType::Integer.into()),
-        enum_values: Some(vec![#((#enum_ident::#variant_idents as #repr_type).into()),*]),
-    });
+    let extensions: Vec<TokenStream> = cont.extensions.iter().filter_map(|e| {
+        if e == "x-enumNames" {
+            let variant_names = variants.iter().map(|v| {
+                let ident = &v.ident;
+                quote! { stringify!(#ident) }
+            });
+            Some(quote! {
+                (
+                    "x-enumNames".to_string(),
+                    serde_json::json!([ #(#variant_names),* ])
+                )
+            })
+        } else {
+            None
+        }
+    }).collect();
+
+    let mut schema_expr = if extensions.is_empty() {
+        schema_object(quote! {
+            instance_type: Some(schemars::schema::InstanceType::Integer.into()),
+            enum_values: Some(vec![#((#enum_ident::#variant_idents as #repr_type).into()),*]),
+        })
+    } else {
+        schema_object(quote! {
+            instance_type: Some(schemars::schema::InstanceType::Integer.into()),
+            enum_values: Some(vec![#((#enum_ident::#variant_idents as #repr_type).into()),*]),
+            extensions: [ #(#extensions),* ].iter().map(|i| i.clone()).collect(),
+        })
+    };
 
     cont.attrs.as_metadata().apply_to_schema(&mut schema_expr);
     Ok(schema_expr)

@@ -51,6 +51,8 @@ mod core;
 mod decimal;
 #[cfg(feature = "either")]
 mod either;
+#[cfg(feature = "enumflags2")]
+mod enumflags2;
 #[cfg(feature = "enumset")]
 mod enumset;
 mod ffi;
