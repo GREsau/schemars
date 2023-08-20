@@ -67,6 +67,8 @@ mod smallvec;
 #[cfg(feature = "smol_str")]
 mod smol_str;
 mod time;
+#[cfg(feature = "triomphe")]
+mod triomphe;
 mod tuple;
 #[cfg(feature = "url")]
 mod url;
