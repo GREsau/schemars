@@ -28,4 +28,6 @@ macro_rules! decimal_impl {
 #[cfg(feature = "rust_decimal")]
 decimal_impl!(rust_decimal::Decimal);
 #[cfg(feature = "bigdecimal")]
-decimal_impl!(bigdecimal::BigDecimal);
+decimal_impl!(bigdecimal03::BigDecimal);
+#[cfg(feature = "bigdecimal04")]
+decimal_impl!(bigdecimal04::BigDecimal);
