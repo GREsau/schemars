@@ -9,7 +9,7 @@ edition = "2021"
 license = "MIT"
 readme = "README.md"
 keywords = ["rust", "json-schema", "serde"]
-rust-version = "1.56"
+rust-version = "1.60"
 
 [lib]
 proc-macro = true

@@ -9,7 +9,7 @@
 
 ### Changed:
 
-- Minimum supported rust version is now 1.56.0
+- Minimum supported rust version is now 1.60.0
 
 ## [0.8.12] - 2023-02-26
 
