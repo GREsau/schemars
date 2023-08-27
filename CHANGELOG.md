@@ -2,6 +2,10 @@
 
 ## [0.8.13] - _in-dev_
 
+### Added:
+
+- Implement `JsonSchema` for `semver::Version` (https://github.com/GREsau/schemars/pull/195 / https://github.com/GREsau/schemars/pull/238)
+
 ### Changed:
 
 - Minimum supported rust version is now 1.56.0

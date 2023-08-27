@@ -60,6 +60,8 @@ mod maps;
 mod nonzero_signed;
 mod nonzero_unsigned;
 mod primitives;
+#[cfg(feature = "semver")]
+mod semver;
 mod sequences;
 mod serdejson;
 #[cfg(feature = "smallvec")]
