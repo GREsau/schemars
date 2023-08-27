@@ -6,6 +6,7 @@
 
 - Implement `JsonSchema` for `semver::Version` (https://github.com/GREsau/schemars/pull/195 / https://github.com/GREsau/schemars/pull/238)
 - Include const generics in generated schema names (https://github.com/GREsau/schemars/pull/179 / https://github.com/GREsau/schemars/pull/239)
+- Implement `JsonSchema` for types from indexmap v2 (https://github.com/GREsau/schemars/pull/226 / https://github.com/GREsau/schemars/pull/240)
 
 ### Changed:
 
