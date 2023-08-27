@@ -7,16 +7,16 @@ jobs:
     runs-on: ubuntu-latest
     env:
       # work-around https://github.com/rust-lang/cargo/issues/10303
-      CARGO_NET_GIT_FETCH_WITH_CLI: ${{ matrix.rust == '1.56.0' }}
+      CARGO_NET_GIT_FETCH_WITH_CLI: ${{ matrix.rust == '1.60.0' }}
     strategy:
       matrix:
         rust:
-          - 1.56.0
+          - 1.60.0
           - stable
           - beta
           - nightly
         include:
-          - rust: 1.56.0
+          - rust: 1.60.0
             test_features: "--features impl_json_schema"
             allow_failure: false
           - rust: stable
