@@ -35,14 +35,4 @@ impl JsonSchema for Number {
 }
 
 #[cfg(feature = "raw_value")]
-impl JsonSchema for serde_json::value::RawValue {
-    no_ref_schema!();
-
-    fn schema_name() -> String {
-        "AnyValue".to_owned()
-    }
-
-    fn json_schema(_: &mut SchemaGenerator) -> Schema {
-        Schema::Bool(true)
-    }
-}
+forward_impl!(serde_json::value::RawValue => Value);
