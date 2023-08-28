@@ -253,6 +253,7 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 - `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro
 - `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
 - `preserve_order` - keep the order of struct fields in `Schema` and `SchemaObject`
+- `raw_value` - implements `JsonSchema` for `serde_json::value::RawValue` (enables the serde_json `raw_value` feature)
 
 Schemars can implement `JsonSchema` on types from several popular crates, enabled via feature flags (dependency versions are shown in brackets):
 
