@@ -36,7 +36,7 @@
     },
     "naive_time": {
       "type": "string",
-      "format": "partial-date-time"
+      "format": "time"
     }
   }
 }
