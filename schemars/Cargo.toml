@@ -65,6 +65,10 @@ raw_value = ["serde_json/raw_value"]
 ui_test = []
 
 [[test]]
+name = "bigdecimal"
+required-features = ["bigdecimal"]
+
+[[test]]
 name = "chrono"
 required-features = ["chrono"]
 

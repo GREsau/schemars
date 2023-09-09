@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BigDecimalTypes",
+  "type": "object",
+  "required": [
+    "bigdecimal"
+  ],
+  "properties": {
+    "bigdecimal": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "string",
+          "pattern": "^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$"
+        }
+      ]
+    }
+  }
+}
