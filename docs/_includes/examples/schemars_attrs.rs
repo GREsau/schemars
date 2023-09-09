@@ -10,6 +10,8 @@ pub struct MyStruct {
     pub my_bool: bool,
     #[schemars(default)]
     pub my_nullable_enum: Option<MyEnum>,
+    #[schemars(inner(regex(pattern = "^x$")))]
+    pub my_vec_str: Vec<String>,
 }
 
 #[derive(Deserialize, Serialize, JsonSchema)]
