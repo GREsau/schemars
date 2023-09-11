@@ -22,6 +22,7 @@ dyn-clone = "1.0"
 chrono = { version = "0.4", default-features = false, optional = true }
 indexmap = { version = "1.2", features = ["serde-1"], optional = true }
 indexmap2 = { version = "2.0", features = ["serde"], optional = true, package = "indexmap" }
+ipnetwork = { version = "0.20", optional = true }
 either = { version = "1.3", default-features = false, optional = true }
 uuid08 = { version = "0.8", default-features = false, optional = true, package = "uuid" }
 uuid1 = { version = "1.0", default-features = false, optional = true, package = "uuid" }
@@ -78,6 +79,10 @@ required-features = ["indexmap"]
 [[test]]
 name = "indexmap2"
 required-features = ["indexmap2"]
+
+[[test]]
+name = "ipnetwork"
+required-features = ["ipnetwork"]
 
 [[test]]
 name = "either"
