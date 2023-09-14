@@ -11,6 +11,8 @@ use crate::schema::*;
 use crate::{visit::*, JsonSchema, Map};
 use dyn_clone::DynClone;
 use serde::Serialize;
+use std::borrow::Cow;
+use std::collections::HashMap;
 use std::{any::Any, collections::HashSet, fmt::Debug};
 
 /// Settings to customize how Schemas are generated.
@@ -149,7 +151,9 @@ impl SchemaSettings {
 pub struct SchemaGenerator {
     settings: SchemaSettings,
     definitions: Map<String, Schema>,
-    pending_schema_names: HashSet<String>,
+    pending_schema_ids: HashSet<Cow<'static, str>>,
+    schema_id_to_name: HashMap<Cow<'static, str>, String>,
+    used_schema_names: HashSet<String>,
 }
 
 impl Clone for SchemaGenerator {
@@ -157,7 +161,9 @@ impl Clone for SchemaGenerator {
         Self {
             settings: self.settings.clone(),
             definitions: self.definitions.clone(),
-            pending_schema_names: HashSet::new(),
+            pending_schema_ids: HashSet::new(),
+            schema_id_to_name: HashMap::new(),
+            used_schema_names: HashSet::new(),
         }
     }
 }
@@ -213,27 +219,54 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
     /// add them to the `SchemaGenerator`'s schema definitions.
     pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
-        let name = T::schema_name();
+        let id = T::schema_id();
         let return_ref = T::is_referenceable()
-            && (!self.settings.inline_subschemas || self.pending_schema_names.contains(&name));
+            && (!self.settings.inline_subschemas || self.pending_schema_ids.contains(&id));
 
         if return_ref {
-            let reference = format!("{}{}", self.settings().definitions_path, name);
+            let name = match self.schema_id_to_name.get(&id).cloned() {
+                Some(n) => n,
+                None => {
+                    let base_name = T::schema_name();
+                    let mut name = String::new();
+
+                    if self.used_schema_names.contains(&base_name) {
+                        for i in 2.. {
+                            name = format!("{}{}", base_name, i);
+                            if !self.used_schema_names.contains(&name) {
+                                break;
+                            }
+                        }
+                    } else {
+                        name = base_name;
+                    }
+
+                    self.used_schema_names.insert(name.clone());
+                    self.schema_id_to_name.insert(id.clone(), name.clone());
+                    name
+                }
+            };
+
+            let reference = format!("{}{}", self.settings.definitions_path, name);
             if !self.definitions.contains_key(&name) {
-                self.insert_new_subschema_for::<T>(name);
+                self.insert_new_subschema_for::<T>(name, id);
             }
             Schema::new_ref(reference)
         } else {
-            self.json_schema_internal::<T>(&name)
+            self.json_schema_internal::<T>(id)
         }
     }
 
-    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: String) {
+    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(
+        &mut self,
+        name: String,
+        id: Cow<'static, str>,
+    ) {
         let dummy = Schema::Bool(false);
         // insert into definitions BEFORE calling json_schema to avoid infinite recursion
         self.definitions.insert(name.clone(), dummy);
 
-        let schema = self.json_schema_internal::<T>(&name);
+        let schema = self.json_schema_internal::<T>(id);
 
         self.definitions.insert(name, schema);
     }
@@ -274,9 +307,8 @@ impl SchemaGenerator {
     /// add them to the `SchemaGenerator`'s schema definitions and include them in the returned `SchemaObject`'s
     /// [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> RootSchema {
-        let name = T::schema_name();
-        let mut schema = self.json_schema_internal::<T>(&name).into_object();
-        schema.metadata().title.get_or_insert(name);
+        let mut schema = self.json_schema_internal::<T>(T::schema_id()).into_object();
+        schema.metadata().title.get_or_insert_with(T::schema_name);
         let mut root = RootSchema {
             meta_schema: self.settings.meta_schema.clone(),
             definitions: self.definitions.clone(),
@@ -295,9 +327,8 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
     /// include them in the returned `SchemaObject`'s [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> RootSchema {
-        let name = T::schema_name();
-        let mut schema = self.json_schema_internal::<T>(&name).into_object();
-        schema.metadata().title.get_or_insert(name);
+        let mut schema = self.json_schema_internal::<T>(T::schema_id()).into_object();
+        schema.metadata().title.get_or_insert_with(T::schema_name);
         let mut root = RootSchema {
             meta_schema: self.settings.meta_schema,
             definitions: self.definitions,
@@ -418,29 +449,29 @@ impl SchemaGenerator {
         }
     }
 
-    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, name: &str) -> Schema {
+    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, id: Cow<'static, str>) -> Schema {
         struct PendingSchemaState<'a> {
             gen: &'a mut SchemaGenerator,
-            name: &'a str,
+            id: Cow<'static, str>,
             did_add: bool,
         }
 
         impl<'a> PendingSchemaState<'a> {
-            fn new(gen: &'a mut SchemaGenerator, name: &'a str) -> Self {
-                let did_add = gen.pending_schema_names.insert(name.to_owned());
-                Self { gen, name, did_add }
+            fn new(gen: &'a mut SchemaGenerator, id: Cow<'static, str>) -> Self {
+                let did_add = gen.pending_schema_ids.insert(id.clone());
+                Self { gen, id, did_add }
             }
         }
 
         impl Drop for PendingSchemaState<'_> {
             fn drop(&mut self) {
                 if self.did_add {
-                    self.gen.pending_schema_names.remove(self.name);
+                    self.gen.pending_schema_ids.remove(&self.id);
                 }
             }
         }
 
-        let pss = PendingSchemaState::new(self, name);
+        let pss = PendingSchemaState::new(self, id);
         T::json_schema(pss.gen)
     }
 }

@@ -17,6 +17,10 @@ macro_rules! forward_impl {
                 <$target>::schema_name()
             }
 
+            fn schema_id() -> std::borrow::Cow<'static, str> {
+                <$target>::schema_id()
+            }
+
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
                 <$target>::json_schema(gen)
             }

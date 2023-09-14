@@ -41,6 +41,8 @@ pub mod visit;
 
 #[cfg(feature = "schemars_derive")]
 extern crate schemars_derive;
+use std::borrow::Cow;
+
 #[cfg(feature = "schemars_derive")]
 pub use schemars_derive::*;
 
@@ -82,6 +84,11 @@ pub trait JsonSchema {
     ///
     /// This is used as the title for root schemas, and the key within the root's `definitions` property for subschemas.
     fn schema_name() -> String;
+
+    // TODO document
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Owned(Self::schema_name())
+    }
 
     /// Generates a JSON Schema for this type.
     ///

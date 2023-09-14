@@ -1,6 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::borrow::Cow;
 
 macro_rules! map_impl {
     ($($desc:tt)+) => {
@@ -12,6 +13,10 @@ macro_rules! map_impl {
 
             fn schema_name() -> String {
                 format!("Map_of_{}", V::schema_name())
+            }
+
+            fn schema_id() -> Cow<'static, str> {
+                Cow::Owned(format!("Map<{}>", V::schema_id()))
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
