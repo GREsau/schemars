@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.8.14] - in-dev
+
+### Added:
+
+- Add `#[schemars(inner(...)]` attribute to specify schema for array items (https://github.com/GREsau/schemars/pull/234)
+
+### Fixed:
+
+- Schemas for `rust_decimal::Decimal` and `bigdecimal::BigDecimal` now match how those types are serialized by default, i.e. as numeric strings (https://github.com/GREsau/schemars/pull/248)
+
 ## [0.8.13] - 2023-08-28
 
 ### Added:
