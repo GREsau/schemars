@@ -1,6 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::borrow::Cow;
 use uuid1::Uuid;
 
 impl JsonSchema for Uuid {
@@ -8,6 +9,10 @@ impl JsonSchema for Uuid {
 
     fn schema_name() -> String {
         "Uuid".to_string()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed("uuid::Uuid")
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {

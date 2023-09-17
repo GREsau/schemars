@@ -1,6 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::borrow::Cow;
 
 macro_rules! decimal_impl {
     ($type:ty) => {
@@ -9,6 +10,10 @@ macro_rules! decimal_impl {
 
             fn schema_name() -> String {
                 "Decimal".to_owned()
+            }
+
+            fn schema_id() -> Cow<'static, str> {
+                Cow::Borrowed($name)
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {

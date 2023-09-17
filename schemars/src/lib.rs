@@ -41,6 +41,8 @@ pub mod visit;
 
 #[cfg(feature = "schemars_derive")]
 extern crate schemars_derive;
+use std::borrow::Cow;
+
 #[cfg(feature = "schemars_derive")]
 pub use schemars_derive::*;
 
@@ -56,7 +58,8 @@ use schema::Schema;
 ///
 /// This can also be automatically derived on most custom types with `#[derive(JsonSchema)]`.
 ///
-/// # Example
+/// # Examples
+/// Deriving an implementation:
 /// ```
 /// use schemars::{schema_for, JsonSchema};
 ///
@@ -67,6 +70,64 @@ use schema::Schema;
 ///
 /// let my_schema = schema_for!(MyStruct);
 /// ```
+///
+/// When manually implementing `JsonSchema`, as well as determining an appropriate schema,
+/// you will need to determine an appropriate name and ID for the type.
+/// For non-generic types, the type name/path are suitable for this:
+/// ```
+/// use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+/// use std::borrow::Cow;
+///
+/// struct NonGenericType;
+///
+/// impl JsonSchema for NonGenericType {
+///     fn schema_name() -> String {
+///         // Exclude the module path to make the name in generated schemas clearer.
+///         "NonGenericType".to_owned()
+///     }
+///
+///     fn schema_id() -> Cow<'static, str> {
+///         // Include the module, in case a type with the same name is in another module/crate
+///         Cow::Borrowed(concat!(module_path!(), "::NonGenericType"))
+///     }
+///
+///     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
+///         todo!()
+///     }
+/// }
+///
+/// assert_eq!(NonGenericType::schema_id(), <&mut NonGenericType>::schema_id());
+/// ```
+///
+/// But generic type parameters which may affect the generated schema should typically be included in the name/ID:
+/// ```
+/// use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+/// use std::{borrow::Cow, marker::PhantomData};
+///
+/// struct GenericType<T>(PhantomData<T>);
+///
+/// impl<T: JsonSchema> JsonSchema for GenericType<T> {
+///     fn schema_name() -> String {
+///         format!("GenericType_{}", T::schema_name())
+///     }
+///
+///     fn schema_id() -> Cow<'static, str> {
+///         Cow::Owned(format!(
+///             "{}::GenericType<{}>",
+///             module_path!(),
+///             T::schema_id()
+///         ))
+///     }
+///
+///     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
+///         todo!()
+///     }
+/// }
+///
+/// assert_eq!(<GenericType<i32>>::schema_id(), <&mut GenericType<&i32>>::schema_id());
+/// ```
+///
+
 pub trait JsonSchema {
     /// Whether JSON Schemas generated for this type should be re-used where possible using the `$ref` keyword.
     ///
@@ -82,6 +143,17 @@ pub trait JsonSchema {
     ///
     /// This is used as the title for root schemas, and the key within the root's `definitions` property for subschemas.
     fn schema_name() -> String;
+
+    /// Returns a string that uniquely identifies the schema produced by this type.
+    ///
+    /// This does not have to be a human-readable string, and the value will not itself be included in generated schemas.
+    /// If two types produce different schemas, then they **must** have different `schema_id()`s,
+    /// but two types that produce identical schemas should *ideally* have the same `schema_id()`.
+    ///
+    /// The default implementation returns the same value as `schema_name()`.
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Owned(Self::schema_name())
+    }
 
     /// Generates a JSON Schema for this type.
     ///

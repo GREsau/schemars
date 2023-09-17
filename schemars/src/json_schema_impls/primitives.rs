@@ -1,6 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::borrow::Cow;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::path::{Path, PathBuf};
 
@@ -17,6 +18,10 @@ macro_rules! simple_impl {
 
             fn schema_name() -> String {
                 $name.to_owned()
+            }
+
+            fn schema_id() -> Cow<'static, str> {
+                Cow::Borrowed($name)
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -64,6 +69,10 @@ macro_rules! unsigned_impl {
                 $format.to_owned()
             }
 
+            fn schema_id() -> Cow<'static, str> {
+                Cow::Borrowed($format)
+            }
+
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
                 let mut schema = SchemaObject {
                     instance_type: Some(InstanceType::$instance_type.into()),
@@ -89,6 +98,10 @@ impl JsonSchema for char {
 
     fn schema_name() -> String {
         "Character".to_owned()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed("char")
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
