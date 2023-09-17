@@ -13,7 +13,7 @@ macro_rules! decimal_impl {
             }
 
             fn schema_id() -> Cow<'static, str> {
-                Cow::Borrowed($name)
+                Cow::Borrowed("Decimal")
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
