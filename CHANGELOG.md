@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.15] - 2023-09-17
+
+### Added:
+
+- Implement `JsonSchema` for `BigDecimal` from `bigdecimal` 0.4 (https://github.com/GREsau/schemars/pull/237)
+
 ## [0.8.14] - 2023-09-17
 
 ### Added:
