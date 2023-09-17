@@ -120,5 +120,9 @@ required-features = ["smol_str"]
 name = "semver"
 required-features = ["semver"]
 
+[[test]]
+name = "decimal"
+required-features = ["rust_decimal", "bigdecimal"]
+
 [package.metadata.docs.rs]
 all-features = true

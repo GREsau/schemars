@@ -4,19 +4,20 @@ use crate::JsonSchema;
 
 macro_rules! decimal_impl {
     ($type:ty) => {
-        decimal_impl!($type => Number, "Number");
-    };
-    ($type:ty => $instance_type:ident, $name:expr) => {
         impl JsonSchema for $type {
             no_ref_schema!();
 
             fn schema_name() -> String {
-                $name.to_owned()
+                "Decimal".to_owned()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
                 SchemaObject {
-                    instance_type: Some(InstanceType::$instance_type.into()),
+                    instance_type: Some(InstanceType::String.into()),
+                    string: Some(Box::new(StringValidation {
+                        pattern: Some(r"^-?[0-9]+(\.[0-9]+)?$".to_owned()),
+                        ..Default::default()
+                    })),
                     ..Default::default()
                 }
                 .into()
