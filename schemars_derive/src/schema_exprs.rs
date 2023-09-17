@@ -111,7 +111,7 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
 
                     fn schema_id() -> std::borrow::Cow<'static, str> {
                         std::borrow::Cow::Borrowed(std::concat!(
-                            "_SchemarsSchemaWithFunction/"
+                            "_SchemarsSchemaWithFunction/",
                             std::module_path!(),
                             "/",
                             #fn_name
