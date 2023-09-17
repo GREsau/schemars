@@ -64,7 +64,6 @@ indexmap1 = ["indexmap"]
 raw_value = ["serde_json/raw_value"]
 # `bigdecimal` feature without version suffix is included only for back-compat - will be removed in a later version
 bigdecimal = ["bigdecimal03"]
-bigdecimal04 = ["dep:bigdecimal04"]
 
 ui_test = []
 
@@ -126,7 +125,7 @@ required-features = ["semver"]
 
 [[test]]
 name = "decimal"
-required-features = ["rust_decimal", "bigdecimal"]
+required-features = ["rust_decimal", "bigdecimal03", "bigdecimal04"]
 
 [package.metadata.docs.rs]
 all-features = true
