@@ -2,6 +2,7 @@ use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use serde_json::{Map, Number, Value};
+use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 impl JsonSchema for Value {
@@ -9,6 +10,10 @@ impl JsonSchema for Value {
 
     fn schema_name() -> String {
         "AnyValue".to_owned()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed("AnyValue")
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -23,6 +28,10 @@ impl JsonSchema for Number {
 
     fn schema_name() -> String {
         "Number".to_owned()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed("Number")
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {

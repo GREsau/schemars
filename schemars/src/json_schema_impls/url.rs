@@ -1,6 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::borrow::Cow;
 use url::Url;
 
 impl JsonSchema for Url {
@@ -8,6 +9,10 @@ impl JsonSchema for Url {
 
     fn schema_name() -> String {
         "Url".to_owned()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed("url::Url")
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {

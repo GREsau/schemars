@@ -12,7 +12,11 @@ impl<L: JsonSchema, R: JsonSchema> JsonSchema for Either<L, R> {
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Owned(format!("Either<{}, {}>", L::schema_id(), R::schema_id()))
+        Cow::Owned(format!(
+            "either::Either<{}, {}>",
+            L::schema_id(),
+            R::schema_id()
+        ))
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
