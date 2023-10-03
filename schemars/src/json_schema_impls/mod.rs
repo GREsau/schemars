@@ -17,6 +17,10 @@ macro_rules! forward_impl {
                 <$target>::schema_name()
             }
 
+            fn schema_id() -> std::borrow::Cow<'static, str> {
+                <$target>::schema_id()
+            }
+
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
                 <$target>::json_schema(gen)
             }
@@ -47,7 +51,11 @@ mod bytes;
 #[cfg(feature = "chrono")]
 mod chrono;
 mod core;
-#[cfg(any(feature = "rust_decimal", feature = "bigdecimal"))]
+#[cfg(any(
+    feature = "rust_decimal",
+    feature = "bigdecimal03",
+    feature = "bigdecimal04"
+))]
 mod decimal;
 #[cfg(feature = "either")]
 mod either;
@@ -56,10 +64,14 @@ mod enumset;
 mod ffi;
 #[cfg(feature = "indexmap")]
 mod indexmap;
+#[cfg(feature = "indexmap2")]
+mod indexmap2;
 mod maps;
 mod nonzero_signed;
 mod nonzero_unsigned;
 mod primitives;
+#[cfg(feature = "semver")]
+mod semver;
 mod sequences;
 mod serdejson;
 #[cfg(feature = "smallvec")]

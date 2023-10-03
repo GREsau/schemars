@@ -2,6 +2,7 @@ use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use serde_json::json;
+use std::borrow::Cow;
 use std::ops::{Bound, Range, RangeInclusive};
 
 impl<T: JsonSchema> JsonSchema for Option<T> {
@@ -9,6 +10,10 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
 
     fn schema_name() -> String {
         format!("Nullable_{}", T::schema_name())
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Owned(format!("Option<{}>", T::schema_id()))
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
@@ -69,6 +74,10 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
         format!("Result_of_{}_or_{}", T::schema_name(), E::schema_name())
     }
 
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Owned(format!("Result<{}, {}>", T::schema_id(), E::schema_id()))
+    }
+
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
         let mut ok_schema = SchemaObject {
             instance_type: Some(InstanceType::Object.into()),
@@ -97,6 +106,10 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
 impl<T: JsonSchema> JsonSchema for Bound<T> {
     fn schema_name() -> String {
         format!("Bound_of_{}", T::schema_name())
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Owned(format!("Bound<{}>", T::schema_id()))
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
@@ -137,6 +150,10 @@ impl<T: JsonSchema> JsonSchema for Bound<T> {
 impl<T: JsonSchema> JsonSchema for Range<T> {
     fn schema_name() -> String {
         format!("Range_of_{}", T::schema_name())
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Owned(format!("Range<{}>", T::schema_id()))
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {

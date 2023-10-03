@@ -1,6 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::borrow::Cow;
 
 macro_rules! tuple_impls {
     ($($len:expr => ($($name:ident)+))+) => {
@@ -12,6 +13,14 @@ macro_rules! tuple_impls {
                     let mut name = "Tuple_of_".to_owned();
                     name.push_str(&[$($name::schema_name()),+].join("_and_"));
                     name
+                }
+
+                fn schema_id() -> Cow<'static, str> {
+                    let mut id = "(".to_owned();
+                    id.push_str(&[$($name::schema_id()),+].join(","));
+                    id.push(')');
+
+                    Cow::Owned(id)
                 }
 
                 fn json_schema(gen: &mut SchemaGenerator) -> Schema {

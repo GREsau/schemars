@@ -3,12 +3,13 @@ name = "schemars_derive"
 description = "Macros for #[derive(JsonSchema)], for use with schemars"
 homepage = "https://graham.cool/schemars/"
 repository = "https://github.com/GREsau/schemars"
-version = "0.8.12"
+version = "0.8.15"
 authors = ["Graham Esau <gesau@hotmail.co.uk>"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 readme = "README.md"
 keywords = ["rust", "json-schema", "serde"]
+rust-version = "1.60"
 
 [lib]
 proc-macro = true

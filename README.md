@@ -3,7 +3,7 @@
 [![CI Build](https://img.shields.io/github/actions/workflow/status/GREsau/schemars/ci.yml?branch=master&logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
 [![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
-[![rustc 1.45+](https://img.shields.io/badge/schemars-rustc_1.45+-lightgray.svg)](https://blog.rust-lang.org/2020/07/16/Rust-1.45.0.html)
+[![MSRV 1.60+](https://img.shields.io/badge/schemars-rustc_1.60+-lightgray.svg)](https://blog.rust-lang.org/2022/04/07/Rust-1.60.0.html)
 
 Generate JSON Schema documents from Rust code
 
@@ -39,10 +39,7 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyStruct",
   "type": "object",
-  "required": [
-    "my_bool",
-    "my_int"
-  ],
+  "required": ["my_bool", "my_int"],
   "properties": {
     "my_bool": {
       "type": "boolean"
@@ -67,9 +64,7 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
       "anyOf": [
         {
           "type": "object",
-          "required": [
-            "StringNewType"
-          ],
+          "required": ["StringNewType"],
           "properties": {
             "StringNewType": {
               "type": "string"
@@ -79,15 +74,11 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
         },
         {
           "type": "object",
-          "required": [
-            "StructVariant"
-          ],
+          "required": ["StructVariant"],
           "properties": {
             "StructVariant": {
               "type": "object",
-              "required": [
-                "floats"
-              ],
+              "required": ["floats"],
               "properties": {
                 "floats": {
                   "type": "array",
@@ -106,11 +97,12 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
   }
 }
 ```
+
 </details>
 
 ### Serde Compatibility
 
-One of the main aims of this library is compatibility with [Serde](https://github.com/serde-rs/serde). Any generated schema *should* match how [serde_json](https://github.com/serde-rs/json) would serialize/deserialize to/from JSON. To support this, Schemars will check for any `#[serde(...)]` attributes on types that derive `JsonSchema`, and adjust the generated schema accordingly.
+One of the main aims of this library is compatibility with [Serde](https://github.com/serde-rs/serde). Any generated schema _should_ match how [serde_json](https://github.com/serde-rs/json) would serialize/deserialize to/from JSON. To support this, Schemars will check for any `#[serde(...)]` attributes on types that derive `JsonSchema`, and adjust the generated schema accordingly.
 
 ```rust
 use schemars::{schema_for, JsonSchema};
@@ -145,10 +137,7 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyStruct",
   "type": "object",
-  "required": [
-    "myBool",
-    "myNumber"
-  ],
+  "required": ["myBool", "myNumber"],
   "properties": {
     "myBool": {
       "type": "boolean"
@@ -178,9 +167,7 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
         },
         {
           "type": "object",
-          "required": [
-            "floats"
-          ],
+          "required": ["floats"],
           "properties": {
             "floats": {
               "type": "array",
@@ -196,6 +183,7 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
   }
 }
 ```
+
 </details>
 
 `#[serde(...)]` attributes can be overriden using `#[schemars(...)]` attributes, which behave identically (e.g. `#[schemars(rename_all = "camelCase")]`). You may find this useful if you want to change the generated schema without affecting Serde's behaviour, or if you're just not using Serde.
@@ -257,16 +245,21 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
   }
 }
 ```
+
 </details>
 
 ## Feature Flags
+
 - `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro
 - `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
 - `preserve_order` - keep the order of struct fields in `Schema` and `SchemaObject`
+- `raw_value` - implements `JsonSchema` for `serde_json::value::RawValue` (enables the serde_json `raw_value` feature)
 
 Schemars can implement `JsonSchema` on types from several popular crates, enabled via feature flags (dependency versions are shown in brackets):
+
 - `chrono` - [chrono](https://crates.io/crates/chrono) (^0.4)
 - `indexmap1` - [indexmap](https://crates.io/crates/indexmap) (^1.2)
+- `indexmap2` - [indexmap](https://crates.io/crates/indexmap) (^2.0)
 - `either` - [either](https://crates.io/crates/either) (^1.3)
 - `uuid08` - [uuid](https://crates.io/crates/uuid) (^0.8)
 - `uuid1` - [uuid](https://crates.io/crates/uuid) (^1.0)
@@ -277,8 +270,10 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `bytes` - [bytes](https://crates.io/crates/bytes) (^1.0)
 - `enumset` - [enumset](https://crates.io/crates/enumset) (^1.0)
 - `rust_decimal` - [rust_decimal](https://crates.io/crates/rust_decimal) (^1.0)
-- `bigdecimal` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.3)
+- `bigdecimal03` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.3)
+- `bigdecimal04` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.4)
 - `smol_str` - [smol_str](https://crates.io/crates/smol_str) (^0.1.17)
+- `semver` - [semver](https://crates.io/crates/semver) (^1.0.9)
 - `camino` - [camino](https://crates.io/crates/camino) (^1.1)
 
 For example, to implement `JsonSchema` on types from `chrono`, enable it as a feature in the `schemars` dependency in your `Cargo.toml` like so:

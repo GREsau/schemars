@@ -101,7 +101,7 @@ pub struct Struct2 {
 
 #[test]
 fn validate_schemars_attrs() -> TestResult {
-    test_default_generated_schema::<Struct>("validate_schemars_attrs")
+    test_default_generated_schema::<Struct2>("validate_schemars_attrs")
 }
 
 #[derive(JsonSchema)]

@@ -69,10 +69,7 @@ impl<'a> Variant<'a> {
     }
 
     pub fn is_unit(&self) -> bool {
-        match self.style {
-            serde_ast::Style::Unit => true,
-            _ => false,
-        }
+        matches!(self.style, serde_ast::Style::Unit)
     }
 }
 

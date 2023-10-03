@@ -1,0 +1,4 @@
+{
+  "rust-analyzer.check.command": "clippy",
+  "rust-analyzer.showUnlinkedFileNotification": false
+}

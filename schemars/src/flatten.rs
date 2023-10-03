@@ -171,8 +171,10 @@ fn is_null_type(schema: &Schema) -> bool {
         Schema::Object(s) => s,
         _ => return false,
     };
-    match &s.instance_type {
-        Some(SingleOrVec::Single(t)) if **t == InstanceType::Null => true,
-        _ => false,
-    }
+    let instance_type = match &s.instance_type {
+        Some(SingleOrVec::Single(t)) => t,
+        _ => return false,
+    };
+
+    **instance_type == InstanceType::Null
 }

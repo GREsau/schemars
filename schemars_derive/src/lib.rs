@@ -67,6 +67,10 @@ fn derive_json_schema(
                         <#ty as schemars::JsonSchema>::schema_name()
                     }
 
+                    fn schema_id() -> std::borrow::Cow<'static, str> {
+                        <#ty as schemars::JsonSchema>::schema_id()
+                    }
+
                     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
                         <#ty as schemars::JsonSchema>::json_schema(gen)
                     }
@@ -95,27 +99,70 @@ fn derive_json_schema(
 
     // FIXME improve handling of generic type params which may not implement JsonSchema
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
-    let schema_name =
-        if type_params.is_empty() || (cont.attrs.is_renamed && !schema_base_name.contains('{')) {
+    let const_params: Vec<_> = cont.generics.const_params().map(|c| &c.ident).collect();
+    let params: Vec<_> = type_params.iter().chain(const_params.iter()).collect();
+
+    let (schema_name, schema_id) = if params.is_empty()
+        || (cont.attrs.is_renamed && !schema_base_name.contains('{'))
+    {
+        (
             quote! {
                 #schema_base_name.to_owned()
-            }
-        } else if cont.attrs.is_renamed {
-            let mut schema_name_fmt = schema_base_name;
-            for tp in &type_params {
-                schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
-            }
+            },
             quote! {
-                format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())*)
-            }
-        } else {
-            let mut schema_name_fmt = schema_base_name;
-            schema_name_fmt.push_str("_for_{}");
-            schema_name_fmt.push_str(&"_and_{}".repeat(type_params.len() - 1));
+                std::borrow::Cow::Borrowed(std::concat!(
+                    std::module_path!(),
+                    "::",
+                    #schema_base_name
+                ))
+            },
+        )
+    } else if cont.attrs.is_renamed {
+        let mut schema_name_fmt = schema_base_name;
+        for tp in &params {
+            schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
+        }
+        (
             quote! {
-                format!(#schema_name_fmt #(,#type_params::schema_name())*)
-            }
-        };
+                format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())* #(,#const_params=#const_params)*)
+            },
+            quote! {
+                std::borrow::Cow::Owned(
+                    format!(
+                        std::concat!(
+                            std::module_path!(),
+                            "::",
+                            #schema_name_fmt
+                        )
+                        #(,#type_params=#type_params::schema_id())*
+                        #(,#const_params=#const_params)*
+                    )
+                )
+            },
+        )
+    } else {
+        let mut schema_name_fmt = schema_base_name;
+        schema_name_fmt.push_str("_for_{}");
+        schema_name_fmt.push_str(&"_and_{}".repeat(params.len() - 1));
+        (
+            quote! {
+                format!(#schema_name_fmt #(,#type_params::schema_name())* #(,#const_params)*)
+            },
+            quote! {
+                std::borrow::Cow::Owned(
+                    format!(
+                        std::concat!(
+                            std::module_path!(),
+                            "::",
+                            #schema_name_fmt
+                        )
+                        #(,#type_params::schema_id())*
+                        #(,#const_params)*
+                    )
+                )
+            },
+        )
+    };
 
     let schema_expr = if repr {
         schema_exprs::expr_for_repr(&cont).map_err(|e| vec![e])?
@@ -132,6 +179,10 @@ fn derive_json_schema(
             impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
                 fn schema_name() -> std::string::String {
                     #schema_name
+                }
+
+                fn schema_id() -> std::borrow::Cow<'static, str> {
+                    #schema_id
                 }
 
                 fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {

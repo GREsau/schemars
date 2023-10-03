@@ -4,7 +4,8 @@
   "type": "object",
   "required": [
     "myBool",
-    "myNumber"
+    "myNumber",
+    "myVecStr"
   ],
   "properties": {
     "myBool": {
@@ -26,6 +27,13 @@
       "format": "int32",
       "maximum": 10.0,
       "minimum": 1.0
+    },
+    "myVecStr": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^x$"
+      }
     }
   },
   "additionalProperties": false,

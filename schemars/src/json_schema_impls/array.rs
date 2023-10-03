@@ -1,6 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::borrow::Cow;
 
 // Does not require T: JsonSchema.
 impl<T> JsonSchema for [T; 0] {
@@ -8,6 +9,10 @@ impl<T> JsonSchema for [T; 0] {
 
     fn schema_name() -> String {
         "EmptyArray".to_owned()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed("[]")
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -31,6 +36,11 @@ macro_rules! array_impls {
 
                 fn schema_name() -> String {
                     format!("Array_size_{}_of_{}", $len, T::schema_name())
+                }
+
+                fn schema_id() -> Cow<'static, str> {
+                    Cow::Owned(
+                        format!("[{}; {}]", $len, T::schema_id()))
                 }
 
                 fn json_schema(gen: &mut SchemaGenerator) -> Schema {

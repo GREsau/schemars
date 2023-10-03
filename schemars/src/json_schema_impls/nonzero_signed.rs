@@ -1,6 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
+use std::borrow::Cow;
 use std::num::*;
 
 macro_rules! nonzero_unsigned_impl {
@@ -10,6 +11,10 @@ macro_rules! nonzero_unsigned_impl {
 
             fn schema_name() -> String {
                 stringify!($type).to_owned()
+            }
+
+            fn schema_id() -> Cow<'static, str> {
+                Cow::Borrowed(stringify!(std::num::$type))
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
