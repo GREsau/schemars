@@ -14,7 +14,58 @@ impl Schema {
         }
         let s1: SchemaObject = self.into();
         let s2: SchemaObject = other.into();
-        Schema::Object(s1.merge(s2))
+
+        let s1_all_of = s1.subschemas.clone().and_then(|sub_sch| sub_sch.all_of);
+        let s2_all_of = s2.subschemas.clone().and_then(|sub_sch| sub_sch.all_of);
+        match (s1_all_of, s2_all_of) {
+            (Some(mut s1_all_off), Some(s2_all_off)) => {
+                s1_all_off.extend(s2_all_off);
+                Schema::Object(SchemaObject {
+                    subschemas: Some(Box::new(SubschemaValidation {
+                        all_of: Some(s1_all_off),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                })
+            }
+            (Some(mut s1_all_off), None) => {
+                s1_all_off.push(Schema::Object(s2));
+                Schema::Object(SchemaObject {
+                    subschemas: Some(Box::new(SubschemaValidation {
+                        all_of: Some(s1_all_off),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                })
+            }
+            (None, Some(mut s2_all_off)) => {
+                s2_all_off.push(Schema::Object(s1));
+                Schema::Object(SchemaObject {
+                    subschemas: Some(Box::new(SubschemaValidation {
+                        all_of: Some(s2_all_off),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                })
+            }
+            (None, None) => {
+                match (s1.subschemas.is_some(), s2.subschemas.is_some()) {
+                    (true, true) => Schema::Object(SchemaObject {
+                        subschemas: Some(Box::new(SubschemaValidation {
+                            all_of: Some(vec![
+                                Schema::Object(s1),
+                                Schema::Object(s2),
+                            ]),
+                            ..Default::default()
+                        })),
+                        ..Default::default()
+                    }),
+                    (true, false) |
+                    (false, true) |
+                    (false, false) => Schema::Object(s1.merge(s2)),
+                }
+            }
+        }
     }
 }
 
