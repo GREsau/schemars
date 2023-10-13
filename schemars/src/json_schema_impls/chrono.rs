@@ -3,12 +3,17 @@ use crate::schema::*;
 use crate::JsonSchema;
 use chrono::prelude::*;
 use serde_json::json;
+use std::borrow::Cow;
 
 impl JsonSchema for Weekday {
     no_ref_schema!();
 
     fn schema_name() -> String {
         "Weekday".to_owned()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed("chrono::Weekday")
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -39,6 +44,10 @@ macro_rules! formatted_string_impl {
 
             fn schema_name() -> String {
                 stringify!($ty).to_owned()
+            }
+
+            fn schema_id() -> Cow<'static, str>  {
+                Cow::Borrowed(stringify!(chrono::$ty))
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {

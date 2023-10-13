@@ -109,6 +109,15 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
                         #fn_name.to_string()
                     }
 
+                    fn schema_id() -> std::borrow::Cow<'static, str> {
+                        std::borrow::Cow::Borrowed(std::concat!(
+                            "_SchemarsSchemaWithFunction/",
+                            std::module_path!(),
+                            "/",
+                            #fn_name
+                        ))
+                    }
+
                     fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
                         #fun(gen)
                     }

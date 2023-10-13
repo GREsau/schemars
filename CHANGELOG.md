@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.8.15] - 2023-09-17
+
+### Added:
+
+- Implement `JsonSchema` for `BigDecimal` from `bigdecimal` 0.4 (https://github.com/GREsau/schemars/pull/237)
+
+## [0.8.14] - 2023-09-17
+
+### Added:
+
+- Add `#[schemars(inner(...)]` attribute to specify schema for array items (https://github.com/GREsau/schemars/pull/234)
+
+### Changed:
+
+- New optional associated function on `JsonSchema` trait: `schema_id()`, which is similar to `schema_name()`, but does not have to be human-readable, and defaults to the type name including module path. This allows schemars to differentiate between types with the same name in different modules/crates (https://github.com/GREsau/schemars/issues/62 / https://github.com/GREsau/schemars/pull/247)
+
+### Fixed:
+
+- Schemas for `rust_decimal::Decimal` and `bigdecimal::BigDecimal` now match how those types are serialized by default, i.e. as numeric strings (https://github.com/GREsau/schemars/pull/248)
+
 ## [0.8.13] - 2023-08-28
 
 ### Added:

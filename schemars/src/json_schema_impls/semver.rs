@@ -2,12 +2,17 @@ use crate::gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use semver::Version;
+use std::borrow::Cow;
 
 impl JsonSchema for Version {
     no_ref_schema!();
 
     fn schema_name() -> String {
         "Version".to_owned()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed("semver::Version")
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {

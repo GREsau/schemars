@@ -270,7 +270,8 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `bytes` - [bytes](https://crates.io/crates/bytes) (^1.0)
 - `enumset` - [enumset](https://crates.io/crates/enumset) (^1.0)
 - `rust_decimal` - [rust_decimal](https://crates.io/crates/rust_decimal) (^1.0)
-- `bigdecimal` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.3)
+- `bigdecimal03` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.3)
+- `bigdecimal04` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.4)
 - `smol_str` - [smol_str](https://crates.io/crates/smol_str) (^0.1.17)
 - `semver` - [semver](https://crates.io/crates/semver) (^1.0.9)
 
