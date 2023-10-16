@@ -54,6 +54,59 @@ enum MyEnum {
     },
 }
 
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+/**
+ *
+ * # This is the struct's title
+ *
+ * This is the struct's description.
+ *
+ * This is example:
+ * ```json
+ * {
+ *    "value": 0,
+ *    "type": "msg"
+ * }
+ * ```
+ */
+struct MyStructWithInlineCode {
+    /// # An integer
+    my_int: i32,
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+
+/// This is example:
+/// ```json
+/// {
+///    "value": 0,
+///    "type": "msg"
+/// }
+/// ```
+struct MyStructWithInlineCodeNormal {
+    /// # An integer
+    my_int: i32,
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+
+/// This is example:
+///
+/// | A | B |
+/// |---|---|
+/// | 1 | 2 |
+/// | 3 | 4 |
+/// | 5 | 6 |
+/// this is last line
+///
+struct MyStructWithInlineCodeTable {
+    /// # An integer
+    my_int: i32,
+}
+
 #[test]
 fn doc_comments_struct() -> TestResult {
     test_default_generated_schema::<MyStruct>("doc_comments_struct")
@@ -68,6 +121,23 @@ fn doc_comments_struct_ref_siblings() -> TestResult {
 #[test]
 fn doc_comments_enum() -> TestResult {
     test_default_generated_schema::<MyEnum>("doc_comments_enum")
+}
+
+#[test]
+fn doc_comments_with_inline_code() -> TestResult {
+    test_default_generated_schema::<MyStructWithInlineCode>("doc_comments_with_inline_code")
+}
+
+#[test]
+fn doc_comments_with_inline_code_normal() -> TestResult {
+    test_default_generated_schema::<MyStructWithInlineCodeNormal>(
+        "doc_comments_with_inline_code_normal",
+    )
+}
+
+#[test]
+fn doc_comments_with_inline_table() -> TestResult {
+    test_default_generated_schema::<MyStructWithInlineCodeTable>("doc_comments_with_inline_table")
 }
 
 /// # OverrideDocs struct
