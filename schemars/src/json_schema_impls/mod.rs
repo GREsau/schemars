@@ -45,6 +45,8 @@ mod maps;
 mod nonzero;
 mod primitives;
 mod sequences;
+#[cfg(feature = "serde_bytes")]
+mod serde_bytes;
 mod serdejson;
 mod std_time;
 mod tuple;
