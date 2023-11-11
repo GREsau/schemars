@@ -499,15 +499,16 @@ fn expr_for_struct(
             let (ty, type_def) = type_for_field_schema(field);
 
             let maybe_insert_required = match (&default, field.validation_attrs.required()) {
-                (Some(_), _) => TokenStream::new(),
-                (None, false) => {
+                (Ok(_), _) => TokenStream::new(),
+                (Err(true), _) => TokenStream::new(),
+                (Err(false), false) => {
                     quote! {
                         if !<#ty as schemars::JsonSchema>::_schemars_private_is_option() {
                             object_validation.required.insert(#name.to_owned());
                         }
                     }
                 }
-                (None, true) => quote! {
+                (Err(false), true) => quote! {
                     object_validation.required.insert(#name.to_owned());
                 },
             };
@@ -515,7 +516,7 @@ fn expr_for_struct(
             let metadata = SchemaMetadata {
                 read_only: field.serde_attrs.skip_deserializing(),
                 write_only: field.serde_attrs.skip_serializing(),
-                default,
+                default: default.ok(),
                 ..field.attrs.as_metadata()
             };
 
@@ -583,10 +584,13 @@ fn expr_for_struct(
     }
 }
 
-fn field_default_expr(field: &Field, container_has_default: bool) -> Option<TokenStream> {
+fn field_default_expr(field: &Field, container_has_default: bool) -> Result<TokenStream, bool> {
     let field_default = field.serde_attrs.default();
-    if field.serde_attrs.skip_serializing() || (field_default.is_none() && !container_has_default) {
-        return None;
+    if field_default.is_none() && !container_has_default {
+        return Err(false);
+    }
+    if field.serde_attrs.skip_serializing() {
+        return Err(true);
     }
 
     let ty = field.ty;
@@ -615,7 +619,7 @@ fn field_default_expr(field: &Field, container_has_default: bool) -> Option<Toke
         None => quote!(Some(#default_expr)),
     };
 
-    Some(if let Some(ser_with) = field.serde_attrs.serialize_with() {
+    Ok(if let Some(ser_with) = field.serde_attrs.serialize_with() {
         quote! {
             {
                 struct _SchemarsDefaultSerialize<T>(T);
