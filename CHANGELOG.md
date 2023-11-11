@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.16] - 2023-11-11
+
+### Fixed:
+
+- Reduce size of MIR output (and improve release-mode compile time) when deriving `JsonSchema`
+
 ## [0.8.15] - 2023-09-17
 
 ### Added:
