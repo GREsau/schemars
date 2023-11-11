@@ -8,7 +8,7 @@
       "items": {
         "type": "integer",
         "format": "uint8",
-        "minimum": 0.0
+        "minimum": 0
       }
     },
     {
@@ -16,7 +16,7 @@
       "items": {
         "type": "integer",
         "format": "uint8",
-        "minimum": 0.0
+        "minimum": 0
       }
     }
   ],

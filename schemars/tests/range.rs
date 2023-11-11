@@ -12,6 +12,6 @@ struct MyStruct {
 }
 
 #[test]
-fn result() -> TestResult {
+fn range() -> TestResult {
     test_default_generated_schema::<MyStruct>("range")
 }

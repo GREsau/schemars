@@ -175,14 +175,14 @@
       "description": "The `maxLength` keyword.\n\nSee [JSON Schema Validation 6.3.1. \"maxLength\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.1).",
       "type": "integer",
       "format": "uint32",
-      "minimum": 0.0,
+      "minimum": 0,
       "nullable": true
     },
     "minLength": {
       "description": "The `minLength` keyword.\n\nSee [JSON Schema Validation 6.3.2. \"minLength\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.2).",
       "type": "integer",
       "format": "uint32",
-      "minimum": 0.0,
+      "minimum": 0,
       "nullable": true
     },
     "pattern": {
@@ -212,14 +212,14 @@
       "description": "The `maxItems` keyword.\n\nSee [JSON Schema Validation 6.4.1. \"maxItems\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.1).",
       "type": "integer",
       "format": "uint32",
-      "minimum": 0.0,
+      "minimum": 0,
       "nullable": true
     },
     "minItems": {
       "description": "The `minItems` keyword.\n\nSee [JSON Schema Validation 6.4.2. \"minItems\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.2).",
       "type": "integer",
       "format": "uint32",
-      "minimum": 0.0,
+      "minimum": 0,
       "nullable": true
     },
     "uniqueItems": {
@@ -240,14 +240,14 @@
       "description": "The `maxProperties` keyword.\n\nSee [JSON Schema Validation 6.5.1. \"maxProperties\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.1).",
       "type": "integer",
       "format": "uint32",
-      "minimum": 0.0,
+      "minimum": 0,
       "nullable": true
     },
     "minProperties": {
       "description": "The `minProperties` keyword.\n\nSee [JSON Schema Validation 6.5.2. \"minProperties\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.2).",
       "type": "integer",
       "format": "uint32",
-      "minimum": 0.0,
+      "minimum": 0,
       "nullable": true
     },
     "required": {
@@ -473,14 +473,14 @@
           "description": "The `maxLength` keyword.\n\nSee [JSON Schema Validation 6.3.1. \"maxLength\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.1).",
           "type": "integer",
           "format": "uint32",
-          "minimum": 0.0,
+          "minimum": 0,
           "nullable": true
         },
         "minLength": {
           "description": "The `minLength` keyword.\n\nSee [JSON Schema Validation 6.3.2. \"minLength\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.3.2).",
           "type": "integer",
           "format": "uint32",
-          "minimum": 0.0,
+          "minimum": 0,
           "nullable": true
         },
         "pattern": {
@@ -510,14 +510,14 @@
           "description": "The `maxItems` keyword.\n\nSee [JSON Schema Validation 6.4.1. \"maxItems\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.1).",
           "type": "integer",
           "format": "uint32",
-          "minimum": 0.0,
+          "minimum": 0,
           "nullable": true
         },
         "minItems": {
           "description": "The `minItems` keyword.\n\nSee [JSON Schema Validation 6.4.2. \"minItems\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.4.2).",
           "type": "integer",
           "format": "uint32",
-          "minimum": 0.0,
+          "minimum": 0,
           "nullable": true
         },
         "uniqueItems": {
@@ -538,14 +538,14 @@
           "description": "The `maxProperties` keyword.\n\nSee [JSON Schema Validation 6.5.1. \"maxProperties\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.1).",
           "type": "integer",
           "format": "uint32",
-          "minimum": 0.0,
+          "minimum": 0,
           "nullable": true
         },
         "minProperties": {
           "description": "The `minProperties` keyword.\n\nSee [JSON Schema Validation 6.5.2. \"minProperties\"](https://tools.ietf.org/html/draft-handrews-json-schema-validation-02#section-6.5.2).",
           "type": "integer",
           "format": "uint32",
-          "minimum": 0.0,
+          "minimum": 0,
           "nullable": true
         },
         "required": {
