@@ -15,12 +15,13 @@ impl<'a> SchemaMetadata<'a> {
     pub fn apply_to_schema(&self, schema_expr: &mut TokenStream) {
         let setters = self.make_setters();
         if !setters.is_empty() {
-            *schema_expr = quote! {
-                schemars::_private::apply_metadata(#schema_expr, schemars::schema::Metadata {
+            *schema_expr = quote! {{
+                let schema = #schema_expr;
+                schemars::_private::apply_metadata(schema, schemars::schema::Metadata {
                     #(#setters)*
                     ..Default::default()
                 })
-            }
+            }}
         }
     }
 
