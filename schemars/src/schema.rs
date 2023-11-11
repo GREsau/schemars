@@ -71,6 +71,30 @@ impl Schema {
             },
         }
     }
+
+    /// Returns a reference to the schema object if this is a schema object.
+    pub fn as_object(&self) -> Option<&SchemaObject> {
+        match self {
+            Schema::Object(o) => Some(o),
+            Schema::Bool(_) => None,
+        }
+    }
+
+    /// Returns a mutable reference to the schema object if this is a schema object.
+    pub fn as_object_mut(&mut self) -> Option<&mut SchemaObject> {
+        match self {
+            Schema::Object(o) => Some(o),
+            Schema::Bool(_) => None,
+        }
+    }
+
+    /// Returns `true` if `self` is a boolean schema with value `true`.
+    pub fn is_true(&self) -> bool {
+        match self {
+            Schema::Bool(true) => true,
+            _ => false,
+        }
+    }
 }
 
 impl From<SchemaObject> for Schema {
