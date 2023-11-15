@@ -7,8 +7,17 @@ pub struct MyStruct {
     #[serde(rename = "myNumber")]
     pub my_int: i32,
     pub my_bool: bool,
+    #[serde(flatten)]
+    pub nested: Nested,
     #[serde(default)]
     pub my_nullable_enum: Option<MyEnum>,
+}
+
+#[derive(Deserialize, Serialize, JsonSchema)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct Nested {
+    pub my_nested_string: String,
+    pub my_nested_int: i32,
 }
 
 #[derive(Deserialize, Serialize, JsonSchema)]

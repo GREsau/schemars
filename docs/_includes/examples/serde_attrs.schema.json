@@ -4,11 +4,20 @@
   "type": "object",
   "required": [
     "myBool",
+    "myNestedInt",
+    "myNestedString",
     "myNumber"
   ],
   "properties": {
     "myBool": {
       "type": "boolean"
+    },
+    "myNestedInt": {
+      "type": "integer",
+      "format": "int32"
+    },
+    "myNestedString": {
+      "type": "string"
     },
     "myNullableEnum": {
       "default": null,
