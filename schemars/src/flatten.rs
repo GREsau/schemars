@@ -6,15 +6,31 @@ impl Schema {
     ///
     /// It should not be considered part of the public API.
     #[doc(hidden)]
-    pub fn flatten(self, other: Self) -> Schema {
-        if is_null_type(&self) {
+    pub fn flatten(self, other: Self) -> Self {
+        Self::Object(SchemaObject::from(self).flatten(SchemaObject::from(other)))
+    }
+}
+
+impl SchemaObject {
+    /// This function is only public for use by schemars_derive.
+    ///
+    /// It should not be considered part of the public API.
+    #[doc(hidden)]
+    pub fn flatten(self, other: Self) -> Self {
+        if self.is_null_type() {
             return other;
-        } else if is_null_type(&other) {
+        } else if other.is_null_type() {
             return self;
         }
-        let s1: SchemaObject = self.into();
-        let s2: SchemaObject = other.into();
-        Schema::Object(s1.merge(s2))
+        self.merge(other)
+    }
+
+    fn is_null_type(&self) -> bool {
+        if let Some(SingleOrVec::Single(instance_type)) = &self.instance_type {
+            **instance_type == InstanceType::Null
+        } else {
+            false
+        }
     }
 }
 
@@ -164,17 +180,4 @@ impl Merge for SingleOrVec<InstanceType> {
         vec.dedup();
         SingleOrVec::Vec(vec)
     }
-}
-
-fn is_null_type(schema: &Schema) -> bool {
-    let s = match schema {
-        Schema::Object(s) => s,
-        _ => return false,
-    };
-    let instance_type = match &s.instance_type {
-        Some(SingleOrVec::Single(t)) => t,
-        _ => return false,
-    };
-
-    **instance_type == InstanceType::Null
 }
