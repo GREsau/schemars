@@ -64,5 +64,5 @@ macro_rules! formatted_string_impl {
 
 formatted_string_impl!(NaiveDate, "date");
 formatted_string_impl!(NaiveDateTime, "partial-date-time");
-formatted_string_impl!(NaiveTime, "partial-date-time");
+formatted_string_impl!(NaiveTime, "time");
 formatted_string_impl!(DateTime, "date-time", <Tz: TimeZone> JsonSchema for DateTime<Tz>);
