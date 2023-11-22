@@ -122,7 +122,7 @@ impl SchemaSettings {
     }
 
     /// Appends the given visitor to the list of [visitors](SchemaSettings::visitors) for these `SchemaSettings`.
-    pub fn with_visitor(mut self, visitor: impl Visitor + Debug + Clone + 'static) -> Self {
+    pub fn with_visitor(mut self, visitor: impl GenVisitor + 'static) -> Self {
         self.visitors.push(Box::new(visitor));
         self
     }
@@ -497,7 +497,7 @@ impl SchemaGenerator {
 /// let v: &dyn GenVisitor = &MyVisitor;
 /// assert!(v.as_any().is::<MyVisitor>());
 /// ```
-pub trait GenVisitor: Visitor + Debug + DynClone + Any {
+pub trait GenVisitor: Visitor + Debug + DynClone + Send + Any {
     /// Upcasts this visitor into an `Any`, which can be used to inspect and manipulate it as its concrete type.
     fn as_any(&self) -> &dyn Any;
 }
@@ -506,7 +506,7 @@ dyn_clone::clone_trait_object!(GenVisitor);
 
 impl<T> GenVisitor for T
 where
-    T: Visitor + Debug + Clone + Any,
+    T: Visitor + Debug + Clone + Send + Any,
 {
     fn as_any(&self) -> &dyn Any {
         self
