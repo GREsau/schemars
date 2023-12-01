@@ -33,6 +33,7 @@ smallvec1 = { version = "1.0", default-features = false, optional = true, packag
 smol_str02 = { version = "0.2.1", default-features = false, optional = true, package = "smol_str" }
 url2 = { version = "2.0", default-features = false, optional = true, package = "url" }
 uuid1 = { version = "1.0", default-features = false, optional = true, package = "uuid" }
+time = { version = "0.3", default-features = false, optional = true }
 
 [dev-dependencies]
 pretty_assertions = "1.2.1"
@@ -119,6 +120,10 @@ required-features = ["semver1"]
 [[test]]
 name = "decimal"
 required-features = ["rust_decimal1", "bigdecimal04"]
+
+[[test]]
+name = "time"
+required-features = ["time"]
 
 [package.metadata.docs.rs]
 all-features = true
