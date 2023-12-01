@@ -12,7 +12,7 @@ pub struct Struct<'a> {
     #[schemars(inner(length(min = 5, max = 100)))]
     array_str_length: [&'a str; 2],
     #[schemars(inner(contains(pattern = "substring...")))]
-    slice_str_contains: &'a[&'a str],
+    slice_str_contains: &'a [&'a str],
     #[schemars(inner(regex = "STARTS_WITH_HELLO"))]
     vec_str_regex: Vec<String>,
     #[schemars(inner(length(min = 1, max = 100)))]
