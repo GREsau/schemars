@@ -48,6 +48,7 @@ mod primitives;
 mod sequences;
 mod serdejson;
 mod std_time;
+mod time;
 mod tuple;
 mod wrapper;
 
