@@ -7,6 +7,12 @@
 
 Generate JSON Schema documents from Rust code
 
+> ⚠️ Warning
+> 
+> This is a fork of the official [schemars repository](https://github.com/GREsau/schemars) which only exists until [this PR](https://github.com/GREsau/schemars/pull/250) is merged. 
+> It is published on crates.io with the name [apistos_schemars](https://crates.io/crates/apistos-schemars) and [apistos_schemars_derive](https://crates.io/crates/apistos-schemars-derive)
+> This fork is based on schemars master and rebased from time to time.
+
 ## Basic Usage
 
 If you don't really care about the specifics, the easiest way to generate a JSON schema for your types is to `#[derive(JsonSchema)]` and use the `schema_for!` macro. All fields of the type must also implement `JsonSchema` - Schemars implements this for many standard library types.
@@ -260,6 +266,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `chrono` - [chrono](https://crates.io/crates/chrono) (^0.4)
 - `indexmap1` - [indexmap](https://crates.io/crates/indexmap) (^1.2)
 - `indexmap2` - [indexmap](https://crates.io/crates/indexmap) (^2.0)
+- `ipnetwork` - [ipnetwork](https://crates.io/crates/ipnetwork) (^0.20)
 - `either` - [either](https://crates.io/crates/either) (^1.3)
 - `uuid08` - [uuid](https://crates.io/crates/uuid) (^0.8)
 - `uuid1` - [uuid](https://crates.io/crates/uuid) (^1.0)
