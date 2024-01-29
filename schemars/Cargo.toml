@@ -34,7 +34,8 @@ rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal03 = { version = "0.3", default-features = false, optional = true, package = "bigdecimal" }
 bigdecimal04 = { version = "0.4", default-features = false, optional = true, package = "bigdecimal" }
 enumset = { version = "1.0", optional = true }
-smol_str = { version = "0.1.17", optional = true }
+smol_str01 = { package = "smol_str", version = "0.1.17", optional = true }
+smol_str02 = { package = "smol_str", version = "0.2.1", optional = true }
 semver = { version = "1.0.9", features = ["serde"], optional = true }
 
 [dev-dependencies]
@@ -60,6 +61,8 @@ uuid = ["uuid08"]
 # `arrayvec` feature without version suffix is included only for back-compat - will be removed in a later version
 arrayvec = ["arrayvec05"]
 indexmap1 = ["indexmap"]
+# `smol_str` feature without version suffix is included only for back-compat - will be removed in a later version
+smol_str = ["smol_str01"]
 
 raw_value = ["serde_json/raw_value"]
 # `bigdecimal` feature without version suffix is included only for back-compat - will be removed in a later version
@@ -116,8 +119,12 @@ name = "enumset"
 required-features = ["enumset"]
 
 [[test]]
-name = "smol_str"
-required-features = ["smol_str"]
+name = "smol_str01"
+required-features = ["smol_str01"]
+
+[[test]]
+name = "smol_str02"
+required-features = ["smol_str02"]
 
 [[test]]
 name = "semver"
