@@ -76,8 +76,10 @@ mod sequences;
 mod serdejson;
 #[cfg(feature = "smallvec")]
 mod smallvec;
-#[cfg(feature = "smol_str")]
-mod smol_str;
+#[cfg(feature = "smol_str01")]
+mod smol_str01;
+#[cfg(feature = "smol_str02")]
+mod smol_str02;
 mod time;
 mod tuple;
 #[cfg(feature = "url")]
