@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Flat",
+  "allOf": [
+    {
+      "type": "object",
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "B"
+          ],
+          "properties": {
+            "B": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "S"
+          ],
+          "properties": {
+            "S": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        }
+      ],
+      "required": [
+        "f"
+      ],
+      "properties": {
+        "f": {
+          "type": "number",
+          "format": "float"
+        }
+      }
+    },
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": [
+            "U"
+          ],
+          "properties": {
+            "U": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0.0
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "F"
+          ],
+          "properties": {
+            "F": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "additionalProperties": false
+        }
+      ]
+    }
+  ]
+}
