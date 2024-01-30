@@ -66,6 +66,8 @@ mod ffi;
 mod indexmap;
 #[cfg(feature = "indexmap2")]
 mod indexmap2;
+#[cfg(feature = "ipnetwork")]
+mod ipnetwork;
 mod maps;
 mod nonzero_signed;
 mod nonzero_unsigned;
@@ -87,3 +89,4 @@ mod uuid08;
 #[cfg(feature = "uuid1")]
 mod uuid1;
 mod wrapper;
+mod ipnetwork;
