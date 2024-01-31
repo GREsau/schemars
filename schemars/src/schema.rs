@@ -4,7 +4,6 @@ JSON Schema types.
 
 #[cfg(feature = "impl_json_schema")]
 use crate as schemars;
-#[cfg(feature = "impl_json_schema")]
 use crate::JsonSchema;
 use crate::{Map, Set};
 use serde::{Deserialize, Serialize};
@@ -533,6 +532,16 @@ pub struct ObjectValidation {
     /// See [JSON Schema 9.3.2.5. "propertyNames"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.5).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub property_names: Option<Box<Schema>>,
+}
+
+impl ObjectValidation {
+    pub fn insert_property<T: ?Sized + JsonSchema>(&mut self, key: &str, mut has_default: bool, required: bool, schema: Schema) {
+        self.properties.insert(key.to_owned(), schema);
+        has_default |= T::_schemars_private_is_option();
+        if required || !has_default {
+            self.required.insert(key.to_owned());
+        }
+    }
 }
 
 /// The possible types of values in JSON Schema documents.
