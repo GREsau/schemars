@@ -183,29 +183,9 @@ fn expr_for_external_tagged_enum<'a>(
             }
         } else {
             let sub_schema = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
-            schema_object(quote! {
-                instance_type: Some(schemars::schema::InstanceType::Object.into()),
-                object: Some(Box::new(schemars::schema::ObjectValidation {
-                    properties: {
-                        let mut props = schemars::Map::new();
-                        props.insert(#name.to_owned(), #sub_schema);
-                        props
-                    },
-                    required: {
-                        let mut required = schemars::Set::new();
-                        required.insert(#name.to_owned());
-                        required
-                    },
-                    // Externally tagged variants must prohibit additional
-                    // properties irrespective of the disposition of
-                    // `deny_unknown_fields`. If additional properties were allowed
-                    // one could easily construct an object that validated against
-                    // multiple variants since here it's the properties rather than
-                    // the values of a property that distingish between variants.
-                    additional_properties: Some(Box::new(false.into())),
-                    ..Default::default()
-                })),
-            })
+            quote! {
+                schemars::schema::Schema::new_externally_tagged_enum(#name, #sub_schema)
+            }
         };
 
         variant
@@ -226,43 +206,16 @@ fn expr_for_internal_tagged_enum<'a>(
 ) -> TokenStream {
     let mut unique_names = HashSet::new();
     let mut count = 0;
-    let set_additional_properties = if deny_unknown_fields {
-        quote! {
-            additional_properties: Some(Box::new(false.into())),
-        }
-    } else {
-        TokenStream::new()
-    };
     let variant_schemas = variants
         .map(|variant| {
             unique_names.insert(variant.name());
             count += 1;
 
             let name = variant.name();
-            let type_schema = schema_object(quote! {
-                instance_type: Some(schemars::schema::InstanceType::String.into()),
-                enum_values: Some(vec![#name.into()]),
-            });
 
-            let mut tag_schema = schema_object(quote! {
-                instance_type: Some(schemars::schema::InstanceType::Object.into()),
-                object: Some(Box::new(schemars::schema::ObjectValidation {
-                    properties: {
-                        let mut props = schemars::Map::new();
-                        props.insert(#tag_name.to_owned(), #type_schema);
-                        props
-                    },
-                    required: {
-                        let mut required = schemars::Set::new();
-                        required.insert(#tag_name.to_owned());
-                        required
-                    },
-                    // As we're creating a "wrapper" object, we can honor the
-                    // disposition of deny_unknown_fields.
-                    #set_additional_properties
-                    ..Default::default()
-                })),
-            });
+            let mut tag_schema = quote! {
+                schemars::schema::Schema::new_internally_tagged_enum(#tag_name, #name, #deny_unknown_fields)
+            };
 
             variant.attrs.as_metadata().apply_to_schema(&mut tag_schema);
 

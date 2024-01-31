@@ -111,11 +111,68 @@ impl Schema {
         Schema::Object(schema_obj)
     }
 
-    /// Create a schema for an externally tagged unit enum
+    /// Create a schema for a unit enum
     pub fn new_unit_enum(variant: &str) -> Self {
         Self::Object(SchemaObject {
             instance_type: Some(InstanceType::String.into()),
             enum_values: Some(vec![variant.into()]),
+            ..SchemaObject::default()
+        })
+    }
+
+    /// Create a schema for an externally tagged enum
+    pub fn new_externally_tagged_enum(variant: &str, sub_schema: Schema) -> Self {
+        Self::Object(SchemaObject {
+            instance_type: Some(InstanceType::Object.into()),
+            object: Some(Box::new(ObjectValidation {
+                properties: {
+                    let mut props = Map::new();
+                    props.insert(variant.to_owned(), sub_schema);
+                    props
+                },
+                required: {
+                    let mut required = Set::new();
+                    required.insert(variant.to_owned());
+                    required
+                },
+                // Externally tagged variants must prohibit additional
+                // properties irrespective of the disposition of
+                // `deny_unknown_fields`. If additional properties were allowed
+                // one could easily construct an object that validated against
+                // multiple variants since here it's the properties rather than
+                // the values of a property that distingish between variants.
+                additional_properties: Some(Box::new(false.into())),
+                ..Default::default()
+            })),
+            ..SchemaObject::default()
+        })
+    }
+
+    /// Create a schema for an internally tagged enum
+    pub fn new_internally_tagged_enum(tag_name: &str, variant: &str, deny_unknown_fields: bool) -> Self {
+        let tag_schema = Schema::Object(SchemaObject {
+            instance_type: Some(
+                InstanceType::String.into(),
+            ),
+            enum_values: Some(vec![variant.into()]),
+            ..Default::default()
+        });
+        Self::Object(SchemaObject {
+            instance_type: Some(InstanceType::Object.into()),
+            object: Some(Box::new(ObjectValidation {
+                properties: {
+                    let mut props = Map::new();
+                    props.insert(tag_name.to_owned(), tag_schema);
+                    props
+                },
+                required: {
+                    let mut required = Set::new();
+                    required.insert(tag_name.to_owned());
+                    required
+                },
+                additional_properties: deny_unknown_fields.then(|| Box::new(false.into())),
+                ..Default::default()
+            })),
             ..SchemaObject::default()
         })
     }
