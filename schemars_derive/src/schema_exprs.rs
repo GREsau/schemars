@@ -497,19 +497,8 @@ fn expr_for_struct(
 
             let (ty, type_def) = type_for_field_schema(field);
 
-            let maybe_insert_required = match (&default, field.validation_attrs.required()) {
-                (Some(_), _) => TokenStream::new(),
-                (None, false) => {
-                    quote! {
-                        if !<#ty as schemars::JsonSchema>::_schemars_private_is_option() {
-                            object_validation.required.insert(#name.to_owned());
-                        }
-                    }
-                }
-                (None, true) => quote! {
-                    object_validation.required.insert(#name.to_owned());
-                },
-            };
+            let has_default = default.is_some();
+            let required = field.validation_attrs.required();
 
             let metadata = SchemaMetadata {
                 read_only: field.serde_attrs.skip_deserializing(),
@@ -535,8 +524,7 @@ fn expr_for_struct(
             quote! {
                 {
                     #type_def
-                    object_validation.properties.insert(#name.to_owned(), #schema_expr);
-                    #maybe_insert_required
+                    object_validation.insert_property::<#ty>(#name, #has_default, #required, #schema_expr);
                 }
             }
         })
