@@ -26,6 +26,32 @@ pub enum Schema {
     Object(SchemaObject),
 }
 
+macro_rules! with_metadata_fn {
+    ($method:ident, $name:ident, $ty:ty) => {
+        with_metadata_fn!(
+            concat!(
+                "Returns the schema with the ", stringify!($name), " metadata field set."
+            ),
+            $method,
+            $name,
+            $ty
+        );
+    };
+    ($doc:expr, $method:ident, $name:ident, $ty:ty) => {
+        #[doc = $doc]
+        pub fn $method(self, $name: impl Into<$ty>) -> Self {
+            let value = $name.into();
+            if value == <$ty>::default() {
+                self
+            } else {
+                let mut schema_obj = self.into_object();
+                schema_obj.metadata().$name = value.into();
+                Schema::Object(schema_obj)
+            }
+        }
+    };
+}
+
 impl Schema {
     /// Creates a new `$ref` schema.
     ///
@@ -70,6 +96,29 @@ impl Schema {
                 ..Default::default()
             },
         }
+    }
+
+    with_metadata_fn!(with_description, description, String);
+    with_metadata_fn!(with_id, id, String);
+    with_metadata_fn!(with_title, title, String);
+    with_metadata_fn!(with_deprecated, deprecated, bool);
+    with_metadata_fn!(with_read_only, read_only, bool);
+    with_metadata_fn!(with_write_only, write_only, bool);
+    with_metadata_fn!(with_default, default, Value);
+
+    pub fn with_examples<I: IntoIterator<Item = Value>>(self, examples: I) -> Self {
+        let mut schema_obj = self.into_object();
+        schema_obj.metadata().examples.extend(examples);
+        Schema::Object(schema_obj)
+    }
+
+    /// Create a schema for an externally tagged unit enum
+    pub fn new_unit_enum(variant: &str) -> Self {
+        Self::Object(SchemaObject {
+            instance_type: Some(InstanceType::String.into()),
+            enum_values: Some(vec![variant.into()]),
+            ..SchemaObject::default()
+        })
     }
 }
 

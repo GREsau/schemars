@@ -162,7 +162,7 @@ fn expr_for_external_tagged_enum<'a>(
     let unit_names = unit_variants.iter().map(|v| v.name());
     let unit_schema = schema_object(quote! {
         instance_type: Some(schemars::schema::InstanceType::String.into()),
-        enum_values: Some(vec![#(#unit_names.into()),*]),
+        enum_values: Some([#(#unit_names),*].into_iter().map(|v| v.into()).collect()),
     });
 
     if complex_variants.is_empty() {
@@ -178,10 +178,9 @@ fn expr_for_external_tagged_enum<'a>(
         let name = variant.name();
 
         let mut schema_expr = if variant.is_unit() && variant.attrs.with.is_none() {
-            schema_object(quote! {
-                instance_type: Some(schemars::schema::InstanceType::String.into()),
-                enum_values: Some(vec![#name.into()]),
-            })
+            quote! {
+                schemars::schema::Schema::new_unit_enum(#name)
+            }
         } else {
             let sub_schema = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
             schema_object(quote! {
