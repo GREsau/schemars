@@ -1,7 +1,8 @@
-use super::{get_lit_str, get_meta_items, parse_lit_into_path, parse_lit_str};
+use super::{get_lit_str, parse_lit_str, Attr, BoolAttr, Symbol};
 use proc_macro2::TokenStream;
+use quote::ToTokens;
 use serde_derive_internals::Ctxt;
-use syn::{Expr, ExprLit, ExprPath, Lit, Meta, MetaNameValue, NestedMeta, Path};
+use syn::{meta::ParseNestedMeta, Expr, ExprLit, ExprPath, Lit};
 
 pub(crate) static VALIDATION_KEYWORDS: &[&str] = &[
     "range", "regex", "contains", "email", "phone", "url", "length", "required",
@@ -15,14 +16,6 @@ enum Format {
 }
 
 impl Format {
-    fn attr_str(self) -> &'static str {
-        match self {
-            Format::Email => "email",
-            Format::Uri => "url",
-            Format::Phone => "phone",
-        }
-    }
-
     fn schema_str(self) -> &'static str {
         match self {
             Format::Email => "email",
@@ -43,286 +36,325 @@ pub struct ValidationAttrs {
     contains: Option<String>,
     required: bool,
     format: Option<Format>,
-    inner: Option<Box<ValidationAttrs>>,
+    inner: Option<Box<Self>>,
+}
+
+const MIN: Symbol = "min";
+const MAX: Symbol = "max";
+const EQUAL: Symbol = "equal";
+const REGEX: Symbol = "regex";
+const CONTAINS: Symbol = "contains";
+const REQUIRED: Symbol = "required";
+const INNER: Symbol = "inner";
+const FORMAT: Symbol = "format";
+const PATH: Symbol = "path";
+const PATTERN: Symbol = "pattern";
+
+enum Regex {
+    Pattern(syn::LitStr),
+    Path(syn::Path),
+}
+
+struct Populate<'c> {
+    length_min: Attr<'c, Expr>,
+    length_max: Attr<'c, Expr>,
+    length_equal: Attr<'c, Expr>,
+    range_min: Attr<'c, Expr>,
+    range_max: Attr<'c, Expr>,
+    regex: Attr<'c, Regex>,
+    contains: Attr<'c, String>,
+    required: BoolAttr<'c>,
+    format: Attr<'c, Format>,
+    inner: Attr<'c, ValidationAttrs>,
+    cx: &'c Ctxt,
+}
+
+impl<'c> From<Populate<'c>> for ValidationAttrs {
+    fn from(pop: Populate<'c>) -> Self {
+        Self {
+            length_min: pop.length_min.get(),
+            length_max: pop.length_max.get(),
+            length_equal: pop.length_equal.get(),
+            range_min: pop.range_min.get(),
+            range_max: pop.range_max.get(),
+            regex: pop.regex.get().map(|rx| match rx {
+                Regex::Path(path) => Expr::Path(syn::ExprPath {
+                    attrs: Vec::new(),
+                    qself: None,
+                    path,
+                }),
+                Regex::Pattern(patt) => Expr::Lit(syn::ExprLit {
+                    attrs: Vec::new(),
+                    lit: syn::Lit::Str(patt),
+                }),
+            }),
+            contains: pop.contains.get(),
+            required: pop.required.get(),
+            format: pop.format.get(),
+            inner: pop.inner.get().map(Box::new),
+        }
+    }
+}
+
+impl<'c> Populate<'c> {
+    fn new(cx: &'c Ctxt) -> Self {
+        Self {
+            length_min: Attr::none(cx, MIN),
+            length_max: Attr::none(cx, MAX),
+            length_equal: Attr::none(cx, EQUAL),
+            range_min: Attr::none(cx, MIN),
+            range_max: Attr::none(cx, MAX),
+            regex: Attr::none(cx, REGEX),
+            contains: Attr::none(cx, CONTAINS),
+            required: BoolAttr::none(cx, REQUIRED),
+            format: Attr::none(cx, FORMAT),
+            inner: Attr::none(cx, INNER),
+            cx,
+        }
+    }
+
+    fn populate(&mut self, meta: ParseNestedMeta, ignore_errors: bool) -> syn::Result<()> {
+        let path_str = super::ident_to_string!(meta);
+
+        // Wrap in a closure so we _always_ consume the set of meta items, otherwise
+        // we get cascading errors that obscure the root error
+        let mut inner = |meta: &ParseNestedMeta| {
+            match path_str.as_str() {
+                // length(min = n, max = n, equal = n)
+                "length" => meta.parse_nested_meta(|linner| {
+                    if linner.path.is_ident(MIN) {
+                        str_or_num_to_expr(
+                            &mut self.length_min,
+                            &linner,
+                            [self.length_equal.excl()],
+                            ignore_errors,
+                        );
+                    } else if linner.path.is_ident(MAX) {
+                        str_or_num_to_expr(
+                            &mut self.length_max,
+                            &linner,
+                            [self.length_equal.excl()],
+                            ignore_errors,
+                        );
+                    } else if linner.path.is_ident(EQUAL) {
+                        str_or_num_to_expr(
+                            &mut self.length_equal,
+                            &linner,
+                            [self.length_min.excl(), self.length_max.excl()],
+                            ignore_errors,
+                        );
+                    } else {
+                        if !ignore_errors {
+                            self.cx.error_spanned_by(
+                                linner.path,
+                                "unknown item in schemars length attribute",
+                            );
+                        }
+                        super::skip_item(linner.input)?;
+                    }
+
+                    Ok(())
+                })?,
+                // range(min = n, max = n)
+                "range" => {
+                    meta.parse_nested_meta(|rinner| {
+                        if rinner.path.is_ident(MIN) {
+                            str_or_num_to_expr(&mut self.range_min, &rinner, None, ignore_errors);
+                        } else if rinner.path.is_ident(MAX) {
+                            str_or_num_to_expr(&mut self.range_max, &rinner, None, ignore_errors);
+                        } else {
+                            if !ignore_errors {
+                                self.cx.error_spanned_by(
+                                    rinner.path,
+                                    "unknown item in schemars range attribute",
+                                );
+                            }
+                            super::skip_item(rinner.input)?;
+                        }
+
+                        Ok(())
+                    })?;
+                }
+                "required" | "required_nested" => {
+                    self.required.set_true(meta.path.clone(), ignore_errors);
+                }
+                "email" => {
+                    self.format
+                        .set(meta.path.clone(), Format::Email, ignore_errors);
+                }
+                "url" => {
+                    self.format
+                        .set(meta.path.clone(), Format::Uri, ignore_errors);
+                }
+                "phone" => {
+                    self.format
+                        .set(meta.path.clone(), Format::Phone, ignore_errors);
+                }
+                REGEX => {
+                    // (regex = "path")
+                    //
+                    // (regex(path = "path", pattern = "pattern")
+                    let item = &mut self.regex;
+                    let excl = [self.contains.excl()];
+                    if meta.input.peek(Token![=]) {
+                        if let Some(ls) = get_lit_str(self.cx, REGEX, meta)? {
+                            item.set_exclusive(
+                                meta.path.clone(),
+                                Regex::Path(ls.parse::<syn::Path>()?),
+                                excl,
+                                ignore_errors,
+                            );
+                        }
+                    } else {
+                        meta.parse_nested_meta(|rinner| {
+                            if rinner.path.is_ident(PATH) {
+                                if let Some(ls) = get_lit_str(self.cx, PATH, &rinner)? {
+                                    item.set_exclusive(
+                                        rinner.path,
+                                        Regex::Path(ls.parse::<syn::Path>()?),
+                                        excl,
+                                        ignore_errors,
+                                    );
+                                }
+                            } else if rinner.path.is_ident(PATTERN) {
+                                if let Some(patt) = get_lit_str(self.cx, PATTERN, &rinner)? {
+                                    item.set_exclusive(
+                                        rinner.path,
+                                        Regex::Pattern(patt),
+                                        excl,
+                                        ignore_errors,
+                                    );
+                                }
+                            } else {
+                                if !ignore_errors {
+                                    self.cx.error_spanned_by(
+                                        rinner.path,
+                                        "unknown item in schemars regex attribute",
+                                    );
+                                }
+                                super::skip_item(rinner.input)?;
+                            }
+
+                            Ok(())
+                        })?;
+                    }
+                }
+                CONTAINS => {
+                    // (contains = "pattern")
+                    //
+                    // (contains(pattern = "pattern")
+                    let item = &mut self.contains;
+                    let excl = [self.regex.excl()];
+
+                    if meta.input.peek(Token![=]) {
+                        if let Some(patt) = get_lit_str(self.cx, CONTAINS, meta)? {
+                            item.set_exclusive(
+                                meta.path.clone(),
+                                patt.value(),
+                                excl,
+                                ignore_errors,
+                            );
+                        }
+                    } else {
+                        meta.parse_nested_meta(|rinner| {
+                            if rinner.path.is_ident(PATTERN) {
+                                if let Some(patt) = get_lit_str(self.cx, PATTERN, &rinner)? {
+                                    item.set_exclusive(
+                                        rinner.path,
+                                        patt.value(),
+                                        excl,
+                                        ignore_errors,
+                                    );
+                                }
+                            } else {
+                                if !ignore_errors {
+                                    self.cx.error_spanned_by(
+                                        rinner.path,
+                                        "unknown item in schemars contains attribute",
+                                    );
+                                }
+
+                                super::skip_item(rinner.input)?;
+                            }
+
+                            Ok(())
+                        })?;
+                    }
+                }
+                "inner" => {
+                    let mut inner_pop = Populate::new(self.cx);
+
+                    meta.parse_nested_meta(|iinner| inner_pop.populate(iinner, ignore_errors))?;
+
+                    self.inner
+                        .set(meta.path.clone(), inner_pop.into(), ignore_errors);
+                }
+                _ => {}
+            }
+
+            Ok(())
+        };
+
+        let res = inner(&meta);
+
+        // We've already validated the contents of the serde/schemars attributes at this point
+        // so we can just silently skip the items that don't affect validation
+        super::skip_item(meta.input)?;
+
+        res
+    }
 }
 
 impl ValidationAttrs {
-    pub fn new(attrs: &[syn::Attribute], errors: &Ctxt) -> Self {
-        let schemars_items = get_meta_items(attrs, "schemars", errors, false);
-        let validate_items = get_meta_items(attrs, "validate", errors, true);
+    pub fn new(attrs: &[syn::Attribute], cx: &Ctxt) -> Self {
+        if attrs.is_empty() {
+            return ValidationAttrs::default();
+        }
 
-        ValidationAttrs::default()
-            .populate(schemars_items, "schemars", false, errors)
-            .populate(validate_items, "validate", true, errors)
+        let mut pop = Populate::new(cx);
+
+        // Note that we can't just iterate through the attributes once, to preserve
+        // the old logic we need to walk through the schemars ones first, then
+        // validate, as the schemars attributes will give errors and validate ones
+        // won't, and won't override an attribute if it was already set by schemars
+        for (name, ignore_errors) in [("schemars", false), ("validate", true)] {
+            for attr in attrs {
+                if !attr.path().is_ident(name) {
+                    continue;
+                }
+
+                match &attr.meta {
+                    syn::Meta::Path(p) => {
+                        // Due to how the old code gathered meta items, this would work, but parse_nested_meta
+                        // requires a list or name value pair
+                        if !p.is_ident("validate") {
+                            cx.error_spanned_by(p, "unexpected path item");
+                        }
+
+                        continue;
+                    }
+                    syn::Meta::List(ml) => {
+                        if ml.tokens.is_empty() {
+                            continue;
+                        }
+                    }
+                    syn::Meta::NameValue(mnv) => {
+                        cx.error_spanned_by(mnv, "only meta lists are supported");
+                        continue;
+                    }
+                }
+
+                if let Err(err) = attr.parse_nested_meta(|meta| pop.populate(meta, ignore_errors)) {
+                    cx.syn_error(err);
+                }
+            }
+        }
+
+        pop.into()
     }
 
     pub fn required(&self) -> bool {
         self.required
-    }
-
-    fn populate(
-        mut self,
-        meta_items: Vec<syn::NestedMeta>,
-        attr_type: &'static str,
-        ignore_errors: bool,
-        errors: &Ctxt,
-    ) -> Self {
-        let duplicate_error = |path: &Path| {
-            if !ignore_errors {
-                let msg = format!(
-                    "duplicate schemars attribute `{}`",
-                    path.get_ident().unwrap()
-                );
-                errors.error_spanned_by(path, msg)
-            }
-        };
-        let mutual_exclusive_error = |path: &Path, other: &str| {
-            if !ignore_errors {
-                let msg = format!(
-                    "schemars attribute cannot contain both `{}` and `{}`",
-                    path.get_ident().unwrap(),
-                    other,
-                );
-                errors.error_spanned_by(path, msg)
-            }
-        };
-        let duplicate_format_error = |existing: Format, new: Format, path: &syn::Path| {
-            if !ignore_errors {
-                let msg = if existing == new {
-                    format!("duplicate schemars attribute `{}`", existing.attr_str())
-                } else {
-                    format!(
-                        "schemars attribute cannot contain both `{}` and `{}`",
-                        existing.attr_str(),
-                        new.attr_str(),
-                    )
-                };
-                errors.error_spanned_by(path, msg)
-            }
-        };
-
-        for meta_item in meta_items {
-            match &meta_item {
-                NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("length") => {
-                    for nested in meta_list.nested.iter() {
-                        match nested {
-                            NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("min") => {
-                                if self.length_min.is_some() {
-                                    duplicate_error(&nv.path)
-                                } else if self.length_equal.is_some() {
-                                    mutual_exclusive_error(&nv.path, "equal")
-                                } else {
-                                    self.length_min = str_or_num_to_expr(errors, "min", &nv.lit);
-                                }
-                            }
-                            NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("max") => {
-                                if self.length_max.is_some() {
-                                    duplicate_error(&nv.path)
-                                } else if self.length_equal.is_some() {
-                                    mutual_exclusive_error(&nv.path, "equal")
-                                } else {
-                                    self.length_max = str_or_num_to_expr(errors, "max", &nv.lit);
-                                }
-                            }
-                            NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("equal") => {
-                                if self.length_equal.is_some() {
-                                    duplicate_error(&nv.path)
-                                } else if self.length_min.is_some() {
-                                    mutual_exclusive_error(&nv.path, "min")
-                                } else if self.length_max.is_some() {
-                                    mutual_exclusive_error(&nv.path, "max")
-                                } else {
-                                    self.length_equal =
-                                        str_or_num_to_expr(errors, "equal", &nv.lit);
-                                }
-                            }
-                            meta => {
-                                if !ignore_errors {
-                                    errors.error_spanned_by(
-                                        meta,
-                                        "unknown item in schemars length attribute".to_string(),
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-
-                NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("range") => {
-                    for nested in meta_list.nested.iter() {
-                        match nested {
-                            NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("min") => {
-                                if self.range_min.is_some() {
-                                    duplicate_error(&nv.path)
-                                } else {
-                                    self.range_min = str_or_num_to_expr(errors, "min", &nv.lit);
-                                }
-                            }
-                            NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("max") => {
-                                if self.range_max.is_some() {
-                                    duplicate_error(&nv.path)
-                                } else {
-                                    self.range_max = str_or_num_to_expr(errors, "max", &nv.lit);
-                                }
-                            }
-                            meta => {
-                                if !ignore_errors {
-                                    errors.error_spanned_by(
-                                        meta,
-                                        "unknown item in schemars range attribute".to_string(),
-                                    );
-                                }
-                            }
-                        }
-                    }
-                }
-
-                NestedMeta::Meta(Meta::Path(m))
-                    if m.is_ident("required") || m.is_ident("required_nested") =>
-                {
-                    self.required = true;
-                }
-
-                NestedMeta::Meta(Meta::Path(p)) if p.is_ident(Format::Email.attr_str()) => {
-                    match self.format {
-                        Some(f) => duplicate_format_error(f, Format::Email, p),
-                        None => self.format = Some(Format::Email),
-                    }
-                }
-                NestedMeta::Meta(Meta::Path(p)) if p.is_ident(Format::Uri.attr_str()) => {
-                    match self.format {
-                        Some(f) => duplicate_format_error(f, Format::Uri, p),
-                        None => self.format = Some(Format::Uri),
-                    }
-                }
-                NestedMeta::Meta(Meta::Path(p)) if p.is_ident(Format::Phone.attr_str()) => {
-                    match self.format {
-                        Some(f) => duplicate_format_error(f, Format::Phone, p),
-                        None => self.format = Some(Format::Phone),
-                    }
-                }
-
-                NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("regex") => {
-                    match (&self.regex, &self.contains) {
-                        (Some(_), _) => duplicate_error(&nv.path),
-                        (None, Some(_)) => mutual_exclusive_error(&nv.path, "contains"),
-                        (None, None) => {
-                            self.regex =
-                                parse_lit_into_expr_path(errors, attr_type, "regex", &nv.lit).ok()
-                        }
-                    }
-                }
-
-                NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("regex") => {
-                    match (&self.regex, &self.contains) {
-                        (Some(_), _) => duplicate_error(&meta_list.path),
-                        (None, Some(_)) => mutual_exclusive_error(&meta_list.path, "contains"),
-                        (None, None) => {
-                            for x in meta_list.nested.iter() {
-                                match x {
-                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                        path,
-                                        lit,
-                                        ..
-                                    })) if path.is_ident("path") => {
-                                        self.regex =
-                                            parse_lit_into_expr_path(errors, attr_type, "path", lit)
-                                                .ok()
-                                    }
-                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                        path,
-                                        lit,
-                                        ..
-                                    })) if path.is_ident("pattern") => {
-                                        self.regex = get_lit_str(errors, attr_type, "pattern", lit)
-                                            .ok()
-                                            .map(|litstr| {
-                                                Expr::Lit(syn::ExprLit {
-                                                    attrs: Vec::new(),
-                                                    lit: Lit::Str(litstr.clone()),
-                                                })
-                                            })
-                                    }
-                                    meta => {
-                                        if !ignore_errors {
-                                            errors.error_spanned_by(
-                                                meta,
-                                                "unknown item in schemars regex attribute"
-                                                    .to_string(),
-                                            );
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                NestedMeta::Meta(Meta::NameValue(MetaNameValue { path, lit, .. }))
-                    if path.is_ident("contains") =>
-                {
-                    match (&self.contains, &self.regex) {
-                        (Some(_), _) => duplicate_error(path),
-                        (None, Some(_)) => mutual_exclusive_error(path, "regex"),
-                        (None, None) => {
-                            self.contains = get_lit_str(errors, attr_type, "contains", lit)
-                                .map(|litstr| litstr.value())
-                                .ok()
-                        }
-                    }
-                }
-
-                NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("contains") => {
-                    match (&self.contains, &self.regex) {
-                        (Some(_), _) => duplicate_error(&meta_list.path),
-                        (None, Some(_)) => mutual_exclusive_error(&meta_list.path, "regex"),
-                        (None, None) => {
-                            for x in meta_list.nested.iter() {
-                                match x {
-                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                        path,
-                                        lit,
-                                        ..
-                                    })) if path.is_ident("pattern") => {
-                                        self.contains =
-                                            get_lit_str(errors, attr_type, "contains", lit)
-                                                .ok()
-                                                .map(|litstr| litstr.value())
-                                    }
-                                    meta => {
-                                        if !ignore_errors {
-                                            errors.error_spanned_by(
-                                                meta,
-                                                "unknown item in schemars contains attribute"
-                                                    .to_string(),
-                                            );
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("inner") => {
-                    match self.inner {
-                        Some(_) => duplicate_error(&meta_list.path),
-                        None => {
-                            let inner_attrs = ValidationAttrs::default().populate(
-                                meta_list.nested.clone().into_iter().collect(),
-                                attr_type,
-                                ignore_errors,
-                                errors,
-                            );
-                            self.inner = Some(Box::new(inner_attrs));
-                        }
-                    }
-                }
-
-                _ => {}
-            }
-        }
-        self
     }
 
     pub fn apply_to_schema(&self, schema_expr: &mut TokenStream) {
@@ -442,21 +474,6 @@ impl ValidationAttrs {
     }
 }
 
-fn parse_lit_into_expr_path(
-    cx: &Ctxt,
-    attr_type: &'static str,
-    meta_item_name: &'static str,
-    lit: &syn::Lit,
-) -> Result<Expr, ()> {
-    parse_lit_into_path(cx, attr_type, meta_item_name, lit).map(|path| {
-        Expr::Path(ExprPath {
-            attrs: Vec::new(),
-            qself: None,
-            path,
-        })
-    })
-}
-
 fn wrap_array_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
     if v.is_empty() {
         None
@@ -510,22 +527,50 @@ fn wrap_string_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
     }
 }
 
-fn str_or_num_to_expr(cx: &Ctxt, meta_item_name: &str, lit: &Lit) -> Option<Expr> {
-    match lit {
-        Lit::Str(s) => parse_lit_str::<ExprPath>(s).ok().map(Expr::Path),
-        Lit::Int(_) | Lit::Float(_) => Some(Expr::Lit(ExprLit {
+fn str_or_num_to_expr(
+    attr: &mut Attr<'_, Expr>,
+    meta: &syn::meta::ParseNestedMeta<'_>,
+    excl: impl IntoIterator<Item = (Symbol, bool)>,
+    ie: bool,
+) {
+    let val = match meta.value() {
+        Ok(lit) => lit,
+        Err(err) => {
+            attr.cx.syn_error(err);
+            return;
+        }
+    };
+
+    let lit = match val.parse() {
+        Ok(l) => l,
+        Err(err) => {
+            attr.cx.syn_error(err);
+            return;
+        }
+    };
+
+    let expr = match lit {
+        Lit::Str(s) => {
+            let Some(expr) = parse_lit_str::<ExprPath>(&s).ok().map(Expr::Path) else {
+                return;
+            };
+            expr
+        }
+        Lit::Int(_) | Lit::Float(_) => Expr::Lit(ExprLit {
             attrs: Vec::new(),
-            lit: lit.clone(),
-        })),
+            lit,
+        }),
         _ => {
-            cx.error_spanned_by(
+            attr.cx.error_spanned_by(
                 lit,
                 format!(
                     "expected `{}` to be a string or number literal",
-                    meta_item_name
+                    meta.path.to_token_stream().to_string().replace(' ', "")
                 ),
             );
-            None
+            return;
         }
-    }
+    };
+
+    attr.set_exclusive(meta.path.clone(), expr, excl, ie);
 }

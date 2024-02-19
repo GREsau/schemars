@@ -1,3 +1,15 @@
+macro_rules! ident_to_string {
+    ($meta:expr) => {{
+        let Some(path_str) = $meta.path.get_ident().map(|i| i.to_string()) else {
+            return Err(syn::Error::new_spanned($meta.path, "expected valid ident"));
+        };
+
+        path_str
+    }};
+}
+
+pub(crate) use ident_to_string;
+
 mod doc;
 mod schemars_to_serde;
 mod validation;
@@ -9,10 +21,8 @@ use crate::metadata::SchemaMetadata;
 use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
+use syn::meta::ParseNestedMeta;
 use syn::parse::{self, Parse};
-use syn::Meta::{List, NameValue};
-use syn::MetaNameValue;
-use syn::NestedMeta::{Lit, Meta};
 
 // FIXME using the same struct for containers+variants+fields means that
 //  with/schema_with are accepted (but ignored) on containers, and
@@ -37,15 +47,13 @@ pub enum WithAttr {
 }
 
 impl Attrs {
-    pub fn new(attrs: &[syn::Attribute], errors: &Ctxt) -> Self {
-        let mut result = Attrs::default()
-            .populate(attrs, "schemars", false, errors)
-            .populate(attrs, "serde", true, errors);
+    pub fn new(attrs: &[syn::Attribute], cx: &Ctxt) -> Self {
+        let mut result = Self::populate(attrs, &[("schemars", false), ("serde", true)], cx);
 
-        result.deprecated = attrs.iter().any(|a| a.path.is_ident("deprecated"));
+        result.deprecated = attrs.iter().any(|a| a.path().is_ident("deprecated"));
         result.repr = attrs
             .iter()
-            .find(|a| a.path.is_ident("repr"))
+            .find(|a| a.path().is_ident("repr"))
             .and_then(|a| a.parse_args().ok());
 
         let (doc_title, doc_description) = doc::get_title_and_desc_from_doc(attrs);
@@ -76,119 +84,157 @@ impl Attrs {
         }
     }
 
-    fn populate(
-        mut self,
-        attrs: &[syn::Attribute],
-        attr_type: &'static str,
-        ignore_errors: bool,
-        errors: &Ctxt,
-    ) -> Self {
-        let duplicate_error = |meta: &MetaNameValue| {
-            if !ignore_errors {
-                let msg = format!(
-                    "duplicate schemars attribute `{}`",
-                    meta.path.get_ident().unwrap()
+    fn populate(attrs: &[syn::Attribute], pop: &[(&'static str, bool)], cx: &Ctxt) -> Self {
+        if attrs.is_empty() {
+            return Self::default();
+        }
+
+        const WITH: Symbol = "with";
+        const SCHEMA_WITH: Symbol = "schema_with";
+        const TITLE: Symbol = "title";
+        const DESCRIPTION: Symbol = "description";
+        const RENAME: Symbol = "rename";
+        const CRATE: Symbol = "crate";
+        const EXAMPLE: Symbol = "example";
+
+        let mut with = Attr::none(cx, WITH);
+        let mut schema_with = Attr::none(cx, SCHEMA_WITH);
+        let mut title = Attr::none(cx, TITLE);
+        let mut description = Attr::none(cx, DESCRIPTION);
+        let mut rename = BoolAttr::none(cx, RENAME);
+        let mut krate = Attr::none(cx, CRATE);
+        let mut examples = Vec::new();
+
+        for attr in attrs {
+            let Some((attr_type, ignore_errors)) = pop
+                .iter()
+                .find_map(|(n, i)| attr.path().is_ident(n).then_some((*n, *i)))
+            else {
+                continue;
+            };
+
+            let is_schema_rs = attr_type == "schemars";
+
+            let syn::Meta::List(ml) = &attr.meta else {
+                cx.error_spanned_by(
+                    attr.path(),
+                    format!("expected {attr_type} to be a attribute meta list"),
                 );
-                errors.error_spanned_by(meta, msg)
+                continue;
+            };
+
+            if ml.tokens.is_empty() || is_schema_rs && ml.path.is_ident("inner") {
+                continue;
             }
-        };
-        let mutual_exclusive_error = |meta: &MetaNameValue, other: &str| {
-            if !ignore_errors {
-                let msg = format!(
-                    "schemars attribute cannot contain both `{}` and `{}`",
-                    meta.path.get_ident().unwrap(),
-                    other,
-                );
-                errors.error_spanned_by(meta, msg)
-            }
-        };
 
-        for meta_item in get_meta_items(attrs, attr_type, errors, ignore_errors) {
-            match &meta_item {
-                Meta(NameValue(m)) if m.path.is_ident("with") => {
-                    if let Ok(ty) = parse_lit_into_ty(errors, attr_type, "with", &m.lit) {
-                        match self.with {
-                            Some(WithAttr::Type(_)) => duplicate_error(m),
-                            Some(WithAttr::Function(_)) => mutual_exclusive_error(m, "schema_with"),
-                            None => self.with = Some(WithAttr::Type(ty)),
+            let mut boop = None;
+            let res = attr.parse_nested_meta(|meta| {
+                let path_str = ident_to_string!(meta);
+                let mut skip = false;
+
+                boop = Some(path_str.clone());
+
+                match path_str.as_str() {
+                    WITH => {
+                        if let Some(ls) = get_lit_str(cx, WITH, &meta)? {
+                            with.set_exclusive(
+                                meta.path,
+                                ls.parse()?,
+                                [schema_with.excl()],
+                                ignore_errors,
+                            );
                         }
                     }
-                }
-
-                Meta(NameValue(m)) if m.path.is_ident("schema_with") => {
-                    if let Ok(fun) = parse_lit_into_path(errors, attr_type, "schema_with", &m.lit) {
-                        match self.with {
-                            Some(WithAttr::Function(_)) => duplicate_error(m),
-                            Some(WithAttr::Type(_)) => mutual_exclusive_error(m, "with"),
-                            None => self.with = Some(WithAttr::Function(fun)),
+                    SCHEMA_WITH => {
+                        if let Some(ls) = get_lit_str(cx, SCHEMA_WITH, &meta)? {
+                            schema_with.set_exclusive(
+                                meta.path,
+                                ls.parse()?,
+                                [with.excl()],
+                                ignore_errors,
+                            );
                         }
                     }
-                }
-
-                Meta(NameValue(m)) if m.path.is_ident("title") => {
-                    if let Ok(title) = get_lit_str(errors, attr_type, "title", &m.lit) {
-                        match self.title {
-                            Some(_) => duplicate_error(m),
-                            None => self.title = Some(title.value()),
+                    TITLE => {
+                        if let Some(ls) = get_lit_str(cx, TITLE, &meta)? {
+                            title.set(meta.path, ls.value(), ignore_errors);
                         }
                     }
-                }
-
-                Meta(NameValue(m)) if m.path.is_ident("description") => {
-                    if let Ok(description) = get_lit_str(errors, attr_type, "description", &m.lit) {
-                        match self.description {
-                            Some(_) => duplicate_error(m),
-                            None => self.description = Some(description.value()),
+                    DESCRIPTION => {
+                        if let Some(ls) = get_lit_str(cx, DESCRIPTION, &meta)? {
+                            description.set(meta.path, ls.value(), ignore_errors);
                         }
                     }
-                }
-
-                Meta(NameValue(m)) if m.path.is_ident("example") => {
-                    if let Ok(fun) = parse_lit_into_path(errors, attr_type, "example", &m.lit) {
-                        self.examples.push(fun)
-                    }
-                }
-
-                Meta(NameValue(m)) if m.path.is_ident("rename") => self.is_renamed = true,
-
-                Meta(NameValue(m)) if m.path.is_ident("crate") && attr_type == "schemars" => {
-                    if let Ok(p) = parse_lit_into_path(errors, attr_type, "crate", &m.lit) {
-                        if self.crate_name.is_some() {
-                            duplicate_error(m)
-                        } else {
-                            self.crate_name = Some(p)
+                    "example" => {
+                        if let Some(ls) = get_lit_str(cx, EXAMPLE, &meta)? {
+                            examples.push(ls.parse()?);
                         }
                     }
-                }
+                    "rename" => {
+                        rename.set_true(meta.path, ignore_errors);
+                        skip = true;
+                    }
+                    "crate" if is_schema_rs => {
+                        if let Some(ls) = get_lit_str(cx, DESCRIPTION, &meta)? {
+                            krate.set(meta.path, ls.parse()?, ignore_errors);
+                        }
+                    }
+                    "inner" => {
+                        meta.parse_nested_meta(|inn| {
+                            if inn.input.peek(syn::token::Paren) {
+                                inn.parse_nested_meta(|inn2| skip_item(inn2.input))
+                            } else {
+                                skip_item(inn.input)
+                            }
+                        })?;
+                    }
+                    _ => {
+                        if !schemars_to_serde::SERDE_KEYWORDS
+                            .iter()
+                            .chain(validation::VALIDATION_KEYWORDS)
+                            .any(|kw| meta.path.is_ident(&kw))
+                        {
+                            let path = meta.path.to_token_stream().to_string().replace(' ', "");
+                            cx.error_spanned_by(
+                                meta.path,
+                                format!("unknown schemars attribute `{path}`"),
+                            );
+                            return Ok(());
+                        }
 
-                _ if ignore_errors => {}
+                        if meta.input.peek(syn::token::Paren) {
+                            meta.parse_nested_meta(|inn| skip_item(inn.input))?;
+                        }
 
-                Meta(List(m)) if m.path.is_ident("inner") && attr_type == "schemars" => {
-                    // This will be processed with the validation attributes.
-                    // It's allowed only for the schemars attribute because the
-                    // validator crate doesn't support it yet.
-                }
-
-                Meta(meta_item) => {
-                    if !is_known_serde_or_validation_keyword(meta_item) {
-                        let path = meta_item
-                            .path()
-                            .into_token_stream()
-                            .to_string()
-                            .replace(' ', "");
-                        errors.error_spanned_by(
-                            meta_item.path(),
-                            format!("unknown schemars attribute `{}`", path),
-                        );
+                        skip = true;
                     }
                 }
 
-                Lit(lit) => {
-                    errors.error_spanned_by(lit, "unexpected literal in schemars attribute");
+                if skip {
+                    skip_item(meta.input)?;
                 }
+
+                Ok(())
+            });
+
+            if let Err(res) = res {
+                cx.syn_error(res);
             }
         }
-        self
+
+        Self {
+            with: with
+                .get()
+                .map(WithAttr::Type)
+                .or_else(|| schema_with.get().map(WithAttr::Function)),
+            title: title.get(),
+            description: description.get(),
+            deprecated: false,
+            repr: None,
+            examples,
+            crate_name: krate.get(),
+            is_renamed: rename.get(),
+        }
     }
 
     pub fn is_default(&self) -> bool {
@@ -205,96 +251,152 @@ impl Attrs {
     }
 }
 
-fn is_known_serde_or_validation_keyword(meta: &syn::Meta) -> bool {
-    let mut known_keywords = schemars_to_serde::SERDE_KEYWORDS
-        .iter()
-        .chain(validation::VALIDATION_KEYWORDS);
-    meta.path()
-        .get_ident()
-        .map(|i| known_keywords.any(|k| i == k))
-        .unwrap_or(false)
+type Symbol = &'static str;
+
+struct Attr<'c, T> {
+    cx: &'c Ctxt,
+    name: Symbol,
+    tokens: TokenStream,
+    value: Option<T>,
 }
 
-fn get_meta_items(
-    attrs: &[syn::Attribute],
-    attr_type: &'static str,
-    errors: &Ctxt,
-    ignore_errors: bool,
-) -> Vec<syn::NestedMeta> {
-    attrs.iter().fold(vec![], |mut acc, attr| {
-        if !attr.path.is_ident(attr_type) {
-            return acc;
+impl<'c, T> Attr<'c, T> {
+    fn none(cx: &'c Ctxt, name: Symbol) -> Self {
+        Self {
+            cx,
+            name,
+            tokens: TokenStream::new(),
+            value: None,
         }
-        match attr.parse_meta() {
-            Ok(List(meta)) => acc.extend(meta.nested),
-            Ok(other) if !ignore_errors => {
-                errors.error_spanned_by(other, format!("expected #[{}(...)]", attr_type))
+    }
+
+    fn set_exclusive<A: ToTokens>(
+        &mut self,
+        obj: A,
+        value: T,
+        exl: impl IntoIterator<Item = (&'static str, bool)>,
+        ie: bool,
+    ) {
+        let tokens = obj.into_token_stream();
+
+        if self.value.is_some() {
+            if !ie {
+                self.cx.error_spanned_by(
+                    tokens.clone(),
+                    format!("duplicate schemars attribute `{}`", self.name),
+                );
             }
-            Err(err) if !ignore_errors => errors.error_spanned_by(attr, err),
-            _ => (),
-        }
-        acc
-    })
-}
 
-fn get_lit_str<'a>(
-    cx: &Ctxt,
-    attr_type: &'static str,
-    meta_item_name: &'static str,
-    lit: &'a syn::Lit,
-) -> Result<&'a syn::LitStr, ()> {
-    if let syn::Lit::Str(lit) = lit {
-        Ok(lit)
-    } else {
-        cx.error_spanned_by(
-            lit,
-            format!(
-                "expected {} {} attribute to be a string: `{} = \"...\"`",
-                attr_type, meta_item_name, meta_item_name
-            ),
-        );
-        Err(())
+            return;
+        }
+
+        let non_exclusive = exl.into_iter().fold(false, |acc, (name, set)| {
+            if set && !ie {
+                self.cx.error_spanned_by(
+                    tokens.clone(),
+                    format!(
+                        "schemars attribute cannot contain both `{}` and `{name}`",
+                        self.name
+                    ),
+                );
+            }
+
+            acc || set
+        });
+
+        if non_exclusive {
+            return;
+        }
+
+        // The old implemenation just overwrites
+        self.tokens = tokens;
+        self.value = Some(value);
+    }
+
+    fn set<A: ToTokens>(&mut self, obj: A, value: T, ie: bool) {
+        self.set_exclusive(obj, value, [], ie)
+    }
+
+    fn get(self) -> Option<T> {
+        self.value
+    }
+
+    fn excl(&self) -> (&'static str, bool) {
+        (self.name, self.value.is_some())
     }
 }
 
-fn parse_lit_into_ty(
-    cx: &Ctxt,
-    attr_type: &'static str,
-    meta_item_name: &'static str,
-    lit: &syn::Lit,
-) -> Result<syn::Type, ()> {
-    let string = get_lit_str(cx, attr_type, meta_item_name, lit)?;
+struct BoolAttr<'c>(Attr<'c, ()>);
 
-    parse_lit_str(string).map_err(|_| {
-        cx.error_spanned_by(
-            lit,
-            format!(
-                "failed to parse type: `{} = {:?}`",
-                meta_item_name,
-                string.value()
-            ),
-        )
-    })
+impl<'c> BoolAttr<'c> {
+    fn none(cx: &'c Ctxt, name: Symbol) -> Self {
+        Self(Attr::none(cx, name))
+    }
+
+    fn set_true<A: ToTokens>(&mut self, obj: A, ie: bool) {
+        self.0.set(obj, (), ie);
+    }
+
+    fn get(&self) -> bool {
+        self.0.value.is_some()
+    }
 }
 
-fn parse_lit_into_path(
-    cx: &Ctxt,
-    attr_type: &'static str,
-    meta_item_name: &'static str,
-    lit: &syn::Lit,
-) -> Result<syn::Path, ()> {
-    let string = get_lit_str(cx, attr_type, meta_item_name, lit)?;
+fn skip_item(input: syn::parse::ParseStream) -> syn::Result<()> {
+    // Advance past this meta item
+    if input.peek(syn::Token![=]) {
+        input.parse::<syn::Token![=]>()?;
+        input.parse::<syn::Expr>()?;
+    } else if input.peek(syn::token::Paren) {
+        let _skip;
+        syn::parenthesized!(_skip in input);
+    }
 
-    parse_lit_str(string).map_err(|_| {
+    Ok(())
+}
+
+fn get_lit_str(
+    cx: &Ctxt,
+    attr_name: &'static str,
+    meta: &ParseNestedMeta,
+) -> syn::Result<Option<syn::LitStr>> {
+    get_lit_str2(cx, attr_name, attr_name, meta)
+}
+
+fn get_lit_str2(
+    cx: &Ctxt,
+    attr_name: &'static str,
+    meta_item_name: &'static str,
+    meta: &ParseNestedMeta,
+) -> syn::Result<Option<syn::LitStr>> {
+    let expr: syn::Expr = meta.value()?.parse()?;
+    let mut value = &expr;
+    while let syn::Expr::Group(e) = value {
+        value = &e.expr;
+    }
+    if let syn::Expr::Lit(syn::ExprLit {
+        lit: syn::Lit::Str(lit),
+        ..
+    }) = value
+    {
+        let suffix = lit.suffix();
+        if !suffix.is_empty() {
+            cx.error_spanned_by(
+                lit,
+                format!("unexpected suffix `{}` on string literal", suffix),
+            );
+        }
+        Ok(Some(lit.clone()))
+    } else {
         cx.error_spanned_by(
-            lit,
+            expr,
             format!(
-                "failed to parse path: `{} = {:?}`",
-                meta_item_name,
-                string.value()
+                "expected serde {} attribute to be a string: `{} = \"...\"`",
+                attr_name, meta_item_name
             ),
-        )
-    })
+        );
+        Ok(None)
+    }
 }
 
 fn parse_lit_str<T>(s: &syn::LitStr) -> parse::Result<T>
