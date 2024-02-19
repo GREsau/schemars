@@ -155,7 +155,7 @@ fn expr_for_external_tagged_enum<'a>(
     let mut count = 0;
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) = variants
         .inspect(|v| {
-            unique_names.insert(v.name());
+            unique_names.insert(v.name().into());
             count += 1;
         })
         .partition(|v| v.is_unit() && v.attrs.is_default());
