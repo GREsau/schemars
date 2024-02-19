@@ -46,7 +46,9 @@ const REGEX: Symbol = "regex";
 const CONTAINS: Symbol = "contains";
 const REQUIRED: Symbol = "required";
 const INNER: Symbol = "inner";
-const FORMAT: Symbol = "format";
+const URL: Symbol = "url";
+const EMAIL: Symbol = "email";
+const PHONE: Symbol = "phone";
 const PATH: Symbol = "path";
 const PATTERN: Symbol = "pattern";
 
@@ -64,7 +66,9 @@ struct Populate<'c> {
     regex: Attr<'c, Regex>,
     contains: Attr<'c, String>,
     required: BoolAttr<'c>,
-    format: Attr<'c, Format>,
+    email: BoolAttr<'c>,
+    url: BoolAttr<'c>,
+    phone: BoolAttr<'c>,
     inner: Attr<'c, ValidationAttrs>,
     cx: &'c Ctxt,
 }
@@ -90,7 +94,12 @@ impl<'c> From<Populate<'c>> for ValidationAttrs {
             }),
             contains: pop.contains.get(),
             required: pop.required.get(),
-            format: pop.format.get(),
+            format: pop
+                .url
+                .get()
+                .then_some(Format::Uri)
+                .or_else(|| pop.email.get().then_some(Format::Email))
+                .or_else(|| pop.phone.get().then_some(Format::Phone)),
             inner: pop.inner.get().map(Box::new),
         }
     }
@@ -107,13 +116,20 @@ impl<'c> Populate<'c> {
             regex: Attr::none(cx, REGEX),
             contains: Attr::none(cx, CONTAINS),
             required: BoolAttr::none(cx, REQUIRED),
-            format: Attr::none(cx, FORMAT),
+            url: BoolAttr::none(cx, URL),
+            email: BoolAttr::none(cx, EMAIL),
+            phone: BoolAttr::none(cx, PHONE),
             inner: Attr::none(cx, INNER),
             cx,
         }
     }
 
-    fn populate(&mut self, meta: ParseNestedMeta, ignore_errors: bool) -> syn::Result<()> {
+    fn populate(
+        &mut self,
+        attr_type: &'static str,
+        meta: ParseNestedMeta,
+        ignore_errors: bool,
+    ) -> syn::Result<()> {
         let path_str = super::ident_to_string!(meta);
 
         // Wrap in a closure so we _always_ consume the set of meta items, otherwise
@@ -178,17 +194,26 @@ impl<'c> Populate<'c> {
                 "required" | "required_nested" => {
                     self.required.set_true(meta.path.clone(), ignore_errors);
                 }
-                "email" => {
-                    self.format
-                        .set(meta.path.clone(), Format::Email, ignore_errors);
+                EMAIL => {
+                    self.email.set_true_exclusive(
+                        meta.path.clone(),
+                        [self.url.0.excl(), self.phone.0.excl()],
+                        ignore_errors,
+                    );
                 }
-                "url" => {
-                    self.format
-                        .set(meta.path.clone(), Format::Uri, ignore_errors);
+                URL => {
+                    self.url.set_true_exclusive(
+                        meta.path.clone(),
+                        [self.phone.0.excl(), self.email.0.excl()],
+                        ignore_errors,
+                    );
                 }
-                "phone" => {
-                    self.format
-                        .set(meta.path.clone(), Format::Phone, ignore_errors);
+                PHONE => {
+                    self.phone.set_true_exclusive(
+                        meta.path.clone(),
+                        [self.email.0.excl(), self.url.0.excl()],
+                        ignore_errors,
+                    );
                 }
                 REGEX => {
                     // (regex = "path")
@@ -197,7 +222,7 @@ impl<'c> Populate<'c> {
                     let item = &mut self.regex;
                     let excl = [self.contains.excl()];
                     if meta.input.peek(Token![=]) {
-                        if let Some(ls) = get_lit_str(self.cx, REGEX, meta)? {
+                        if let Some(ls) = get_lit_str(self.cx, attr_type, REGEX, meta)? {
                             item.set_exclusive(
                                 meta.path.clone(),
                                 Regex::Path(ls.parse::<syn::Path>()?),
@@ -208,18 +233,20 @@ impl<'c> Populate<'c> {
                     } else {
                         meta.parse_nested_meta(|rinner| {
                             if rinner.path.is_ident(PATH) {
-                                if let Some(ls) = get_lit_str(self.cx, PATH, &rinner)? {
+                                if let Some(ls) = get_lit_str(self.cx, attr_type, PATH, &rinner)? {
                                     item.set_exclusive(
-                                        rinner.path,
+                                        meta.path.clone(),
                                         Regex::Path(ls.parse::<syn::Path>()?),
                                         excl,
                                         ignore_errors,
                                     );
                                 }
                             } else if rinner.path.is_ident(PATTERN) {
-                                if let Some(patt) = get_lit_str(self.cx, PATTERN, &rinner)? {
+                                if let Some(patt) =
+                                    get_lit_str(self.cx, attr_type, PATTERN, &rinner)?
+                                {
                                     item.set_exclusive(
-                                        rinner.path,
+                                        meta.path.clone(),
                                         Regex::Pattern(patt),
                                         excl,
                                         ignore_errors,
@@ -247,7 +274,7 @@ impl<'c> Populate<'c> {
                     let excl = [self.regex.excl()];
 
                     if meta.input.peek(Token![=]) {
-                        if let Some(patt) = get_lit_str(self.cx, CONTAINS, meta)? {
+                        if let Some(patt) = get_lit_str(self.cx, attr_type, CONTAINS, meta)? {
                             item.set_exclusive(
                                 meta.path.clone(),
                                 patt.value(),
@@ -258,9 +285,11 @@ impl<'c> Populate<'c> {
                     } else {
                         meta.parse_nested_meta(|rinner| {
                             if rinner.path.is_ident(PATTERN) {
-                                if let Some(patt) = get_lit_str(self.cx, PATTERN, &rinner)? {
+                                if let Some(patt) =
+                                    get_lit_str(self.cx, attr_type, PATTERN, &rinner)?
+                                {
                                     item.set_exclusive(
-                                        rinner.path,
+                                        meta.path.clone(),
                                         patt.value(),
                                         excl,
                                         ignore_errors,
@@ -284,7 +313,9 @@ impl<'c> Populate<'c> {
                 "inner" => {
                     let mut inner_pop = Populate::new(self.cx);
 
-                    meta.parse_nested_meta(|iinner| inner_pop.populate(iinner, ignore_errors))?;
+                    meta.parse_nested_meta(|iinner| {
+                        inner_pop.populate(attr_type, iinner, ignore_errors)
+                    })?;
 
                     self.inner
                         .set(meta.path.clone(), inner_pop.into(), ignore_errors);
@@ -344,7 +375,9 @@ impl ValidationAttrs {
                     }
                 }
 
-                if let Err(err) = attr.parse_nested_meta(|meta| pop.populate(meta, ignore_errors)) {
+                if let Err(err) =
+                    attr.parse_nested_meta(|meta| pop.populate(name, meta, ignore_errors))
+                {
                     cx.syn_error(err);
                 }
             }
@@ -530,7 +563,7 @@ fn wrap_string_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
 fn str_or_num_to_expr(
     attr: &mut Attr<'_, Expr>,
     meta: &syn::meta::ParseNestedMeta<'_>,
-    excl: impl IntoIterator<Item = (Symbol, bool)>,
+    excl: impl IntoIterator<Item = super::Excl>,
     ie: bool,
 ) {
     let val = match meta.value() {

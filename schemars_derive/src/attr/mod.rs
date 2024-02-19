@@ -127,16 +127,13 @@ impl Attrs {
                 continue;
             }
 
-            let mut boop = None;
             let res = attr.parse_nested_meta(|meta| {
                 let path_str = ident_to_string!(meta);
                 let mut skip = false;
 
-                boop = Some(path_str.clone());
-
                 match path_str.as_str() {
                     WITH => {
-                        if let Some(ls) = get_lit_str(cx, WITH, &meta)? {
+                        if let Some(ls) = get_lit_str(cx, attr_type, WITH, &meta)? {
                             with.set_exclusive(
                                 meta.path,
                                 ls.parse()?,
@@ -146,7 +143,7 @@ impl Attrs {
                         }
                     }
                     SCHEMA_WITH => {
-                        if let Some(ls) = get_lit_str(cx, SCHEMA_WITH, &meta)? {
+                        if let Some(ls) = get_lit_str(cx, attr_type, SCHEMA_WITH, &meta)? {
                             schema_with.set_exclusive(
                                 meta.path,
                                 ls.parse()?,
@@ -156,17 +153,17 @@ impl Attrs {
                         }
                     }
                     TITLE => {
-                        if let Some(ls) = get_lit_str(cx, TITLE, &meta)? {
+                        if let Some(ls) = get_lit_str(cx, attr_type, TITLE, &meta)? {
                             title.set(meta.path, ls.value(), ignore_errors);
                         }
                     }
                     DESCRIPTION => {
-                        if let Some(ls) = get_lit_str(cx, DESCRIPTION, &meta)? {
+                        if let Some(ls) = get_lit_str(cx, attr_type, DESCRIPTION, &meta)? {
                             description.set(meta.path, ls.value(), ignore_errors);
                         }
                     }
                     "example" => {
-                        if let Some(ls) = get_lit_str(cx, EXAMPLE, &meta)? {
+                        if let Some(ls) = get_lit_str(cx, attr_type, EXAMPLE, &meta)? {
                             examples.push(ls.parse()?);
                         }
                     }
@@ -175,7 +172,7 @@ impl Attrs {
                         skip = true;
                     }
                     "crate" if is_schema_rs => {
-                        if let Some(ls) = get_lit_str(cx, DESCRIPTION, &meta)? {
+                        if let Some(ls) = get_lit_str(cx, attr_type, DESCRIPTION, &meta)? {
                             krate.set(meta.path, ls.parse()?, ignore_errors);
                         }
                     }
@@ -256,8 +253,13 @@ type Symbol = &'static str;
 struct Attr<'c, T> {
     cx: &'c Ctxt,
     name: Symbol,
-    tokens: TokenStream,
     value: Option<T>,
+}
+
+#[derive(Copy, Clone)]
+struct Excl {
+    name: Symbol,
+    set: bool,
 }
 
 impl<'c, T> Attr<'c, T> {
@@ -265,7 +267,6 @@ impl<'c, T> Attr<'c, T> {
         Self {
             cx,
             name,
-            tokens: TokenStream::new(),
             value: None,
         }
     }
@@ -274,7 +275,7 @@ impl<'c, T> Attr<'c, T> {
         &mut self,
         obj: A,
         value: T,
-        exl: impl IntoIterator<Item = (&'static str, bool)>,
+        exl: impl IntoIterator<Item = Excl>,
         ie: bool,
     ) {
         let tokens = obj.into_token_stream();
@@ -282,7 +283,7 @@ impl<'c, T> Attr<'c, T> {
         if self.value.is_some() {
             if !ie {
                 self.cx.error_spanned_by(
-                    tokens.clone(),
+                    tokens,
                     format!("duplicate schemars attribute `{}`", self.name),
                 );
             }
@@ -290,26 +291,24 @@ impl<'c, T> Attr<'c, T> {
             return;
         }
 
-        let non_exclusive = exl.into_iter().fold(false, |acc, (name, set)| {
-            if set && !ie {
+        let non_exclusive = exl.into_iter().fold(false, |acc, excl| {
+            if excl.set && !ie {
                 self.cx.error_spanned_by(
                     tokens.clone(),
                     format!(
-                        "schemars attribute cannot contain both `{}` and `{name}`",
-                        self.name
+                        "schemars attribute cannot contain both `{}` and `{}`",
+                        excl.name, self.name
                     ),
                 );
             }
 
-            acc || set
+            acc || excl.set
         });
 
         if non_exclusive {
             return;
         }
 
-        // The old implemenation just overwrites
-        self.tokens = tokens;
         self.value = Some(value);
     }
 
@@ -321,8 +320,11 @@ impl<'c, T> Attr<'c, T> {
         self.value
     }
 
-    fn excl(&self) -> (&'static str, bool) {
-        (self.name, self.value.is_some())
+    fn excl(&self) -> Excl {
+        Excl {
+            name: self.name,
+            set: self.value.is_some(),
+        }
     }
 }
 
@@ -335,6 +337,15 @@ impl<'c> BoolAttr<'c> {
 
     fn set_true<A: ToTokens>(&mut self, obj: A, ie: bool) {
         self.0.set(obj, (), ie);
+    }
+
+    fn set_true_exclusive<A: ToTokens>(
+        &mut self,
+        obj: A,
+        exl: impl IntoIterator<Item = Excl>,
+        ie: bool,
+    ) {
+        self.0.set_exclusive(obj, (), exl, ie)
     }
 
     fn get(&self) -> bool {
@@ -357,14 +368,16 @@ fn skip_item(input: syn::parse::ParseStream) -> syn::Result<()> {
 
 fn get_lit_str(
     cx: &Ctxt,
+    kind: &'static str,
     attr_name: &'static str,
     meta: &ParseNestedMeta,
 ) -> syn::Result<Option<syn::LitStr>> {
-    get_lit_str2(cx, attr_name, attr_name, meta)
+    get_lit_str2(cx, kind, attr_name, attr_name, meta)
 }
 
 fn get_lit_str2(
     cx: &Ctxt,
+    kind: &'static str,
     attr_name: &'static str,
     meta_item_name: &'static str,
     meta: &ParseNestedMeta,
@@ -383,7 +396,7 @@ fn get_lit_str2(
         if !suffix.is_empty() {
             cx.error_spanned_by(
                 lit,
-                format!("unexpected suffix `{}` on string literal", suffix),
+                format!("unexpected suffix `{suffix}` on string literal"),
             );
         }
         Ok(Some(lit.clone()))
@@ -391,8 +404,7 @@ fn get_lit_str2(
         cx.error_spanned_by(
             expr,
             format!(
-                "expected serde {} attribute to be a string: `{} = \"...\"`",
-                attr_name, meta_item_name
+                "expected {kind} {attr_name} attribute to be a string: `{meta_item_name} = \"...\"`"
             ),
         );
         Ok(None)
