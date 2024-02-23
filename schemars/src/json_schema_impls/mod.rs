@@ -86,4 +86,6 @@ mod url;
 mod uuid08;
 #[cfg(feature = "uuid1")]
 mod uuid1;
+#[cfg(feature = "vec1")]
+mod vec1;
 mod wrapper;
