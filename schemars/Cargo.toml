@@ -43,6 +43,8 @@ pretty_assertions = "1.2.1"
 trybuild = "1.0"
 
 [features]
+arbitrary_int = []
+
 default = ["derive"]
 
 derive = ["schemars_derive"]
