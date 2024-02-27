@@ -39,6 +39,9 @@ macro_rules! forward_impl {
     };
 }
 
+#[cfg(feature = "arbitrary_int")]
+mod arbitrary_int;
+
 mod array;
 #[cfg(feature = "arrayvec05")]
 mod arrayvec05;

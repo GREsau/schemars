@@ -19,6 +19,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.25"
 dyn-clone = "1.0"
 
+arbitrary-int = { version = "1.2.7", default-features = false, optional = true }
 chrono = { version = "0.4", default-features = false, optional = true }
 indexmap = { version = "1.2", features = ["serde-1"], optional = true }
 indexmap2 = { version = "2.0", features = ["serde"], optional = true, package = "indexmap" }
