@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "This is the struct's title",
+  "description": "This is the struct's description.\n\nThis is example:\n ```json\n {\n    \"value\": 0,\n    \"type\": \"msg\"\n }\n```",
+  "type": "object",
+  "required": [
+    "my_int"
+  ],
+  "properties": {
+    "my_int": {
+      "title": "An integer",
+      "type": "integer",
+      "format": "int32"
+    }
+  }
+}
