@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.17] - 2024-04-28
+
+### Changed:
+
+- Update to syn 2.0, which should improve compile times in many cases (https://github.com/GREsau/schemars/pull/281)
+
 ## [0.8.16] - 2023-11-11
 
 ### Fixed:
