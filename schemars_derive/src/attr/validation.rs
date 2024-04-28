@@ -510,6 +510,7 @@ fn wrap_string_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
 }
 
 fn str_or_num_to_expr(cx: &Ctxt, meta_item_name: &str, expr: Expr) -> Option<Expr> {
+    // this odd double-parsing is to make `-10` parsed as an Lit instead of an Expr::Unary
     let lit: Lit = match syn::parse2(expr.to_token_stream()) {
         Ok(l) => l,
         Err(err) => {
