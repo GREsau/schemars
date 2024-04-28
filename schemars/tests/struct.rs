@@ -18,6 +18,7 @@ fn struct_normal() -> TestResult {
     test_default_generated_schema::<Struct>("struct-normal")
 }
 
+#[allow(dead_code)]
 #[derive(JsonSchema)]
 pub struct Tuple(i32, bool, Option<&'static str>);
 
@@ -26,6 +27,7 @@ fn struct_tuple() -> TestResult {
     test_default_generated_schema::<Tuple>("struct-tuple")
 }
 
+#[allow(dead_code)]
 #[derive(JsonSchema)]
 pub struct Newtype(i32);
 

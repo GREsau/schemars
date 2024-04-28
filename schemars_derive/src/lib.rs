@@ -20,7 +20,7 @@ use syn::spanned::Spanned;
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     derive_json_schema(input, false)
-        .unwrap_or_else(compile_error)
+        .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
 
@@ -28,14 +28,11 @@ pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro:
 pub fn derive_json_schema_repr_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     derive_json_schema(input, true)
-        .unwrap_or_else(compile_error)
+        .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
 
-fn derive_json_schema(
-    mut input: syn::DeriveInput,
-    repr: bool,
-) -> Result<TokenStream, Vec<syn::Error>> {
+fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<TokenStream> {
     attr::process_serde_attrs(&mut input)?;
 
     let mut cont = Container::from_ast(&input)?;
@@ -87,7 +84,7 @@ fn derive_json_schema(
         });
     }
 
-    let mut schema_base_name = cont.name();
+    let mut schema_base_name = cont.name().to_string();
 
     if !cont.attrs.is_renamed {
         if let Some(path) = cont.serde_attrs.remote() {
@@ -165,7 +162,7 @@ fn derive_json_schema(
     };
 
     let schema_expr = if repr {
-        schema_exprs::expr_for_repr(&cont).map_err(|e| vec![e])?
+        schema_exprs::expr_for_repr(&cont)?
     } else {
         schema_exprs::expr_for_container(&cont)
     };
@@ -205,12 +202,5 @@ fn add_trait_bounds(cont: &mut Container) {
                 type_param.bounds.push(parse_quote!(schemars::JsonSchema));
             }
         }
-    }
-}
-
-fn compile_error(errors: Vec<syn::Error>) -> TokenStream {
-    let compile_errors = errors.iter().map(syn::Error::to_compile_error);
-    quote! {
-        #(#compile_errors)*
     }
 }

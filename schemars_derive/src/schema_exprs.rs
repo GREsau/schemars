@@ -151,7 +151,7 @@ fn expr_for_external_tagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
     deny_unknown_fields: bool,
 ) -> TokenStream {
-    let mut unique_names = HashSet::<String>::new();
+    let mut unique_names = HashSet::<&str>::new();
     let mut count = 0;
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) = variants
         .inspect(|v| {

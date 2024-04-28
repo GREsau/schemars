@@ -104,6 +104,7 @@ fn validate_schemars_attrs() -> TestResult {
     test_default_generated_schema::<Struct2>("validate_schemars_attrs")
 }
 
+#[allow(dead_code)]
 #[derive(JsonSchema)]
 pub struct Tuple(
     #[validate(range(max = 10))] u8,
@@ -115,6 +116,7 @@ fn validate_tuple() -> TestResult {
     test_default_generated_schema::<Tuple>("validate_tuple")
 }
 
+#[allow(dead_code)]
 #[derive(JsonSchema)]
 pub struct NewType(#[validate(range(max = 10))] u8);
 

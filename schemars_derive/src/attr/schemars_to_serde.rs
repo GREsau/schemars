@@ -2,7 +2,9 @@ use quote::ToTokens;
 use serde_derive_internals::Ctxt;
 use std::collections::HashSet;
 use syn::parse::Parser;
-use syn::{Attribute, Data, Field, Meta, NestedMeta, Variant};
+use syn::{Attribute, Data, Field, Meta, Variant};
+
+use super::get_meta_items;
 
 // List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes which we want serde_derive_internals to parse for us.
 pub(crate) static SERDE_KEYWORDS: &[&str] = &[
@@ -32,7 +34,7 @@ pub(crate) static SERDE_KEYWORDS: &[&str] = &[
 
 // If a struct/variant/field has any #[schemars] attributes, then create copies of them
 // as #[serde] attributes so that serde_derive_internals will parse them for us.
-pub fn process_serde_attrs(input: &mut syn::DeriveInput) -> Result<(), Vec<syn::Error>> {
+pub fn process_serde_attrs(input: &mut syn::DeriveInput) -> syn::Result<()> {
     let ctxt = Ctxt::new();
     process_attrs(&ctxt, &mut input.attrs);
     match input.data {
@@ -60,28 +62,22 @@ fn process_serde_field_attrs<'a>(ctxt: &Ctxt, fields: impl Iterator<Item = &'a m
 fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
     // Remove #[serde(...)] attributes (some may be re-added later)
     let (serde_attrs, other_attrs): (Vec<_>, Vec<_>) =
-        attrs.drain(..).partition(|at| at.path.is_ident("serde"));
+        attrs.drain(..).partition(|at| at.path().is_ident("serde"));
     *attrs = other_attrs;
 
-    let schemars_attrs: Vec<_> = attrs
-        .iter()
-        .filter(|at| at.path.is_ident("schemars"))
-        .collect();
-
     // Copy appropriate #[schemars(...)] attributes to #[serde(...)] attributes
-    let (mut serde_meta, mut schemars_meta_names): (Vec<_>, HashSet<_>) = schemars_attrs
-        .iter()
-        .flat_map(|at| get_meta_items(ctxt, at))
-        .flatten()
-        .filter_map(|meta| {
-            let keyword = get_meta_ident(ctxt, &meta).ok()?;
-            if keyword.ends_with("with") || !SERDE_KEYWORDS.contains(&keyword.as_ref()) {
-                None
-            } else {
-                Some((meta, keyword))
-            }
-        })
-        .unzip();
+    let (mut serde_meta, mut schemars_meta_names): (Vec<_>, HashSet<_>) =
+        get_meta_items(attrs, "schemars", ctxt, false)
+            .into_iter()
+            .filter_map(|meta| {
+                let keyword = get_meta_ident(&meta)?;
+                if SERDE_KEYWORDS.contains(&keyword.as_ref()) && !keyword.ends_with("with") {
+                    Some((meta, keyword))
+                } else {
+                    None
+                }
+            })
+            .unzip();
 
     if schemars_meta_names.contains("skip") {
         schemars_meta_names.insert("skip_serializing".to_string());
@@ -89,12 +85,8 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
     }
 
     // Re-add #[serde(...)] attributes that weren't overridden by #[schemars(...)] attributes
-    for meta in serde_attrs
-        .into_iter()
-        .flat_map(|at| get_meta_items(ctxt, &at))
-        .flatten()
-    {
-        if let Ok(i) = get_meta_ident(ctxt, &meta) {
+    for meta in get_meta_items(&serde_attrs, "serde", ctxt, false) {
+        if let Some(i) = get_meta_ident(&meta) {
             if !schemars_meta_names.contains(&i)
                 && SERDE_KEYWORDS.contains(&i.as_ref())
                 && i != "bound"
@@ -125,34 +117,8 @@ fn to_tokens(attrs: &[Attribute]) -> impl ToTokens {
     tokens
 }
 
-fn get_meta_items(ctxt: &Ctxt, attr: &Attribute) -> Result<Vec<NestedMeta>, ()> {
-    match attr.parse_meta() {
-        Ok(Meta::List(meta)) => Ok(meta.nested.into_iter().collect()),
-        Ok(_) => {
-            ctxt.error_spanned_by(attr, "expected #[schemars(...)] or #[serde(...)]");
-            Err(())
-        }
-        Err(err) => {
-            ctxt.error_spanned_by(attr, err);
-            Err(())
-        }
-    }
-}
-
-fn get_meta_ident(ctxt: &Ctxt, meta: &NestedMeta) -> Result<String, ()> {
-    match meta {
-        NestedMeta::Meta(m) => m.path().get_ident().map(|i| i.to_string()).ok_or(()),
-        NestedMeta::Lit(lit) => {
-            ctxt.error_spanned_by(
-                meta,
-                format!(
-                    "unexpected literal in attribute: {}",
-                    lit.into_token_stream()
-                ),
-            );
-            Err(())
-        }
-    }
+fn get_meta_ident(meta: &Meta) -> Option<String> {
+    meta.path().get_ident().map(|i| i.to_string())
 }
 
 #[cfg(test)]
@@ -198,7 +164,7 @@ mod tests {
         };
 
         if let Err(e) = process_serde_attrs(&mut input) {
-            panic!("process_serde_attrs returned error: {}", e[0])
+            panic!("process_serde_attrs returned error: {}", e)
         };
 
         assert_eq!(input, expected);
