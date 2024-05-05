@@ -1,6 +1,5 @@
-use crate::flatten::Merge;
 use crate::gen::SchemaGenerator;
-use crate::schema::{InstanceType, Metadata, ObjectValidation, Schema, SchemaObject};
+use crate::schema::{InstanceType, ObjectValidation, Schema, SchemaObject};
 use crate::{JsonSchema, Map, Set};
 use serde::Serialize;
 use serde_json::Value;
@@ -23,16 +22,6 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
     }
 
     schema
-}
-
-pub fn apply_metadata(schema: Schema, metadata: Metadata) -> Schema {
-    if metadata == Metadata::default() {
-        schema
-    } else {
-        let mut schema_obj = schema.into_object();
-        schema_obj.metadata = Some(Box::new(metadata)).merge(schema_obj.metadata);
-        Schema::Object(schema_obj)
-    }
 }
 
 /// Hack to simulate specialization:
