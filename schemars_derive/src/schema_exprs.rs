@@ -179,12 +179,12 @@ fn expr_for_external_tagged_enum<'a>(
 
         let mut schema_expr = if variant.is_unit() && variant.attrs.with.is_none() {
             quote! {
-                schemars::schema::Schema::new_unit_enum(#name)
+                schemars::_private::new_unit_enum(#name)
             }
         } else {
             let sub_schema = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
             quote! {
-                schemars::schema::Schema::new_externally_tagged_enum(#name, #sub_schema)
+                schemars::_private::new_externally_tagged_enum(#name, #sub_schema)
             }
         };
 
@@ -214,7 +214,7 @@ fn expr_for_internal_tagged_enum<'a>(
             let name = variant.name();
 
             let mut tag_schema = quote! {
-                schemars::schema::Schema::new_internally_tagged_enum(#tag_name, #name, #deny_unknown_fields)
+                schemars::_private::new_internally_tagged_enum(#tag_name, #name, #deny_unknown_fields)
             };
 
             variant.attrs.as_metadata().apply_to_schema(&mut tag_schema);
@@ -477,7 +477,7 @@ fn expr_for_struct(
             quote! {
                 {
                     #type_def
-                    object_validation.insert_property::<#ty>(#name, #has_default, #required, #schema_expr);
+                    schemars::_private::insert_object_property::<#ty>(object_validation, #name, #has_default, #required, #schema_expr);
                 }
             }
         })

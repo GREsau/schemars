@@ -4,6 +4,7 @@ JSON Schema types.
 
 #[cfg(feature = "impl_json_schema")]
 use crate as schemars;
+#[cfg(feature = "impl_json_schema")]
 use crate::JsonSchema;
 use crate::{Map, Set};
 use serde::{Deserialize, Serialize};
@@ -23,32 +24,6 @@ pub enum Schema {
     Bool(bool),
     /// A JSON Schema object.
     Object(SchemaObject),
-}
-
-macro_rules! with_metadata_fn {
-    ($method:ident, $name:ident, $ty:ty) => {
-        with_metadata_fn!(
-            concat!(
-                "Returns the schema with the ", stringify!($name), " metadata field set."
-            ),
-            $method,
-            $name,
-            $ty
-        );
-    };
-    ($doc:expr, $method:ident, $name:ident, $ty:ty) => {
-        #[doc = $doc]
-        pub fn $method(self, $name: impl Into<$ty>) -> Self {
-            let value = $name.into();
-            if value == <$ty>::default() {
-                self
-            } else {
-                let mut schema_obj = self.into_object();
-                schema_obj.metadata().$name = value.into();
-                Schema::Object(schema_obj)
-            }
-        }
-    };
 }
 
 impl Schema {
@@ -95,86 +70,6 @@ impl Schema {
                 ..Default::default()
             },
         }
-    }
-
-    with_metadata_fn!(with_description, description, String);
-    with_metadata_fn!(with_id, id, String);
-    with_metadata_fn!(with_title, title, String);
-    with_metadata_fn!(with_deprecated, deprecated, bool);
-    with_metadata_fn!(with_read_only, read_only, bool);
-    with_metadata_fn!(with_write_only, write_only, bool);
-    with_metadata_fn!(with_default, default, Value);
-
-    pub fn with_examples<I: IntoIterator<Item = Value>>(self, examples: I) -> Self {
-        let mut schema_obj = self.into_object();
-        schema_obj.metadata().examples.extend(examples);
-        Schema::Object(schema_obj)
-    }
-
-    /// Create a schema for a unit enum
-    pub fn new_unit_enum(variant: &str) -> Self {
-        Self::Object(SchemaObject {
-            instance_type: Some(InstanceType::String.into()),
-            enum_values: Some(vec![variant.into()]),
-            ..SchemaObject::default()
-        })
-    }
-
-    /// Create a schema for an externally tagged enum
-    pub fn new_externally_tagged_enum(variant: &str, sub_schema: Schema) -> Self {
-        Self::Object(SchemaObject {
-            instance_type: Some(InstanceType::Object.into()),
-            object: Some(Box::new(ObjectValidation {
-                properties: {
-                    let mut props = Map::new();
-                    props.insert(variant.to_owned(), sub_schema);
-                    props
-                },
-                required: {
-                    let mut required = Set::new();
-                    required.insert(variant.to_owned());
-                    required
-                },
-                // Externally tagged variants must prohibit additional
-                // properties irrespective of the disposition of
-                // `deny_unknown_fields`. If additional properties were allowed
-                // one could easily construct an object that validated against
-                // multiple variants since here it's the properties rather than
-                // the values of a property that distingish between variants.
-                additional_properties: Some(Box::new(false.into())),
-                ..Default::default()
-            })),
-            ..SchemaObject::default()
-        })
-    }
-
-    /// Create a schema for an internally tagged enum
-    pub fn new_internally_tagged_enum(tag_name: &str, variant: &str, deny_unknown_fields: bool) -> Self {
-        let tag_schema = Schema::Object(SchemaObject {
-            instance_type: Some(
-                InstanceType::String.into(),
-            ),
-            enum_values: Some(vec![variant.into()]),
-            ..Default::default()
-        });
-        Self::Object(SchemaObject {
-            instance_type: Some(InstanceType::Object.into()),
-            object: Some(Box::new(ObjectValidation {
-                properties: {
-                    let mut props = Map::new();
-                    props.insert(tag_name.to_owned(), tag_schema);
-                    props
-                },
-                required: {
-                    let mut required = Set::new();
-                    required.insert(tag_name.to_owned());
-                    required
-                },
-                additional_properties: deny_unknown_fields.then(|| Box::new(false.into())),
-                ..Default::default()
-            })),
-            ..SchemaObject::default()
-        })
     }
 }
 
@@ -589,16 +484,6 @@ pub struct ObjectValidation {
     /// See [JSON Schema 9.3.2.5. "propertyNames"](https://tools.ietf.org/html/draft-handrews-json-schema-02#section-9.3.2.5).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub property_names: Option<Box<Schema>>,
-}
-
-impl ObjectValidation {
-    pub fn insert_property<T: ?Sized + JsonSchema>(&mut self, key: &str, mut has_default: bool, required: bool, schema: Schema) {
-        self.properties.insert(key.to_owned(), schema);
-        has_default |= T::_schemars_private_is_option();
-        if required || !has_default {
-            self.required.insert(key.to_owned());
-        }
-    }
 }
 
 /// The possible types of values in JSON Schema documents.

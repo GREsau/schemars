@@ -17,7 +17,8 @@ impl<'a> SchemaMetadata<'a> {
         if !setters.is_empty() {
             *schema_expr = quote! {{
                 let schema = #schema_expr;
-                schema #(#setters)*
+                #(let schema = schemars::_private::metadata::#setters;)*
+                schema
             }}
         }
     }
@@ -27,29 +28,29 @@ impl<'a> SchemaMetadata<'a> {
 
         if let Some(title) = &self.title {
             setters.push(quote! {
-                .with_title(#title)
+                add_title(schema, #title)
             });
         }
         if let Some(description) = &self.description {
             setters.push(quote! {
-                .with_description(#description)
+                add_description(schema, #description)
             });
         }
 
         if self.deprecated {
             setters.push(quote! {
-                .with_deprecated(true)
+                add_deprecated(schema, true)
             });
         }
 
         if self.read_only {
             setters.push(quote! {
-                .with_read_only(true)
+                add_read_only(schema, true)
             });
         }
         if self.write_only {
             setters.push(quote! {
-                .with_write_only(true)
+                add_write_only(schema, true)
             });
         }
 
@@ -60,13 +61,13 @@ impl<'a> SchemaMetadata<'a> {
                 }
             });
             setters.push(quote! {
-                .with_examples([#(#examples),*].into_iter().flatten())
+                add_examples(schema, [#(#examples),*].into_iter().flatten())
             });
         }
 
         if let Some(default) = &self.default {
             setters.push(quote! {
-                .with_default(#default.and_then(|d| schemars::_schemars_maybe_to_value!(d)))
+                add_default(schema, #default.and_then(|d| schemars::_schemars_maybe_to_value!(d)))
             });
         }
 
