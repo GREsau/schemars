@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.19] - 2024-05-06
+
+### Fixed:
+
+- Regression that caused a compile error when deriving `JsonSchema` on an enum with no variants ([https://github.com/GREsau/schemars/pull/266 / https://github.com/GREsau/schemars/pull/286](https://github.com/GREsau/schemars/issues/287))
+
 ## [0.8.18] - 2024-05-06
 
 ### Fixed:
