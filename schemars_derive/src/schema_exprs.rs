@@ -162,7 +162,7 @@ fn expr_for_external_tagged_enum<'a>(
     let unit_names = unit_variants.iter().map(|v| v.name());
     let unit_schema = schema_object(quote! {
         instance_type: Some(schemars::schema::InstanceType::String.into()),
-        enum_values: Some([#(#unit_names),*].into_iter().map(|v| v.into()).collect()),
+        enum_values: Some(vec![#(#unit_names.into()),*]),
     });
 
     if complex_variants.is_empty() {
