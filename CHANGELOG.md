@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.18] - 2024-05-06
+
+### Fixed:
+
+- Reduce size of MIR output (and improve release-mode compile time) when deriving `JsonSchema` on enums (https://github.com/GREsau/schemars/pull/266 / https://github.com/GREsau/schemars/pull/286)
+
 ## [0.8.17] - 2024-04-28
 
 ### Changed:
