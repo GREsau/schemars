@@ -13,45 +13,32 @@ pub struct SchemaMetadata<'a> {
 
 impl<'a> SchemaMetadata<'a> {
     pub fn apply_to_schema(&self, schema_expr: &mut TokenStream) {
-        let setters = self.make_setters();
-        if !setters.is_empty() {
-            *schema_expr = quote! {{
-                let schema = #schema_expr;
-                #(let schema = schemars::_private::metadata::#setters;)*
-                schema
-            }}
-        }
-    }
-
-    fn make_setters(&self) -> Vec<TokenStream> {
-        let mut setters = Vec::<TokenStream>::new();
-
         if let Some(title) = &self.title {
-            setters.push(quote! {
-                add_title(schema, #title)
-            });
+            *schema_expr = quote! {
+                schemars::_private::metadata::add_title(#schema_expr, #title)
+            };
         }
         if let Some(description) = &self.description {
-            setters.push(quote! {
-                add_description(schema, #description)
-            });
+            *schema_expr = quote! {
+                schemars::_private::metadata::add_description(#schema_expr, #description)
+            };
         }
 
         if self.deprecated {
-            setters.push(quote! {
-                add_deprecated(schema, true)
-            });
+            *schema_expr = quote! {
+                schemars::_private::metadata::add_deprecated(#schema_expr, true)
+            };
         }
 
         if self.read_only {
-            setters.push(quote! {
-                add_read_only(schema, true)
-            });
+            *schema_expr = quote! {
+                schemars::_private::metadata::add_read_only(#schema_expr, true)
+            };
         }
         if self.write_only {
-            setters.push(quote! {
-                add_write_only(schema, true)
-            });
+            *schema_expr = quote! {
+                schemars::_private::metadata::add_write_only(#schema_expr, true)
+            };
         }
 
         if !self.examples.is_empty() {
@@ -60,17 +47,16 @@ impl<'a> SchemaMetadata<'a> {
                     schemars::_serde_json::value::to_value(#eg())
                 }
             });
-            setters.push(quote! {
-                add_examples(schema, [#(#examples),*].into_iter().flatten())
-            });
+
+            *schema_expr = quote! {
+                schemars::_private::metadata::add_examples(#schema_expr,  [#(#examples),*].into_iter().flatten())
+            };
         }
 
         if let Some(default) = &self.default {
-            setters.push(quote! {
-                add_default(schema, #default.and_then(|d| schemars::_schemars_maybe_to_value!(d)))
-            });
+            *schema_expr = quote! {
+                schemars::_private::metadata::add_default(#schema_expr, #default.and_then(|d| schemars::_schemars_maybe_to_value!(d)))
+            };
         }
-
-        setters
     }
 }
