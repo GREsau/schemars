@@ -1,4 +1,5 @@
 use crate::gen::SchemaGenerator;
+use crate::json_schema;
 use crate::schema::*;
 use crate::JsonSchema;
 use serde_json::{Map, Number, Value};
@@ -17,7 +18,7 @@ impl JsonSchema for Value {
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
-        Schema::Bool(true)
+        true.into()
     }
 }
 
@@ -35,11 +36,9 @@ impl JsonSchema for Number {
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
-        SchemaObject {
-            instance_type: Some(InstanceType::Number.into()),
-            ..Default::default()
-        }
-        .into()
+        json_schema!({
+            "type": "number"
+        })
     }
 }
 

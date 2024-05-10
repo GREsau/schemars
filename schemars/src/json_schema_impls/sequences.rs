@@ -21,15 +21,10 @@ macro_rules! seq_impl {
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                SchemaObject {
-                    instance_type: Some(InstanceType::Array.into()),
-                    array: Some(Box::new(ArrayValidation {
-                        items: Some(gen.subschema_for::<T>().into()),
-                        ..Default::default()
-                    })),
-                    ..Default::default()
-                }
-                .into()
+                crate::json_schema!({
+                    "type": "array",
+                    "items": gen.subschema_for::<T>(),
+                })
             }
         }
     };
@@ -53,16 +48,11 @@ macro_rules! set_impl {
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                SchemaObject {
-                    instance_type: Some(InstanceType::Array.into()),
-                    array: Some(Box::new(ArrayValidation {
-                        unique_items: Some(true),
-                        items: Some(gen.subschema_for::<T>().into()),
-                        ..Default::default()
-                    })),
-                    ..Default::default()
-                }
-                .into()
+                crate::json_schema!({
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": gen.subschema_for::<T>(),
+                })
             }
         }
     };

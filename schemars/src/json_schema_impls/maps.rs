@@ -20,16 +20,10 @@ macro_rules! map_impl {
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                let subschema = gen.subschema_for::<V>();
-                SchemaObject {
-                    instance_type: Some(InstanceType::Object.into()),
-                    object: Some(Box::new(ObjectValidation {
-                        additional_properties: Some(Box::new(subschema)),
-                        ..Default::default()
-                    })),
-                    ..Default::default()
-                }
-                .into()
+                crate::json_schema!({
+                    "type": "object",
+                    "additionalProperties": gen.subschema_for::<V>(),
+                })
             }
         }
     };

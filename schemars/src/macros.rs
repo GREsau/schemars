@@ -76,3 +76,19 @@ macro_rules! schema_for_value {
             .unwrap()
     };
 }
+
+// TODO doc
+#[macro_export]
+macro_rules! json_schema {
+    (
+        {$($json_object:tt)*}
+    ) => {
+        $crate::schema::Schema::try_from($crate::_serde_json::json!({$($json_object)*})).unwrap()
+    };
+    (true) => {
+        $crate::schema::Schema::from(true)
+    };
+    (false) => {
+        $crate::schema::Schema::from(false)
+    };
+}

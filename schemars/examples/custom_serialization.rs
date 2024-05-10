@@ -1,4 +1,4 @@
-use schemars::schema::{Schema, SchemaObject};
+use schemars::schema::Schema;
 use schemars::{gen::SchemaGenerator, schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
@@ -21,9 +21,11 @@ pub struct MyStruct {
 }
 
 fn make_custom_schema(gen: &mut SchemaGenerator) -> Schema {
-    let mut schema: SchemaObject = <String>::json_schema(gen).into();
-    schema.format = Some("boolean".to_owned());
-    schema.into()
+    let mut schema = String::json_schema(gen);
+    schema
+        .ensure_object()
+        .insert("format".into(), "boolean".into());
+    schema
 }
 
 fn eight() -> i32 {

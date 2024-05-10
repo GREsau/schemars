@@ -25,6 +25,6 @@ pub enum MyEnum {
 }
 
 fn main() {
-    let schema = schema_for!(MyStruct);
+    let schema = schema_for!(MyEnum);
     println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 }
