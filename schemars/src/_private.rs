@@ -89,7 +89,6 @@ pub fn new_internally_tagged_enum(
             }
         },
         "required": [tag_name],
-        "additionalProperties": false,
     });
 
     if deny_unknown_fields {

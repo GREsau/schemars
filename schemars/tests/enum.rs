@@ -31,6 +31,7 @@ enum External {
     },
     UnitTwo,
     Tuple(i32, bool),
+    // FIXME this should probably only replace the "payload" of the enum
     #[schemars(with = "i32")]
     WithInt,
 }
@@ -53,6 +54,7 @@ enum Internal {
         bar: bool,
     },
     UnitTwo,
+    // FIXME this should probably only replace the "payload" of the enum
     #[schemars(with = "i32")]
     WithInt,
 }
@@ -75,6 +77,7 @@ enum Untagged {
         bar: bool,
     },
     Tuple(i32, bool),
+    // FIXME this should probably only replace the "payload" of the enum
     #[schemars(with = "i32")]
     WithInt,
 }
@@ -98,6 +101,7 @@ enum Adjacent {
     },
     Tuple(i32, bool),
     UnitTwo,
+    // FIXME this should probably only replace the "payload" of the enum
     #[schemars(with = "i32")]
     WithInt,
 }

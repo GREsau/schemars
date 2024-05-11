@@ -8,14 +8,14 @@
   ],
   "properties": {
     "result1": {
-      "$ref": "#/definitions/Result_of_MyStruct_or_Array_of_String"
+      "$ref": "#/definitions/Result_of_MyStruct_or_Array_of_string"
     },
     "result2": {
-      "$ref": "#/definitions/Result_of_Boolean_or_Null"
+      "$ref": "#/definitions/Result_of_boolean_or_null"
     }
   },
   "definitions": {
-    "Result_of_MyStruct_or_Array_of_String": {
+    "Result_of_MyStruct_or_Array_of_string": {
       "oneOf": [
         {
           "type": "object",
@@ -56,7 +56,7 @@
         }
       }
     },
-    "Result_of_Boolean_or_Null": {
+    "Result_of_boolean_or_null": {
       "oneOf": [
         {
           "type": "object",
