@@ -2,10 +2,8 @@ use crate::gen::SchemaGenerator;
 use crate::json_schema;
 use crate::schema::*;
 use crate::JsonSchema;
-use serde_json::{Error, Value};
+use serde_json::{Error, Map, Value};
 use std::fmt::Display;
-// TODO FIXME!
-use std::collections::BTreeMap as Map;
 
 pub(crate) struct Serializer<'a> {
     pub(crate) gen: &'a mut SchemaGenerator,
@@ -25,7 +23,7 @@ pub(crate) struct SerializeTuple<'a> {
 
 pub(crate) struct SerializeMap<'a> {
     gen: &'a mut SchemaGenerator,
-    properties: Map<String, Schema>,
+    properties: Map<String, Value>,
     current_key: Option<String>,
     title: &'static str,
 }
@@ -442,7 +440,7 @@ impl serde::ser::SerializeMap for SerializeMap<'_> {
             gen: self.gen,
             include_title: false,
         })?;
-        self.properties.insert(key, schema);
+        self.properties.insert(key, schema.into());
 
         Ok(())
     }
@@ -479,7 +477,7 @@ impl serde::ser::SerializeStruct for SerializeMap<'_> {
             gen: self.gen,
             include_title: false,
         })?;
-        self.properties.insert(key.to_string(), prop_schema);
+        self.properties.insert(key.to_string(), prop_schema.into());
 
         Ok(())
     }

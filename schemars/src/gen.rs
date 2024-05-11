@@ -12,10 +12,8 @@ use crate::{visit::*, JsonSchema};
 use dyn_clone::DynClone;
 use serde::Serialize;
 use std::borrow::Cow;
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::{any::Any, collections::HashSet, fmt::Debug};
-// TODO FIXME!
-use std::collections::BTreeMap as Map;
 
 /// Settings to customize how Schemas are generated.
 ///
@@ -150,7 +148,7 @@ impl SchemaSettings {
 #[derive(Debug, Default)]
 pub struct SchemaGenerator {
     settings: SchemaSettings,
-    definitions: Map<String, Schema>,
+    definitions: BTreeMap<String, Schema>,
     pending_schema_ids: HashSet<Cow<'static, str>>,
     schema_id_to_name: HashMap<Cow<'static, str>, String>,
     used_schema_names: HashSet<String>,
@@ -260,26 +258,26 @@ impl SchemaGenerator {
 
     /// Borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
     ///
-    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
+    /// The keys of the returned `BTreeMap` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn definitions(&self) -> &Map<String, Schema> {
+    pub fn definitions(&self) -> &BTreeMap<String, Schema> {
         &self.definitions
     }
 
     /// Mutably borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
     ///
-    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
+    /// The keys of the returned `BTreeMap` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn definitions_mut(&mut self) -> &mut Map<String, Schema> {
+    pub fn definitions_mut(&mut self) -> &mut BTreeMap<String, Schema> {
         &mut self.definitions
     }
 
     /// Returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated,
     /// leaving an empty map in its place.
     ///
-    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
+    /// The keys of the returned `BTreeMap` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn take_definitions(&mut self) -> Map<String, Schema> {
+    pub fn take_definitions(&mut self) -> BTreeMap<String, Schema> {
         std::mem::take(&mut self.definitions)
     }
 
