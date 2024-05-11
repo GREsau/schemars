@@ -1,3 +1,5 @@
+use crate::JsonSchema;
+
 macro_rules! no_ref_schema {
     () => {
         fn is_referenceable() -> bool {
@@ -21,11 +23,11 @@ macro_rules! forward_impl {
                 <$target>::schema_id()
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            fn json_schema(gen: &mut $crate::gen::SchemaGenerator) -> $crate::Schema {
                 <$target>::json_schema(gen)
             }
 
-            fn _schemars_private_non_optional_json_schema(gen: &mut SchemaGenerator) -> Schema {
+            fn _schemars_private_non_optional_json_schema(gen: &mut $crate::gen::SchemaGenerator) -> $crate::Schema {
                 <$target>::_schemars_private_non_optional_json_schema(gen)
             }
 
@@ -35,55 +37,61 @@ macro_rules! forward_impl {
         }
     };
     ($ty:ty => $target:ty) => {
-        forward_impl!((JsonSchema for $ty) => $target);
+        forward_impl!(($crate::JsonSchema for $ty) => $target);
     };
 }
 
 mod array;
-#[cfg(feature = "arrayvec05")]
-mod arrayvec05;
-#[cfg(feature = "arrayvec07")]
-mod arrayvec07;
-#[cfg(std_atomic)]
-mod atomic;
-#[cfg(feature = "bytes")]
-mod bytes;
-#[cfg(feature = "chrono")]
-mod chrono;
 mod core;
-#[cfg(any(
-    feature = "rust_decimal",
-    feature = "bigdecimal03",
-    feature = "bigdecimal04"
-))]
-mod decimal;
-#[cfg(feature = "either")]
-mod either;
-#[cfg(feature = "enumset")]
-mod enumset;
 mod ffi;
-#[cfg(feature = "indexmap")]
-mod indexmap;
-#[cfg(feature = "indexmap2")]
-mod indexmap2;
 mod maps;
 mod nonzero_signed;
 mod nonzero_unsigned;
 mod primitives;
-#[cfg(feature = "semver")]
-mod semver;
 mod sequences;
 mod serdejson;
-#[cfg(feature = "smallvec")]
-mod smallvec;
-#[cfg(feature = "smol_str")]
-mod smol_str;
 mod time;
 mod tuple;
-#[cfg(feature = "url")]
-mod url;
-#[cfg(feature = "uuid08")]
-mod uuid08;
+mod wrapper;
+
+#[cfg(std_atomic)]
+mod atomic;
+
+#[cfg(feature = "arrayvec07")]
+mod arrayvec07;
+
+#[cfg(feature = "bytes1")]
+mod bytes1 {
+    forward_impl!(bytes1::Bytes => Vec<u8>);
+    forward_impl!(bytes1::BytesMut => Vec<u8>);
+}
+
+#[cfg(feature = "chrono04")]
+mod chrono04;
+
+#[cfg(any(feature = "rust_decimal1", feature = "bigdecimal04"))]
+mod decimal;
+
+#[cfg(feature = "either1")]
+mod either1;
+
+#[cfg(feature = "enumset1")]
+forward_impl!((<T: enumset1::EnumSetType + JsonSchema> JsonSchema for enumset1::EnumSet<T>) => std::collections::BTreeSet<T>);
+
+#[cfg(feature = "indexmap2")]
+mod indexmap2;
+
+#[cfg(feature = "semver1")]
+mod semver1;
+
+#[cfg(feature = "smallvec1")]
+forward_impl!((<A: smallvec1::Array> JsonSchema for smallvec1::SmallVec<A> where A::Item: JsonSchema) => Vec<A::Item>);
+
+#[cfg(feature = "smol_str02")]
+forward_impl!(smol_str02::SmolStr => String);
+
+#[cfg(feature = "url2")]
+mod url2;
+
 #[cfg(feature = "uuid1")]
 mod uuid1;
-mod wrapper;
