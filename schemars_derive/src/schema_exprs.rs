@@ -49,12 +49,19 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
     let enum_ident = &cont.ident;
     let variant_idents = variants.iter().map(|v| &v.ident);
 
-    let mut schema_expr = quote! {
-        schemars::json_schema!({
-            "type": "integer",
-            "enum": [#(#enum_ident::#variant_idents as #repr_type),*],
-        })
-    };
+    let mut schema_expr = quote!({
+        let mut map = schemars::_serde_json::Map::new();
+        map.insert("type".to_owned(), "integer".into());
+        map.insert(
+            "enum".to_owned(),
+            schemars::_serde_json::Value::Array({
+                let mut enum_values = Vec::new();
+                #(enum_values.push((#enum_ident::#variant_idents as #repr_type).into());)*
+                enum_values
+            }),
+        );
+        schemars::Schema::from(map)
+    });
 
     cont.attrs.as_metadata().apply_to_schema(&mut schema_expr);
     Ok(schema_expr)
