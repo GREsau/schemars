@@ -169,12 +169,19 @@ fn expr_for_external_tagged_enum<'a>(
         })
         .partition(|v| v.is_unit() && v.attrs.is_default());
     let unit_names = unit_variants.iter().map(|v| v.name());
-    let unit_schema = quote! {
-        schemars::json_schema!({
-            "type": "string",
-            "enum": [#(#unit_names),*],
-        })
-    };
+    let unit_schema = quote!({
+        let mut map = schemars::_serde_json::Map::new();
+        map.insert("type".to_owned(), "string".into());
+        map.insert(
+            "enum".to_owned(),
+            schemars::_serde_json::Value::Array({
+                let mut enum_values = Vec::new();
+                #(enum_values.push((#unit_names).into());)*
+                enum_values
+            }),
+        );
+        schemars::Schema::from(map)
+    });
 
     if complex_variants.is_empty() {
         return unit_schema;
@@ -341,19 +348,19 @@ fn expr_for_adjacent_tagged_enum<'a>(
 /// Callers must determine if all subschemas are mutually exclusive. This can
 /// be done for most tagging regimes by checking that all tag names are unique.
 fn variant_subschemas(unique: bool, schemas: Vec<TokenStream>) -> TokenStream {
-    if unique {
-        quote! {
-            schemars::json_schema!({
-                "oneOf": [#((#schemas)),*]
-            })
-        }
-    } else {
-        quote! {
-            schemars::json_schema!({
-                "anyOf": [#((#schemas)),*]
-            })
-        }
-    }
+    let keyword = if unique { "oneOf" } else { "anyOf" };
+    quote!({
+        let mut map = schemars::_serde_json::Map::new();
+        map.insert(
+            #keyword.to_owned(),
+            schemars::_serde_json::Value::Array({
+                let mut enum_values = Vec::new();
+                #(enum_values.push(#schemas.to_value());)*
+                enum_values
+            }),
+        );
+        schemars::Schema::from(map)
+    })
 }
 
 fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) -> TokenStream {
