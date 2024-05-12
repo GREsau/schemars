@@ -1,5 +1,3 @@
-use crate::JsonSchema;
-
 macro_rules! no_ref_schema {
     () => {
         fn is_referenceable() -> bool {
@@ -76,7 +74,7 @@ mod decimal;
 mod either1;
 
 #[cfg(feature = "enumset1")]
-forward_impl!((<T: enumset1::EnumSetType + JsonSchema> JsonSchema for enumset1::EnumSet<T>) => std::collections::BTreeSet<T>);
+forward_impl!((<T: enumset1::EnumSetType + crate::JsonSchema> crate::JsonSchema for enumset1::EnumSet<T>) => std::collections::BTreeSet<T>);
 
 #[cfg(feature = "indexmap2")]
 mod indexmap2;
@@ -85,7 +83,7 @@ mod indexmap2;
 mod semver1;
 
 #[cfg(feature = "smallvec1")]
-forward_impl!((<A: smallvec1::Array> JsonSchema for smallvec1::SmallVec<A> where A::Item: JsonSchema) => Vec<A::Item>);
+forward_impl!((<A: smallvec1::Array> crate::JsonSchema for smallvec1::SmallVec<A> where A::Item: crate::JsonSchema) => Vec<A::Item>);
 
 #[cfg(feature = "smol_str02")]
 forward_impl!(smol_str02::SmolStr => String);
