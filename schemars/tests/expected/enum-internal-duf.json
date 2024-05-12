@@ -127,8 +127,7 @@
             "WithInt"
           ]
         }
-      },
-      "additionalProperties": false
+      }
     }
   ]
 }

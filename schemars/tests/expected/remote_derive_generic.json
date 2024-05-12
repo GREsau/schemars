@@ -10,10 +10,10 @@
   ],
   "properties": {
     "byte_or_bool2": {
-      "$ref": "#/definitions/Or_for_uint8_and_Boolean"
+      "$ref": "#/definitions/Or_for_uint8_and_boolean"
     },
     "unit_or_t2": {
-      "$ref": "#/definitions/Or_for_Null_and_int32"
+      "$ref": "#/definitions/Or_for_null_and_int32"
     },
     "s": {
       "$ref": "#/definitions/Str"
@@ -30,7 +30,7 @@
     }
   },
   "definitions": {
-    "Or_for_uint8_and_Boolean": {
+    "Or_for_uint8_and_boolean": {
       "anyOf": [
         {
           "type": "integer",
@@ -42,7 +42,7 @@
         }
       ]
     },
-    "Or_for_Null_and_int32": {
+    "Or_for_null_and_int32": {
       "anyOf": [
         {
           "type": "null"

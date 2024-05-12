@@ -1,6 +1,3 @@
-use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
 use std::sync::atomic::*;
 
 forward_impl!(AtomicBool => bool);
@@ -22,12 +19,12 @@ forward_impl!(AtomicUsize => usize);
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::tests::schema_object_for;
+    use crate::schema_for;
     use pretty_assertions::assert_eq;
 
     #[test]
     fn schema_for_atomics() {
-        let atomic_schema = schema_object_for::<(
+        let atomic_schema = schema_for!((
             AtomicBool,
             AtomicI8,
             AtomicI16,
@@ -39,9 +36,8 @@ mod tests {
             AtomicU32,
             AtomicU64,
             AtomicUsize,
-        )>();
-        let basic_schema =
-            schema_object_for::<(bool, i8, i16, i32, i64, isize, u8, u16, u32, u64, usize)>();
+        ));
+        let basic_schema = schema_for!((bool, i8, i16, i32, i64, isize, u8, u16, u32, u64, usize));
         assert_eq!(atomic_schema, basic_schema);
     }
 }

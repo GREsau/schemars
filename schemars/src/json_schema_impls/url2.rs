@@ -1,8 +1,7 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{json_schema, JsonSchema, Schema};
 use std::borrow::Cow;
-use url::Url;
+use url2::Url;
 
 impl JsonSchema for Url {
     no_ref_schema!();
@@ -16,11 +15,9 @@ impl JsonSchema for Url {
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
-        SchemaObject {
-            instance_type: Some(InstanceType::String.into()),
-            format: Some("uri".to_owned()),
-            ..Default::default()
-        }
-        .into()
+        json_schema!({
+            "type": "string",
+            "format": "uri",
+        })
     }
 }

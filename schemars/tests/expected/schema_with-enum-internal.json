@@ -22,8 +22,8 @@
     },
     {
       "type": [
-        "boolean",
-        "object"
+        "object",
+        "boolean"
       ],
       "required": [
         "typeProperty"
@@ -39,8 +39,8 @@
     },
     {
       "type": [
-        "boolean",
-        "object"
+        "object",
+        "boolean"
       ],
       "required": [
         "typeProperty"

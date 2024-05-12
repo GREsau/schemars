@@ -1,7 +1,6 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
-use either::Either;
+use crate::{json_schema, JsonSchema, Schema};
+use either1::Either;
 use std::borrow::Cow;
 
 impl<L: JsonSchema, R: JsonSchema> JsonSchema for Either<L, R> {
@@ -20,8 +19,8 @@ impl<L: JsonSchema, R: JsonSchema> JsonSchema for Either<L, R> {
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = SchemaObject::default();
-        schema.subschemas().any_of = Some(vec![gen.subschema_for::<L>(), gen.subschema_for::<R>()]);
-        schema.into()
+        json_schema!({
+            "anyOf": [gen.subschema_for::<L>(), gen.subschema_for::<R>()],
+        })
     }
 }

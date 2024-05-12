@@ -1,8 +1,6 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
-use chrono::prelude::*;
-use serde_json::json;
+use crate::{json_schema, JsonSchema, Schema};
+use chrono04::prelude::*;
 use std::borrow::Cow;
 
 impl JsonSchema for Weekday {
@@ -17,20 +15,18 @@ impl JsonSchema for Weekday {
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
-        SchemaObject {
-            instance_type: Some(InstanceType::String.into()),
-            enum_values: Some(vec![
-                json!("Mon"),
-                json!("Tue"),
-                json!("Wed"),
-                json!("Thu"),
-                json!("Fri"),
-                json!("Sat"),
-                json!("Sun"),
-            ]),
-            ..Default::default()
-        }
-        .into()
+        json_schema!({
+            "type": "string",
+            "enum": [
+                "Mon",
+                "Tue",
+                "Wed",
+                "Thu",
+                "Fri",
+                "Sat",
+                "Sun",
+            ]
+        })
     }
 }
 
@@ -51,12 +47,10 @@ macro_rules! formatted_string_impl {
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
-                SchemaObject {
-                    instance_type: Some(InstanceType::String.into()),
-                    format: Some($format.to_owned()),
-                    ..Default::default()
-                }
-                .into()
+                json_schema!({
+                    "type": "string",
+                    "format": $format
+                })
             }
         }
     };

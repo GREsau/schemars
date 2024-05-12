@@ -1,5 +1,5 @@
 mod util;
-use either::Either;
+use either1::Either;
 use util::*;
 
 #[test]

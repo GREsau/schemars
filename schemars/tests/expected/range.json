@@ -15,7 +15,7 @@
       "$ref": "#/definitions/Range_of_double"
     },
     "bound": {
-      "$ref": "#/definitions/Bound_of_String"
+      "$ref": "#/definitions/Bound_of_string"
     }
   },
   "definitions": {
@@ -55,7 +55,7 @@
         }
       }
     },
-    "Bound_of_String": {
+    "Bound_of_string": {
       "oneOf": [
         {
           "type": "object",

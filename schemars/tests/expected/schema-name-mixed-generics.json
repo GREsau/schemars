@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "MixedGenericStruct_for_MyStruct_for_int32_and_Null_and_Boolean_and_Array_of_String_and_42_and_z",
+  "title": "MixedGenericStruct_for_MyStruct_for_int32_and_null_and_boolean_and_Array_of_string_and_42_and_z",
   "type": "object",
   "required": [
     "foo",
@@ -12,7 +12,7 @@
       "format": "int32"
     },
     "generic": {
-      "$ref": "#/definitions/MyStruct_for_int32_and_Null_and_Boolean_and_Array_of_String"
+      "$ref": "#/definitions/MyStruct_for_int32_and_null_and_boolean_and_Array_of_string"
     }
   },
   "definitions": {
@@ -28,7 +28,7 @@
         }
       }
     },
-    "MyStruct_for_int32_and_Null_and_Boolean_and_Array_of_String": {
+    "MyStruct_for_int32_and_null_and_boolean_and_Array_of_string": {
       "type": "object",
       "required": [
         "inner",

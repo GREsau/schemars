@@ -1,32 +1,9 @@
-#![forbid(unsafe_code)]
+#![deny(unsafe_code)]
 #![doc = include_str!("../README.md")]
-
-/// The map type used by schemars types.
-///
-/// Currently a `BTreeMap` or `IndexMap` can be used, but this may change to a different implementation
-/// with a similar interface in a future version of schemars.
-/// The `IndexMap` will be used when the `preserve_order` feature flag is set.
-#[cfg(not(feature = "preserve_order"))]
-pub type Map<K, V> = std::collections::BTreeMap<K, V>;
-#[cfg(feature = "preserve_order")]
-pub type Map<K, V> = indexmap::IndexMap<K, V>;
-/// The set type used by schemars types.
-///
-/// Currently a `BTreeSet`, but this may change to a different implementation
-/// with a similar interface in a future version of schemars.
-pub type Set<T> = std::collections::BTreeSet<T>;
-
-/// A view into a single entry in a map, which may either be vacant or occupied.
-//
-/// This is constructed from the `entry` method on `BTreeMap` or `IndexMap`,
-/// depending on whether the `preserve_order` feature flag is set.
-#[cfg(not(feature = "preserve_order"))]
-pub type MapEntry<'a, K, V> = std::collections::btree_map::Entry<'a, K, V>;
-#[cfg(feature = "preserve_order")]
-pub type MapEntry<'a, K, V> = indexmap::map::Entry<'a, K, V>;
 
 mod flatten;
 mod json_schema_impls;
+mod schema;
 mod ser;
 #[macro_use]
 mod macros;
@@ -36,7 +13,6 @@ mod macros;
 #[doc(hidden)]
 pub mod _private;
 pub mod gen;
-pub mod schema;
 pub mod visit;
 
 #[cfg(feature = "schemars_derive")]
@@ -50,7 +26,7 @@ pub use schemars_derive::*;
 #[doc(hidden)]
 pub use serde_json as _serde_json;
 
-use schema::Schema;
+pub use schema::Schema;
 
 /// A type which can be described as a JSON Schema document.
 ///
@@ -75,7 +51,7 @@ use schema::Schema;
 /// you will need to determine an appropriate name and ID for the type.
 /// For non-generic types, the type name/path are suitable for this:
 /// ```
-/// use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+/// use schemars::{gen::SchemaGenerator, Schema, JsonSchema};
 /// use std::borrow::Cow;
 ///
 /// struct NonGenericType;
@@ -101,7 +77,7 @@ use schema::Schema;
 ///
 /// But generic type parameters which may affect the generated schema should typically be included in the name/ID:
 /// ```
-/// use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+/// use schemars::{gen::SchemaGenerator, Schema, JsonSchema};
 /// use std::{borrow::Cow, marker::PhantomData};
 ///
 /// struct GenericType<T>(PhantomData<T>);
@@ -173,26 +149,5 @@ pub trait JsonSchema {
     #[doc(hidden)]
     fn _schemars_private_is_option() -> bool {
         false
-    }
-}
-
-#[cfg(test)]
-pub mod tests {
-    use super::*;
-
-    pub fn schema_object_for<T: JsonSchema>() -> schema::SchemaObject {
-        schema_object(schema_for::<T>())
-    }
-
-    pub fn schema_for<T: JsonSchema>() -> schema::Schema {
-        let mut gen = gen::SchemaGenerator::default();
-        T::json_schema(&mut gen)
-    }
-
-    pub fn schema_object(schema: schema::Schema) -> schema::SchemaObject {
-        match schema {
-            schema::Schema::Object(o) => o,
-            s => panic!("Schema was not an object: {:?}", s),
-        }
     }
 }
