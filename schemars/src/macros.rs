@@ -83,12 +83,12 @@ macro_rules! json_schema {
     (
         {$($json_object:tt)*}
     ) => {
-        $crate::schema::Schema::try_from($crate::_serde_json::json!({$($json_object)*})).unwrap()
+        $crate::Schema::try_from($crate::_serde_json::json!({$($json_object)*})).unwrap()
     };
     (true) => {
-        $crate::schema::Schema::from(true)
+        $crate::Schema::from(true)
     };
     (false) => {
-        $crate::schema::Schema::from(false)
+        $crate::Schema::from(false)
     };
 }

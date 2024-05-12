@@ -1,6 +1,5 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{json_schema, JsonSchema, Schema};
 use std::borrow::Cow;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::path::{Path, PathBuf};
@@ -19,7 +18,7 @@ macro_rules! simple_impl {
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
-                crate::json_schema!({
+                json_schema!({
                     "type": $instance_type
                 })
             }
@@ -38,7 +37,7 @@ macro_rules! simple_impl {
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
-                crate::json_schema!({
+                json_schema!({
                     "type": $instance_type,
                     "format": $format
                 })
@@ -85,7 +84,7 @@ macro_rules! unsigned_impl {
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
-                crate::json_schema!({
+                json_schema!({
                     "type": $instance_type,
                     "format": $format,
                     "minimum": 0
@@ -114,7 +113,7 @@ impl JsonSchema for char {
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
-        crate::json_schema!({
+        json_schema!({
             "type": "string",
             "minLength": 1,
             "maxLength": 1,

@@ -3,6 +3,7 @@
 
 mod flatten;
 mod json_schema_impls;
+mod schema;
 mod ser;
 #[macro_use]
 mod macros;
@@ -12,7 +13,6 @@ mod macros;
 #[doc(hidden)]
 pub mod _private;
 pub mod gen;
-pub mod schema;
 pub mod visit;
 
 #[cfg(feature = "schemars_derive")]
@@ -26,7 +26,7 @@ pub use schemars_derive::*;
 #[doc(hidden)]
 pub use serde_json as _serde_json;
 
-use schema::Schema;
+pub use schema::Schema;
 
 /// A type which can be described as a JSON Schema document.
 ///
@@ -51,7 +51,7 @@ use schema::Schema;
 /// you will need to determine an appropriate name and ID for the type.
 /// For non-generic types, the type name/path are suitable for this:
 /// ```
-/// use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+/// use schemars::{gen::SchemaGenerator, Schema, JsonSchema};
 /// use std::borrow::Cow;
 ///
 /// struct NonGenericType;
@@ -77,7 +77,7 @@ use schema::Schema;
 ///
 /// But generic type parameters which may affect the generated schema should typically be included in the name/ID:
 /// ```
-/// use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+/// use schemars::{gen::SchemaGenerator, Schema, JsonSchema};
 /// use std::{borrow::Cow, marker::PhantomData};
 ///
 /// struct GenericType<T>(PhantomData<T>);

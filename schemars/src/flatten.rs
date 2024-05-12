@@ -1,7 +1,7 @@
 use serde_json::map::Entry;
 use serde_json::Value;
 
-use crate::schema::*;
+use crate::Schema;
 
 impl Schema {
     /// This function is only public for use by schemars_derive.

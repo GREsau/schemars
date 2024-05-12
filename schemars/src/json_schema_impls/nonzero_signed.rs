@@ -1,6 +1,5 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{JsonSchema, Schema};
 use std::borrow::Cow;
 use std::num::*;
 

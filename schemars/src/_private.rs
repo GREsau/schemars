@@ -1,6 +1,6 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::Schema;
 use crate::JsonSchema;
+use crate::Schema;
 use serde::Serialize;
 use serde_json::Map;
 use serde_json::Value;

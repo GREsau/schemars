@@ -1,6 +1,6 @@
 use pretty_assertions::assert_eq;
 use schemars::visit::Visitor;
-use schemars::{gen::SchemaSettings, schema::Schema, schema_for, JsonSchema};
+use schemars::{gen::SchemaSettings, schema_for, JsonSchema, Schema};
 use std::error::Error;
 use std::fs;
 

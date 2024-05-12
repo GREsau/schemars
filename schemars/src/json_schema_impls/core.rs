@@ -1,7 +1,5 @@
 use crate::gen::SchemaGenerator;
-use crate::json_schema;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{json_schema, JsonSchema, Schema};
 use serde_json::Value;
 use std::borrow::Cow;
 use std::ops::{Bound, Range, RangeInclusive};

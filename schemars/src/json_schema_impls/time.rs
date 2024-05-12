@@ -1,6 +1,5 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{json_schema, JsonSchema, Schema};
 use std::borrow::Cow;
 use std::time::{Duration, SystemTime};
 
@@ -14,7 +13,7 @@ impl JsonSchema for Duration {
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        crate::json_schema!({
+        json_schema!({
             "type": "object",
             "required": ["secs", "nanos"],
             "properties": {
@@ -35,7 +34,7 @@ impl JsonSchema for SystemTime {
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        crate::json_schema!({
+        json_schema!({
             "type": "object",
             "required": ["secs_since_epoch", "nanos_since_epoch"],
             "properties": {

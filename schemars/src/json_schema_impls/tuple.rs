@@ -1,6 +1,5 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{json_schema, JsonSchema, Schema};
 use std::borrow::Cow;
 
 macro_rules! tuple_impls {
@@ -24,7 +23,7 @@ macro_rules! tuple_impls {
                 }
 
                 fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                    crate::json_schema!({
+                    json_schema!({
                         "type": "array",
                         "items": [
                             $(gen.subschema_for::<$name>()),+

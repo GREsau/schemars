@@ -1,7 +1,5 @@
 use crate::gen::SchemaGenerator;
-use crate::json_schema;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{json_schema, JsonSchema, Schema};
 use std::borrow::Cow;
 
 // Does not require T: JsonSchema.

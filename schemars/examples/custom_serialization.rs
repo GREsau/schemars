@@ -1,4 +1,4 @@
-use schemars::schema::Schema;
+use schemars::Schema;
 use schemars::{gen::SchemaGenerator, schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 

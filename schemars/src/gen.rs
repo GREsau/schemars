@@ -7,7 +7,7 @@ There are two main types in this module:
 * [`SchemaGenerator`], which manages the generation of a schema document.
 */
 
-use crate::schema::*;
+use crate::Schema;
 use crate::{visit::*, JsonSchema};
 use dyn_clone::DynClone;
 use serde::Serialize;

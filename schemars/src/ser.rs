@@ -1,7 +1,5 @@
 use crate::gen::SchemaGenerator;
-use crate::json_schema;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{json_schema, JsonSchema, Schema};
 use serde_json::{Error, Map, Value};
 use std::fmt::Display;
 
@@ -39,7 +37,7 @@ macro_rules! forward_to_subschema_for {
 macro_rules! return_instance_type {
     ($fn:ident, $ty:ty, $instance_type:expr) => {
         fn $fn(self, _value: $ty) -> Result<Self::Ok, Self::Error> {
-            Ok(crate::json_schema!({
+            Ok(json_schema!({
                 "type": $instance_type
             }))
         }
