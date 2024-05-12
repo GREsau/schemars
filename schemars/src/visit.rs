@@ -7,27 +7,29 @@ All methods of `Visitor` have a default implementation that makes no change but 
 When overriding one of these methods, you will *usually* want to still call this default implementation.
 
 # Example
-To add a custom property to all schemas:
+To add a custom property to all object schemas:
 ```
-use schemars::schema::SchemaObject;
-use schemars::visit::{Visitor, visit_schema_object};
+use schemars::Schema;
+use schemars::visit::{Visitor, visit_schema};
 
 pub struct MyVisitor;
 
 impl Visitor for MyVisitor {
-    fn visit_schema_object(&mut self, schema: &mut SchemaObject) {
+    fn visit_schema(&mut self, schema: &mut Schema) {
         // First, make our change to this schema
-        schema.extensions.insert("my_property".to_string(), serde_json::json!("hello world"));
+        if let Some(obj) = schema.as_object_mut() {
+            obj.insert("my_property".to_string(), serde_json::json!("hello world"));
+        }
 
         // Then delegate to default implementation to visit any subschemas
-        visit_schema_object(self, schema);
+        visit_schema(self, schema);
     }
 }
 ```
 */
 use serde_json::{json, Value};
 
-use crate::schema::Schema;
+use crate::Schema;
 
 /// Trait used to recursively modify a constructed schema and its subschemas.
 pub trait Visitor {
