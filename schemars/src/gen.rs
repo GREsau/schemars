@@ -88,7 +88,7 @@ impl SchemaSettings {
             option_add_null_type: false,
             definitions_path: "#/components/schemas/".to_owned(),
             meta_schema: Some(
-                "https://spec.openapis.org/oas/3.0/schema/2019-04-02#/definitions/Schema"
+                "https://spec.openapis.org/oas/3.0/schema/2021-09-28#/definitions/Schema"
                     .to_owned(),
             ),
             visitors: vec![

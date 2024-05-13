@@ -1,23 +1,8 @@
 {
-  "$schema": "https://spec.openapis.org/oas/3.0/schema/2019-04-02#/definitions/Schema",
+  "$schema": "https://spec.openapis.org/oas/3.0/schema/2021-09-28#/definitions/Schema",
   "title": "Outer",
   "type": "object",
-  "required": [
-    "int",
-    "value",
-    "values"
-  ],
   "properties": {
-    "int": {
-      "type": "integer",
-      "format": "int32",
-      "example": 8
-    },
-    "values": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "value": {},
     "inner": {
       "allOf": [
         {
@@ -25,8 +10,23 @@
         }
       ],
       "nullable": true
+    },
+    "int": {
+      "type": "integer",
+      "format": "int32",
+      "example": 8
+    },
+    "value": {},
+    "values": {
+      "type": "object",
+      "additionalProperties": true
     }
   },
+  "required": [
+    "int",
+    "value",
+    "values"
+  ],
   "definitions": {
     "Inner": {
       "oneOf": [
@@ -46,13 +46,13 @@
         },
         {
           "type": "object",
-          "required": [
-            "ValueNewType"
-          ],
+          "additionalProperties": false,
           "properties": {
             "ValueNewType": {}
           },
-          "additionalProperties": false
+          "required": [
+            "ValueNewType"
+          ]
         }
       ]
     }

@@ -1,58 +1,7 @@
 {
-  "$schema": "https://spec.openapis.org/oas/3.0/schema/2019-04-02#/definitions/Schema",
+  "$schema": "https://spec.openapis.org/oas/3.0/schema/2021-09-28#/definitions/Schema",
   "title": "MyStruct",
   "type": "object",
-  "properties": {
-    "myInt": {
-      "type": "integer"
-    },
-    "myBool": {
-      "type": "boolean"
-    },
-    "myNullableEnum": {
-      "nullable": true
-    },
-    "myInnerStruct": {
-      "type": "object",
-      "properties": {
-        "my_map": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "number"
-          }
-        },
-        "my_vec": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "my_empty_map": {
-          "type": "object",
-          "additionalProperties": true
-        },
-        "my_empty_vec": {
-          "type": "array",
-          "items": {}
-        },
-        "my_tuple": {
-          "type": "array",
-          "items": [
-            {
-              "type": "string",
-              "maxLength": 1,
-              "minLength": 1
-            },
-            {
-              "type": "integer"
-            }
-          ],
-          "maxItems": 2,
-          "minItems": 2
-        }
-      }
-    }
-  },
   "example": {
     "myBool": true,
     "myInnerStruct": {
@@ -72,5 +21,56 @@
     },
     "myInt": 123,
     "myNullableEnum": null
+  },
+  "properties": {
+    "myBool": {
+      "type": "boolean"
+    },
+    "myInnerStruct": {
+      "type": "object",
+      "properties": {
+        "my_empty_map": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "my_empty_vec": {
+          "type": "array",
+          "items": {}
+        },
+        "my_map": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "my_tuple": {
+          "type": "array",
+          "items": [
+            {
+              "type": "string",
+              "maxLength": 1,
+              "minLength": 1
+            },
+            {
+              "type": "integer"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2
+        },
+        "my_vec": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "myInt": {
+      "type": "integer"
+    },
+    "myNullableEnum": {
+      "nullable": true
+    }
   }
 }
