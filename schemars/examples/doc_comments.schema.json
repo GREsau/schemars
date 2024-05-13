@@ -3,10 +3,6 @@
   "title": "My Amazing Struct",
   "description": "This struct shows off generating a schema with a custom title and description.",
   "type": "object",
-  "required": [
-    "my_bool",
-    "my_int"
-  ],
   "properties": {
     "my_bool": {
       "description": "This bool has a description, but no title.",
@@ -30,6 +26,10 @@
       ]
     }
   },
+  "required": [
+    "my_int",
+    "my_bool"
+  ],
   "definitions": {
     "MyEnum": {
       "title": "My Amazing Enum",
@@ -37,28 +37,22 @@
         {
           "description": "A wrapper around a `String`",
           "type": "object",
-          "required": [
-            "StringNewType"
-          ],
           "properties": {
             "StringNewType": {
               "type": "string"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": [
+            "StringNewType"
+          ]
         },
         {
           "description": "A struct-like enum variant which contains some floats",
           "type": "object",
-          "required": [
-            "StructVariant"
-          ],
           "properties": {
             "StructVariant": {
               "type": "object",
-              "required": [
-                "floats"
-              ],
               "properties": {
                 "floats": {
                   "description": "The floats themselves",
@@ -68,10 +62,16 @@
                     "format": "float"
                   }
                 }
-              }
+              },
+              "required": [
+                "floats"
+              ]
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": [
+            "StructVariant"
+          ]
         }
       ]
     }

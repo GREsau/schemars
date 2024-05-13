@@ -2,17 +2,11 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyStruct",
   "type": "object",
-  "required": [
-    "myBool",
-    "myNumber",
-    "myVecStr"
-  ],
   "properties": {
     "myBool": {
       "type": "boolean"
     },
     "myNullableEnum": {
-      "default": null,
       "anyOf": [
         {
           "$ref": "#/definitions/MyEnum"
@@ -20,13 +14,14 @@
         {
           "type": "null"
         }
-      ]
+      ],
+      "default": null
     },
     "myNumber": {
       "type": "integer",
       "format": "int32",
-      "maximum": 10.0,
-      "minimum": 1.0
+      "maximum": 10,
+      "minimum": 1
     },
     "myVecStr": {
       "type": "array",
@@ -37,6 +32,11 @@
     }
   },
   "additionalProperties": false,
+  "required": [
+    "myNumber",
+    "myBool",
+    "myVecStr"
+  ],
   "definitions": {
     "MyEnum": {
       "anyOf": [
@@ -46,9 +46,6 @@
         },
         {
           "type": "object",
-          "required": [
-            "floats"
-          ],
           "properties": {
             "floats": {
               "type": "array",
@@ -59,7 +56,10 @@
               "maxItems": 100,
               "minItems": 1
             }
-          }
+          },
+          "required": [
+            "floats"
+          ]
         }
       ]
     }

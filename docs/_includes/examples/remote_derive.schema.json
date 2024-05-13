@@ -2,11 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Process",
   "type": "object",
-  "required": [
-    "command_line",
-    "durations",
-    "wall_time"
-  ],
   "properties": {
     "command_line": {
       "type": "string"
@@ -21,13 +16,14 @@
       "$ref": "#/definitions/Duration"
     }
   },
+  "required": [
+    "command_line",
+    "wall_time",
+    "durations"
+  ],
   "definitions": {
     "Duration": {
       "type": "object",
-      "required": [
-        "nanos",
-        "secs"
-      ],
       "properties": {
         "nanos": {
           "type": "integer",
@@ -37,7 +33,11 @@
           "type": "integer",
           "format": "int64"
         }
-      }
+      },
+      "required": [
+        "secs",
+        "nanos"
+      ]
     }
   }
 }
