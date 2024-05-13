@@ -53,17 +53,16 @@ impl<T: Serialize> MaybeSerializeWrapper<T> {
     }
 }
 
-/// Create a schema for a unit enum
-pub fn new_unit_enum(variant: &str) -> Schema {
-    // TODO switch from single-valued "enum" to "const"
+/// Create a schema for a unit enum variant
+pub fn new_unit_enum_variant(variant: &str) -> Schema {
     json_schema!({
         "type": "string",
-        "enum": [variant],
+        "const": variant,
     })
 }
 
-/// Create a schema for an externally tagged enum
-pub fn new_externally_tagged_enum(variant: &str, sub_schema: Schema) -> Schema {
+/// Create a schema for an externally tagged enum variant
+pub fn new_externally_tagged_enum_variant(variant: &str, sub_schema: Schema) -> Schema {
     json_schema!({
         "type": "object",
         "properties": {
@@ -74,7 +73,8 @@ pub fn new_externally_tagged_enum(variant: &str, sub_schema: Schema) -> Schema {
     })
 }
 
-pub fn apply_internal_enum_tag(
+/// Update a schema for an internally tagged enum variant
+pub fn apply_internal_enum_variant_tag(
     schema: &mut Schema,
     tag_name: &str,
     variant: &str,
@@ -94,8 +94,7 @@ pub fn apply_internal_enum_tag(
             tag_name.to_string(),
             json!({
                 "type": "string",
-                // TODO switch from single-valued "enum" to "const"
-                "enum": [variant]
+                "const": variant
             }),
         );
     }
@@ -111,34 +110,6 @@ pub fn apply_internal_enum_tag(
     if deny_unknown_fields && is_unit {
         obj.entry("additionalProperties").or_insert(false.into());
     }
-}
-
-/// Create a schema for an internally tagged enum
-pub fn new_internally_tagged_enum(
-    tag_name: &str,
-    variant: &str,
-    deny_unknown_fields: bool,
-) -> Schema {
-    // TODO switch from single-valued "enum" to "const"
-    let mut schema = json_schema!({
-        "type": "object",
-        "properties": {
-            tag_name: {
-                "type": "string",
-                "enum": [variant],
-            }
-        },
-        "required": [tag_name],
-    });
-
-    if deny_unknown_fields {
-        schema
-            .as_object_mut()
-            .unwrap()
-            .insert("additionalProperties".into(), false.into());
-    }
-
-    schema
 }
 
 pub fn insert_object_property<T: ?Sized + JsonSchema>(

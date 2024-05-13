@@ -197,12 +197,12 @@ fn expr_for_external_tagged_enum<'a>(
 
         let mut schema_expr = if variant.is_unit() && variant.attrs.with.is_none() {
             quote! {
-                schemars::_private::new_unit_enum(#name)
+                schemars::_private::new_unit_enum_variant(#name)
             }
         } else {
             let sub_schema = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
             quote! {
-                schemars::_private::new_externally_tagged_enum(#name, #sub_schema)
+                schemars::_private::new_externally_tagged_enum_variant(#name, #sub_schema)
             }
         };
 
@@ -236,7 +236,7 @@ fn expr_for_internal_tagged_enum<'a>(
 
             quote!({
                 let mut schema = #schema_expr;
-                schemars::_private::apply_internal_enum_tag(&mut schema, #tag_name, #name, #deny_unknown_fields);
+                schemars::_private::apply_internal_enum_variant_tag(&mut schema, #tag_name, #name, #deny_unknown_fields);
                 schema
             })
         })

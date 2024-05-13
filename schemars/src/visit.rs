@@ -169,3 +169,21 @@ impl Visitor for SetSingleExample {
         }
     }
 }
+
+/// This visitor will replace the `const` schema property with a single-valued `enum` property.
+///
+/// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support the `const` property.
+#[derive(Debug, Clone)]
+pub struct ReplaceConstValue;
+
+impl Visitor for ReplaceConstValue {
+    fn visit_schema(&mut self, schema: &mut Schema) {
+        visit_schema(self, schema);
+
+        if let Some(obj) = schema.as_object_mut() {
+            if let Some(value) = obj.remove("const") {
+                obj.insert("enum".into(), Value::Array(vec![value]));
+            }
+        }
+    }
+}
