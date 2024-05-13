@@ -2,6 +2,7 @@ use crate::gen::SchemaGenerator;
 use crate::JsonSchema;
 use crate::Schema;
 use serde::Serialize;
+use serde_json::json;
 use serde_json::Map;
 use serde_json::Value;
 
@@ -71,6 +72,45 @@ pub fn new_externally_tagged_enum(variant: &str, sub_schema: Schema) -> Schema {
         "required": [variant],
         "additionalProperties": false,
     })
+}
+
+pub fn apply_internal_enum_tag(
+    schema: &mut Schema,
+    tag_name: &str,
+    variant: &str,
+    deny_unknown_fields: bool,
+) {
+    let obj = schema.ensure_object();
+    let is_unit = obj.get("type").is_some_and(|t| t.as_str() == Some("null"));
+
+    obj.insert("type".to_owned(), "object".into());
+
+    if let Some(properties) = obj
+        .entry("properties")
+        .or_insert(Value::Object(Map::new()))
+        .as_object_mut()
+    {
+        properties.insert(
+            tag_name.to_string(),
+            json!({
+                "type": "string",
+                // TODO switch from single-valued "enum" to "const"
+                "enum": [variant]
+            }),
+        );
+    }
+
+    if let Some(required) = obj
+        .entry("required")
+        .or_insert(Value::Array(Vec::new()))
+        .as_array_mut()
+    {
+        required.insert(0, tag_name.into());
+    }
+
+    if deny_unknown_fields && is_unit {
+        obj.entry("additionalProperties").or_insert(false.into());
+    }
 }
 
 /// Create a schema for an internally tagged enum

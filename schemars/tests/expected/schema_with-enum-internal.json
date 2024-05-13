@@ -21,10 +21,7 @@
       }
     },
     {
-      "type": [
-        "object",
-        "boolean"
-      ],
+      "type": "object",
       "required": [
         "typeProperty"
       ],
@@ -38,10 +35,7 @@
       }
     },
     {
-      "type": [
-        "object",
-        "boolean"
-      ],
+      "type": "object",
       "required": [
         "typeProperty"
       ],

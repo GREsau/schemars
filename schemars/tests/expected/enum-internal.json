@@ -28,6 +28,9 @@
             "StringMap"
           ]
         }
+      },
+      "additionalProperties": {
+        "type": "string"
       }
     },
     {
@@ -105,10 +108,7 @@
       }
     },
     {
-      "type": [
-        "object",
-        "integer"
-      ],
+      "type": "object",
       "format": "int32",
       "required": [
         "typeProperty"

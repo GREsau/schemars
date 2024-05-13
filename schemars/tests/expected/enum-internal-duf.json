@@ -112,10 +112,7 @@
       "additionalProperties": false
     },
     {
-      "type": [
-        "object",
-        "integer"
-      ],
+      "type": "object",
       "format": "int32",
       "required": [
         "typeProperty"

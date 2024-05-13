@@ -231,19 +231,14 @@ fn expr_for_internal_tagged_enum<'a>(
 
             let name = variant.name();
 
-            let mut tag_schema = quote! {
-                schemars::_private::new_internally_tagged_enum(#tag_name, #name, #deny_unknown_fields)
-            };
+            let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
+            variant.attrs.as_metadata().apply_to_schema(&mut schema_expr);
 
-            variant.attrs.as_metadata().apply_to_schema(&mut tag_schema);
-
-            if let Some(variant_schema) =
-                expr_for_untagged_enum_variant_for_flatten(variant, deny_unknown_fields)
-            {
-                tag_schema.extend(quote!(.flatten(#variant_schema)))
-            }
-
-            tag_schema
+            quote!({
+                let mut schema = #schema_expr;
+                schemars::_private::apply_internal_enum_tag(&mut schema, #tag_name, #name, #deny_unknown_fields);
+                schema
+            })
         })
         .collect();
 
@@ -383,10 +378,10 @@ fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) 
     }
 }
 
-fn expr_for_untagged_enum_variant_for_flatten(
+fn expr_for_internal_tagged_enum_variant(
     variant: &Variant,
     deny_unknown_fields: bool,
-) -> Option<TokenStream> {
+) -> TokenStream {
     if let Some(with_attr) = &variant.attrs.with {
         let (ty, type_def) = type_for_schema(with_attr);
         let gen = quote!(gen);
@@ -395,15 +390,15 @@ fn expr_for_untagged_enum_variant_for_flatten(
         };
 
         prepend_type_def(type_def, &mut schema_expr);
-        return Some(schema_expr);
+        return schema_expr;
     }
 
-    Some(match variant.style {
-        Style::Unit => return None,
+    match variant.style {
+        Style::Unit => expr_for_unit_struct(),
         Style::Newtype => expr_for_field(&variant.fields[0], false),
         Style::Tuple => expr_for_tuple_struct(&variant.fields),
         Style::Struct => expr_for_struct(&variant.fields, &SerdeDefault::None, deny_unknown_fields),
-    })
+    }
 }
 
 fn expr_for_unit_struct() -> TokenStream {
