@@ -81,7 +81,7 @@ pub fn apply_internal_enum_tag(
     deny_unknown_fields: bool,
 ) {
     let obj = schema.ensure_object();
-    let is_unit = obj.get("type").is_some_and(|t| t.as_str() == Some("null"));
+    let is_unit = obj.get("type").and_then(|t| t.as_str()) == Some("null");
 
     obj.insert("type".to_owned(), "object".into());
 
