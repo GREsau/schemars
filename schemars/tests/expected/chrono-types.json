@@ -2,26 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "ChronoTypes",
   "type": "object",
-  "required": [
-    "date_time",
-    "naive_date",
-    "naive_date_time",
-    "naive_time",
-    "weekday"
-  ],
   "properties": {
-    "weekday": {
-      "type": "string",
-      "enum": [
-        "Mon",
-        "Tue",
-        "Wed",
-        "Thu",
-        "Fri",
-        "Sat",
-        "Sun"
-      ]
-    },
     "date_time": {
       "type": "string",
       "format": "date-time"
@@ -37,6 +18,25 @@
     "naive_time": {
       "type": "string",
       "format": "partial-date-time"
+    },
+    "weekday": {
+      "type": "string",
+      "enum": [
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Sat",
+        "Sun"
+      ]
     }
-  }
+  },
+  "required": [
+    "date_time",
+    "naive_date",
+    "naive_date_time",
+    "naive_time",
+    "weekday"
+  ]
 }

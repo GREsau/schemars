@@ -2,49 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Struct2",
   "type": "object",
-  "required": [
-    "contains_str1",
-    "contains_str2",
-    "email_address",
-    "homepage",
-    "map_contains",
-    "min_max",
-    "min_max2",
-    "non_empty_str",
-    "non_empty_str2",
-    "pair",
-    "regex_str1",
-    "regex_str2",
-    "regex_str3",
-    "required_option",
-    "tel",
-    "x"
-  ],
   "properties": {
-    "min_max": {
-      "type": "number",
-      "format": "float",
-      "maximum": 100.0,
-      "minimum": 0.01
-    },
-    "min_max2": {
-      "type": "number",
-      "format": "float",
-      "maximum": 1000.0,
-      "minimum": 1.0
-    },
-    "regex_str1": {
-      "type": "string",
-      "pattern": "^[Hh]ello\\b"
-    },
-    "regex_str2": {
-      "type": "string",
-      "pattern": "^[Hh]ello\\b"
-    },
-    "regex_str3": {
-      "type": "string",
-      "pattern": "^\\d+$"
-    },
     "contains_str1": {
       "type": "string",
       "pattern": "substring\\.\\.\\."
@@ -57,13 +15,30 @@
       "type": "string",
       "format": "email"
     },
-    "tel": {
-      "type": "string",
-      "format": "phone"
-    },
     "homepage": {
       "type": "string",
       "format": "uri"
+    },
+    "map_contains": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "null"
+      },
+      "required": [
+        "map_key"
+      ]
+    },
+    "min_max": {
+      "type": "number",
+      "format": "float",
+      "maximum": 100.0,
+      "minimum": 0.01
+    },
+    "min_max2": {
+      "type": "number",
+      "format": "float",
+      "maximum": 1000.0,
+      "minimum": 1.0
     },
     "non_empty_str": {
       "type": "string",
@@ -84,21 +59,46 @@
       "maxItems": 2,
       "minItems": 2
     },
-    "map_contains": {
-      "type": "object",
-      "required": [
-        "map_key"
-      ],
-      "additionalProperties": {
-        "type": "null"
-      }
+    "regex_str1": {
+      "type": "string",
+      "pattern": "^[Hh]ello\\b"
+    },
+    "regex_str2": {
+      "type": "string",
+      "pattern": "^[Hh]ello\\b"
+    },
+    "regex_str3": {
+      "type": "string",
+      "pattern": "^\\d+$"
     },
     "required_option": {
       "type": "boolean"
+    },
+    "tel": {
+      "type": "string",
+      "format": "phone"
     },
     "x": {
       "type": "integer",
       "format": "int32"
     }
-  }
+  },
+  "required": [
+    "contains_str1",
+    "contains_str2",
+    "email_address",
+    "homepage",
+    "map_contains",
+    "min_max",
+    "min_max2",
+    "non_empty_str",
+    "non_empty_str2",
+    "pair",
+    "regex_str1",
+    "regex_str2",
+    "regex_str3",
+    "required_option",
+    "tel",
+    "x"
+  ]
 }

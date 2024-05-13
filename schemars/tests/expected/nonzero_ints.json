@@ -2,17 +2,13 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyStruct",
   "type": "object",
-  "required": [
-    "nonzero_signed",
-    "nonzero_unsigned",
-    "signed",
-    "unsigned"
-  ],
   "properties": {
-    "unsigned": {
+    "nonzero_signed": {
       "type": "integer",
-      "format": "uint32",
-      "minimum": 0.0
+      "format": "int32",
+      "not": {
+        "const": 0
+      }
     },
     "nonzero_unsigned": {
       "type": "integer",
@@ -23,12 +19,16 @@
       "type": "integer",
       "format": "int32"
     },
-    "nonzero_signed": {
+    "unsigned": {
       "type": "integer",
-      "format": "int32",
-      "not": {
-        "const": 0
-      }
+      "format": "uint32",
+      "minimum": 0.0
     }
-  }
+  },
+  "required": [
+    "nonzero_signed",
+    "nonzero_unsigned",
+    "signed",
+    "unsigned"
+  ]
 }

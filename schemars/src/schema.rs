@@ -179,8 +179,17 @@ mod ser {
     use serde::ser::{Serialize, SerializeMap, SerializeSeq};
     use serde_json::Value;
 
-    const ORDERED_KEYWORDS_START: [&str; 6] =
-        ["$id", "$schema", "title", "description", "type", "format"];
+    // The order of properties in a JSON Schema object is insignificant, but we explicitly order
+    // some of them here to make them easier for a human to read.
+    const ORDERED_KEYWORDS_START: [&str; 7] = [
+        "$id",
+        "$schema",
+        "title",
+        "description",
+        "type",
+        "format",
+        "properties",
+    ];
     const ORDERED_KEYWORDS_END: [&str; 2] = ["$defs", "definitions"];
 
     pub(super) struct OrderedKeywordWrapper<'a>(pub &'a Value);

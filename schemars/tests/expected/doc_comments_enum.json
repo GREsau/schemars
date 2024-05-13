@@ -21,9 +21,6 @@
       "title": "Complex variant",
       "description": "This is a struct-like variant.",
       "type": "object",
-      "required": [
-        "Complex"
-      ],
       "properties": {
         "Complex": {
           "type": "object",
@@ -39,7 +36,10 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "Complex"
+      ]
     }
   ]
 }

@@ -4,21 +4,17 @@
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "c",
-        "t"
-      ],
       "properties": {
         "c": {
           "type": "object",
-          "required": [
-            "foo"
-          ],
           "properties": {
             "foo": {
               "type": "boolean"
             }
-          }
+          },
+          "required": [
+            "foo"
+          ]
         },
         "t": {
           "type": "string",
@@ -26,14 +22,14 @@
             "Struct"
           ]
         }
-      }
-    },
-    {
-      "type": "object",
+      },
       "required": [
         "c",
         "t"
-      ],
+      ]
+    },
+    {
+      "type": "object",
       "properties": {
         "c": {
           "type": "boolean"
@@ -44,14 +40,14 @@
             "NewType"
           ]
         }
-      }
-    },
-    {
-      "type": "object",
+      },
       "required": [
         "c",
         "t"
-      ],
+      ]
+    },
+    {
+      "type": "object",
       "properties": {
         "c": {
           "type": "array",
@@ -73,14 +69,14 @@
             "Tuple"
           ]
         }
-      }
-    },
-    {
-      "type": "object",
+      },
       "required": [
         "c",
         "t"
-      ],
+      ]
+    },
+    {
+      "type": "object",
       "properties": {
         "c": {
           "type": "boolean"
@@ -91,7 +87,11 @@
             "Unit"
           ]
         }
-      }
+      },
+      "required": [
+        "c",
+        "t"
+      ]
     }
   ]
 }

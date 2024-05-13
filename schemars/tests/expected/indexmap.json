@@ -2,10 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "IndexMapTypes",
   "type": "object",
-  "required": [
-    "map",
-    "set"
-  ],
   "properties": {
     "map": {
       "type": "object",
@@ -21,5 +17,9 @@
       },
       "uniqueItems": true
     }
-  }
+  },
+  "required": [
+    "map",
+    "set"
+  ]
 }

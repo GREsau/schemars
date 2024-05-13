@@ -4,9 +4,6 @@
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "t"
-      ],
       "properties": {
         "t": {
           "type": "string",
@@ -14,14 +11,13 @@
             "UnitOne"
           ]
         }
-      }
+      },
+      "required": [
+        "t"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "c",
-        "t"
-      ],
       "properties": {
         "c": {
           "type": "object",
@@ -35,14 +31,14 @@
             "StringMap"
           ]
         }
-      }
-    },
-    {
-      "type": "object",
+      },
       "required": [
         "c",
         "t"
-      ],
+      ]
+    },
+    {
+      "type": "object",
       "properties": {
         "c": {
           "$ref": "#/definitions/UnitStruct"
@@ -53,14 +49,14 @@
             "UnitStructNewType"
           ]
         }
-      }
-    },
-    {
-      "type": "object",
+      },
       "required": [
         "c",
         "t"
-      ],
+      ]
+    },
+    {
+      "type": "object",
       "properties": {
         "c": {
           "$ref": "#/definitions/Struct"
@@ -71,21 +67,17 @@
             "StructNewType"
           ]
         }
-      }
-    },
-    {
-      "type": "object",
+      },
       "required": [
         "c",
         "t"
-      ],
+      ]
+    },
+    {
+      "type": "object",
       "properties": {
         "c": {
           "type": "object",
-          "required": [
-            "bar",
-            "foo"
-          ],
           "properties": {
             "bar": {
               "type": "boolean"
@@ -94,7 +86,11 @@
               "type": "integer",
               "format": "int32"
             }
-          }
+          },
+          "required": [
+            "bar",
+            "foo"
+          ]
         },
         "t": {
           "type": "string",
@@ -102,14 +98,14 @@
             "Struct"
           ]
         }
-      }
-    },
-    {
-      "type": "object",
+      },
       "required": [
         "c",
         "t"
-      ],
+      ]
+    },
+    {
+      "type": "object",
       "properties": {
         "c": {
           "type": "array",
@@ -131,13 +127,14 @@
             "Tuple"
           ]
         }
-      }
+      },
+      "required": [
+        "c",
+        "t"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "t"
-      ],
       "properties": {
         "t": {
           "type": "string",
@@ -145,14 +142,13 @@
             "UnitTwo"
           ]
         }
-      }
+      },
+      "required": [
+        "t"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "c",
-        "t"
-      ],
       "properties": {
         "c": {
           "type": "integer",
@@ -164,16 +160,16 @@
             "WithInt"
           ]
         }
-      }
+      },
+      "required": [
+        "c",
+        "t"
+      ]
     }
   ],
   "definitions": {
     "Struct": {
       "type": "object",
-      "required": [
-        "bar",
-        "foo"
-      ],
       "properties": {
         "bar": {
           "type": "boolean"
@@ -182,7 +178,11 @@
           "type": "integer",
           "format": "int32"
         }
-      }
+      },
+      "required": [
+        "bar",
+        "foo"
+      ]
     },
     "UnitStruct": {
       "type": "null"

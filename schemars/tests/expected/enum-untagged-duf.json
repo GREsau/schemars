@@ -19,20 +19,20 @@
     },
     {
       "type": "object",
-      "required": [
-        "bar",
-        "foo"
-      ],
       "properties": {
+        "bar": {
+          "type": "boolean"
+        },
         "foo": {
           "type": "integer",
           "format": "int32"
-        },
-        "bar": {
-          "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "bar",
+        "foo"
+      ]
     },
     {
       "type": "array",
@@ -54,24 +54,24 @@
     }
   ],
   "definitions": {
-    "UnitStruct": {
-      "type": "null"
-    },
     "Struct": {
       "type": "object",
-      "required": [
-        "bar",
-        "foo"
-      ],
       "properties": {
+        "bar": {
+          "type": "boolean"
+        },
         "foo": {
           "type": "integer",
           "format": "int32"
-        },
-        "bar": {
-          "type": "boolean"
         }
-      }
+      },
+      "required": [
+        "bar",
+        "foo"
+      ]
+    },
+    "UnitStruct": {
+      "type": "null"
     }
   }
 }

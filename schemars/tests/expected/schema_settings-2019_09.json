@@ -2,25 +2,7 @@
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "title": "Outer",
   "type": "object",
-  "required": [
-    "int",
-    "value",
-    "values"
-  ],
   "properties": {
-    "int": {
-      "examples": [
-        8,
-        null
-      ],
-      "type": "integer",
-      "format": "int32"
-    },
-    "values": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "value": true,
     "inner": {
       "anyOf": [
         {
@@ -30,8 +12,26 @@
           "type": "null"
         }
       ]
+    },
+    "int": {
+      "type": "integer",
+      "format": "int32",
+      "examples": [
+        8,
+        null
+      ]
+    },
+    "value": true,
+    "values": {
+      "type": "object",
+      "additionalProperties": true
     }
   },
+  "required": [
+    "int",
+    "value",
+    "values"
+  ],
   "definitions": {
     "Inner": {
       "oneOf": [
@@ -51,13 +51,13 @@
         },
         {
           "type": "object",
-          "required": [
-            "ValueNewType"
-          ],
           "properties": {
             "ValueNewType": true
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": [
+            "ValueNewType"
+          ]
         }
       ]
     }

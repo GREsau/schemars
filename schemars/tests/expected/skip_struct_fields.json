@@ -2,23 +2,23 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyStruct",
   "type": "object",
+  "properties": {
+    "included": {
+      "type": "null"
+    },
+    "readable": {
+      "type": "string",
+      "default": "",
+      "readOnly": true
+    },
+    "writable": {
+      "type": "number",
+      "format": "float",
+      "writeOnly": true
+    }
+  },
   "required": [
     "included",
     "writable"
-  ],
-  "properties": {
-    "readable": {
-      "default": "",
-      "readOnly": true,
-      "type": "string"
-    },
-    "writable": {
-      "writeOnly": true,
-      "type": "number",
-      "format": "float"
-    },
-    "included": {
-      "type": "null"
-    }
-  }
+  ]
 }

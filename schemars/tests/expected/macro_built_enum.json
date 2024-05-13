@@ -4,29 +4,29 @@
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "InnerStruct"
-      ],
       "properties": {
         "InnerStruct": {
           "$ref": "#/definitions/InnerStruct"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "InnerStruct"
+      ]
     }
   ],
   "definitions": {
     "InnerStruct": {
       "type": "object",
-      "required": [
-        "x"
-      ],
       "properties": {
         "x": {
           "type": "integer",
           "format": "int32"
         }
-      }
+      },
+      "required": [
+        "x"
+      ]
     }
   }
 }

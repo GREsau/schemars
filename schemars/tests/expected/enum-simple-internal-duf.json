@@ -4,9 +4,6 @@
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -15,13 +12,13 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -30,13 +27,13 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -45,7 +42,10 @@
           ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "typeProperty"
+      ]
     }
   ]
 }

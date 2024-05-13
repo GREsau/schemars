@@ -2,26 +2,6 @@
   "$schema": "https://spec.openapis.org/oas/3.0/schema/2021-09-28#/definitions/Schema",
   "title": "MyStruct",
   "type": "object",
-  "example": {
-    "myBool": true,
-    "myInnerStruct": {
-      "my_empty_map": {},
-      "my_empty_vec": [],
-      "my_map": {
-        "": 0.0
-      },
-      "my_tuple": [
-        "💩",
-        42
-      ],
-      "my_vec": [
-        "hello",
-        "world"
-      ]
-    },
-    "myInt": 123,
-    "myNullableEnum": null
-  },
   "properties": {
     "myBool": {
       "type": "boolean"
@@ -72,5 +52,25 @@
     "myNullableEnum": {
       "nullable": true
     }
+  },
+  "example": {
+    "myBool": true,
+    "myInnerStruct": {
+      "my_empty_map": {},
+      "my_empty_vec": [],
+      "my_map": {
+        "": 0.0
+      },
+      "my_tuple": [
+        "💩",
+        42
+      ],
+      "my_vec": [
+        "hello",
+        "world"
+      ]
+    },
+    "myInt": 123,
+    "myNullableEnum": null
   }
 }

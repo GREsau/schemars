@@ -10,16 +10,16 @@
     },
     {
       "type": "object",
-      "required": [
-        "Included1"
-      ],
       "properties": {
         "Included1": {
           "type": "number",
           "format": "float"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "Included1"
+      ]
     }
   ]
 }

@@ -4,9 +4,6 @@
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -14,13 +11,13 @@
             "UnitOne"
           ]
         }
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -31,13 +28,13 @@
       },
       "additionalProperties": {
         "type": "string"
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -45,15 +42,13 @@
             "UnitStructNewType"
           ]
         }
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "bar",
-        "foo",
-        "typeProperty"
-      ],
       "properties": {
         "bar": {
           "type": "boolean"
@@ -68,15 +63,15 @@
             "StructNewType"
           ]
         }
-      }
-    },
-    {
-      "type": "object",
+      },
       "required": [
         "bar",
         "foo",
         "typeProperty"
-      ],
+      ]
+    },
+    {
+      "type": "object",
       "properties": {
         "bar": {
           "type": "boolean"
@@ -91,13 +86,15 @@
             "Struct"
           ]
         }
-      }
+      },
+      "required": [
+        "bar",
+        "foo",
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -105,14 +102,14 @@
             "UnitTwo"
           ]
         }
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
       "format": "int32",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -120,7 +117,10 @@
             "WithInt"
           ]
         }
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     }
   ]
 }

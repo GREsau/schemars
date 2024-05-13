@@ -46,10 +46,10 @@
         },
         {
           "type": "object",
-          "additionalProperties": false,
           "properties": {
             "ValueNewType": {}
           },
+          "additionalProperties": false,
           "required": [
             "ValueNewType"
           ]

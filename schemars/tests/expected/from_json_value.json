@@ -1,21 +1,5 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "examples": [
-    {
-      "bool": true,
-      "minusOne": -1,
-      "null": null,
-      "object": {
-        "array": [
-          "foo",
-          "bar"
-        ]
-      },
-      "one": 1,
-      "zero": 0,
-      "zeroPointZero": 0.0
-    }
-  ],
   "type": "object",
   "properties": {
     "bool": {
@@ -45,5 +29,21 @@
     "zeroPointZero": {
       "type": "number"
     }
-  }
+  },
+  "examples": [
+    {
+      "bool": true,
+      "minusOne": -1,
+      "null": null,
+      "object": {
+        "array": [
+          "foo",
+          "bar"
+        ]
+      },
+      "one": 1,
+      "zero": 0,
+      "zeroPointZero": 0.0
+    }
+  ]
 }

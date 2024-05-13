@@ -4,10 +4,6 @@
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "foo",
-        "typeProperty"
-      ],
       "properties": {
         "foo": {
           "type": "boolean"
@@ -18,13 +14,14 @@
             "Struct"
           ]
         }
-      }
+      },
+      "required": [
+        "foo",
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -32,13 +29,13 @@
             "NewType"
           ]
         }
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
@@ -46,7 +43,10 @@
             "Unit"
           ]
         }
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     }
   ]
 }

@@ -10,38 +10,38 @@
       ]
     },
     {
-      "deprecated": true,
       "type": "string",
+      "deprecated": true,
       "enum": [
         "DeprecatedUnitVariant"
       ]
     },
     {
-      "deprecated": true,
       "type": "object",
-      "required": [
-        "DeprecatedStructVariant"
-      ],
       "properties": {
         "DeprecatedStructVariant": {
           "type": "object",
-          "required": [
-            "deprecated_field",
-            "foo"
-          ],
           "properties": {
             "deprecated_field": {
-              "deprecated": true,
-              "type": "boolean"
+              "type": "boolean",
+              "deprecated": true
             },
             "foo": {
               "type": "integer",
               "format": "int32"
             }
-          }
+          },
+          "required": [
+            "deprecated_field",
+            "foo"
+          ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "deprecated": true,
+      "required": [
+        "DeprecatedStructVariant"
+      ]
     }
   ]
 }

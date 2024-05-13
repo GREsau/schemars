@@ -18,14 +18,14 @@
         "object",
         "null"
       ],
-      "required": [
-        "recursive"
-      ],
       "properties": {
         "recursive": {
           "$ref": "#/definitions/RecursiveOuter"
         }
-      }
+      },
+      "required": [
+        "recursive"
+      ]
     }
   },
   "definitions": {
@@ -47,14 +47,14 @@
             "object",
             "null"
           ],
-          "required": [
-            "recursive"
-          ],
           "properties": {
             "recursive": {
               "$ref": "#/definitions/RecursiveOuter"
             }
-          }
+          },
+          "required": [
+            "recursive"
+          ]
         }
       }
     }

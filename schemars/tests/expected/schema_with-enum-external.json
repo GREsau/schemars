@@ -4,41 +4,38 @@
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "struct"
-      ],
       "properties": {
         "struct": {
           "type": "object",
-          "required": [
-            "foo"
-          ],
           "properties": {
             "foo": {
               "type": "boolean"
             }
-          }
+          },
+          "required": [
+            "foo"
+          ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "struct"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "newType"
-      ],
       "properties": {
         "newType": {
           "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "newType"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "tuple"
-      ],
       "properties": {
         "tuple": {
           "type": "array",
@@ -55,19 +52,22 @@
           "minItems": 2
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "tuple"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "unit"
-      ],
       "properties": {
         "unit": {
           "type": "boolean"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "unit"
+      ]
     }
   ]
 }

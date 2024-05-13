@@ -11,9 +11,6 @@
     },
     {
       "type": "object",
-      "required": [
-        "stringMap"
-      ],
       "properties": {
         "stringMap": {
           "type": "object",
@@ -22,44 +19,40 @@
           }
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "stringMap"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "unitStructNewType"
-      ],
       "properties": {
         "unitStructNewType": {
           "$ref": "#/definitions/UnitStruct"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "unitStructNewType"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "structNewType"
-      ],
       "properties": {
         "structNewType": {
           "$ref": "#/definitions/Struct"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "structNewType"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "struct"
-      ],
       "properties": {
         "struct": {
           "type": "object",
-          "required": [
-            "bar",
-            "foo"
-          ],
           "properties": {
             "bar": {
               "type": "boolean"
@@ -69,16 +62,20 @@
               "format": "int32"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": [
+            "bar",
+            "foo"
+          ]
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "struct"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "tuple"
-      ],
       "properties": {
         "tuple": {
           "type": "array",
@@ -95,29 +92,28 @@
           "minItems": 2
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "tuple"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "withInt"
-      ],
       "properties": {
         "withInt": {
           "type": "integer",
           "format": "int32"
         }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "required": [
+        "withInt"
+      ]
     }
   ],
   "definitions": {
     "Struct": {
       "type": "object",
-      "required": [
-        "bar",
-        "foo"
-      ],
       "properties": {
         "bar": {
           "type": "boolean"
@@ -126,7 +122,11 @@
           "type": "integer",
           "format": "int32"
         }
-      }
+      },
+      "required": [
+        "bar",
+        "foo"
+      ]
     },
     "UnitStruct": {
       "type": "null"

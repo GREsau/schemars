@@ -2,10 +2,6 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Container",
   "type": "object",
-  "required": [
-    "result1",
-    "result2"
-  ],
   "properties": {
     "result1": {
       "$ref": "#/definitions/Result_of_MyStruct_or_Array_of_string"
@@ -14,25 +10,38 @@
       "$ref": "#/definitions/Result_of_boolean_or_null"
     }
   },
+  "required": [
+    "result1",
+    "result2"
+  ],
   "definitions": {
+    "MyStruct": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "foo"
+      ]
+    },
     "Result_of_MyStruct_or_Array_of_string": {
       "oneOf": [
         {
           "type": "object",
-          "required": [
-            "Ok"
-          ],
           "properties": {
             "Ok": {
               "$ref": "#/definitions/MyStruct"
             }
-          }
+          },
+          "required": [
+            "Ok"
+          ]
         },
         {
           "type": "object",
-          "required": [
-            "Err"
-          ],
           "properties": {
             "Err": {
               "type": "array",
@@ -40,45 +49,36 @@
                 "type": "string"
               }
             }
-          }
+          },
+          "required": [
+            "Err"
+          ]
         }
       ]
-    },
-    "MyStruct": {
-      "type": "object",
-      "required": [
-        "foo"
-      ],
-      "properties": {
-        "foo": {
-          "type": "integer",
-          "format": "int32"
-        }
-      }
     },
     "Result_of_boolean_or_null": {
       "oneOf": [
         {
           "type": "object",
-          "required": [
-            "Ok"
-          ],
           "properties": {
             "Ok": {
               "type": "boolean"
             }
-          }
+          },
+          "required": [
+            "Ok"
+          ]
         },
         {
           "type": "object",
-          "required": [
-            "Err"
-          ],
           "properties": {
             "Err": {
               "type": "null"
             }
-          }
+          },
+          "required": [
+            "Err"
+          ]
         }
       ]
     }

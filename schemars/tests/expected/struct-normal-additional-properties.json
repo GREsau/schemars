@@ -2,15 +2,7 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Struct",
   "type": "object",
-  "required": [
-    "bar",
-    "foo"
-  ],
   "properties": {
-    "foo": {
-      "type": "integer",
-      "format": "int32"
-    },
     "bar": {
       "type": "boolean"
     },
@@ -19,7 +11,15 @@
         "string",
         "null"
       ]
+    },
+    "foo": {
+      "type": "integer",
+      "format": "int32"
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "required": [
+    "bar",
+    "foo"
+  ]
 }

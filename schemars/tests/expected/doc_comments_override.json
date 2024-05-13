@@ -3,10 +3,6 @@
   "title": "OverrideDocs struct",
   "description": "New description",
   "type": "object",
-  "required": [
-    "my_int",
-    "my_undocumented_bool"
-  ],
   "properties": {
     "my_int": {
       "title": "My integer",
@@ -17,5 +13,9 @@
     "my_undocumented_bool": {
       "type": "boolean"
     }
-  }
+  },
+  "required": [
+    "my_int",
+    "my_undocumented_bool"
+  ]
 }

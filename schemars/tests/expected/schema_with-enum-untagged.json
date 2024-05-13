@@ -4,14 +4,14 @@
   "anyOf": [
     {
       "type": "object",
-      "required": [
-        "foo"
-      ],
       "properties": {
         "foo": {
           "type": "boolean"
         }
-      }
+      },
+      "required": [
+        "foo"
+      ]
     },
     {
       "type": "boolean"
