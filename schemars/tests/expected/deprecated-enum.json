@@ -11,10 +11,8 @@
     },
     {
       "type": "string",
-      "deprecated": true,
-      "enum": [
-        "DeprecatedUnitVariant"
-      ]
+      "const": "DeprecatedUnitVariant",
+      "deprecated": true
     },
     {
       "type": "object",

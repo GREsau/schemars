@@ -97,6 +97,7 @@ impl SchemaSettings {
                     skip_additional_properties: true,
                 }),
                 Box::new(SetSingleExample),
+                Box::new(ReplaceConstValue),
             ],
             inline_subschemas: false,
         }

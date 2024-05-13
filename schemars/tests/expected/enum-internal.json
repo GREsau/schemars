@@ -7,9 +7,7 @@
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "UnitOne"
-          ]
+          "const": "UnitOne"
         }
       },
       "required": [
@@ -21,9 +19,7 @@
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "StringMap"
-          ]
+          "const": "StringMap"
         }
       },
       "additionalProperties": {
@@ -38,9 +34,7 @@
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "UnitStructNewType"
-          ]
+          "const": "UnitStructNewType"
         }
       },
       "required": [
@@ -59,9 +53,7 @@
         },
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "StructNewType"
-          ]
+          "const": "StructNewType"
         }
       },
       "required": [
@@ -82,9 +74,7 @@
         },
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "Struct"
-          ]
+          "const": "Struct"
         }
       },
       "required": [
@@ -98,9 +88,7 @@
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "UnitTwo"
-          ]
+          "const": "UnitTwo"
         }
       },
       "required": [
@@ -113,9 +101,7 @@
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "WithInt"
-          ]
+          "const": "WithInt"
         }
       },
       "required": [
