@@ -6,23 +6,17 @@
       "title": "A deer",
       "description": "A female deer",
       "type": "string",
-      "enum": [
-        "Do"
-      ]
+      "const": "Do"
     },
     {
       "description": "A drop of golden sun",
       "type": "string",
-      "enum": [
-        "Re"
-      ]
+      "const": "Re"
     },
     {
       "description": "A name I call myself",
       "type": "string",
-      "enum": [
-        "Mi"
-      ]
+      "const": "Mi"
     }
   ]
 }

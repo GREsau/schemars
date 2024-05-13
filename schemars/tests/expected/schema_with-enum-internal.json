@@ -10,9 +10,7 @@
         },
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "Struct"
-          ]
+          "const": "Struct"
         }
       },
       "required": [
@@ -25,9 +23,7 @@
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "NewType"
-          ]
+          "const": "NewType"
         }
       },
       "required": [
@@ -39,9 +35,7 @@
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "Unit"
-          ]
+          "const": "Unit"
         }
       },
       "required": [

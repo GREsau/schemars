@@ -45,9 +45,7 @@
         {
           "description": "This is a documented unit variant",
           "type": "string",
-          "enum": [
-            "DocumentedUnit"
-          ]
+          "const": "DocumentedUnit"
         },
         {
           "type": "object",

@@ -13,9 +13,7 @@
     {
       "description": "This comment is included in the generated schema :)",
       "type": "string",
-      "enum": [
-        "DocumentedUnit"
-      ]
+      "const": "DocumentedUnit"
     },
     {
       "title": "Complex variant",
