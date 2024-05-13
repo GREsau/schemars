@@ -1,7 +1,6 @@
 #![deny(unsafe_code)]
 #![doc = include_str!("../README.md")]
 
-mod flatten;
 mod json_schema_impls;
 mod schema;
 mod ser;

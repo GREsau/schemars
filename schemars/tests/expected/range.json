@@ -14,9 +14,9 @@
     }
   },
   "required": [
-    "bound",
+    "range",
     "inclusive",
-    "range"
+    "bound"
   ],
   "definitions": {
     "Bound_of_string": {
@@ -62,8 +62,8 @@
         }
       },
       "required": [
-        "end",
-        "start"
+        "start",
+        "end"
       ]
     },
     "Range_of_uint": {
@@ -72,17 +72,17 @@
         "end": {
           "type": "integer",
           "format": "uint",
-          "minimum": 0.0
+          "minimum": 0
         },
         "start": {
           "type": "integer",
           "format": "uint",
-          "minimum": 0.0
+          "minimum": 0
         }
       },
       "required": [
-        "end",
-        "start"
+        "start",
+        "end"
       ]
     }
   }

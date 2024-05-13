@@ -21,17 +21,17 @@
         "nanos": {
           "type": "integer",
           "format": "uint32",
-          "minimum": 0.0
+          "minimum": 0
         },
         "secs": {
           "type": "integer",
           "format": "uint64",
-          "minimum": 0.0
+          "minimum": 0
         }
       },
       "required": [
-        "nanos",
-        "secs"
+        "secs",
+        "nanos"
       ]
     },
     "SystemTime": {
@@ -40,17 +40,17 @@
         "nanos_since_epoch": {
           "type": "integer",
           "format": "uint32",
-          "minimum": 0.0
+          "minimum": 0
         },
         "secs_since_epoch": {
           "type": "integer",
           "format": "uint64",
-          "minimum": 0.0
+          "minimum": 0
         }
       },
       "required": [
-        "nanos_since_epoch",
-        "secs_since_epoch"
+        "secs_since_epoch",
+        "nanos_since_epoch"
       ]
     }
   }

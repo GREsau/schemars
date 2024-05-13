@@ -25,9 +25,9 @@
   },
   "required": [
     "byte_or_bool2",
-    "fake_map",
+    "unit_or_t2",
     "s",
-    "unit_or_t2"
+    "fake_map"
   ],
   "definitions": {
     "Or_for_null_and_int32": {
@@ -46,7 +46,7 @@
         {
           "type": "integer",
           "format": "uint8",
-          "minimum": 0.0
+          "minimum": 0
         },
         {
           "type": "boolean"

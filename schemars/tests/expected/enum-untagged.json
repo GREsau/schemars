@@ -29,8 +29,8 @@
         }
       },
       "required": [
-        "bar",
-        "foo"
+        "foo",
+        "bar"
       ]
     },
     {
@@ -65,8 +65,8 @@
         }
       },
       "required": [
-        "bar",
-        "foo"
+        "foo",
+        "bar"
       ]
     },
     "UnitStruct": {

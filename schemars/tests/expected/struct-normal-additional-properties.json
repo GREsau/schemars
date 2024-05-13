@@ -19,7 +19,7 @@
   },
   "additionalProperties": false,
   "required": [
-    "bar",
-    "foo"
+    "foo",
+    "bar"
   ]
 }

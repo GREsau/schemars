@@ -25,8 +25,8 @@
       "items": {
         "type": "integer",
         "format": "int32",
-        "maximum": 10.0,
-        "minimum": -10.0
+        "maximum": 10,
+        "minimum": -10
       }
     },
     "vec_str_length": {
@@ -65,10 +65,10 @@
   "required": [
     "array_str_length",
     "slice_str_contains",
-    "vec_i32_range",
+    "vec_str_regex",
     "vec_str_length",
     "vec_str_length2",
-    "vec_str_regex",
-    "vec_str_url"
+    "vec_str_url",
+    "vec_i32_range"
   ]
 }

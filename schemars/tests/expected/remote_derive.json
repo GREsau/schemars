@@ -47,8 +47,8 @@
         }
       },
       "required": [
-        "nanos",
-        "secs"
+        "secs",
+        "nanos"
       ]
     }
   }

@@ -31,14 +31,14 @@
     "min_max": {
       "type": "number",
       "format": "float",
-      "maximum": 100.0,
+      "maximum": 100,
       "minimum": 0.01
     },
     "min_max2": {
       "type": "number",
       "format": "float",
-      "maximum": 1000.0,
-      "minimum": 1.0
+      "maximum": 1000,
+      "minimum": 1
     },
     "non_empty_str": {
       "type": "string",
@@ -84,21 +84,21 @@
     }
   },
   "required": [
-    "contains_str1",
-    "contains_str2",
-    "email_address",
-    "homepage",
-    "map_contains",
     "min_max",
     "min_max2",
-    "non_empty_str",
-    "non_empty_str2",
-    "pair",
     "regex_str1",
     "regex_str2",
     "regex_str3",
-    "required_option",
+    "contains_str1",
+    "contains_str2",
+    "email_address",
     "tel",
+    "homepage",
+    "non_empty_str",
+    "non_empty_str2",
+    "pair",
+    "map_contains",
+    "required_option",
     "x"
   ]
 }

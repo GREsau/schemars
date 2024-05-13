@@ -18,7 +18,7 @@
     }
   },
   "required": [
-    "included",
-    "writable"
+    "writable",
+    "included"
   ]
 }

@@ -33,7 +33,7 @@
     null
   ],
   "required": [
-    "bar",
-    "foo"
+    "foo",
+    "bar"
   ]
 }

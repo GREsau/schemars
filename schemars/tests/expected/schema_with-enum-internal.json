@@ -14,8 +14,8 @@
         }
       },
       "required": [
-        "foo",
-        "typeProperty"
+        "typeProperty",
+        "foo"
       ]
     },
     {

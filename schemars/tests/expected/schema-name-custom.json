@@ -24,11 +24,11 @@
     }
   },
   "required": [
-    "inner",
     "t",
     "u",
     "v",
-    "w"
+    "w",
+    "inner"
   ],
   "definitions": {
     "another-new-name": {

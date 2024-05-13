@@ -24,8 +24,8 @@
   },
   "required": [
     "int",
-    "value",
-    "values"
+    "values",
+    "value"
   ],
   "definitions": {
     "Inner": {

@@ -14,7 +14,7 @@
   },
   "deprecated": true,
   "required": [
-    "deprecated_field",
-    "foo"
+    "foo",
+    "deprecated_field"
   ]
 }

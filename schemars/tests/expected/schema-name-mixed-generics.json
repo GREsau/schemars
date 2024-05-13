@@ -12,8 +12,8 @@
     }
   },
   "required": [
-    "foo",
-    "generic"
+    "generic",
+    "foo"
   ],
   "definitions": {
     "MySimpleStruct": {
@@ -52,11 +52,11 @@
         }
       },
       "required": [
-        "inner",
         "t",
         "u",
         "v",
-        "w"
+        "w",
+        "inner"
       ]
     }
   }

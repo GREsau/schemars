@@ -35,8 +35,8 @@
       },
       "additionalProperties": false,
       "required": [
-        "c",
-        "t"
+        "t",
+        "c"
       ]
     },
     {
@@ -54,8 +54,8 @@
       },
       "additionalProperties": false,
       "required": [
-        "c",
-        "t"
+        "t",
+        "c"
       ]
     },
     {
@@ -73,8 +73,8 @@
       },
       "additionalProperties": false,
       "required": [
-        "c",
-        "t"
+        "t",
+        "c"
       ]
     },
     {
@@ -93,8 +93,8 @@
           },
           "additionalProperties": false,
           "required": [
-            "bar",
-            "foo"
+            "foo",
+            "bar"
           ]
         },
         "t": {
@@ -106,8 +106,8 @@
       },
       "additionalProperties": false,
       "required": [
-        "c",
-        "t"
+        "t",
+        "c"
       ]
     },
     {
@@ -136,8 +136,8 @@
       },
       "additionalProperties": false,
       "required": [
-        "c",
-        "t"
+        "t",
+        "c"
       ]
     },
     {
@@ -171,8 +171,8 @@
       },
       "additionalProperties": false,
       "required": [
-        "c",
-        "t"
+        "t",
+        "c"
       ]
     }
   ],
@@ -189,8 +189,8 @@
         }
       },
       "required": [
-        "bar",
-        "foo"
+        "foo",
+        "bar"
       ]
     },
     "UnitStruct": {

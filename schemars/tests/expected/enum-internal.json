@@ -57,9 +57,9 @@
         }
       },
       "required": [
-        "bar",
+        "typeProperty",
         "foo",
-        "typeProperty"
+        "bar"
       ]
     },
     {
@@ -78,9 +78,9 @@
         }
       },
       "required": [
-        "bar",
+        "typeProperty",
         "foo",
-        "typeProperty"
+        "bar"
       ]
     },
     {

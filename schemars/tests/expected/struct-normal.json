@@ -18,7 +18,7 @@
     }
   },
   "required": [
-    "bar",
-    "foo"
+    "foo",
+    "bar"
   ]
 }

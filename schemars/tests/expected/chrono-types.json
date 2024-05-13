@@ -33,10 +33,10 @@
     }
   },
   "required": [
+    "weekday",
     "date_time",
     "naive_date",
     "naive_date_time",
-    "naive_time",
-    "weekday"
+    "naive_time"
   ]
 }
