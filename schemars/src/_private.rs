@@ -129,7 +129,7 @@ pub fn insert_object_property<T: ?Sized + JsonSchema>(
         properties.insert(key.to_owned(), sub_schema.into());
     }
 
-    if required || !(has_default || T::_schemars_private_is_option()) {
+    if !has_default && (required || !T::_schemars_private_is_option()) {
         if let Some(req) = obj
             .entry("required")
             .or_insert(Value::Array(Vec::new()))
