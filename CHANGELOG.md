@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.20] - 2024-05-18
+
+### Fixed:
+
+- Revert unintentional change in behaviour when combining `default` and `required` attributes (https://github.com/GREsau/schemars/issues/292)
+
 ## [0.8.19] - 2024-05-06
 
 ### Fixed:
