@@ -131,7 +131,7 @@ pub fn insert_object_property<T: ?Sized + JsonSchema>(
     schema: Schema,
 ) {
     obj.properties.insert(key.to_owned(), schema);
-    if required || !(has_default || T::_schemars_private_is_option()) {
+    if !has_default && (required || !T::_schemars_private_is_option()) {
         obj.required.insert(key.to_owned());
     }
 }
