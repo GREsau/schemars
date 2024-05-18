@@ -6,27 +6,27 @@
     "command_line": {
       "type": "string"
     },
-    "system_cpu_time": {
-      "allOf": [
-        {
-          "$ref": "#/definitions/Duration"
-        }
-      ],
-      "default": "0.000000000s"
-    },
-    "user_cpu_time": {
-      "allOf": [
-        {
-          "$ref": "#/definitions/Duration"
-        }
-      ],
-      "default": {
-        "nanos": 0,
-        "secs": 0
-      }
-    },
     "wall_time": {
       "$ref": "#/definitions/Duration"
+    },
+    "user_cpu_time": {
+      "default": {
+        "secs": 0,
+        "nanos": 0
+      },
+      "allOf": [
+        {
+          "$ref": "#/definitions/Duration"
+        }
+      ]
+    },
+    "system_cpu_time": {
+      "default": "0.000000000s",
+      "allOf": [
+        {
+          "$ref": "#/definitions/Duration"
+        }
+      ]
     }
   },
   "required": [
@@ -37,13 +37,13 @@
     "Duration": {
       "type": "object",
       "properties": {
-        "nanos": {
-          "type": "integer",
-          "format": "int32"
-        },
         "secs": {
           "type": "integer",
           "format": "int64"
+        },
+        "nanos": {
+          "type": "integer",
+          "format": "int32"
         }
       },
       "required": [

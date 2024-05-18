@@ -3,9 +3,6 @@
   "title": "MyStruct_for_int32_and_null_and_boolean_and_Array_of_string",
   "type": "object",
   "properties": {
-    "inner": {
-      "$ref": "#/definitions/MySimpleStruct"
-    },
     "t": {
       "type": "integer",
       "format": "int32"
@@ -21,6 +18,9 @@
       "items": {
         "type": "string"
       }
+    },
+    "inner": {
+      "$ref": "#/definitions/MySimpleStruct"
     }
   },
   "required": [

@@ -44,12 +44,12 @@
     {
       "type": "object",
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
         "foo": {
           "type": "integer",
           "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         },
         "typeProperty": {
           "type": "string",
@@ -65,12 +65,12 @@
     {
       "type": "object",
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
         "foo": {
           "type": "integer",
           "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         },
         "typeProperty": {
           "type": "string",

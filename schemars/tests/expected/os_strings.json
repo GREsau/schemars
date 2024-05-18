@@ -3,10 +3,10 @@
   "title": "OsStrings",
   "type": "object",
   "properties": {
-    "borrowed": {
+    "owned": {
       "$ref": "#/definitions/OsString"
     },
-    "owned": {
+    "borrowed": {
       "$ref": "#/definitions/OsString"
     }
   },

@@ -3,12 +3,12 @@
   "title": "MixedGenericStruct_for_MyStruct_for_int32_and_null_and_boolean_and_Array_of_string_and_42_and_z",
   "type": "object",
   "properties": {
+    "generic": {
+      "$ref": "#/definitions/MyStruct_for_int32_and_null_and_boolean_and_Array_of_string"
+    },
     "foo": {
       "type": "integer",
       "format": "int32"
-    },
-    "generic": {
-      "$ref": "#/definitions/MyStruct_for_int32_and_null_and_boolean_and_Array_of_string"
     }
   },
   "required": [
@@ -16,24 +16,9 @@
     "foo"
   ],
   "definitions": {
-    "MySimpleStruct": {
-      "type": "object",
-      "properties": {
-        "foo": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "required": [
-        "foo"
-      ]
-    },
     "MyStruct_for_int32_and_null_and_boolean_and_Array_of_string": {
       "type": "object",
       "properties": {
-        "inner": {
-          "$ref": "#/definitions/MySimpleStruct"
-        },
         "t": {
           "type": "integer",
           "format": "int32"
@@ -49,6 +34,9 @@
           "items": {
             "type": "string"
           }
+        },
+        "inner": {
+          "$ref": "#/definitions/MySimpleStruct"
         }
       },
       "required": [
@@ -57,6 +45,18 @@
         "v",
         "w",
         "inner"
+      ]
+    },
+    "MySimpleStruct": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "foo"
       ]
     }
   }

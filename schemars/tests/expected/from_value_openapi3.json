@@ -3,12 +3,30 @@
   "title": "MyStruct",
   "type": "object",
   "properties": {
+    "myInt": {
+      "type": "integer"
+    },
     "myBool": {
       "type": "boolean"
+    },
+    "myNullableEnum": {
+      "nullable": true
     },
     "myInnerStruct": {
       "type": "object",
       "properties": {
+        "my_map": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "number"
+          }
+        },
+        "my_vec": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "my_empty_map": {
           "type": "object",
           "additionalProperties": true
@@ -17,19 +35,13 @@
           "type": "array",
           "items": {}
         },
-        "my_map": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "number"
-          }
-        },
         "my_tuple": {
           "type": "array",
           "items": [
             {
               "type": "string",
-              "maxLength": 1,
-              "minLength": 1
+              "minLength": 1,
+              "maxLength": 1
             },
             {
               "type": "integer"
@@ -37,40 +49,28 @@
           ],
           "maxItems": 2,
           "minItems": 2
-        },
-        "my_vec": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
         }
       }
-    },
-    "myInt": {
-      "type": "integer"
-    },
-    "myNullableEnum": {
-      "nullable": true
     }
   },
   "example": {
+    "myInt": 123,
     "myBool": true,
+    "myNullableEnum": null,
     "myInnerStruct": {
-      "my_empty_map": {},
-      "my_empty_vec": [],
       "my_map": {
         "": 0.0
       },
-      "my_tuple": [
-        "💩",
-        42
-      ],
       "my_vec": [
         "hello",
         "world"
+      ],
+      "my_empty_map": {},
+      "my_empty_vec": [],
+      "my_tuple": [
+        "💩",
+        42
       ]
-    },
-    "myInt": 123,
-    "myNullableEnum": null
+    }
   }
 }

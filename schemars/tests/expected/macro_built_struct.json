@@ -3,14 +3,14 @@
   "title": "A",
   "type": "object",
   "properties": {
-    "v": {
-      "type": "integer",
-      "format": "int32"
-    },
     "x": {
       "type": "integer",
       "format": "uint8",
       "minimum": 0
+    },
+    "v": {
+      "type": "integer",
+      "format": "int32"
     }
   },
   "required": [

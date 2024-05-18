@@ -3,18 +3,18 @@
   "title": "MyStruct",
   "type": "object",
   "properties": {
-    "included": {
-      "type": "null"
-    },
     "readable": {
       "type": "string",
-      "default": "",
-      "readOnly": true
+      "readOnly": true,
+      "default": ""
     },
     "writable": {
       "type": "number",
       "format": "float",
       "writeOnly": true
+    },
+    "included": {
+      "type": "null"
     }
   },
   "required": [

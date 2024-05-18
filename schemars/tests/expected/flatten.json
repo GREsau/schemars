@@ -3,19 +3,19 @@
   "title": "Flat",
   "type": "object",
   "properties": {
-    "b": {
-      "type": "boolean"
-    },
     "f": {
       "type": "number",
       "format": "float"
     },
-    "os": {
-      "type": "string",
-      "default": ""
+    "b": {
+      "type": "boolean"
     },
     "s": {
       "type": "string"
+    },
+    "os": {
+      "type": "string",
+      "default": ""
     },
     "v": {
       "type": "array",

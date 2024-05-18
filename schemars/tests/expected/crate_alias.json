@@ -3,13 +3,13 @@
   "title": "Struct",
   "type": "object",
   "properties": {
-    "bar": {
-      "type": "boolean"
-    },
     "foo": {
       "description": "This is a document",
       "type": "integer",
       "format": "int32"
+    },
+    "bar": {
+      "type": "boolean"
     }
   },
   "required": [

@@ -19,10 +19,10 @@
           }
         }
       },
-      "additionalProperties": false,
       "required": [
         "stringMap"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -31,10 +31,10 @@
           "$ref": "#/definitions/UnitStruct"
         }
       },
-      "additionalProperties": false,
       "required": [
         "unitStructNewType"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -43,10 +43,10 @@
           "$ref": "#/definitions/Struct"
         }
       },
-      "additionalProperties": false,
       "required": [
         "structNewType"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -54,12 +54,12 @@
         "struct": {
           "type": "object",
           "properties": {
-            "bar": {
-              "type": "boolean"
-            },
             "foo": {
               "type": "integer",
               "format": "int32"
+            },
+            "bar": {
+              "type": "boolean"
             }
           },
           "additionalProperties": false,
@@ -69,10 +69,10 @@
           ]
         }
       },
-      "additionalProperties": false,
       "required": [
         "struct"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -88,14 +88,14 @@
               "type": "boolean"
             }
           ],
-          "maxItems": 2,
-          "minItems": 2
+          "minItems": 2,
+          "maxItems": 2
         }
       },
-      "additionalProperties": false,
       "required": [
         "tuple"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -105,31 +105,31 @@
           "format": "int32"
         }
       },
-      "additionalProperties": false,
       "required": [
         "withInt"
-      ]
+      ],
+      "additionalProperties": false
     }
   ],
   "definitions": {
+    "UnitStruct": {
+      "type": "null"
+    },
     "Struct": {
       "type": "object",
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
         "foo": {
           "type": "integer",
           "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         }
       },
       "required": [
         "foo",
         "bar"
       ]
-    },
-    "UnitStruct": {
-      "type": "null"
     }
   }
 }

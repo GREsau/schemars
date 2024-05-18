@@ -3,9 +3,6 @@
   "title": "a-new-name-Array_of_string-int32-int32",
   "type": "object",
   "properties": {
-    "inner": {
-      "$ref": "#/definitions/another-new-name"
-    },
     "t": {
       "type": "integer",
       "format": "int32"
@@ -21,6 +18,9 @@
       "items": {
         "type": "string"
       }
+    },
+    "inner": {
+      "$ref": "#/definitions/another-new-name"
     }
   },
   "required": [

@@ -11,8 +11,9 @@ use crate::Schema;
 use crate::{visit::*, JsonSchema};
 use dyn_clone::DynClone;
 use serde::Serialize;
+use serde_json::{Map, Value};
 use std::borrow::Cow;
-use std::collections::{BTreeMap, HashMap};
+use std::collections::HashMap;
 use std::{any::Any, collections::HashSet, fmt::Debug};
 
 /// Settings to customize how Schemas are generated.
@@ -149,7 +150,7 @@ impl SchemaSettings {
 #[derive(Debug, Default)]
 pub struct SchemaGenerator {
     settings: SchemaSettings,
-    definitions: BTreeMap<String, Schema>,
+    definitions: Map<String, Value>,
     pending_schema_ids: HashSet<Cow<'static, str>>,
     schema_id_to_name: HashMap<Cow<'static, str>, String>,
     used_schema_names: HashSet<String>,
@@ -254,31 +255,31 @@ impl SchemaGenerator {
 
         let schema = self.json_schema_internal::<T>(id);
 
-        self.definitions.insert(name, schema);
+        self.definitions.insert(name, schema.to_value());
     }
 
     /// Borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
     ///
-    /// The keys of the returned `BTreeMap` are the [schema names](JsonSchema::schema_name), and the values are the schemas
+    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn definitions(&self) -> &BTreeMap<String, Schema> {
+    pub fn definitions(&self) -> &Map<String, Value> {
         &self.definitions
     }
 
     /// Mutably borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
     ///
-    /// The keys of the returned `BTreeMap` are the [schema names](JsonSchema::schema_name), and the values are the schemas
+    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn definitions_mut(&mut self) -> &mut BTreeMap<String, Schema> {
+    pub fn definitions_mut(&mut self) -> &mut Map<String, Value> {
         &mut self.definitions
     }
 
     /// Returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated,
     /// leaving an empty map in its place.
     ///
-    /// The keys of the returned `BTreeMap` are the [schema names](JsonSchema::schema_name), and the values are the schemas
+    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn take_definitions(&mut self) -> BTreeMap<String, Schema> {
+    pub fn take_definitions(&mut self) -> Map<String, Value> {
         std::mem::take(&mut self.definitions)
     }
 
@@ -308,12 +309,7 @@ impl SchemaGenerator {
         if !self.definitions.is_empty() {
             object.insert(
                 "definitions".into(),
-                serde_json::Value::Object(
-                    self.definitions
-                        .iter()
-                        .map(|(k, v)| (k.clone(), v.clone().into()))
-                        .collect(),
-                ),
+                serde_json::Value::Object(self.definitions.clone()),
             );
         }
 
@@ -344,12 +340,7 @@ impl SchemaGenerator {
         if !self.definitions.is_empty() {
             object.insert(
                 "definitions".into(),
-                serde_json::Value::Object(
-                    self.definitions
-                        .into_iter()
-                        .map(|(k, v)| (k, v.into()))
-                        .collect(),
-                ),
+                serde_json::Value::Object(self.definitions),
             );
         }
 
@@ -386,12 +377,7 @@ impl SchemaGenerator {
         if !self.definitions.is_empty() {
             object.insert(
                 "definitions".into(),
-                serde_json::Value::Object(
-                    self.definitions
-                        .iter()
-                        .map(|(k, v)| (k.clone(), v.clone().into()))
-                        .collect(),
-                ),
+                serde_json::Value::Object(self.definitions.clone()),
             );
         }
 
@@ -428,12 +414,7 @@ impl SchemaGenerator {
         if !self.definitions.is_empty() {
             object.insert(
                 "definitions".into(),
-                serde_json::Value::Object(
-                    self.definitions
-                        .into_iter()
-                        .map(|(k, v)| (k, v.into()))
-                        .collect(),
-                ),
+                serde_json::Value::Object(self.definitions),
             );
         }
 

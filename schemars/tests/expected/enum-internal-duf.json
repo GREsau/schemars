@@ -10,10 +10,10 @@
           "const": "UnitOne"
         }
       },
-      "additionalProperties": false,
       "required": [
         "typeProperty"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -38,20 +38,20 @@
           "const": "UnitStructNewType"
         }
       },
-      "additionalProperties": false,
       "required": [
         "typeProperty"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
         "foo": {
           "type": "integer",
           "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         },
         "typeProperty": {
           "type": "string",
@@ -67,12 +67,12 @@
     {
       "type": "object",
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
         "foo": {
           "type": "integer",
           "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         },
         "typeProperty": {
           "type": "string",
@@ -94,10 +94,10 @@
           "const": "UnitTwo"
         }
       },
-      "additionalProperties": false,
       "required": [
         "typeProperty"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",

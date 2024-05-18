@@ -3,6 +3,14 @@
   "title": "Struct",
   "type": "object",
   "properties": {
+    "foo": {
+      "type": "integer",
+      "format": "int32",
+      "examples": [
+        8,
+        null
+      ]
+    },
     "bar": {
       "type": "boolean"
     },
@@ -14,26 +22,18 @@
       "examples": [
         null
       ]
-    },
-    "foo": {
-      "type": "integer",
-      "format": "int32",
-      "examples": [
-        8,
-        null
-      ]
     }
   },
-  "examples": [
-    {
-      "bar": false,
-      "baz": null,
-      "foo": 0
-    },
-    null
-  ],
   "required": [
     "foo",
     "bar"
+  ],
+  "examples": [
+    {
+      "foo": 0,
+      "bar": false,
+      "baz": null
+    },
+    null
   ]
 }

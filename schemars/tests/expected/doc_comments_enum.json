@@ -34,10 +34,10 @@
           }
         }
       },
-      "additionalProperties": false,
       "required": [
         "Complex"
-      ]
+      ],
+      "additionalProperties": false
     }
   ]
 }

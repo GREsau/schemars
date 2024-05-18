@@ -3,6 +3,19 @@
   "title": "Outer",
   "type": "object",
   "properties": {
+    "int": {
+      "type": "integer",
+      "format": "int32",
+      "examples": [
+        8,
+        null
+      ]
+    },
+    "values": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "value": true,
     "inner": {
       "anyOf": [
         {
@@ -12,19 +25,6 @@
           "type": "null"
         }
       ]
-    },
-    "int": {
-      "type": "integer",
-      "format": "int32",
-      "examples": [
-        8,
-        null
-      ]
-    },
-    "value": true,
-    "values": {
-      "type": "object",
-      "additionalProperties": true
     }
   },
   "required": [
@@ -52,10 +52,10 @@
           "properties": {
             "ValueNewType": true
           },
-          "additionalProperties": false,
           "required": [
             "ValueNewType"
-          ]
+          ],
+          "additionalProperties": false
         }
       ]
     }

@@ -6,13 +6,13 @@
     {
       "type": "integer",
       "format": "uint8",
-      "maximum": 10,
-      "minimum": 0
+      "minimum": 0,
+      "maximum": 10
     },
     {
       "type": "boolean"
     }
   ],
-  "maxItems": 2,
-  "minItems": 2
+  "minItems": 2,
+  "maxItems": 2
 }

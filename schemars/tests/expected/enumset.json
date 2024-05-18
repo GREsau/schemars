@@ -2,10 +2,10 @@
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Set_of_Foo",
   "type": "array",
+  "uniqueItems": true,
   "items": {
     "$ref": "#/definitions/Foo"
   },
-  "uniqueItems": true,
   "definitions": {
     "Foo": {
       "type": "string",

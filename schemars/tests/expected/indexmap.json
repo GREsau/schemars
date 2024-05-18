@@ -11,11 +11,11 @@
     },
     "set": {
       "type": "array",
+      "uniqueItems": true,
       "items": {
         "type": "integer",
         "format": "int"
-      },
-      "uniqueItems": true
+      }
     }
   },
   "required": [

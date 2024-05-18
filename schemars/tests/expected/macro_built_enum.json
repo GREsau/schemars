@@ -9,10 +9,10 @@
           "$ref": "#/definitions/InnerStruct"
         }
       },
-      "additionalProperties": false,
       "required": [
         "InnerStruct"
-      ]
+      ],
+      "additionalProperties": false
     }
   ],
   "definitions": {

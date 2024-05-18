@@ -3,14 +3,14 @@
   "title": "Struct",
   "type": "object",
   "properties": {
+    "foo": {
+      "type": "boolean"
+    },
     "bar": {
       "type": "integer",
       "format": "int32"
     },
     "baz": {
-      "type": "boolean"
-    },
-    "foo": {
       "type": "boolean"
     }
   },

@@ -180,7 +180,8 @@ mod ser {
     use serde_json::Value;
 
     // The order of properties in a JSON Schema object is insignificant, but we explicitly order
-    // some of them here to make them easier for a human to read.
+    // some of them here to make them easier for a human to read. All other properties are ordered
+    // either lexicographically (by default) or by insertion order (if `preserve_order` is enabled)
     const ORDERED_KEYWORDS_START: [&str; 7] = [
         "$id",
         "$schema",

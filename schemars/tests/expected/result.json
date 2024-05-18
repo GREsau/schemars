@@ -15,18 +15,6 @@
     "result2"
   ],
   "definitions": {
-    "MyStruct": {
-      "type": "object",
-      "properties": {
-        "foo": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "required": [
-        "foo"
-      ]
-    },
     "Result_of_MyStruct_or_Array_of_string": {
       "oneOf": [
         {
@@ -54,6 +42,18 @@
             "Err"
           ]
         }
+      ]
+    },
+    "MyStruct": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        }
+      },
+      "required": [
+        "foo"
       ]
     },
     "Result_of_boolean_or_null": {

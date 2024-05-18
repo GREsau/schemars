@@ -19,17 +19,17 @@
     {
       "type": "object",
       "properties": {
-        "c": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
         "t": {
           "type": "string",
           "enum": [
             "StringMap"
           ]
+        },
+        "c": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       },
       "required": [
@@ -40,14 +40,14 @@
     {
       "type": "object",
       "properties": {
-        "c": {
-          "$ref": "#/definitions/UnitStruct"
-        },
         "t": {
           "type": "string",
           "enum": [
             "UnitStructNewType"
           ]
+        },
+        "c": {
+          "$ref": "#/definitions/UnitStruct"
         }
       },
       "required": [
@@ -58,14 +58,14 @@
     {
       "type": "object",
       "properties": {
-        "c": {
-          "$ref": "#/definitions/Struct"
-        },
         "t": {
           "type": "string",
           "enum": [
             "StructNewType"
           ]
+        },
+        "c": {
+          "$ref": "#/definitions/Struct"
         }
       },
       "required": [
@@ -76,27 +76,27 @@
     {
       "type": "object",
       "properties": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "Struct"
+          ]
+        },
         "c": {
           "type": "object",
           "properties": {
-            "bar": {
-              "type": "boolean"
-            },
             "foo": {
               "type": "integer",
               "format": "int32"
+            },
+            "bar": {
+              "type": "boolean"
             }
           },
           "required": [
             "foo",
             "bar"
           ]
-        },
-        "t": {
-          "type": "string",
-          "enum": [
-            "Struct"
-          ]
         }
       },
       "required": [
@@ -107,6 +107,12 @@
     {
       "type": "object",
       "properties": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "Tuple"
+          ]
+        },
         "c": {
           "type": "array",
           "items": [
@@ -118,14 +124,8 @@
               "type": "boolean"
             }
           ],
-          "maxItems": 2,
-          "minItems": 2
-        },
-        "t": {
-          "type": "string",
-          "enum": [
-            "Tuple"
-          ]
+          "minItems": 2,
+          "maxItems": 2
         }
       },
       "required": [
@@ -150,15 +150,15 @@
     {
       "type": "object",
       "properties": {
-        "c": {
-          "type": "integer",
-          "format": "int32"
-        },
         "t": {
           "type": "string",
           "enum": [
             "WithInt"
           ]
+        },
+        "c": {
+          "type": "integer",
+          "format": "int32"
         }
       },
       "required": [
@@ -168,24 +168,24 @@
     }
   ],
   "definitions": {
+    "UnitStruct": {
+      "type": "null"
+    },
     "Struct": {
       "type": "object",
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
         "foo": {
           "type": "integer",
           "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         }
       },
       "required": [
         "foo",
         "bar"
       ]
-    },
-    "UnitStruct": {
-      "type": "null"
     }
   }
 }

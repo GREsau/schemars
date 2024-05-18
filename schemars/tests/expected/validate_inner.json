@@ -7,11 +7,11 @@
       "type": "array",
       "items": {
         "type": "string",
-        "maxLength": 100,
-        "minLength": 5
+        "minLength": 5,
+        "maxLength": 100
       },
-      "maxItems": 2,
-      "minItems": 2
+      "minItems": 2,
+      "maxItems": 2
     },
     "slice_str_contains": {
       "type": "array",
@@ -20,33 +20,6 @@
         "pattern": "substring\\.\\.\\."
       }
     },
-    "vec_i32_range": {
-      "type": "array",
-      "items": {
-        "type": "integer",
-        "format": "int32",
-        "maximum": 10,
-        "minimum": -10
-      }
-    },
-    "vec_str_length": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "maxLength": 100,
-        "minLength": 1
-      }
-    },
-    "vec_str_length2": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "maxLength": 100,
-        "minLength": 1
-      },
-      "maxItems": 3,
-      "minItems": 1
-    },
     "vec_str_regex": {
       "type": "array",
       "items": {
@@ -54,11 +27,38 @@
         "pattern": "^[Hh]ello\\b"
       }
     },
+    "vec_str_length": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      }
+    },
+    "vec_str_length2": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "minItems": 1,
+      "maxItems": 3
+    },
     "vec_str_url": {
       "type": "array",
       "items": {
         "type": "string",
         "format": "uri"
+      }
+    },
+    "vec_i32_range": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": -10,
+        "maximum": 10
       }
     }
   },

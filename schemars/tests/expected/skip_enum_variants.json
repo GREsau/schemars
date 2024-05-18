@@ -16,10 +16,10 @@
           "format": "float"
         }
       },
-      "additionalProperties": false,
       "required": [
         "Included1"
-      ]
+      ],
+      "additionalProperties": false
     }
   ]
 }

@@ -3,14 +3,14 @@
   "title": "MyStruct",
   "type": "object",
   "properties": {
-    "bound": {
-      "$ref": "#/definitions/Bound_of_string"
+    "range": {
+      "$ref": "#/definitions/Range_of_uint"
     },
     "inclusive": {
       "$ref": "#/definitions/Range_of_double"
     },
-    "range": {
-      "$ref": "#/definitions/Range_of_uint"
+    "bound": {
+      "$ref": "#/definitions/Bound_of_string"
     }
   },
   "required": [
@@ -19,6 +19,42 @@
     "bound"
   ],
   "definitions": {
+    "Range_of_uint": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "end": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    },
+    "Range_of_double": {
+      "type": "object",
+      "properties": {
+        "start": {
+          "type": "number",
+          "format": "double"
+        },
+        "end": {
+          "type": "number",
+          "format": "double"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ]
+    },
     "Bound_of_string": {
       "oneOf": [
         {
@@ -47,42 +83,6 @@
           "type": "string",
           "const": "Unbounded"
         }
-      ]
-    },
-    "Range_of_double": {
-      "type": "object",
-      "properties": {
-        "end": {
-          "type": "number",
-          "format": "double"
-        },
-        "start": {
-          "type": "number",
-          "format": "double"
-        }
-      },
-      "required": [
-        "start",
-        "end"
-      ]
-    },
-    "Range_of_uint": {
-      "type": "object",
-      "properties": {
-        "end": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0
-        },
-        "start": {
-          "type": "integer",
-          "format": "uint",
-          "minimum": 0
-        }
-      },
-      "required": [
-        "start",
-        "end"
       ]
     }
   }

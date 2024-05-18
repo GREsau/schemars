@@ -44,6 +44,7 @@ serde = { version = "1.0", features = ["derive"] }
 default = ["derive"]
 
 derive = ["schemars_derive"]
+preserve_order  = ["serde_json/preserve_order"]
 
 raw_value = ["serde_json/raw_value"]
 

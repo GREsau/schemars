@@ -17,10 +17,10 @@
           ]
         }
       },
-      "additionalProperties": false,
       "required": [
         "struct"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -29,10 +29,10 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false,
       "required": [
         "newType"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -48,14 +48,14 @@
               "format": "int32"
             }
           ],
-          "maxItems": 2,
-          "minItems": 2
+          "minItems": 2,
+          "maxItems": 2
         }
       },
-      "additionalProperties": false,
       "required": [
         "tuple"
-      ]
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
@@ -64,10 +64,10 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false,
       "required": [
         "unit"
-      ]
+      ],
+      "additionalProperties": false
     }
   ]
 }

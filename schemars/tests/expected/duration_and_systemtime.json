@@ -18,14 +18,14 @@
     "Duration": {
       "type": "object",
       "properties": {
-        "nanos": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0
-        },
         "secs": {
           "type": "integer",
           "format": "uint64",
+          "minimum": 0
+        },
+        "nanos": {
+          "type": "integer",
+          "format": "uint32",
           "minimum": 0
         }
       },
@@ -37,14 +37,14 @@
     "SystemTime": {
       "type": "object",
       "properties": {
-        "nanos_since_epoch": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0
-        },
         "secs_since_epoch": {
           "type": "integer",
           "format": "uint64",
+          "minimum": 0
+        },
+        "nanos_since_epoch": {
+          "type": "integer",
+          "format": "uint32",
           "minimum": 0
         }
       },

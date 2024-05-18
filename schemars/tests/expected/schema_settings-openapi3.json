@@ -3,23 +3,23 @@
   "title": "Outer",
   "type": "object",
   "properties": {
-    "inner": {
-      "allOf": [
-        {
-          "$ref": "#/components/schemas/Inner"
-        }
-      ],
-      "nullable": true
-    },
     "int": {
       "type": "integer",
       "format": "int32",
       "example": 8
     },
-    "value": {},
     "values": {
       "type": "object",
       "additionalProperties": true
+    },
+    "value": {},
+    "inner": {
+      "nullable": true,
+      "allOf": [
+        {
+          "$ref": "#/components/schemas/Inner"
+        }
+      ]
     }
   },
   "required": [
@@ -49,10 +49,10 @@
           "properties": {
             "ValueNewType": {}
           },
-          "additionalProperties": false,
           "required": [
             "ValueNewType"
-          ]
+          ],
+          "additionalProperties": false
         }
       ]
     }

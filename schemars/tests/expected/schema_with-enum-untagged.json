@@ -27,8 +27,8 @@
           "format": "int32"
         }
       ],
-      "maxItems": 2,
-      "minItems": 2
+      "minItems": 2,
+      "maxItems": 2
     },
     {
       "type": "boolean"

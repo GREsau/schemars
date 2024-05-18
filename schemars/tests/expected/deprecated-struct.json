@@ -3,18 +3,18 @@
   "title": "DeprecatedStruct",
   "type": "object",
   "properties": {
-    "deprecated_field": {
-      "type": "boolean",
-      "deprecated": true
-    },
     "foo": {
       "type": "integer",
       "format": "int32"
+    },
+    "deprecated_field": {
+      "type": "boolean",
+      "deprecated": true
     }
   },
-  "deprecated": true,
   "required": [
     "foo",
     "deprecated_field"
-  ]
+  ],
+  "deprecated": true
 }

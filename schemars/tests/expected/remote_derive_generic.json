@@ -6,21 +6,21 @@
     "byte_or_bool2": {
       "$ref": "#/definitions/Or_for_uint8_and_boolean"
     },
-    "fake_map": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "array",
-        "items": {
-          "type": "string"
-        },
-        "uniqueItems": true
-      }
+    "unit_or_t2": {
+      "$ref": "#/definitions/Or_for_null_and_int32"
     },
     "s": {
       "$ref": "#/definitions/Str"
     },
-    "unit_or_t2": {
-      "$ref": "#/definitions/Or_for_null_and_int32"
+    "fake_map": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "array",
+        "uniqueItems": true,
+        "items": {
+          "type": "string"
+        }
+      }
     }
   },
   "required": [
@@ -30,17 +30,6 @@
     "fake_map"
   ],
   "definitions": {
-    "Or_for_null_and_int32": {
-      "anyOf": [
-        {
-          "type": "null"
-        },
-        {
-          "type": "integer",
-          "format": "int32"
-        }
-      ]
-    },
     "Or_for_uint8_and_boolean": {
       "anyOf": [
         {
@@ -50,6 +39,17 @@
         },
         {
           "type": "boolean"
+        }
+      ]
+    },
+    "Or_for_null_and_int32": {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "type": "integer",
+          "format": "int32"
         }
       ]
     },

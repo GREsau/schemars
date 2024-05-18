@@ -11,6 +11,6 @@
       "type": "null"
     }
   ],
-  "maxItems": 2,
-  "minItems": 2
+  "minItems": 2,
+  "maxItems": 2
 }

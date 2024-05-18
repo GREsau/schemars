@@ -1,7 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "DeprecatedEnum",
-  "deprecated": true,
   "oneOf": [
     {
       "type": "string",
@@ -20,13 +19,13 @@
         "DeprecatedStructVariant": {
           "type": "object",
           "properties": {
-            "deprecated_field": {
-              "type": "boolean",
-              "deprecated": true
-            },
             "foo": {
               "type": "integer",
               "format": "int32"
+            },
+            "deprecated_field": {
+              "type": "boolean",
+              "deprecated": true
             }
           },
           "required": [
@@ -35,11 +34,12 @@
           ]
         }
       },
-      "additionalProperties": false,
-      "deprecated": true,
       "required": [
         "DeprecatedStructVariant"
-      ]
+      ],
+      "additionalProperties": false,
+      "deprecated": true
     }
-  ]
+  ],
+  "deprecated": true
 }

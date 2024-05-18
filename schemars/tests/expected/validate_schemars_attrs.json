@@ -3,61 +3,17 @@
   "title": "Struct2",
   "type": "object",
   "properties": {
-    "contains_str1": {
-      "type": "string",
-      "pattern": "substring\\.\\.\\."
-    },
-    "contains_str2": {
-      "type": "string",
-      "pattern": "substring\\.\\.\\."
-    },
-    "email_address": {
-      "type": "string",
-      "format": "email"
-    },
-    "homepage": {
-      "type": "string",
-      "format": "uri"
-    },
-    "map_contains": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "null"
-      },
-      "required": [
-        "map_key"
-      ]
-    },
     "min_max": {
       "type": "number",
       "format": "float",
-      "maximum": 100,
-      "minimum": 0.01
+      "minimum": 0.01,
+      "maximum": 100
     },
     "min_max2": {
       "type": "number",
       "format": "float",
-      "maximum": 1000,
-      "minimum": 1
-    },
-    "non_empty_str": {
-      "type": "string",
-      "maxLength": 100,
-      "minLength": 1
-    },
-    "non_empty_str2": {
-      "type": "string",
-      "maxLength": 1000,
-      "minLength": 1
-    },
-    "pair": {
-      "type": "array",
-      "items": {
-        "type": "integer",
-        "format": "int32"
-      },
-      "maxItems": 2,
-      "minItems": 2
+      "minimum": 1,
+      "maximum": 1000
     },
     "regex_str1": {
       "type": "string",
@@ -71,12 +27,56 @@
       "type": "string",
       "pattern": "^\\d+$"
     },
-    "required_option": {
-      "type": "boolean"
+    "contains_str1": {
+      "type": "string",
+      "pattern": "substring\\.\\.\\."
+    },
+    "contains_str2": {
+      "type": "string",
+      "pattern": "substring\\.\\.\\."
+    },
+    "email_address": {
+      "type": "string",
+      "format": "email"
     },
     "tel": {
       "type": "string",
       "format": "phone"
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri"
+    },
+    "non_empty_str": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "non_empty_str2": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000
+    },
+    "pair": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "format": "int32"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "map_contains": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "null"
+      },
+      "required": [
+        "map_key"
+      ]
+    },
+    "required_option": {
+      "type": "boolean"
     },
     "x": {
       "type": "integer",
