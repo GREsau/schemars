@@ -1,12 +1,12 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "OuterStruct",
   "type": "object",
   "properties": {
     "inner": {
       "anyOf": [
         {
-          "$ref": "#/definitions/InnerStruct"
+          "$ref": "#/$defs/InnerStruct"
         },
         {
           "type": "null"
@@ -14,10 +14,10 @@
       ]
     }
   },
-  "definitions": {
+  "$defs": {
     "InnerStruct": {
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
           "type": "string"
         },

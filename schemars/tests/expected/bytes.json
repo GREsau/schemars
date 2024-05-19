@@ -1,8 +1,8 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Tuple_of_Array_of_uint8_and_Array_of_uint8",
   "type": "array",
-  "items": [
+  "prefixItems": [
     {
       "type": "array",
       "items": {

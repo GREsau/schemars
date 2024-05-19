@@ -1,20 +1,20 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Config2",
   "type": "object",
   "properties": {
     "a_cfg": {
-      "$ref": "#/definitions/Config"
+      "$ref": "#/$defs/Config"
     },
     "b_cfg": {
-      "$ref": "#/definitions/Config2"
+      "$ref": "#/$defs/Config2"
     }
   },
   "required": [
     "a_cfg",
     "b_cfg"
   ],
-  "definitions": {
+  "$defs": {
     "Config": {
       "type": "object",
       "properties": {

@@ -1,27 +1,27 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Container",
   "type": "object",
   "properties": {
     "result1": {
-      "$ref": "#/definitions/Result_of_MyStruct_or_Array_of_string"
+      "$ref": "#/$defs/Result_of_MyStruct_or_Array_of_string"
     },
     "result2": {
-      "$ref": "#/definitions/Result_of_boolean_or_null"
+      "$ref": "#/$defs/Result_of_boolean_or_null"
     }
   },
   "required": [
     "result1",
     "result2"
   ],
-  "definitions": {
+  "$defs": {
     "Result_of_MyStruct_or_Array_of_string": {
       "oneOf": [
         {
           "type": "object",
           "properties": {
             "Ok": {
-              "$ref": "#/definitions/MyStruct"
+              "$ref": "#/$defs/MyStruct"
             }
           },
           "required": [

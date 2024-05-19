@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyStruct_for_int32_and_null_and_boolean_and_Array_of_string",
   "type": "object",
   "properties": {
@@ -20,7 +20,7 @@
       }
     },
     "inner": {
-      "$ref": "#/definitions/MySimpleStruct"
+      "$ref": "#/$defs/MySimpleStruct"
     }
   },
   "required": [
@@ -30,7 +30,7 @@
     "w",
     "inner"
   ],
-  "definitions": {
+  "$defs": {
     "MySimpleStruct": {
       "type": "object",
       "properties": {
