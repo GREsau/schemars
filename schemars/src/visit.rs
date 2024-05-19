@@ -50,32 +50,21 @@ pub fn visit_schema<V: Visitor + ?Sized>(v: &mut V, schema: &mut Schema) {
                 | "if"
                 | "then"
                 | "else"
-                | "additionalItems"
                 | "contains"
                 | "additionalProperties"
-                | "propertyNames" => {
+                | "propertyNames"
+                | "items" => {
                     if let Ok(subschema) = value.try_into() {
                         v.visit_schema(subschema)
                     }
                 }
-                "allOf" | "anyOf" | "oneOf" => {
+                "allOf" | "anyOf" | "oneOf" | "prefixItems" => {
                     if let Some(array) = value.as_array_mut() {
                         for value in array {
                             if let Ok(subschema) = value.try_into() {
                                 v.visit_schema(subschema)
                             }
                         }
-                    }
-                }
-                "items" => {
-                    if let Some(array) = value.as_array_mut() {
-                        for value in array {
-                            if let Ok(subschema) = value.try_into() {
-                                v.visit_schema(subschema)
-                            }
-                        }
-                    } else if let Ok(subschema) = value.try_into() {
-                        v.visit_schema(subschema)
                     }
                 }
                 "properties" | "patternProperties" => {
@@ -183,6 +172,25 @@ impl Visitor for ReplaceConstValue {
         if let Some(obj) = schema.as_object_mut() {
             if let Some(value) = obj.remove("const") {
                 obj.insert("enum".into(), Value::Array(vec![value]));
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ReplacePrefixItems;
+
+impl Visitor for ReplacePrefixItems {
+    fn visit_schema(&mut self, schema: &mut Schema) {
+        visit_schema(self, schema);
+
+        if let Some(obj) = schema.as_object_mut() {
+            if let Some(prefix_items) = obj.remove("prefixItems") {
+                let previous_items = obj.insert("items".to_owned(), prefix_items);
+
+                if let Some(previous_items) = previous_items {
+                    obj.insert("additionalItems".to_owned(), previous_items);
+                }
             }
         }
     }

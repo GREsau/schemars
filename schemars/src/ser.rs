@@ -378,7 +378,7 @@ impl serde::ser::SerializeTuple for SerializeTuple<'_> {
         let len = self.items.len();
         let mut schema = json_schema!({
             "type": "array",
-            "items": self.items,
+            "prefixItems": self.items,
             "maxItems": len,
             "minItems": len,
         });
