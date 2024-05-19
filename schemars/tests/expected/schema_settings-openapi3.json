@@ -20,12 +20,32 @@
           "$ref": "#/components/schemas/Inner"
         }
       ]
+    },
+    "tuples": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": [
+          {
+            "type": "integer",
+            "format": "uint8",
+            "minimum": 0
+          },
+          {
+            "type": "integer",
+            "format": "int64"
+          }
+        ],
+        "minItems": 2,
+        "maxItems": 2
+      }
     }
   },
   "required": [
     "int",
     "values",
-    "value"
+    "value",
+    "tuples"
   ],
   "components": {
     "schemas": {

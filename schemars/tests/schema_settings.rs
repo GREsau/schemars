@@ -12,6 +12,7 @@ pub struct Outer {
     pub values: BTreeMap<&'static str, Value>,
     pub value: Value,
     pub inner: Option<Inner>,
+    pub tuples: Vec<(u8, i64)>,
 }
 
 #[derive(JsonSchema)]
@@ -37,6 +38,11 @@ fn schema_matches_draft07() -> TestResult {
 #[test]
 fn schema_matches_2019_09() -> TestResult {
     test_generated_schema::<Outer>("schema_settings-2019_09", SchemaSettings::draft2019_09())
+}
+
+#[test]
+fn schema_matches_2020_12() -> TestResult {
+    test_generated_schema::<Outer>("schema_settings-2020_12", SchemaSettings::draft2020_12())
 }
 
 #[test]
