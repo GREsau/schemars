@@ -115,7 +115,7 @@ impl Visitor for ReplaceBoolSchemas {
 
 /// This visitor will restructure JSON Schema objects so that the `$ref` property will never appear alongside any other properties.
 ///
-/// This is useful for dialects of JSON Schema (e.g. Draft 7) that do not support other properties alongside `$ref`.
+/// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support other properties alongside `$ref`.
 #[derive(Debug, Clone)]
 pub struct RemoveRefSiblings;
 
@@ -177,6 +177,11 @@ impl Visitor for ReplaceConstValue {
     }
 }
 
+/// This visitor will rename the `prefixItems` schema property to `items`.
+///
+/// If the schema contains both `prefixItems` and `items`, then this additionally renames `items` to `additionalItems`.
+///
+/// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support the `prefixItems` property.
 #[derive(Debug, Clone)]
 pub struct ReplacePrefixItems;
 
