@@ -14,7 +14,7 @@
     },
     "my_unit": {
       "description": "A unit struct instance",
-      "$ref": "#/definitions/MyUnitStruct"
+      "$ref": "#/$defs/MyUnitStruct"
     }
   },
   "required": [
@@ -22,7 +22,7 @@
     "my_undocumented_bool",
     "my_unit"
   ],
-  "definitions": {
+  "$defs": {
     "MyUnitStruct": {
       "title": "A Unit",
       "type": "null"

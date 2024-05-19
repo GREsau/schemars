@@ -75,7 +75,7 @@ impl SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
-            definitions_path: "#/definitions/".to_owned(),
+            definitions_path: "#/$defs/".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
             visitors: Vec::new(),
             inline_subschemas: false,
@@ -253,7 +253,8 @@ impl SchemaGenerator {
         // insert into definitions BEFORE calling json_schema to avoid infinite recursion
         self.definitions.insert(name.clone(), dummy);
 
-        let schema = self.json_schema_internal::<T>(id);
+        let mut schema = self.json_schema_internal::<T>(id);
+        Self::run_visitors(&mut schema, &mut self.settings.visitors);
 
         self.definitions.insert(name, schema.to_value());
     }
@@ -306,16 +307,12 @@ impl SchemaGenerator {
             object.insert("$schema".into(), meta_schema.into());
         }
 
-        if !self.definitions.is_empty() {
-            object.insert(
-                "definitions".into(),
-                serde_json::Value::Object(self.definitions.clone()),
-            );
-        }
-
-        for visitor in &mut self.settings.visitors {
-            visitor.visit_schema(&mut schema);
-        }
+        Self::add_definitions(
+            object,
+            self.definitions.clone(),
+            &self.settings.definitions_path,
+        );
+        Self::run_visitors(&mut schema, &mut self.settings.visitors);
 
         schema
     }
@@ -337,16 +334,8 @@ impl SchemaGenerator {
             object.insert("$schema".into(), meta_schema.into());
         }
 
-        if !self.definitions.is_empty() {
-            object.insert(
-                "definitions".into(),
-                serde_json::Value::Object(self.definitions),
-            );
-        }
-
-        for visitor in &mut self.settings.visitors {
-            visitor.visit_schema(&mut schema);
-        }
+        Self::add_definitions(object, self.definitions, &self.settings.definitions_path);
+        Self::run_visitors(&mut schema, &mut self.settings.visitors);
 
         schema
     }
@@ -374,16 +363,12 @@ impl SchemaGenerator {
             object.insert("$schema".into(), meta_schema.into());
         }
 
-        if !self.definitions.is_empty() {
-            object.insert(
-                "definitions".into(),
-                serde_json::Value::Object(self.definitions.clone()),
-            );
-        }
-
-        for visitor in &mut self.settings.visitors {
-            visitor.visit_schema(&mut schema);
-        }
+        Self::add_definitions(
+            object,
+            self.definitions.clone(),
+            &self.settings.definitions_path,
+        );
+        Self::run_visitors(&mut schema, &mut self.settings.visitors);
 
         Ok(schema)
     }
@@ -411,16 +396,8 @@ impl SchemaGenerator {
             object.insert("$schema".into(), meta_schema.into());
         }
 
-        if !self.definitions.is_empty() {
-            object.insert(
-                "definitions".into(),
-                serde_json::Value::Object(self.definitions),
-            );
-        }
-
-        for visitor in &mut self.settings.visitors {
-            visitor.visit_schema(&mut schema);
-        }
+        Self::add_definitions(object, self.definitions, &self.settings.definitions_path);
+        Self::run_visitors(&mut schema, &mut self.settings.visitors);
 
         Ok(schema)
     }
@@ -449,6 +426,51 @@ impl SchemaGenerator {
 
         let pss = PendingSchemaState::new(self, id);
         T::json_schema(pss.gen)
+    }
+
+    fn add_definitions(
+        schema_object: &mut Map<String, Value>,
+        mut definitions: Map<String, Value>,
+        path: &str,
+    ) {
+        if definitions.is_empty() {
+            return;
+        }
+
+        let target = match Self::json_pointer(schema_object, path) {
+            Some(d) => d,
+            None => return,
+        };
+
+        target.append(&mut definitions);
+    }
+
+    fn json_pointer<'a>(
+        mut object: &'a mut Map<String, Value>,
+        pointer: &str,
+    ) -> Option<&'a mut Map<String, Value>> {
+        let segments = pointer.strip_prefix("#/")?.strip_suffix('/')?.split('/');
+
+        for mut segment in segments {
+            let replaced: String;
+            if segment.contains('~') {
+                replaced = segment.replace("~1", "/").replace("~0", "~");
+                segment = &replaced;
+            }
+
+            object = object
+                .entry(segment)
+                .or_insert(Value::Object(Map::default()))
+                .as_object_mut()?;
+        }
+
+        Some(object)
+    }
+
+    fn run_visitors(schema: &mut Schema, visitors: &mut [Box<dyn GenVisitor>]) {
+        for visitor in visitors {
+            visitor.visit_schema(schema);
+        }
     }
 }
 

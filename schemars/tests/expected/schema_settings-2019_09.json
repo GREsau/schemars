@@ -19,7 +19,7 @@
     "inner": {
       "anyOf": [
         {
-          "$ref": "#/definitions/Inner"
+          "$ref": "#/$defs/Inner"
         },
         {
           "type": "null"
@@ -32,7 +32,7 @@
     "values",
     "value"
   ],
-  "definitions": {
+  "$defs": {
     "Inner": {
       "oneOf": [
         {

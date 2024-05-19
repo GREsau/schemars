@@ -27,34 +27,36 @@
     "values",
     "value"
   ],
-  "definitions": {
-    "Inner": {
-      "oneOf": [
-        {
-          "type": "string",
-          "enum": [
-            "UndocumentedUnit1",
-            "UndocumentedUnit2"
-          ]
-        },
-        {
-          "description": "This is a documented unit variant",
-          "type": "string",
-          "enum": [
-            "DocumentedUnit"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "ValueNewType": {}
+  "components": {
+    "schemas": {
+      "Inner": {
+        "oneOf": [
+          {
+            "type": "string",
+            "enum": [
+              "UndocumentedUnit1",
+              "UndocumentedUnit2"
+            ]
           },
-          "required": [
-            "ValueNewType"
-          ],
-          "additionalProperties": false
-        }
-      ]
+          {
+            "description": "This is a documented unit variant",
+            "type": "string",
+            "enum": [
+              "DocumentedUnit"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "ValueNewType": {}
+            },
+            "required": [
+              "ValueNewType"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      }
     }
   }
 }
