@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Outer",
   "type": "object",
   "properties": {
@@ -30,7 +30,7 @@
       "type": "array",
       "items": {
         "type": "array",
-        "items": [
+        "prefixItems": [
           {
             "type": "integer",
             "format": "uint8",

@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Process",
   "type": "object",
   "properties": {
@@ -7,33 +7,25 @@
       "type": "string"
     },
     "wall_time": {
-      "$ref": "#/definitions/Duration"
+      "$ref": "#/$defs/Duration"
     },
     "user_cpu_time": {
+      "$ref": "#/$defs/Duration",
       "default": {
         "secs": 0,
         "nanos": 0
-      },
-      "allOf": [
-        {
-          "$ref": "#/definitions/Duration"
-        }
-      ]
+      }
     },
     "system_cpu_time": {
-      "default": "0.000000000s",
-      "allOf": [
-        {
-          "$ref": "#/definitions/Duration"
-        }
-      ]
+      "$ref": "#/$defs/Duration",
+      "default": "0.000000000s"
     }
   },
   "required": [
     "command_line",
     "wall_time"
   ],
-  "definitions": {
+  "$defs": {
     "Duration": {
       "type": "object",
       "properties": {

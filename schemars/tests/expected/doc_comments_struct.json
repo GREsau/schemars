@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "This is the struct's title",
   "description": "This is the struct's description.",
   "type": "object",
@@ -14,11 +14,7 @@
     },
     "my_unit": {
       "description": "A unit struct instance",
-      "allOf": [
-        {
-          "$ref": "#/definitions/MyUnitStruct"
-        }
-      ]
+      "$ref": "#/$defs/MyUnitStruct"
     }
   },
   "required": [
@@ -26,7 +22,7 @@
     "my_undocumented_bool",
     "my_unit"
   ],
-  "definitions": {
+  "$defs": {
     "MyUnitStruct": {
       "title": "A Unit",
       "type": "null"

@@ -422,7 +422,7 @@ fn expr_for_tuple_struct(fields: &[Field]) -> TokenStream {
     quote! {
         schemars::json_schema!({
             "type": "array",
-            "items": [#((#fields)),*],
+            "prefixItems": [#((#fields)),*],
             "minItems": #len,
             "maxItems": #len,
         })

@@ -25,7 +25,7 @@ macro_rules! tuple_impls {
                 fn json_schema(gen: &mut SchemaGenerator) -> Schema {
                     json_schema!({
                         "type": "array",
-                        "items": [
+                        "prefixItems": [
                             $(gen.subschema_for::<$name>()),+
                         ],
                         "minItems": $len,

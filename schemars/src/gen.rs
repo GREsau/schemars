@@ -18,18 +18,18 @@ use std::{any::Any, collections::HashSet, fmt::Debug};
 
 /// Settings to customize how Schemas are generated.
 ///
-/// The default settings currently conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
-/// If you require your generated schemas to conform to draft 7, consider using the [`draft07`](#method.draft07) method.
+/// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
+/// If you rely on generated schemas conforming to draft 2020-12, consider using the [`SchemaSettings::draft2020_12()`] method.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct SchemaSettings {
-    /// If `true`, schemas for [`Option<T>`](Option) will include a `nullable` property.
+    /// If `true`, schemas for [`Option<T>`] will include a `nullable` property.
     ///
     /// This is not part of the JSON Schema spec, but is used in Swagger/OpenAPI schemas.
     ///
     /// Defaults to `false`.
     pub option_nullable: bool,
-    /// If `true`, schemas for [`Option<T>`](Option) will have `null` added to their [`type`](../schema/struct.SchemaObject.html#structfield.instance_type).
+    /// If `true`, schemas for [`Option<T>`] will have `null` added to their `type` property.
     ///
     /// Defaults to `true`.
     pub option_add_null_type: bool,
@@ -39,9 +39,9 @@ pub struct SchemaSettings {
     pub definitions_path: String,
     /// The URI of the meta-schema describing the structure of the generated schemas.
     ///
-    /// Defaults to `"http://json-schema.org/draft-07/schema#"`.
+    /// Defaults to `"https://json-schema.org/draft/2020-12/schema"`.
     pub meta_schema: Option<String>,
-    /// A list of visitors that get applied to all generated root schemas.
+    /// A list of visitors that get applied to all generated schemas.
     pub visitors: Vec<Box<dyn GenVisitor>>,
     /// Inline all subschemas instead of using references.
     ///
@@ -53,30 +53,42 @@ pub struct SchemaSettings {
 
 impl Default for SchemaSettings {
     fn default() -> SchemaSettings {
-        SchemaSettings::draft07()
+        SchemaSettings::draft2020_12()
     }
 }
 
 impl SchemaSettings {
-    /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7).
+    /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links#draft-7).
     pub fn draft07() -> SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
             definitions_path: "#/definitions/".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            visitors: vec![Box::new(RemoveRefSiblings)],
+            visitors: vec![Box::new(RemoveRefSiblings), Box::new(ReplacePrefixItems)],
             inline_subschemas: false,
         }
     }
 
-    /// Creates `SchemaSettings` that conform to [JSON Schema 2019-09](https://json-schema.org/specification-links.html#2019-09-formerly-known-as-draft-8).
+    /// Creates `SchemaSettings` that conform to [JSON Schema 2019-09](https://json-schema.org/specification-links#draft-2019-09-(formerly-known-as-draft-8)).
     pub fn draft2019_09() -> SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
             definitions_path: "#/$defs/".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
+            visitors: vec![Box::new(ReplacePrefixItems)],
+            inline_subschemas: false,
+        }
+    }
+
+    /// Creates `SchemaSettings` that conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12).
+    pub fn draft2020_12() -> SchemaSettings {
+        SchemaSettings {
+            option_nullable: false,
+            option_add_null_type: true,
+            definitions_path: "#/$defs/".to_owned(),
+            meta_schema: Some("https://json-schema.org/draft/2020-12/schema".to_owned()),
             visitors: Vec::new(),
             inline_subschemas: false,
         }
@@ -99,6 +111,7 @@ impl SchemaSettings {
                 }),
                 Box::new(SetSingleExample),
                 Box::new(ReplaceConstValue),
+                Box::new(ReplacePrefixItems),
             ],
             inline_subschemas: false,
         }

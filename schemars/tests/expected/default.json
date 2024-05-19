@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyStruct",
   "type": "object",
   "properties": {
@@ -13,21 +13,17 @@
       "default": false
     },
     "my_struct2": {
-      "default": "i:0 b:false",
-      "allOf": [
-        {
-          "$ref": "#/definitions/MyStruct2"
-        }
-      ]
+      "$ref": "#/$defs/MyStruct2",
+      "default": "i:0 b:false"
     },
     "my_struct2_default_skipped": {
-      "$ref": "#/definitions/MyStruct2"
+      "$ref": "#/$defs/MyStruct2"
     },
     "not_serialize": {
-      "$ref": "#/definitions/NotSerialize"
+      "$ref": "#/$defs/NotSerialize"
     }
   },
-  "definitions": {
+  "$defs": {
     "MyStruct2": {
       "type": "object",
       "properties": {

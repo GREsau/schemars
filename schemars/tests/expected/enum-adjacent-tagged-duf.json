@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Adjacent",
   "oneOf": [
     {
@@ -49,7 +49,7 @@
           ]
         },
         "c": {
-          "$ref": "#/definitions/UnitStruct"
+          "$ref": "#/$defs/UnitStruct"
         }
       },
       "required": [
@@ -68,7 +68,7 @@
           ]
         },
         "c": {
-          "$ref": "#/definitions/Struct"
+          "$ref": "#/$defs/Struct"
         }
       },
       "required": [
@@ -121,7 +121,7 @@
         },
         "c": {
           "type": "array",
-          "items": [
+          "prefixItems": [
             {
               "type": "integer",
               "format": "int32"
@@ -176,7 +176,7 @@
       "additionalProperties": false
     }
   ],
-  "definitions": {
+  "$defs": {
     "UnitStruct": {
       "type": "null"
     },

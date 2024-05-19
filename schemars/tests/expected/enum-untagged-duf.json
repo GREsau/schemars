@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Untagged",
   "anyOf": [
     {
@@ -12,10 +12,10 @@
       }
     },
     {
-      "$ref": "#/definitions/UnitStruct"
+      "$ref": "#/$defs/UnitStruct"
     },
     {
-      "$ref": "#/definitions/Struct"
+      "$ref": "#/$defs/Struct"
     },
     {
       "type": "object",
@@ -36,7 +36,7 @@
     },
     {
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
           "type": "integer",
           "format": "int32"
@@ -53,7 +53,7 @@
       "format": "int32"
     }
   ],
-  "definitions": {
+  "$defs": {
     "UnitStruct": {
       "type": "null"
     },

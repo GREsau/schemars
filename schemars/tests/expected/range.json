@@ -1,16 +1,16 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyStruct",
   "type": "object",
   "properties": {
     "range": {
-      "$ref": "#/definitions/Range_of_uint"
+      "$ref": "#/$defs/Range_of_uint"
     },
     "inclusive": {
-      "$ref": "#/definitions/Range_of_double"
+      "$ref": "#/$defs/Range_of_double"
     },
     "bound": {
-      "$ref": "#/definitions/Bound_of_string"
+      "$ref": "#/$defs/Bound_of_string"
     }
   },
   "required": [
@@ -18,7 +18,7 @@
     "inclusive",
     "bound"
   ],
-  "definitions": {
+  "$defs": {
     "Range_of_uint": {
       "type": "object",
       "properties": {
