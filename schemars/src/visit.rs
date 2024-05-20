@@ -45,6 +45,11 @@ pub trait Visitor {
 pub fn visit_schema<V: Visitor + ?Sized>(v: &mut V, schema: &mut Schema) {
     if let Some(obj) = schema.as_object_mut() {
         for (key, value) in obj {
+            // This is intentionally written to work with multiple JSON Schema versions, so that
+            // users can add their own visitors on the end of e.g. `SchemaSettings::draft07()` and
+            // they will still apply to all subschemas "as expected".
+            // This is why this match statement contains both `additionalProperties` (which was
+            // dropped in draft 2020-12) and `prefixItems` (which was added in draft 2020-12).
             match key.as_str() {
                 "not"
                 | "if"
@@ -53,7 +58,7 @@ pub fn visit_schema<V: Visitor + ?Sized>(v: &mut V, schema: &mut Schema) {
                 | "contains"
                 | "additionalProperties"
                 | "propertyNames"
-                | "items" => {
+                | "additionalItems" => {
                     if let Ok(subschema) = value.try_into() {
                         v.visit_schema(subschema)
                     }
@@ -65,6 +70,18 @@ pub fn visit_schema<V: Visitor + ?Sized>(v: &mut V, schema: &mut Schema) {
                                 v.visit_schema(subschema)
                             }
                         }
+                    }
+                }
+                // Support `items` array even though this is not allowed in draft 2020-12 (see above comment)
+                "items" => {
+                    if let Some(array) = value.as_array_mut() {
+                        for value in array {
+                            if let Ok(subschema) = value.try_into() {
+                                v.visit_schema(subschema)
+                            }
+                        }
+                    } else if let Ok(subschema) = value.try_into() {
+                        v.visit_schema(subschema)
                     }
                 }
                 "properties" | "patternProperties" => {
