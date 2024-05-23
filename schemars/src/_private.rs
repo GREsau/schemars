@@ -161,7 +161,7 @@ pub mod metadata {
     add_metadata_fn!(add_deprecated, deprecated, bool);
     add_metadata_fn!(add_read_only, read_only, bool);
     add_metadata_fn!(add_write_only, write_only, bool);
-    add_metadata_fn!(add_default, default, Value);
+    add_metadata_fn!(add_default, default, Option<Value>);
 
     pub fn add_examples<I: IntoIterator<Item = Value>>(schema: Schema, examples: I) -> Schema {
         let mut schema_obj = schema.into_object();
