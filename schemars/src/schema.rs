@@ -2,8 +2,7 @@
 JSON Schema types.
 */
 
-use ref_cast::ref_cast_custom;
-use ref_cast::RefCastCustom;
+use ref_cast::{ref_cast_custom, RefCastCustom};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
@@ -172,6 +171,22 @@ impl From<Map<String, Value>> for Schema {
 impl From<bool> for Schema {
     fn from(b: bool) -> Self {
         Schema(Value::Bool(b))
+    }
+}
+
+impl crate::JsonSchema for Schema {
+    fn schema_name() -> String {
+        "Schema".to_owned()
+    }
+
+    fn schema_id() -> std::borrow::Cow<'static, str> {
+        "schemars::Schema".into()
+    }
+
+    fn json_schema(_: &mut crate::gen::SchemaGenerator) -> Schema {
+        crate::json_schema!({
+            "type": ["object", "boolean"]
+        })
     }
 }
 
