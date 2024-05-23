@@ -12,6 +12,13 @@
       "type": "boolean",
       "default": false
     },
+    "my_optional_string": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "my_struct2": {
       "$ref": "#/$defs/MyStruct2",
       "default": "i:0 b:false"

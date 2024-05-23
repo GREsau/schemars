@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.21] - 2024-05-23
+
+### Fixed:
+
+- Fix `null` default not being set on generated schemas (https://github.com/GREsau/schemars/issues/295 / https://github.com/GREsau/schemars/pull/296)
+
+## [0.8.20] - 2024-05-18
+
+### Fixed:
+
+- Revert unintentional change in behaviour when combining `default` and `required` attributes (https://github.com/GREsau/schemars/issues/292)
+
 ## [0.8.19] - 2024-05-06
 
 ### Fixed:
