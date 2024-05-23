@@ -84,7 +84,7 @@ pub fn visit_schema<V: Visitor + ?Sized>(v: &mut V, schema: &mut Schema) {
                         v.visit_schema(subschema)
                     }
                 }
-                "properties" | "patternProperties" => {
+                "properties" | "patternProperties" | "$defs" | "definitions" => {
                     if let Some(obj) = value.as_object_mut() {
                         for value in obj.values_mut() {
                             if let Ok(subschema) = value.try_into() {
