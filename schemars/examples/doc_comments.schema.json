@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "My Amazing Struct",
   "description": "This struct shows off generating a schema with a custom title and description.",
   "type": "object",
@@ -18,7 +18,7 @@
       "description": "This enum might be set, or it might not.",
       "anyOf": [
         {
-          "$ref": "#/definitions/MyEnum"
+          "$ref": "#/$defs/MyEnum"
         },
         {
           "type": "null"
@@ -30,7 +30,7 @@
     "my_int",
     "my_bool"
   ],
-  "definitions": {
+  "$defs": {
     "MyEnum": {
       "title": "My Amazing Enum",
       "oneOf": [

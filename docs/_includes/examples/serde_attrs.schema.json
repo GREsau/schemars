@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyStruct",
   "type": "object",
   "properties": {
@@ -9,7 +9,7 @@
     "myNullableEnum": {
       "anyOf": [
         {
-          "$ref": "#/definitions/MyEnum"
+          "$ref": "#/$defs/MyEnum"
         },
         {
           "type": "null"
@@ -27,7 +27,7 @@
     "myNumber",
     "myBool"
   ],
-  "definitions": {
+  "$defs": {
     "MyEnum": {
       "anyOf": [
         {

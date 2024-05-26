@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Process",
   "type": "object",
   "properties": {
@@ -9,11 +9,11 @@
     "durations": {
       "type": "array",
       "items": {
-        "$ref": "#/definitions/Duration"
+        "$ref": "#/$defs/Duration"
       }
     },
     "wall_time": {
-      "$ref": "#/definitions/Duration"
+      "$ref": "#/$defs/Duration"
     }
   },
   "required": [
@@ -21,7 +21,7 @@
     "wall_time",
     "durations"
   ],
-  "definitions": {
+  "$defs": {
     "Duration": {
       "type": "object",
       "properties": {
