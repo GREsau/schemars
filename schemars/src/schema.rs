@@ -175,8 +175,8 @@ impl From<bool> for Schema {
 }
 
 impl crate::JsonSchema for Schema {
-    fn schema_name() -> String {
-        "Schema".to_owned()
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        "Schema".into()
     }
 
     fn schema_id() -> std::borrow::Cow<'static, str> {

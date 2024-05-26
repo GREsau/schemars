@@ -6,12 +6,12 @@ use uuid1::Uuid;
 impl JsonSchema for Uuid {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        "Uuid".to_string()
+    fn schema_name() -> Cow<'static, str> {
+        "Uuid".into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Borrowed("uuid::Uuid")
+        "uuid::Uuid".into()
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {

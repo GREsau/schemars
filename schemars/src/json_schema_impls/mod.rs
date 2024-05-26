@@ -13,7 +13,7 @@ macro_rules! forward_impl {
                 <$target>::is_referenceable()
             }
 
-            fn schema_name() -> String {
+            fn schema_name() -> std::borrow::Cow<'static, str> {
                 <$target>::schema_name()
             }
 

@@ -8,10 +8,10 @@ macro_rules! tuple_impls {
             impl<$($name: JsonSchema),+> JsonSchema for ($($name,)+) {
                 no_ref_schema!();
 
-                fn schema_name() -> String {
+                fn schema_name() -> Cow<'static, str> {
                     let mut name = "Tuple_of_".to_owned();
                     name.push_str(&[$($name::schema_name()),+].join("_and_"));
-                    name
+                    name.into()
                 }
 
                 fn schema_id() -> Cow<'static, str> {
@@ -19,7 +19,7 @@ macro_rules! tuple_impls {
                     id.push_str(&[$($name::schema_id()),+].join(","));
                     id.push(')');
 
-                    Cow::Owned(id)
+                    id.into()
                 }
 
                 fn json_schema(gen: &mut SchemaGenerator) -> Schema {

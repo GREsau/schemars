@@ -7,12 +7,8 @@ macro_rules! decimal_impl {
         impl JsonSchema for $type {
             no_ref_schema!();
 
-            fn schema_name() -> String {
-                "Decimal".to_owned()
-            }
-
-            fn schema_id() -> Cow<'static, str> {
-                Cow::Borrowed("Decimal")
+            fn schema_name() -> Cow<'static, str> {
+                "Decimal".into()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {

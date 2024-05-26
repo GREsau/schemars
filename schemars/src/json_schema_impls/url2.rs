@@ -6,12 +6,12 @@ use url2::Url;
 impl JsonSchema for Url {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        "Url".to_owned()
+    fn schema_name() -> Cow<'static, str> {
+        "Url".into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Borrowed("url::Url")
+        "url::Url".into()
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {

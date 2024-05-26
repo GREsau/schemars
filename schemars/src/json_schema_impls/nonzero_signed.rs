@@ -8,12 +8,12 @@ macro_rules! nonzero_unsigned_impl {
         impl JsonSchema for $type {
             no_ref_schema!();
 
-            fn schema_name() -> String {
-                stringify!($type).to_owned()
+            fn schema_name() -> Cow<'static, str> {
+                stringify!($type).into()
             }
 
             fn schema_id() -> Cow<'static, str> {
-                Cow::Borrowed(stringify!(std::num::$type))
+                stringify!(std::num::$type).into()
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {

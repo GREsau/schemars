@@ -56,14 +56,14 @@ pub use schema::Schema;
 /// struct NonGenericType;
 ///
 /// impl JsonSchema for NonGenericType {
-///     fn schema_name() -> String {
+///     fn schema_name() -> Cow<'static, str> {
 ///         // Exclude the module path to make the name in generated schemas clearer.
-///         "NonGenericType".to_owned()
+///         "NonGenericType".into()
 ///     }
 ///
 ///     fn schema_id() -> Cow<'static, str> {
 ///         // Include the module, in case a type with the same name is in another module/crate
-///         Cow::Borrowed(concat!(module_path!(), "::NonGenericType"))
+///         concat!(module_path!(), "::NonGenericType").into()
 ///     }
 ///
 ///     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
@@ -82,16 +82,16 @@ pub use schema::Schema;
 /// struct GenericType<T>(PhantomData<T>);
 ///
 /// impl<T: JsonSchema> JsonSchema for GenericType<T> {
-///     fn schema_name() -> String {
-///         format!("GenericType_{}", T::schema_name())
+///     fn schema_name() -> Cow<'static, str> {
+///         format!("GenericType_{}", T::schema_name()).into()
 ///     }
 ///
 ///     fn schema_id() -> Cow<'static, str> {
-///         Cow::Owned(format!(
+///         format!(
 ///             "{}::GenericType<{}>",
 ///             module_path!(),
 ///             T::schema_id()
-///         ))
+///         ).into()
 ///     }
 ///
 ///     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
@@ -117,7 +117,7 @@ pub trait JsonSchema {
     /// The name of the generated JSON Schema.
     ///
     /// This is used as the title for root schemas, and the key within the root's `definitions` property for subschemas.
-    fn schema_name() -> String;
+    fn schema_name() -> Cow<'static, str>;
 
     /// Returns a string that uniquely identifies the schema produced by this type.
     ///
@@ -127,7 +127,7 @@ pub trait JsonSchema {
     ///
     /// The default implementation returns the same value as `schema_name()`.
     fn schema_id() -> Cow<'static, str> {
-        Cow::Owned(Self::schema_name())
+        Self::schema_name()
     }
 
     /// Generates a JSON Schema for this type.

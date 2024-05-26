@@ -12,8 +12,8 @@ where
 {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        format!("Array_up_to_size_{}_of_{}", CAP, T::schema_name())
+    fn schema_name() -> std::borrow::Cow<'static, str> {
+        format!("Array_up_to_size_{}_of_{}", CAP, T::schema_name()).into()
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {

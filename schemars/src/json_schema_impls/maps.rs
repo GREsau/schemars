@@ -10,12 +10,12 @@ macro_rules! map_impl {
         {
             no_ref_schema!();
 
-            fn schema_name() -> String {
-                format!("Map_of_{}", V::schema_name())
+            fn schema_name() -> Cow<'static, str> {
+                format!("Map_of_{}", V::schema_name()).into()
             }
 
             fn schema_id() -> Cow<'static, str> {
-                Cow::Owned(format!("Map<{}>", V::schema_id()))
+                format!("Map<{}>", V::schema_id()).into()
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {

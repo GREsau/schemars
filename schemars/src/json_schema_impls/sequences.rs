@@ -10,13 +10,12 @@ macro_rules! seq_impl {
         {
             no_ref_schema!();
 
-            fn schema_name() -> String {
-                format!("Array_of_{}", T::schema_name())
+            fn schema_name() -> Cow<'static, str> {
+                format!("Array_of_{}", T::schema_name()).into()
             }
 
             fn schema_id() -> Cow<'static, str> {
-                Cow::Owned(
-                    format!("[{}]", T::schema_id()))
+                format!("[{}]", T::schema_id()).into()
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
@@ -37,13 +36,12 @@ macro_rules! set_impl {
         {
             no_ref_schema!();
 
-            fn schema_name() -> String {
-                format!("Set_of_{}", T::schema_name())
+            fn schema_name() -> Cow<'static, str> {
+                format!("Set_of_{}", T::schema_name()).into()
             }
 
             fn schema_id() -> Cow<'static, str> {
-                Cow::Owned(
-                    format!("Set<{}>", T::schema_id()))
+                format!("Set<{}>", T::schema_id()).into()
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {

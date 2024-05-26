@@ -12,12 +12,10 @@ permalink: /implementing/
 ## schema_name
 
 ```rust
-fn schema_name() -> String;
+fn schema_name() -> Cow<'static, str>;
 ```
 
 This function returns the human-readable friendly name of the type's schema, which frequently is just the name of the type itself. The schema name is used as the title for root schemas, and the key within the root's `definitions` property for subschemas.
-
-NB in a future version of schemars, it's likely that this function will be changed to return a `Cow<'static, str>`.
 
 ## schema_id
 
@@ -29,8 +27,7 @@ This function returns a unique identifier of the type's schema - if two types re
 
 ```rust
 fn schema_id() -> Cow<'static, str> {
-    Cow::Owned(
-        format!("[{}]", T::schema_id()))
+    format!("[{}]", T::schema_id()).into()
 }
 ```
 
@@ -40,14 +37,14 @@ For a type with no generic type arguments, a reasonable implementation of this f
 
 ```rust
 impl JsonSchema for NonGenericType {
-    fn schema_name() -> String {
+    fn schema_name() -> Cow<'static, str> {
         // Exclude the module path to make the name in generated schemas clearer.
-        "NonGenericType".to_owned()
+        "NonGenericType".into()
     }
 
     fn schema_id() -> Cow<'static, str> {
         // Include the module, in case a type with the same name is in another module/crate
-        Cow::Borrowed(concat!(module_path!(), "::NonGenericType"))
+        concat!(module_path!(), "::NonGenericType").into()
     }
 
     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {

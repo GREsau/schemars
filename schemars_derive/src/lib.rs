@@ -60,7 +60,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                         <#ty as schemars::JsonSchema>::is_referenceable()
                     }
 
-                    fn schema_name() -> std::string::String {
+                    fn schema_name() -> std::borrow::Cow<'static, str> {
                         <#ty as schemars::JsonSchema>::schema_name()
                     }
 
@@ -104,7 +104,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
     {
         (
             quote! {
-                #schema_base_name.to_owned()
+                std::borrow::Cow::Borrowed(#schema_base_name)
             },
             quote! {
                 std::borrow::Cow::Borrowed(std::concat!(
@@ -121,7 +121,9 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
         }
         (
             quote! {
-                format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())* #(,#const_params=#const_params)*)
+                std::borrow::Cow::Owned(
+                    format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())* #(,#const_params=#const_params)*)
+                )
             },
             quote! {
                 std::borrow::Cow::Owned(
@@ -143,7 +145,9 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
         schema_name_fmt.push_str(&"_and_{}".repeat(params.len() - 1));
         (
             quote! {
-                format!(#schema_name_fmt #(,#type_params::schema_name())* #(,#const_params)*)
+                std::borrow::Cow::Owned(
+                    format!(#schema_name_fmt #(,#type_params::schema_name())* #(,#const_params)*)
+                )
             },
             quote! {
                 std::borrow::Cow::Owned(
@@ -174,7 +178,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
             #[automatically_derived]
             #[allow(unused_braces)]
             impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
-                fn schema_name() -> std::string::String {
+                fn schema_name() -> std::borrow::Cow<'static, str> {
                     #schema_name
                 }
 

@@ -12,9 +12,10 @@ use crate::{visit::*, JsonSchema};
 use dyn_clone::DynClone;
 use serde::Serialize;
 use serde_json::{Map, Value};
-use std::borrow::Cow;
 use std::collections::HashMap;
 use std::{any::Any, collections::HashSet, fmt::Debug};
+
+type CowStr = std::borrow::Cow<'static, str>;
 
 /// Settings to customize how Schemas are generated.
 ///
@@ -166,9 +167,9 @@ impl SchemaSettings {
 pub struct SchemaGenerator {
     settings: SchemaSettings,
     definitions: Map<String, Value>,
-    pending_schema_ids: HashSet<Cow<'static, str>>,
-    schema_id_to_name: HashMap<Cow<'static, str>, String>,
-    used_schema_names: HashSet<String>,
+    pending_schema_ids: HashSet<CowStr>,
+    schema_id_to_name: HashMap<CowStr, CowStr>,
+    used_schema_names: HashSet<CowStr>,
 }
 
 impl Clone for SchemaGenerator {
@@ -230,11 +231,11 @@ impl SchemaGenerator {
                 Some(n) => n,
                 None => {
                     let base_name = T::schema_name();
-                    let mut name = String::new();
+                    let mut name = CowStr::Borrowed("");
 
-                    if self.used_schema_names.contains(&base_name) {
+                    if self.used_schema_names.contains(base_name.as_ref()) {
                         for i in 2.. {
-                            name = format!("{}{}", base_name, i);
+                            name = format!("{}{}", base_name, i).into();
                             if !self.used_schema_names.contains(&name) {
                                 break;
                             }
@@ -250,7 +251,7 @@ impl SchemaGenerator {
             };
 
             let reference = format!("#{}/{}", self.definitions_path_stripped(), name);
-            if !self.definitions.contains_key(&name) {
+            if !self.definitions.contains_key(name.as_ref()) {
                 self.insert_new_subschema_for::<T>(name, id);
             }
             Schema::new_ref(reference)
@@ -259,18 +260,14 @@ impl SchemaGenerator {
         }
     }
 
-    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(
-        &mut self,
-        name: String,
-        id: Cow<'static, str>,
-    ) {
+    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: CowStr, id: CowStr) {
         let dummy = false.into();
         // insert into definitions BEFORE calling json_schema to avoid infinite recursion
-        self.definitions.insert(name.clone(), dummy);
+        self.definitions.insert(name.clone().into(), dummy);
 
         let schema = self.json_schema_internal::<T>(id);
 
-        self.definitions.insert(name, schema.to_value());
+        self.definitions.insert(name.into(), schema.to_value());
     }
 
     /// Borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
@@ -410,15 +407,15 @@ impl SchemaGenerator {
         Ok(schema)
     }
 
-    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, id: Cow<'static, str>) -> Schema {
+    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, id: CowStr) -> Schema {
         struct PendingSchemaState<'a> {
             gen: &'a mut SchemaGenerator,
-            id: Cow<'static, str>,
+            id: CowStr,
             did_add: bool,
         }
 
         impl<'a> PendingSchemaState<'a> {
-            fn new(gen: &'a mut SchemaGenerator, id: Cow<'static, str>) -> Self {
+            fn new(gen: &'a mut SchemaGenerator, id: CowStr) -> Self {
                 let did_add = gen.pending_schema_ids.insert(id.clone());
                 Self { gen, id, did_add }
             }
@@ -477,6 +474,8 @@ impl SchemaGenerator {
         }
     }
 
+    /// Returns `self.settings.definitions_path` as a plain JSON pointer to the definitions object,
+    /// i.e. without a leading '#' or trailing '/'
     fn definitions_path_stripped(&self) -> &str {
         let path = &self.settings.definitions_path;
         let path = path.strip_prefix('#').unwrap_or(path);

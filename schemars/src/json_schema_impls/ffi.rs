@@ -4,12 +4,12 @@ use std::borrow::Cow;
 use std::ffi::{CStr, CString, OsStr, OsString};
 
 impl JsonSchema for OsString {
-    fn schema_name() -> String {
-        "OsString".to_owned()
+    fn schema_name() -> Cow<'static, str> {
+        "OsString".into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Borrowed("std::ffi::OsString")
+        "std::ffi::OsString".into()
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {

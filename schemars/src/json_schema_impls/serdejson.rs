@@ -7,12 +7,8 @@ use std::collections::BTreeMap;
 impl JsonSchema for Value {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        "AnyValue".to_owned()
-    }
-
-    fn schema_id() -> Cow<'static, str> {
-        Cow::Borrowed("AnyValue")
+    fn schema_name() -> Cow<'static, str> {
+        "AnyValue".into()
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -25,12 +21,8 @@ forward_impl!(Map<String, Value> => BTreeMap<String, Value>);
 impl JsonSchema for Number {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        "Number".to_owned()
-    }
-
-    fn schema_id() -> Cow<'static, str> {
-        Cow::Borrowed("Number")
+    fn schema_name() -> Cow<'static, str> {
+        "Number".into()
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {

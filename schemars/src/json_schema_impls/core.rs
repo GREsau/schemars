@@ -7,12 +7,12 @@ use std::ops::{Bound, Range, RangeInclusive};
 impl<T: JsonSchema> JsonSchema for Option<T> {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        format!("Nullable_{}", T::schema_name())
+    fn schema_name() -> Cow<'static, str> {
+        format!("Nullable_{}", T::schema_name()).into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Owned(format!("Option<{}>", T::schema_id()))
+        format!("Option<{}>", T::schema_id()).into()
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
@@ -69,12 +69,12 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
 }
 
 impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
-    fn schema_name() -> String {
-        format!("Result_of_{}_or_{}", T::schema_name(), E::schema_name())
+    fn schema_name() -> Cow<'static, str> {
+        format!("Result_of_{}_or_{}", T::schema_name(), E::schema_name()).into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Owned(format!("Result<{}, {}>", T::schema_id(), E::schema_id()))
+        format!("Result<{}, {}>", T::schema_id(), E::schema_id()).into()
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
@@ -100,12 +100,12 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
 }
 
 impl<T: JsonSchema> JsonSchema for Bound<T> {
-    fn schema_name() -> String {
-        format!("Bound_of_{}", T::schema_name())
+    fn schema_name() -> Cow<'static, str> {
+        format!("Bound_of_{}", T::schema_name()).into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Owned(format!("Bound<{}>", T::schema_id()))
+        format!("Bound<{}>", T::schema_id()).into()
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {
@@ -135,12 +135,12 @@ impl<T: JsonSchema> JsonSchema for Bound<T> {
 }
 
 impl<T: JsonSchema> JsonSchema for Range<T> {
-    fn schema_name() -> String {
-        format!("Range_of_{}", T::schema_name())
+    fn schema_name() -> Cow<'static, str> {
+        format!("Range_of_{}", T::schema_name()).into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Owned(format!("Range<{}>", T::schema_id()))
+        format!("Range<{}>", T::schema_id()).into()
     }
 
     fn json_schema(gen: &mut SchemaGenerator) -> Schema {

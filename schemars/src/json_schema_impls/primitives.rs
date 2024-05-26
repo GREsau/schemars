@@ -9,12 +9,8 @@ macro_rules! simple_impl {
         impl JsonSchema for $type {
             no_ref_schema!();
 
-            fn schema_name() -> String {
-                $instance_type.to_owned()
-            }
-
-            fn schema_id() -> Cow<'static, str> {
-                Cow::Borrowed($instance_type)
+            fn schema_name() -> Cow<'static, str> {
+                $instance_type.into()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -28,12 +24,8 @@ macro_rules! simple_impl {
         impl JsonSchema for $type {
             no_ref_schema!();
 
-            fn schema_name() -> String {
-                $format.to_owned()
-            }
-
-            fn schema_id() -> Cow<'static, str> {
-                Cow::Borrowed($format)
+            fn schema_name() -> Cow<'static, str> {
+                $format.into()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -75,12 +67,8 @@ macro_rules! unsigned_impl {
         impl JsonSchema for $type {
             no_ref_schema!();
 
-            fn schema_name() -> String {
-                $format.to_owned()
-            }
-
-            fn schema_id() -> Cow<'static, str> {
-                Cow::Borrowed($format)
+            fn schema_name() -> Cow<'static, str> {
+                $format.into()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -104,12 +92,12 @@ unsigned_impl!(usize => "integer", "uint");
 impl JsonSchema for char {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        "Character".to_owned()
+    fn schema_name() -> Cow<'static, str> {
+        "Character".into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Borrowed("char")
+        "char".into()
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {

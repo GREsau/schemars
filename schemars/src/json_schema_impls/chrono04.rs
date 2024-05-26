@@ -6,12 +6,12 @@ use std::borrow::Cow;
 impl JsonSchema for Weekday {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        "Weekday".to_owned()
+    fn schema_name() -> Cow<'static, str> {
+        "Weekday".into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Borrowed("chrono::Weekday")
+        "chrono::Weekday".into()
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -38,12 +38,12 @@ macro_rules! formatted_string_impl {
         impl $($desc)+ {
             no_ref_schema!();
 
-            fn schema_name() -> String {
-                stringify!($ty).to_owned()
+            fn schema_name() -> Cow<'static, str> {
+                stringify!($ty).into()
             }
 
             fn schema_id() -> Cow<'static, str>  {
-                Cow::Borrowed(stringify!(chrono::$ty))
+                stringify!(chrono::$ty).into()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {

@@ -6,12 +6,12 @@ use std::borrow::Cow;
 impl<T> JsonSchema for [T; 0] {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        "EmptyArray".to_owned()
+    fn schema_name() -> Cow<'static, str> {
+        "EmptyArray".into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Borrowed("[]")
+        "[]".into()
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
@@ -28,13 +28,12 @@ macro_rules! array_impls {
             impl<T: JsonSchema> JsonSchema for [T; $len] {
                 no_ref_schema!();
 
-                fn schema_name() -> String {
-                    format!("Array_size_{}_of_{}", $len, T::schema_name())
+                fn schema_name() -> Cow<'static, str> {
+                    format!("Array_size_{}_of_{}", $len, T::schema_name()).into()
                 }
 
                 fn schema_id() -> Cow<'static, str> {
-                    Cow::Owned(
-                        format!("[{}; {}]", $len, T::schema_id()))
+                    format!("[{}; {}]", $len, T::schema_id()).into()
                 }
 
                 fn json_schema(gen: &mut SchemaGenerator) -> Schema {

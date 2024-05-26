@@ -6,12 +6,12 @@ use std::borrow::Cow;
 impl JsonSchema for Version {
     no_ref_schema!();
 
-    fn schema_name() -> String {
-        "Version".to_owned()
+    fn schema_name() -> Cow<'static, str> {
+        "Version".into()
     }
 
     fn schema_id() -> Cow<'static, str> {
-        Cow::Borrowed("semver::Version")
+        "semver::Version".into()
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
