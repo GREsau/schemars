@@ -110,8 +110,8 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
                 struct #ty_name;
 
                 impl schemars::JsonSchema for #ty_name {
-                    fn is_referenceable() -> bool {
-                        false
+                    fn always_inline_schema() -> bool {
+                        true
                     }
 
                     fn schema_name() -> std::borrow::Cow<'static, str> {

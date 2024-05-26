@@ -5,7 +5,7 @@ use std::borrow::Cow;
 use std::collections::BTreeMap;
 
 impl JsonSchema for Value {
-    no_ref_schema!();
+    always_inline!();
 
     fn schema_name() -> Cow<'static, str> {
         "AnyValue".into()
@@ -19,7 +19,7 @@ impl JsonSchema for Value {
 forward_impl!(Map<String, Value> => BTreeMap<String, Value>);
 
 impl JsonSchema for Number {
-    no_ref_schema!();
+    always_inline!();
 
     fn schema_name() -> Cow<'static, str> {
         "Number".into()

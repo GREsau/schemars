@@ -4,7 +4,7 @@ use chrono04::prelude::*;
 use std::borrow::Cow;
 
 impl JsonSchema for Weekday {
-    no_ref_schema!();
+    always_inline!();
 
     fn schema_name() -> Cow<'static, str> {
         "Weekday".into()
@@ -36,7 +36,7 @@ macro_rules! formatted_string_impl {
     };
     ($ty:ident, $format:literal, $($desc:tt)+) => {
         impl $($desc)+ {
-            no_ref_schema!();
+            always_inline!();
 
             fn schema_name() -> Cow<'static, str> {
                 stringify!($ty).into()

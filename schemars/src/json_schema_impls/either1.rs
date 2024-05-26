@@ -4,7 +4,7 @@ use either1::Either;
 use std::borrow::Cow;
 
 impl<L: JsonSchema, R: JsonSchema> JsonSchema for Either<L, R> {
-    no_ref_schema!();
+    always_inline!();
 
     fn schema_name() -> Cow<'static, str> {
         format!("Either_{}_or_{}", L::schema_name(), R::schema_name()).into()

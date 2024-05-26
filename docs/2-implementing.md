@@ -63,14 +63,14 @@ This function creates the JSON schema itself. The `gen` argument can be used to 
 
 `json_schema` should not return a `$ref` schema.
 
-## is_referenceable (optional)
+## always_inline_schema (optional)
 
 ```rust
-fn is_referenceable() -> bool;
+fn always_inline_schema() -> bool;
 ```
 
-If this function returns `true`, then Schemars can re-use the generate schema where possible by adding it to the root schema's `definitions` and having other schemas reference it using the `$ref` keyword. This can greatly simplify schemas that include a particular type multiple times, especially if that type's schema is fairly complex.
+If this function returns `false`, then Schemars can re-use the generate schema where possible by adding it to the root schema's `definitions` and having other schemas reference it using the `$ref` keyword. This can greatly simplify schemas that include a particular type multiple times, especially if that type's schema is fairly complex.
 
-Generally, this should return `false` for types with simple schemas (such as primitives). For more complex types, it should return `true`. For recursive types, this **must** return `true` to prevent infinite cycles when generating schemas.
+Generally, this should return `true` for types with simple schemas (such as primitives). For more complex types, it should return `false`. For recursive types, this **must** return `false` to prevent infinite cycles when generating schemas.
 
-The default implementation of this function returns `true` to reduce the chance of someone inadvertently causing infinite cycles with recursive types.
+The default implementation of this function returns `false` to reduce the chance of someone inadvertently causing infinite cycles with recursive types.

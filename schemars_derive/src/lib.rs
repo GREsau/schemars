@@ -56,8 +56,8 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
 
                 #[automatically_derived]
                 impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
-                    fn is_referenceable() -> bool {
-                        <#ty as schemars::JsonSchema>::is_referenceable()
+                    fn always_inline_schema() -> bool {
+                        <#ty as schemars::JsonSchema>::always_inline_schema()
                     }
 
                     fn schema_name() -> std::borrow::Cow<'static, str> {

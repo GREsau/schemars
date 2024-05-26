@@ -5,7 +5,7 @@ use std::borrow::Cow;
 use std::ops::{Bound, Range, RangeInclusive};
 
 impl<T: JsonSchema> JsonSchema for Option<T> {
-    no_ref_schema!();
+    always_inline!();
 
     fn schema_name() -> Cow<'static, str> {
         format!("Nullable_{}", T::schema_name()).into()

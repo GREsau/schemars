@@ -5,7 +5,7 @@ use std::borrow::Cow;
 macro_rules! decimal_impl {
     ($type:ty) => {
         impl JsonSchema for $type {
-            no_ref_schema!();
+            always_inline!();
 
             fn schema_name() -> Cow<'static, str> {
                 "Decimal".into()

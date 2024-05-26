@@ -104,14 +104,15 @@ pub use schema::Schema;
 ///
 
 pub trait JsonSchema {
-    /// Whether JSON Schemas generated for this type should be re-used where possible using the `$ref` keyword.
+    /// Whether JSON Schemas generated for this type should be included directly in parent schemas, rather than being
+    /// re-used where possible using the `$ref` keyword.
     ///
-    /// For trivial types (such as primitives), this should return `false`. For more complex types, it should return `true`.
-    /// For recursive types, this **must** return `true` to prevent infinite cycles when generating schemas.
+    /// For trivial types (such as primitives), this should return `true`. For more complex types, it should return `false`.
+    /// For recursive types, this **must** return `false` to prevent infinite cycles when generating schemas.
     ///
-    /// By default, this returns `true`.
-    fn is_referenceable() -> bool {
-        true
+    /// By default, this returns `false`.
+    fn always_inline_schema() -> bool {
+        false
     }
 
     /// The name of the generated JSON Schema.
@@ -132,7 +133,7 @@ pub trait JsonSchema {
 
     /// Generates a JSON Schema for this type.
     ///
-    /// If the returned schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
+    /// If the returned schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
     /// add them to the [`SchemaGenerator`](gen::SchemaGenerator)'s schema definitions.
     ///
     /// This should not return a `$ref` schema.

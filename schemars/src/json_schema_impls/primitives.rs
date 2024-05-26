@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 macro_rules! simple_impl {
     ($type:ty => $instance_type:literal) => {
         impl JsonSchema for $type {
-            no_ref_schema!();
+            always_inline!();
 
             fn schema_name() -> Cow<'static, str> {
                 $instance_type.into()
@@ -22,7 +22,7 @@ macro_rules! simple_impl {
     };
     ($type:ty => $instance_type:literal, $format:literal) => {
         impl JsonSchema for $type {
-            no_ref_schema!();
+            always_inline!();
 
             fn schema_name() -> Cow<'static, str> {
                 $format.into()
@@ -65,7 +65,7 @@ simple_impl!(SocketAddrV6 => "string");
 macro_rules! unsigned_impl {
     ($type:ty => $instance_type:literal, $format:literal) => {
         impl JsonSchema for $type {
-            no_ref_schema!();
+            always_inline!();
 
             fn schema_name() -> Cow<'static, str> {
                 $format.into()
@@ -90,7 +90,7 @@ unsigned_impl!(u128 => "integer", "uint128");
 unsigned_impl!(usize => "integer", "uint");
 
 impl JsonSchema for char {
-    no_ref_schema!();
+    always_inline!();
 
     fn schema_name() -> Cow<'static, str> {
         "Character".into()

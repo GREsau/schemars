@@ -6,7 +6,7 @@ macro_rules! tuple_impls {
     ($($len:expr => ($($name:ident)+))+) => {
         $(
             impl<$($name: JsonSchema),+> JsonSchema for ($($name,)+) {
-                no_ref_schema!();
+                always_inline!();
 
                 fn schema_name() -> Cow<'static, str> {
                     let mut name = "Tuple_of_".to_owned();

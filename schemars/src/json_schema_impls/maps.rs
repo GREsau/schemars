@@ -8,7 +8,7 @@ macro_rules! map_impl {
         where
             V: JsonSchema,
         {
-            no_ref_schema!();
+            always_inline!();
 
             fn schema_name() -> Cow<'static, str> {
                 format!("Map_of_{}", V::schema_name()).into()

@@ -4,7 +4,7 @@ use std::borrow::Cow;
 
 // Does not require T: JsonSchema.
 impl<T> JsonSchema for [T; 0] {
-    no_ref_schema!();
+    always_inline!();
 
     fn schema_name() -> Cow<'static, str> {
         "EmptyArray".into()
@@ -26,7 +26,7 @@ macro_rules! array_impls {
     ($($len:tt)+) => {
         $(
             impl<T: JsonSchema> JsonSchema for [T; $len] {
-                no_ref_schema!();
+                always_inline!();
 
                 fn schema_name() -> Cow<'static, str> {
                     format!("Array_size_{}_of_{}", $len, T::schema_name()).into()

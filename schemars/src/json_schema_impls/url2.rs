@@ -4,7 +4,7 @@ use std::borrow::Cow;
 use url2::Url;
 
 impl JsonSchema for Url {
-    no_ref_schema!();
+    always_inline!();
 
     fn schema_name() -> Cow<'static, str> {
         "Url".into()

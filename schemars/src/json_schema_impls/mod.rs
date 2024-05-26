@@ -1,7 +1,7 @@
-macro_rules! no_ref_schema {
+macro_rules! always_inline {
     () => {
-        fn is_referenceable() -> bool {
-            false
+        fn always_inline_schema() -> bool {
+            true
         }
     };
 }
@@ -9,8 +9,8 @@ macro_rules! no_ref_schema {
 macro_rules! forward_impl {
     (($($impl:tt)+) => $target:ty) => {
         impl $($impl)+ {
-            fn is_referenceable() -> bool {
-                <$target>::is_referenceable()
+            fn always_inline_schema() -> bool {
+                <$target>::always_inline_schema()
             }
 
             fn schema_name() -> std::borrow::Cow<'static, str> {

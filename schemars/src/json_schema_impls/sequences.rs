@@ -8,7 +8,7 @@ macro_rules! seq_impl {
         where
             T: JsonSchema,
         {
-            no_ref_schema!();
+            always_inline!();
 
             fn schema_name() -> Cow<'static, str> {
                 format!("Array_of_{}", T::schema_name()).into()
@@ -34,7 +34,7 @@ macro_rules! set_impl {
         where
             T: JsonSchema,
         {
-            no_ref_schema!();
+            always_inline!();
 
             fn schema_name() -> Cow<'static, str> {
                 format!("Set_of_{}", T::schema_name()).into()

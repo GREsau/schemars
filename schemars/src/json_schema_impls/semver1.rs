@@ -4,7 +4,7 @@ use semver1::Version;
 use std::borrow::Cow;
 
 impl JsonSchema for Version {
-    no_ref_schema!();
+    always_inline!();
 
     fn schema_name() -> Cow<'static, str> {
         "Version".into()

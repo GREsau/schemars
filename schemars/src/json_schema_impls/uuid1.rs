@@ -4,7 +4,7 @@ use std::borrow::Cow;
 use uuid1::Uuid;
 
 impl JsonSchema for Uuid {
-    no_ref_schema!();
+    always_inline!();
 
     fn schema_name() -> Cow<'static, str> {
         "Uuid".into()

@@ -7,7 +7,7 @@ use std::num::*;
 macro_rules! nonzero_unsigned_impl {
     ($type:ty => $primitive:ty) => {
         impl JsonSchema for $type {
-            no_ref_schema!();
+            always_inline!();
 
             fn schema_name() -> Cow<'static, str> {
                 stringify!($type).into()
