@@ -11,7 +11,9 @@ mod macros;
 /// outside of `schemars`, and should not be considered part of the public API.
 #[doc(hidden)]
 pub mod _private;
+/// Types for generating JSON schemas.
 pub mod gen;
+/// Types for recursively modifying JSON schemas.
 pub mod visit;
 
 #[cfg(feature = "schemars_derive")]
@@ -25,6 +27,7 @@ pub use schemars_derive::*;
 #[doc(hidden)]
 pub use serde_json as _serde_json;
 
+pub use gen::SchemaGenerator;
 pub use schema::Schema;
 
 /// A type which can be described as a JSON Schema document.
@@ -50,7 +53,7 @@ pub use schema::Schema;
 /// you will need to determine an appropriate name and ID for the type.
 /// For non-generic types, the type name/path are suitable for this:
 /// ```
-/// use schemars::{gen::SchemaGenerator, Schema, JsonSchema};
+/// use schemars::{SchemaGenerator, Schema, JsonSchema, json_schema};
 /// use std::borrow::Cow;
 ///
 /// struct NonGenericType;
@@ -67,7 +70,9 @@ pub use schema::Schema;
 ///     }
 ///
 ///     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
-///         todo!()
+///         json_schema!({
+///             "foo": "bar"
+///         })
 ///     }
 /// }
 ///
@@ -76,7 +81,7 @@ pub use schema::Schema;
 ///
 /// But generic type parameters which may affect the generated schema should typically be included in the name/ID:
 /// ```
-/// use schemars::{gen::SchemaGenerator, Schema, JsonSchema};
+/// use schemars::{SchemaGenerator, Schema, JsonSchema, json_schema};
 /// use std::{borrow::Cow, marker::PhantomData};
 ///
 /// struct GenericType<T>(PhantomData<T>);
@@ -95,7 +100,9 @@ pub use schema::Schema;
 ///     }
 ///
 ///     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
-///         todo!()
+///         json_schema!({
+///             "foo": "bar"
+///         })
 ///     }
 /// }
 ///
@@ -126,7 +133,7 @@ pub trait JsonSchema {
     /// If two types produce different schemas, then they **must** have different `schema_id()`s,
     /// but two types that produce identical schemas should *ideally* have the same `schema_id()`.
     ///
-    /// The default implementation returns the same value as `schema_name()`.
+    /// The default implementation returns the same value as [`schema_name()`](JsonSchema::schema_name).
     fn schema_id() -> Cow<'static, str> {
         Self::schema_name()
     }
@@ -134,14 +141,14 @@ pub trait JsonSchema {
     /// Generates a JSON Schema for this type.
     ///
     /// If the returned schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
-    /// add them to the [`SchemaGenerator`](gen::SchemaGenerator)'s schema definitions.
+    /// add them to the [`SchemaGenerator`](SchemaGenerator)'s schema definitions.
     ///
     /// This should not return a `$ref` schema.
-    fn json_schema(gen: &mut gen::SchemaGenerator) -> Schema;
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema;
 
     // TODO document and bring into public API?
     #[doc(hidden)]
-    fn _schemars_private_non_optional_json_schema(gen: &mut gen::SchemaGenerator) -> Schema {
+    fn _schemars_private_non_optional_json_schema(gen: &mut SchemaGenerator) -> Schema {
         Self::json_schema(gen)
     }
 

@@ -36,10 +36,9 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 
 ```json
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyStruct",
   "type": "object",
-  "required": ["my_bool", "my_int"],
   "properties": {
     "my_bool": {
       "type": "boolean"
@@ -51,7 +50,7 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
     "my_nullable_enum": {
       "anyOf": [
         {
-          "$ref": "#/definitions/MyEnum"
+          "$ref": "#/$defs/MyEnum"
         },
         {
           "type": "null"
@@ -59,26 +58,25 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
       ]
     }
   },
-  "definitions": {
+  "required": ["my_int", "my_bool"],
+  "$defs": {
     "MyEnum": {
-      "anyOf": [
+      "oneOf": [
         {
           "type": "object",
-          "required": ["StringNewType"],
           "properties": {
             "StringNewType": {
               "type": "string"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": ["StringNewType"]
         },
         {
           "type": "object",
-          "required": ["StructVariant"],
           "properties": {
             "StructVariant": {
               "type": "object",
-              "required": ["floats"],
               "properties": {
                 "floats": {
                   "type": "array",
@@ -87,10 +85,12 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
                     "format": "float"
                   }
                 }
-              }
+              },
+              "required": ["floats"]
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": ["StructVariant"]
         }
       ]
     }
@@ -134,24 +134,23 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 
 ```json
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyStruct",
   "type": "object",
-  "required": ["myBool", "myNumber"],
   "properties": {
     "myBool": {
       "type": "boolean"
     },
     "myNullableEnum": {
-      "default": null,
       "anyOf": [
         {
-          "$ref": "#/definitions/MyEnum"
+          "$ref": "#/$defs/MyEnum"
         },
         {
           "type": "null"
         }
-      ]
+      ],
+      "default": null
     },
     "myNumber": {
       "type": "integer",
@@ -159,7 +158,8 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
     }
   },
   "additionalProperties": false,
-  "definitions": {
+  "required": ["myNumber", "myBool"],
+  "$defs": {
     "MyEnum": {
       "anyOf": [
         {
@@ -167,7 +167,6 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
         },
         {
           "type": "object",
-          "required": ["floats"],
           "properties": {
             "floats": {
               "type": "array",
@@ -176,7 +175,8 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
                 "format": "float"
               }
             }
-          }
+          },
+          "required": ["floats"]
         }
       ]
     }

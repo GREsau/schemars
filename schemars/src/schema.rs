@@ -7,6 +7,54 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 /// A JSON Schema.
+///
+/// This wraps a JSON [`Value`] that must be either an [object](Value::Object) or a [bool](Value::Bool).
+///
+/// A custom JSON schema can be created using the [`json_schema!`](crate::json_schema) macro:
+/// ```
+/// use schemars::{Schema, json_schema};
+///
+/// let my_schema: Schema = json_schema!({
+///     "type": ["object", "null"]
+/// });
+/// ```
+///
+/// Because a `Schema` is a thin wrapper around a `Value`, you can also use [`TryFrom::try_from`]/[`TryInto::try_into`] to create a `Schema` from an existing `Value`.
+/// This operation is fallible, because only [objects](Value::Object) and [bools](Value::Bool) can be converted in this way.
+/// ```
+/// use schemars::{Schema, json_schema};
+/// use serde_json::json;
+///
+/// let json_object = json!({"type": ["object", "null"]});
+/// let object_schema: Schema = json_object.try_into().unwrap();
+///
+/// let json_bool = json!(true);
+/// let bool_schema: Schema = json_bool.try_into().unwrap();
+///
+/// let json_string = json!("This is neither an object nor a bool!");
+/// assert!(Schema::try_from(json_string).is_err());
+///
+/// // You can also convert a `&Value`/`&mut Value` to a `&Schema`/`&mut Schema` the same way:
+///
+/// let json_object = json!({"type": ["object", "null"]});
+/// let object_schema_ref: &Schema = (&json_object).try_into().unwrap();
+///
+/// let mut json_object = json!({"type": ["object", "null"]});
+/// let object_schema_mut: &mut Schema = (&mut json_object).try_into().unwrap();
+///
+/// ```
+///
+/// Similarly, you can use [`From`]/[`Into`] to (infallibly) create a `Schema` from an existing [`Map<String, Value>`] or [`bool`].
+/// ```
+/// use schemars::{Schema, json_schema};
+/// use serde_json::{Map, json};
+///
+/// let mut map = Map::new();
+/// map.insert("type".to_owned(), json!(["object", "null"]));
+/// let object_schema: Schema = map.into();
+///
+/// let bool_schema: Schema = true.into();
+/// ```
 #[derive(Debug, Clone, PartialEq, RefCastCustom)]
 #[repr(transparent)]
 pub struct Schema(Value);
@@ -32,28 +80,32 @@ impl Serialize for Schema {
 }
 
 impl Schema {
-    pub fn new() -> Self {
-        Self(Value::Object(Map::new()))
-    }
-
+    /// Creates a new schema object with a single string property `"$ref"`.
+    ///
+    /// The given reference string should be a URI reference. This will usually be a JSON Pointer
+    /// in [URI Fragment representation](https://tools.ietf.org/html/rfc6901#section-6).
     pub fn new_ref(reference: String) -> Self {
         let mut map = Map::new();
         map.insert("$ref".to_owned(), Value::String(reference));
         Self(Value::Object(map))
     }
 
+    /// Borrows the `Schema`'s underlying JSON value.
     pub fn as_value(&self) -> &Value {
         &self.0
     }
 
+    /// If the `Schema`'s underlying JSON value is a bool, returns the bool value.
     pub fn as_bool(&self) -> Option<bool> {
         self.0.as_bool()
     }
 
+    /// If the `Schema`'s underlying JSON value is an object, borrows the object as a `Map` of properties.
     pub fn as_object(&self) -> Option<&Map<String, Value>> {
         self.0.as_object()
     }
 
+    /// If the `Schema`'s underlying JSON value is an object, mutably borrows the object as a `Map` of properties.
     pub fn as_object_mut(&mut self) -> Option<&mut Map<String, Value>> {
         self.0.as_object_mut()
     }
@@ -66,10 +118,15 @@ impl Schema {
         }
     }
 
+    /// Returns the `Schema`'s underlying JSON value.
     pub fn to_value(self) -> Value {
         self.0
     }
 
+    /// Converts the `Schema` (if it wraps a bool value) into an equivalent object schema. Then mutably borrows the object as a `Map` of properties.
+    ///
+    /// `true` is transformed into an empty schema `{}`, which successfully validates against all possible values.
+    /// `false` is transformed into the schema `{"not": {}}`, which does not successfully validate against any value.
     pub fn ensure_object(&mut self) -> &mut Map<String, Value> {
         if let Some(b) = self.as_bool() {
             let mut map = Map::new();

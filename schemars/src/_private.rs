@@ -1,11 +1,6 @@
-use crate::gen::SchemaGenerator;
-use crate::JsonSchema;
-use crate::Schema;
+use crate::{JsonSchema, Schema, SchemaGenerator};
 use serde::Serialize;
-use serde_json::json;
-use serde_json::map::Entry;
-use serde_json::Map;
-use serde_json::Value;
+use serde_json::{json, map::Entry, Map, Value};
 
 // Helper for generating schemas for flattened `Option` fields.
 pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(

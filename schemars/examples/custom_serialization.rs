@@ -1,5 +1,4 @@
-use schemars::Schema;
-use schemars::{gen::SchemaGenerator, schema_for, JsonSchema};
+use schemars::{schema_for, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
 // `int_as_string` and `bool_as_string` use the schema for `String`.

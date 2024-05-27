@@ -12,8 +12,8 @@ use crate::{visit::*, JsonSchema};
 use dyn_clone::DynClone;
 use serde::Serialize;
 use serde_json::{Map, Value};
-use std::collections::HashMap;
-use std::{any::Any, collections::HashSet, fmt::Debug};
+use std::collections::{HashMap, HashSet};
+use std::{any::Any, fmt::Debug};
 
 type CowStr = std::borrow::Cow<'static, str>;
 
@@ -38,7 +38,7 @@ pub struct SchemaSettings {
     ///
     /// A single leading `#` and/or single trailing `/` are ignored.
     ///
-    /// Defaults to `/$defs`.
+    /// Defaults to `"/$defs"`.
     pub definitions_path: String,
     /// The URI of the meta-schema describing the structure of the generated schemas.
     ///
@@ -55,6 +55,8 @@ pub struct SchemaSettings {
 }
 
 impl Default for SchemaSettings {
+    /// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
+    /// If you rely on generated schemas conforming to draft 2020-12, consider using the [`SchemaSettings::draft2020_12()`] method.
     fn default() -> SchemaSettings {
         SchemaSettings::draft2020_12()
     }
@@ -97,7 +99,7 @@ impl SchemaSettings {
         }
     }
 
-    /// Creates `SchemaSettings` that conform to [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schemaObject).
+    /// Creates `SchemaSettings` that conform to [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema).
     pub fn openapi3() -> SchemaSettings {
         SchemaSettings {
             option_nullable: true,
@@ -153,7 +155,7 @@ impl SchemaSettings {
 ///
 /// # Example
 /// ```
-/// use schemars::{JsonSchema, gen::SchemaGenerator};
+/// use schemars::{JsonSchema, SchemaGenerator};
 ///
 /// #[derive(JsonSchema)]
 /// struct MyStruct {
@@ -203,7 +205,7 @@ impl SchemaGenerator {
     ///
     /// # Example
     /// ```
-    /// use schemars::gen::SchemaGenerator;
+    /// use schemars::SchemaGenerator;
     ///
     /// let gen = SchemaGenerator::default();
     /// let settings = gen.settings();
@@ -287,7 +289,7 @@ impl SchemaGenerator {
     }
 
     /// Returns the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that have been generated,
-    /// leaving an empty map in its place.
+    /// leaving an empty `Map` in its place.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
@@ -300,11 +302,10 @@ impl SchemaGenerator {
         self.settings.visitors.iter_mut().map(|v| v.as_mut())
     }
 
-    /// Generates a root JSON Schema for the type `T`.
+    /// Generates a JSON Schema for the type `T`.
     ///
     /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
-    /// add them to the `SchemaGenerator`'s schema definitions and include them in the returned `SchemaObject`'s
-    /// [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
+    /// include them in the returned `Schema` at the [definitions path](SchemaSettings::definitions_path) (by default `"$defs"`).
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
         let mut schema = self.json_schema_internal::<T>(T::schema_id());
 
@@ -324,10 +325,10 @@ impl SchemaGenerator {
         schema
     }
 
-    /// Consumes `self` and generates a root JSON Schema for the type `T`.
+    /// Consumes `self` and generates a JSON Schema for the type `T`.
     ///
     /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
-    /// include them in the returned `SchemaObject`'s [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
+    /// include them in the returned `Schema` at the [definitions path](SchemaSettings::definitions_path) (by default `"$defs"`).
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Schema {
         let mut schema = self.json_schema_internal::<T>(T::schema_id());
 
@@ -348,10 +349,12 @@ impl SchemaGenerator {
         schema
     }
 
-    /// Generates a root JSON Schema for the given example value.
+    /// Generates a JSON Schema for the given example value.
     ///
     /// If the value implements [`JsonSchema`](crate::JsonSchema), then prefer using the [`root_schema_for()`](Self::root_schema_for())
     /// function which will generally produce a more precise schema, particularly when the value contains any enums.
+    ///
+    /// If the `Serialize` implementation of the value decides to fail, this will return an [`Err`].
     pub fn root_schema_for_value<T: ?Sized + Serialize>(
         &mut self,
         value: &T,
@@ -377,10 +380,12 @@ impl SchemaGenerator {
         Ok(schema)
     }
 
-    /// Consumes `self` and generates a root JSON Schema for the given example value.
+    /// Consumes `self` and generates a JSON Schema for the given example value.
     ///
     /// If the value  implements [`JsonSchema`](crate::JsonSchema), then prefer using the [`into_root_schema_for()!`](Self::into_root_schema_for())
     /// function which will generally produce a more precise schema, particularly when the value contains any enums.
+    ///
+    /// If the `Serialize` implementation of the value decides to fail, this will return an [`Err`].
     pub fn into_root_schema_for_value<T: ?Sized + Serialize>(
         mut self,
         value: &T,
@@ -513,7 +518,7 @@ fn json_pointer_mut<'a>(
     Some(object)
 }
 
-/// A [Visitor](Visitor) which implements additional traits required to be included in a [SchemaSettings].
+/// A [Visitor] which implements additional traits required to be included in a [SchemaSettings].
 ///
 /// You will rarely need to use this trait directly as it is automatically implemented for any type which implements all of:
 /// - [`Visitor`]
