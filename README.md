@@ -1,5 +1,8 @@
 # Schemars
 
+> [!NOTE]
+> Schemars 1.0 is in development on [the v1 branch](https://github.com/GREsau/schemars/tree/v1), see [draft PR 290](https://github.com/GREsau/schemars/pull/290) for updates
+
 [![CI Build](https://img.shields.io/github/actions/workflow/status/GREsau/schemars/ci.yml?branch=master&logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
 [![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
