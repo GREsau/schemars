@@ -21,19 +21,19 @@ dyn-clone = "1.0"
 ref-cast = "1.0.22"
 
 # optional dependencies
-chrono04 = { version = "0.4", default-features = false, optional = true, package = "chrono" }
-indexmap2 = { version = "2.0", default-features = false, optional = true, package = "indexmap" }
-either1 = { version = "1.3", default-features = false, optional = true,  package = "either" }
-uuid1 = { version = "1.0", default-features = false, optional = true, package = "uuid" }
-smallvec1 = { version = "1.0", default-features = false, optional = true, package = "smallvec" }
 arrayvec07 = { version = "0.7", default-features = false, optional = true, package = "arrayvec" }
-url2 = { version = "2.0", default-features = false, optional = true, package = "url" }
-bytes1 = { version = "1.0", default-features = false, optional = true, package = "bytes" }
-rust_decimal1 = { version = "1", default-features = false, optional = true, package = "rust_decimal"}
 bigdecimal04 = { version = "0.4", default-features = false, optional = true, package = "bigdecimal" }
+bytes1 = { version = "1.0", default-features = false, optional = true, package = "bytes" }
+chrono04 = { version = "0.4", default-features = false, optional = true, package = "chrono" }
+either1 = { version = "1.3", default-features = false, optional = true,  package = "either" }
 enumset1 = { version = "1.0", default-features = false, optional = true, package = "enumset" }
-smol_str02 = { version = "0.2.1", default-features = false, optional = true, package = "smol_str" }
+indexmap2 = { version = "2.0", default-features = false, optional = true, package = "indexmap" }
+rust_decimal1 = { version = "1", default-features = false, optional = true, package = "rust_decimal"}
 semver1 = { version = "1.0.9", default-features = false, optional = true, package = "semver" }
+smallvec1 = { version = "1.0", default-features = false, optional = true, package = "smallvec" }
+smol_str02 = { version = "0.2.1", default-features = false, optional = true, package = "smol_str" }
+url2 = { version = "2.0", default-features = false, optional = true, package = "url" }
+uuid1 = { version = "1.0", default-features = false, optional = true, package = "uuid" }
 
 [dev-dependencies]
 pretty_assertions = "1.2.1"
