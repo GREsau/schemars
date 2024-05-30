@@ -25,6 +25,8 @@
       "type": "array",
       "items": {
         "type": "array",
+        "maxItems": 2,
+        "minItems": 2,
         "items": [
           {
             "type": "integer",
@@ -35,9 +37,7 @@
             "type": "integer",
             "format": "int64"
           }
-        ],
-        "minItems": 2,
-        "maxItems": 2
+        ]
       }
     }
   },

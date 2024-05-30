@@ -232,13 +232,13 @@ fn expr_for_internal_tagged_enum<'a>(
             let name = variant.name();
 
             let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
-            variant.attrs.as_metadata().apply_to_schema(&mut schema_expr);
-
-            quote!({
+            schema_expr = quote!({
                 let mut schema = #schema_expr;
                 schemars::_private::apply_internal_enum_variant_tag(&mut schema, #tag_name, #name, #deny_unknown_fields);
                 schema
-            })
+            });
+            variant.attrs.as_metadata().apply_to_schema(&mut schema_expr);
+            schema_expr
         })
         .collect();
 
