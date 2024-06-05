@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.0-alpha.2] - 2024-06-05
+
+### Added
+
+- `#[schemars(extend("key" = value))]` attribute which can be used to add properties (or replace existing properties) in a generated schema (https://github.com/GREsau/schemars/issues/50 / https://github.com/GREsau/schemars/pull/297)
+  - Can be set on a struct, enum, or enum variant
+  - Value can be any expression that results in a value implementing `Serialize`
+  - Value can also be a JSON literal following the rules of `serde_json::json!(value)` macro, i.e. it can interpolate other values that implement `Serialize`
+
 ## [1.0.0-alpha.1] - 2024-05-27
 
 ### Added
