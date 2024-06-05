@@ -35,6 +35,8 @@
         },
         "my_tuple": {
           "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
           "items": [
             {
               "type": "string",
@@ -44,9 +46,7 @@
             {
               "type": "integer"
             }
-          ],
-          "maxItems": 2,
-          "minItems": 2
+          ]
         }
       }
     }

@@ -9,6 +9,7 @@ pub struct SchemaMetadata<'a> {
     pub write_only: bool,
     pub examples: &'a [syn::Path],
     pub default: Option<TokenStream>,
+    pub extensions: &'a [(String, TokenStream)],
 }
 
 impl<'a> SchemaMetadata<'a> {
@@ -71,6 +72,12 @@ impl<'a> SchemaMetadata<'a> {
                 if let Some(default) = #default.and_then(|d| schemars::_schemars_maybe_to_value!(d)) {
                     obj.insert("default".to_owned(), default);
                 }
+            });
+        }
+
+        for (k, v) in self.extensions {
+            setters.push(quote! {
+                obj.insert(#k.to_owned(), schemars::_serde_json::json!(#v));
             });
         }
 
