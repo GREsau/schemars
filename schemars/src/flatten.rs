@@ -12,9 +12,66 @@ impl Schema {
         } else if is_null_type(&other) {
             return self;
         }
-        let s1: SchemaObject = self.into();
-        let s2: SchemaObject = other.into();
-        Schema::Object(s1.merge(s2))
+        let mut s1: SchemaObject = self.into();
+        let mut s2: SchemaObject = other.into();
+
+        let s1_subschemas = &mut s1.subschemas;
+        let s1_all_of = s1_subschemas.as_mut().and_then(|sub_sch| sub_sch.all_of.as_mut());
+        let s2_subschemas = &mut s2.subschemas;
+        let s2_all_of = s2_subschemas.as_mut().and_then(|sub_sch| sub_sch.all_of.as_mut());
+
+        match (s1_all_of, s2_all_of) {
+            (Some(s1_all_of), Some(s2_all_of)) => {
+                let mut s1_all_of = std::mem::take(s1_all_of);
+                s1_all_of.append(s2_all_of);
+                Schema::Object(SchemaObject {
+                    subschemas: Some(Box::new(SubschemaValidation {
+                        all_of: Some(s1_all_of),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                })
+            }
+            (Some(s1_all_of), None) => {
+                let mut s1_all_of = std::mem::take(s1_all_of);
+                s1_all_of.push(Schema::Object(s2));
+                Schema::Object(SchemaObject {
+                    subschemas: Some(Box::new(SubschemaValidation {
+                        all_of: Some(s1_all_of),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                })
+            }
+            (None, Some(s2_all_of)) => {
+                let mut s2_all_of = std::mem::take(s2_all_of);
+                s2_all_of.push(Schema::Object(s1));
+                Schema::Object(SchemaObject {
+                    subschemas: Some(Box::new(SubschemaValidation {
+                        all_of: Some(s2_all_of),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                })
+            }
+            (None, None) => {
+                match (s1_subschemas.is_some(), s2_subschemas.is_some()) {
+                    (true, true) => Schema::Object(SchemaObject {
+                        subschemas: Some(Box::new(SubschemaValidation {
+                            all_of: Some(vec![
+                                Schema::Object(s1),
+                                Schema::Object(s2),
+                            ]),
+                            ..Default::default()
+                        })),
+                        ..Default::default()
+                    }),
+                    (true, false) |
+                    (false, true) |
+                    (false, false) => Schema::Object(s1.merge(s2)),
+                }
+            }
+        }
     }
 }
 
