@@ -54,7 +54,33 @@ simple_impl!(PathBuf => String);
 
 simple_impl!(Ipv4Addr => String, "ipv4");
 simple_impl!(Ipv6Addr => String, "ipv6");
-simple_impl!(IpAddr => String, "ip");
+
+impl JsonSchema for IpAddr {
+    no_ref_schema!();
+
+    fn schema_name() -> String {
+        "IpAddr".to_string()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        Cow::Borrowed("IpAddr")
+    }
+    
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        let schema_object = SchemaObject {
+            instance_type: Some(SingleOrVec::Single(Box::new(InstanceType::String))),
+            subschemas: Some(Box::new(SubschemaValidation {
+                any_of: Some(vec![
+                    gen.subschema_for::<Ipv4Addr>(),
+                    gen.subschema_for::<Ipv6Addr>(),
+                ]),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        Schema::Object(schema_object)
+    }
+}
 
 simple_impl!(SocketAddr => String);
 simple_impl!(SocketAddrV4 => String);
