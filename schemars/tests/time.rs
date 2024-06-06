@@ -1,16 +1,18 @@
 mod util;
 use schemars::JsonSchema;
-use std::time::{Duration, SystemTime};
+use time::{Date, OffsetDateTime, PrimitiveDateTime, Time};
 use util::*;
 
 #[allow(dead_code)]
 #[derive(JsonSchema)]
-struct MyStruct {
-    duration: Duration,
-    time: SystemTime,
+struct TimeTypes {
+    date: Date,
+    time: Time,
+    primitive_date_time: PrimitiveDateTime,
+    offset_date_time: OffsetDateTime,
 }
 
 #[test]
-fn duration_and_systemtime() -> TestResult {
-    test_default_generated_schema::<MyStruct>("duration_and_systemtime")
+fn time_types() -> TestResult {
+    test_default_generated_schema::<TimeTypes>("time-types")
 }
