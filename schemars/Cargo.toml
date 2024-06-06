@@ -34,7 +34,8 @@ rust_decimal = { version = "1", default-features = false, optional = true }
 bigdecimal03 = { version = "0.3", default-features = false, optional = true, package = "bigdecimal" }
 bigdecimal04 = { version = "0.4", default-features = false, optional = true, package = "bigdecimal" }
 enumset = { version = "1.0", optional = true }
-smol_str = { version = "0.1.17", optional = true }
+smol_str01 = { version = "0.1.17", default-features = false, optional = true, package = "smol_str"}
+smol_str02 = { version = "0.2.1", default-features = false, optional = true, package = "smol_str"}
 semver = { version = "1.0.9", features = ["serde"], optional = true }
 
 [dev-dependencies]
@@ -66,6 +67,9 @@ raw_value = ["serde_json/raw_value"]
 bigdecimal = ["bigdecimal03"]
 
 ui_test = []
+
+# `smol_str` feature without version suffix is included only for back-compat - will be removed in a later version
+smol_str = ["smol_str01"]
 
 [[test]]
 name = "chrono"
@@ -117,7 +121,7 @@ required-features = ["enumset"]
 
 [[test]]
 name = "smol_str"
-required-features = ["smol_str"]
+required-features = ["smol_str01", "smol_str02"]
 
 [[test]]
 name = "semver"
