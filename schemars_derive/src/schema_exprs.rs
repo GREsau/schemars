@@ -431,78 +431,77 @@ fn expr_for_struct(
     default: &SerdeDefault,
     deny_unknown_fields: bool,
 ) -> TokenStream {
-    let (flattened_fields, property_fields): (Vec<_>, Vec<_>) = fields
-        .iter()
-        .filter(|f| !f.serde_attrs.skip_deserializing() || !f.serde_attrs.skip_serializing())
-        .partition(|f| f.serde_attrs.flatten());
-
     let set_container_default = match default {
         SerdeDefault::None => None,
         SerdeDefault::Default => Some(quote!(let container_default = Self::default();)),
         SerdeDefault::Path(path) => Some(quote!(let container_default = #path();)),
     };
 
-    let properties: Vec<_> = property_fields
+    let properties: Vec<_> = fields
         .into_iter()
+        .filter(|f| !f.serde_attrs.skip_deserializing() || !f.serde_attrs.skip_serializing())
         .map(|field| {
-            let name = field.name();
-            let default = field_default_expr(field, set_container_default.is_some());
-
             let (ty, type_def) = type_for_field_schema(field);
 
-            let has_default = default.is_some();
-            let required = field.validation_attrs.required();
 
-            let metadata = SchemaMetadata {
-                read_only: field.serde_attrs.skip_deserializing(),
-                write_only: field.serde_attrs.skip_serializing(),
-                default,
-                ..field.attrs.as_metadata()
-            };
+            if field.serde_attrs.flatten() {
+                let required = field.validation_attrs.required();
 
-            let gen = quote!(gen);
-            let mut schema_expr = if field.validation_attrs.required() {
-                quote_spanned! {ty.span()=>
-                    <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
+                let args = quote!(gen, #required);
+                let schema_expr = quote_spanned! { ty.span() =>
+                    schemars::_private::json_schema_for_flatten::<#ty>(#args)
+                };
+
+                quote! {
+                    {
+                        #type_def
+                        schema_object = schema_object.flatten(#schema_expr.into());
+                    }
                 }
             } else {
-                quote_spanned! {ty.span()=>
-                    #gen.subschema_for::<#ty>()
-                }
-            };
+                let name = field.name();
+                let default = field_default_expr(field, set_container_default.is_some());
+                let has_default = default.is_some();
+                let required = field.validation_attrs.required();
 
-            metadata.apply_to_schema(&mut schema_expr);
-            field.validation_attrs.apply_to_schema(&mut schema_expr);
+                let metadata = SchemaMetadata {
+                    read_only: field.serde_attrs.skip_deserializing(),
+                    write_only: field.serde_attrs.skip_serializing(),
+                    default,
+                    ..field.attrs.as_metadata()
+                };
 
-            quote! {
-                {
-                    #type_def
-                    schemars::_private::insert_object_property::<#ty>(object_validation, #name, #has_default, #required, #schema_expr);
+                let gen = quote!(gen);
+                let mut schema_expr = if field.validation_attrs.required() {
+                    quote_spanned! { ty.span() =>
+                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
+                    }
+                } else {
+                    quote_spanned! { ty.span() =>
+                        #gen.subschema_for::<#ty>()
+                    }
+                };
+
+                metadata.apply_to_schema(&mut schema_expr);
+                field.validation_attrs.apply_to_schema(&mut schema_expr);
+
+                quote! {
+                    {
+                        #type_def
+                        let object_validation = schema_object.object();
+                        schemars::_private::insert_object_property::<#ty>(object_validation, #name, #has_default, #required, #schema_expr);
+                    }
                 }
             }
         })
         .collect();
 
-    let flattens: Vec<_> = flattened_fields
-        .into_iter()
-        .map(|field| {
-            let (ty, type_def) = type_for_field_schema(field);
-
-            let required = field.validation_attrs.required();
-
-            let args = quote!(gen, #required);
-            let mut schema_expr = quote_spanned! {ty.span()=>
-                schemars::_private::json_schema_for_flatten::<#ty>(#args)
-            };
-
-            prepend_type_def(type_def, &mut schema_expr);
-            schema_expr
-        })
-        .collect();
-
     let set_additional_properties = if deny_unknown_fields {
         quote! {
-            object_validation.additional_properties = Some(Box::new(false.into()));
+            {
+                let mut object_validation = schema_object.object();
+                object_validation.additional_properties = Some(Box::new(false.into()));
+            }
         }
     } else {
         TokenStream::new()
@@ -514,11 +513,9 @@ fn expr_for_struct(
                 instance_type: Some(schemars::schema::InstanceType::Object.into()),
                 ..Default::default()
             };
-            let object_validation = schema_object.object();
             #set_additional_properties
             #(#properties)*
             schemars::schema::Schema::Object(schema_object)
-            #(.flatten(#flattens))*
         }
     }
 }
