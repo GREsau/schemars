@@ -12,12 +12,12 @@
     "unsigned": {
       "type": "integer",
       "format": "uint32",
-      "minimum": 0.0
+      "minimum": 0
     },
     "nonzero_unsigned": {
       "type": "integer",
       "format": "uint32",
-      "minimum": 1.0
+      "minimum": 1
     },
     "signed": {
       "type": "integer",
