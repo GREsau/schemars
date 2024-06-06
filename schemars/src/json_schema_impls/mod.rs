@@ -73,6 +73,8 @@ mod primitives;
 #[cfg(feature = "semver")]
 mod semver;
 mod sequences;
+#[cfg(feature = "serde_bytes")]
+mod serde_bytes;
 mod serdejson;
 #[cfg(feature = "smallvec")]
 mod smallvec;
