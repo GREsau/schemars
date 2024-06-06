@@ -28,6 +28,9 @@
             "StringMap"
           ]
         }
+      },
+      "additionalProperties": {
+        "type": "string"
       }
     },
     {
