@@ -13,4 +13,4 @@ To work around this, Schemars provides a way of deriving `JsonSchema` implementa
 
 This is the same way that Serde allows remote deriving, which is why this page reads so similarly to [Serde's documentation](https://serde.rs/remote-derive.html)!
 
-{% include example.md name="remote_derive" %}
+{% include example_v0.md name="remote_derive" %}

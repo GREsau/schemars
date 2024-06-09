@@ -1,7 +1,7 @@
 ---
 title: Feature Flags
 nav_order: 5
-permalink: /features/
+permalink: /v0/features/
 ---
 
 # Feature Flags and Optional Dependencies

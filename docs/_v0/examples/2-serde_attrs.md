@@ -11,4 +11,4 @@ One of the main aims of this library is compatibility with [Serde](https://githu
 
 The list of supported `#[serde]` attributes are [documented here]({{ site.baseurl }}{% link 1.1-attributes.md %}#supported-serde-attributes).
 
-{% include example.md name="serde_attrs" %}
+{% include example_v0.md name="serde_attrs" %}

@@ -14,6 +14,6 @@ Serde allows you to change how a field is (de)serialized by setting a [`#[serde(
 
 In order to derive `JsonSchema` on a type which includes a `#[serde(with = "path")]` attribute where `path` is not a type implementing `JsonSchema`, you'll need to override it with a suitable `#[schemars(with = "Type")]` or `#[schemars(schema_with = "path")]` attribute.
 
-{% include example.md name="custom_serialization" %}
+{% include example_v0.md name="custom_serialization" %}
 
 Note that the `default` values in the schema are serialized as strings where appropriate.

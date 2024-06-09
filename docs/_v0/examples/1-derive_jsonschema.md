@@ -9,4 +9,4 @@ summary: Deriving JsonSchema on a struct and enum.
 
 This is the simplest usage of Schemars. Both types are made to derive `JsonSchema`, and the `schema_for!` macro is used to generate the schema itself.
 
-{% include example.md name="main" %}
+{% include example_v0.md name="main" %}

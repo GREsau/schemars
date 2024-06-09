@@ -1,0 +1,10 @@
+---
+services:
+  jekyll:
+    build:
+      context: .
+    volumes:
+      - ".:/docs"
+    working_dir: "/docs"
+    ports:
+      - 4000:4000

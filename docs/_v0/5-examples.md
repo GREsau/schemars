@@ -2,7 +2,7 @@
 title: Examples
 nav_order: 6
 has_children: true
-permalink: /examples/
+permalink: /v0/examples/
 ---
 
 # Examples

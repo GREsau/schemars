@@ -1,7 +1,7 @@
 ---
 title: Implementing JsonSchema
 nav_order: 3
-permalink: /implementing/
+permalink: /v0/implementing/
 ---
 
 # Implementing JsonSchema
@@ -11,10 +11,12 @@ permalink: /implementing/
 ## schema_name
 
 ```rust
-fn schema_name() -> Cow<'static, str>;
+fn schema_name() -> String;
 ```
 
 This function returns the human-readable friendly name of the type's schema, which frequently is just the name of the type itself. The schema name is used as the title for root schemas, and the key within the root's `definitions` property for subschemas.
+
+NB in a future version of schemars, it's likely that this function will be changed to return a `Cow<'static, str>`.
 
 ## schema_id
 
@@ -26,7 +28,8 @@ This function returns a unique identifier of the type's schema - if two types re
 
 ```rust
 fn schema_id() -> Cow<'static, str> {
-    format!("[{}]", T::schema_id()).into()
+    Cow::Owned(
+        format!("[{}]", T::schema_id()))
 }
 ```
 
@@ -36,14 +39,14 @@ For a type with no generic type arguments, a reasonable implementation of this f
 
 ```rust
 impl JsonSchema for NonGenericType {
-    fn schema_name() -> Cow<'static, str> {
+    fn schema_name() -> String {
         // Exclude the module path to make the name in generated schemas clearer.
-        "NonGenericType".into()
+        "NonGenericType".to_owned()
     }
 
     fn schema_id() -> Cow<'static, str> {
         // Include the module, in case a type with the same name is in another module/crate
-        concat!(module_path!(), "::NonGenericType").into()
+        Cow::Borrowed(concat!(module_path!(), "::NonGenericType"))
     }
 
     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
@@ -62,14 +65,14 @@ This function creates the JSON schema itself. The `gen` argument can be used to 
 
 `json_schema` should not return a `$ref` schema.
 
-## always_inline_schema (optional)
+## is_referenceable (optional)
 
 ```rust
-fn always_inline_schema() -> bool;
+fn is_referenceable() -> bool;
 ```
 
-If this function returns `false`, then Schemars can re-use the generate schema where possible by adding it to the root schema's `definitions` and having other schemas reference it using the `$ref` keyword. This can greatly simplify schemas that include a particular type multiple times, especially if that type's schema is fairly complex.
+If this function returns `true`, then Schemars can re-use the generate schema where possible by adding it to the root schema's `definitions` and having other schemas reference it using the `$ref` keyword. This can greatly simplify schemas that include a particular type multiple times, especially if that type's schema is fairly complex.
 
-Generally, this should return `true` for types with simple schemas (such as primitives). For more complex types, it should return `false`. For recursive types, this **must** return `false` to prevent infinite cycles when generating schemas.
+Generally, this should return `false` for types with simple schemas (such as primitives). For more complex types, it should return `true`. For recursive types, this **must** return `true` to prevent infinite cycles when generating schemas.
 
-The default implementation of this function returns `false` to reduce the chance of someone inadvertently causing infinite cycles with recursive types.
+The default implementation of this function returns `true` to reduce the chance of someone inadvertently causing infinite cycles with recursive types.
