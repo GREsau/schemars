@@ -462,7 +462,7 @@ impl SchemaGenerator {
         }
 
         let pointer = self.definitions_path_stripped();
-        // `$defs`` and `definitions` are both handled internally by `Visitor::visit_schema`.
+        // `$defs` and `definitions` are both handled internally by `Visitor::visit_schema`.
         // If the definitions are in any other location, explicitly visit them here to ensure
         // they're run against any referenced subschemas.
         if pointer != "/$defs" && pointer != "/definitions" {
