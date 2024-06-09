@@ -1,14 +1,7 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "MyStruct_for_int32_and_Null_and_Boolean_and_Array_of_String",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MyStruct_for_int32_and_null_and_boolean_and_Array_of_string",
   "type": "object",
-  "required": [
-    "inner",
-    "t",
-    "u",
-    "v",
-    "w"
-  ],
   "properties": {
     "t": {
       "type": "integer",
@@ -27,21 +20,28 @@
       }
     },
     "inner": {
-      "$ref": "#/definitions/MySimpleStruct"
+      "$ref": "#/$defs/MySimpleStruct"
     }
   },
-  "definitions": {
+  "required": [
+    "t",
+    "u",
+    "v",
+    "w",
+    "inner"
+  ],
+  "$defs": {
     "MySimpleStruct": {
       "type": "object",
-      "required": [
-        "foo"
-      ],
       "properties": {
         "foo": {
           "type": "integer",
           "format": "int32"
         }
-      }
+      },
+      "required": [
+        "foo"
+      ]
     }
   }
 }

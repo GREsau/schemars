@@ -1,14 +1,7 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "ChronoTypes",
   "type": "object",
-  "required": [
-    "date_time",
-    "naive_date",
-    "naive_date_time",
-    "naive_time",
-    "weekday"
-  ],
   "properties": {
     "weekday": {
       "type": "string",
@@ -38,5 +31,12 @@
       "type": "string",
       "format": "partial-date-time"
     }
-  }
+  },
+  "required": [
+    "weekday",
+    "date_time",
+    "naive_date",
+    "naive_date_time",
+    "naive_time"
+  ]
 }

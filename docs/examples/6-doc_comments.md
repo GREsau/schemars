@@ -1,5 +1,4 @@
 ---
-layout: default
 title: Doc Comments
 parent: Examples
 nav_order: 6

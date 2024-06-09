@@ -12,6 +12,7 @@ pub struct Outer {
     pub values: BTreeMap<&'static str, Value>,
     pub value: Value,
     pub inner: Option<Inner>,
+    pub tuples: Vec<(u8, i64)>,
 }
 
 #[derive(JsonSchema)]
@@ -40,7 +41,11 @@ fn schema_matches_2019_09() -> TestResult {
 }
 
 #[test]
-#[ignore = "Fails due to default/empty `Metadata` not being considered equal to `Option::None`, although they're conceptually the same and serialize to identical JSON"]
+fn schema_matches_2020_12() -> TestResult {
+    test_generated_schema::<Outer>("schema_settings-2020_12", SchemaSettings::draft2020_12())
+}
+
+#[test]
 fn schema_matches_openapi3() -> TestResult {
     test_generated_schema::<Outer>("schema_settings-openapi3", SchemaSettings::openapi3())
 }

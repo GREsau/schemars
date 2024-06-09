@@ -1,9 +1,8 @@
 ---
-layout: default
 title: Using Schemars Attributes
 parent: Examples
 nav_order: 3
-summary: 'Deriving JsonSchema on types that use #[schemars] attributes to customise serialization behaviour.'
+summary: "Deriving JsonSchema on types that use #[schemars] attributes to customise serialization behaviour."
 ---
 
 # Using Serde Attributes

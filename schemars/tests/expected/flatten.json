@@ -1,13 +1,7 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Flat",
   "type": "object",
-  "required": [
-    "b",
-    "f",
-    "s",
-    "v"
-  ],
   "properties": {
     "f": {
       "type": "number",
@@ -20,8 +14,8 @@
       "type": "string"
     },
     "os": {
-      "default": "",
-      "type": "string"
+      "type": "string",
+      "default": ""
     },
     "v": {
       "type": "array",
@@ -30,5 +24,11 @@
         "format": "int32"
       }
     }
-  }
+  },
+  "required": [
+    "f",
+    "b",
+    "s",
+    "v"
+  ]
 }

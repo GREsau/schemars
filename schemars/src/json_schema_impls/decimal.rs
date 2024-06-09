@@ -1,39 +1,27 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{json_schema, JsonSchema, Schema};
 use std::borrow::Cow;
 
 macro_rules! decimal_impl {
     ($type:ty) => {
         impl JsonSchema for $type {
-            no_ref_schema!();
+            always_inline!();
 
-            fn schema_name() -> String {
-                "Decimal".to_owned()
-            }
-
-            fn schema_id() -> Cow<'static, str> {
-                Cow::Borrowed("Decimal")
+            fn schema_name() -> Cow<'static, str> {
+                "Decimal".into()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
-                SchemaObject {
-                    instance_type: Some(InstanceType::String.into()),
-                    string: Some(Box::new(StringValidation {
-                        pattern: Some(r"^-?[0-9]+(\.[0-9]+)?$".to_owned()),
-                        ..Default::default()
-                    })),
-                    ..Default::default()
-                }
-                .into()
+                json_schema!({
+                    "type": "string",
+                    "pattern": r"^-?[0-9]+(\.[0-9]+)?$",
+                })
             }
         }
     };
 }
 
-#[cfg(feature = "rust_decimal")]
-decimal_impl!(rust_decimal::Decimal);
-#[cfg(feature = "bigdecimal03")]
-decimal_impl!(bigdecimal03::BigDecimal);
+#[cfg(feature = "rust_decimal1")]
+decimal_impl!(rust_decimal1::Decimal);
 #[cfg(feature = "bigdecimal04")]
 decimal_impl!(bigdecimal04::BigDecimal);

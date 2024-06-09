@@ -1,5 +1,4 @@
 ---
-layout: default
 title: Deriving JsonSchema
 parent: Examples
 nav_order: 1

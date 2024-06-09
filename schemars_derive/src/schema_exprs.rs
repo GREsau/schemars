@@ -49,9 +49,18 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
     let enum_ident = &cont.ident;
     let variant_idents = variants.iter().map(|v| &v.ident);
 
-    let mut schema_expr = schema_object(quote! {
-        instance_type: Some(schemars::schema::InstanceType::Integer.into()),
-        enum_values: Some(vec![#((#enum_ident::#variant_idents as #repr_type).into()),*]),
+    let mut schema_expr = quote!({
+        let mut map = schemars::_serde_json::Map::new();
+        map.insert("type".to_owned(), "integer".into());
+        map.insert(
+            "enum".to_owned(),
+            schemars::_serde_json::Value::Array({
+                let mut enum_values = Vec::new();
+                #(enum_values.push((#enum_ident::#variant_idents as #repr_type).into());)*
+                enum_values
+            }),
+        );
+        schemars::Schema::from(map)
     });
 
     cont.attrs.as_metadata().apply_to_schema(&mut schema_expr);
@@ -101,12 +110,12 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
                 struct #ty_name;
 
                 impl schemars::JsonSchema for #ty_name {
-                    fn is_referenceable() -> bool {
-                        false
+                    fn always_inline_schema() -> bool {
+                        true
                     }
 
-                    fn schema_name() -> std::string::String {
-                        #fn_name.to_string()
+                    fn schema_name() -> std::borrow::Cow<'static, str> {
+                        std::borrow::Cow::Borrowed(#fn_name)
                     }
 
                     fn schema_id() -> std::borrow::Cow<'static, str> {
@@ -118,7 +127,7 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
                         ))
                     }
 
-                    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                    fn json_schema(gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
                         #fun(gen)
                     }
                 }
@@ -160,9 +169,18 @@ fn expr_for_external_tagged_enum<'a>(
         })
         .partition(|v| v.is_unit() && v.attrs.is_default());
     let unit_names = unit_variants.iter().map(|v| v.name());
-    let unit_schema = schema_object(quote! {
-        instance_type: Some(schemars::schema::InstanceType::String.into()),
-        enum_values: Some(vec![#(#unit_names.into()),*]),
+    let unit_schema = quote!({
+        let mut map = schemars::_serde_json::Map::new();
+        map.insert("type".to_owned(), "string".into());
+        map.insert(
+            "enum".to_owned(),
+            schemars::_serde_json::Value::Array({
+                let mut enum_values = Vec::new();
+                #(enum_values.push((#unit_names).into());)*
+                enum_values
+            }),
+        );
+        schemars::Schema::from(map)
     });
 
     if complex_variants.is_empty() {
@@ -179,12 +197,12 @@ fn expr_for_external_tagged_enum<'a>(
 
         let mut schema_expr = if variant.is_unit() && variant.attrs.with.is_none() {
             quote! {
-                schemars::_private::new_unit_enum(#name)
+                schemars::_private::new_unit_enum_variant(#name)
             }
         } else {
             let sub_schema = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
             quote! {
-                schemars::_private::new_externally_tagged_enum(#name, #sub_schema)
+                schemars::_private::new_externally_tagged_enum_variant(#name, #sub_schema)
             }
         };
 
@@ -213,19 +231,14 @@ fn expr_for_internal_tagged_enum<'a>(
 
             let name = variant.name();
 
-            let mut tag_schema = quote! {
-                schemars::_private::new_internally_tagged_enum(#tag_name, #name, #deny_unknown_fields)
-            };
-
-            variant.attrs.as_metadata().apply_to_schema(&mut tag_schema);
-
-            if let Some(variant_schema) =
-                expr_for_untagged_enum_variant_for_flatten(variant, deny_unknown_fields)
-            {
-                tag_schema.extend(quote!(.flatten(#variant_schema)))
-            }
-
-            tag_schema
+            let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
+            schema_expr = quote!({
+                let mut schema = #schema_expr;
+                schemars::_private::apply_internal_enum_variant_tag(&mut schema, #tag_name, #name, #deny_unknown_fields);
+                schema
+            });
+            variant.attrs.as_metadata().apply_to_schema(&mut schema_expr);
+            schema_expr
         })
         .collect();
 
@@ -276,47 +289,44 @@ fn expr_for_adjacent_tagged_enum<'a>(
             let (add_content_to_props, add_content_to_required) = content_schema
                 .map(|content_schema| {
                     (
-                        quote!(props.insert(#content_name.to_owned(), #content_schema);),
-                        quote!(required.insert(#content_name.to_owned());),
+                        quote!(#content_name: (#content_schema),),
+                        quote!(#content_name,),
                     )
                 })
                 .unwrap_or_default();
 
             let name = variant.name();
-            let tag_schema = schema_object(quote! {
-                instance_type: Some(schemars::schema::InstanceType::String.into()),
-                enum_values: Some(vec![#name.into()]),
-            });
+            let tag_schema = quote! {
+                schemars::json_schema!({
+                    "type": "string",
+                    "enum": [#name],
+                })
+            };
 
             let set_additional_properties = if deny_unknown_fields {
                 quote! {
-                    additional_properties: Some(Box::new(false.into())),
+                    "additionalProperties": false,
                 }
             } else {
                 TokenStream::new()
             };
 
-            let mut outer_schema = schema_object(quote! {
-                instance_type: Some(schemars::schema::InstanceType::Object.into()),
-                object: Some(Box::new(schemars::schema::ObjectValidation {
-                    properties: {
-                        let mut props = schemars::Map::new();
-                        props.insert(#tag_name.to_owned(), #tag_schema);
+            let mut outer_schema = quote! {
+                schemars::json_schema!({
+                    "type": "object",
+                    "properties": {
+                        #tag_name: (#tag_schema),
                         #add_content_to_props
-                        props
                     },
-                    required: {
-                        let mut required = schemars::Set::new();
-                        required.insert(#tag_name.to_owned());
+                    "required": [
+                        #tag_name,
                         #add_content_to_required
-                        required
-                    },
+                    ],
                     // As we're creating a "wrapper" object, we can honor the
                     // disposition of deny_unknown_fields.
                     #set_additional_properties
-                    ..Default::default()
-                })),
-            });
+                })
+            };
 
             variant
                 .attrs
@@ -333,21 +343,19 @@ fn expr_for_adjacent_tagged_enum<'a>(
 /// Callers must determine if all subschemas are mutually exclusive. This can
 /// be done for most tagging regimes by checking that all tag names are unique.
 fn variant_subschemas(unique: bool, schemas: Vec<TokenStream>) -> TokenStream {
-    if unique {
-        schema_object(quote! {
-            subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-                one_of: Some(vec![#(#schemas),*]),
-                ..Default::default()
-            })),
-        })
-    } else {
-        schema_object(quote! {
-            subschemas: Some(Box::new(schemars::schema::SubschemaValidation {
-                any_of: Some(vec![#(#schemas),*]),
-                ..Default::default()
-            })),
-        })
-    }
+    let keyword = if unique { "oneOf" } else { "anyOf" };
+    quote!({
+        let mut map = schemars::_serde_json::Map::new();
+        map.insert(
+            #keyword.to_owned(),
+            schemars::_serde_json::Value::Array({
+                let mut enum_values = Vec::new();
+                #(enum_values.push(#schemas.to_value());)*
+                enum_values
+            }),
+        );
+        schemars::Schema::from(map)
+    })
 }
 
 fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) -> TokenStream {
@@ -370,10 +378,10 @@ fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) 
     }
 }
 
-fn expr_for_untagged_enum_variant_for_flatten(
+fn expr_for_internal_tagged_enum_variant(
     variant: &Variant,
     deny_unknown_fields: bool,
-) -> Option<TokenStream> {
+) -> TokenStream {
     if let Some(with_attr) = &variant.attrs.with {
         let (ty, type_def) = type_for_schema(with_attr);
         let gen = quote!(gen);
@@ -382,15 +390,15 @@ fn expr_for_untagged_enum_variant_for_flatten(
         };
 
         prepend_type_def(type_def, &mut schema_expr);
-        return Some(schema_expr);
+        return schema_expr;
     }
 
-    Some(match variant.style {
-        Style::Unit => return None,
+    match variant.style {
+        Style::Unit => expr_for_unit_struct(),
         Style::Newtype => expr_for_field(&variant.fields[0], false),
         Style::Tuple => expr_for_tuple_struct(&variant.fields),
         Style::Struct => expr_for_struct(&variant.fields, &SerdeDefault::None, deny_unknown_fields),
-    })
+    }
 }
 
 fn expr_for_unit_struct() -> TokenStream {
@@ -412,16 +420,11 @@ fn expr_for_tuple_struct(fields: &[Field]) -> TokenStream {
     let len = fields.len() as u32;
 
     quote! {
-        schemars::schema::Schema::Object(
-            schemars::schema::SchemaObject {
-            instance_type: Some(schemars::schema::InstanceType::Array.into()),
-            array: Some(Box::new(schemars::schema::ArrayValidation {
-                items: Some(vec![#(#fields),*].into()),
-                max_items: Some(#len),
-                min_items: Some(#len),
-                ..Default::default()
-            })),
-            ..Default::default()
+        schemars::json_schema!({
+            "type": "array",
+            "prefixItems": [#((#fields)),*],
+            "minItems": #len,
+            "maxItems": #len,
         })
     }
 }
@@ -431,96 +434,87 @@ fn expr_for_struct(
     default: &SerdeDefault,
     deny_unknown_fields: bool,
 ) -> TokenStream {
-    let (flattened_fields, property_fields): (Vec<_>, Vec<_>) = fields
-        .iter()
-        .filter(|f| !f.serde_attrs.skip_deserializing() || !f.serde_attrs.skip_serializing())
-        .partition(|f| f.serde_attrs.flatten());
-
     let set_container_default = match default {
         SerdeDefault::None => None,
         SerdeDefault::Default => Some(quote!(let container_default = Self::default();)),
         SerdeDefault::Path(path) => Some(quote!(let container_default = #path();)),
     };
 
-    let properties: Vec<_> = property_fields
-        .into_iter()
+    let properties: Vec<_> = fields
+        .iter()
+        .filter(|f| !f.serde_attrs.skip_deserializing() || !f.serde_attrs.skip_serializing())
         .map(|field| {
-            let name = field.name();
-            let default = field_default_expr(field, set_container_default.is_some());
+            if field.serde_attrs.flatten() {
+                let (ty, type_def) = type_for_field_schema(field);
 
-            let (ty, type_def) = type_for_field_schema(field);
+                let required = field.validation_attrs.required();
 
-            let has_default = default.is_some();
-            let required = field.validation_attrs.required();
+                let args = quote!(gen, #required);
+                let mut schema_expr = quote_spanned! {ty.span()=>
+                    schemars::_private::json_schema_for_flatten::<#ty>(#args)
+                };
 
-            let metadata = SchemaMetadata {
-                read_only: field.serde_attrs.skip_deserializing(),
-                write_only: field.serde_attrs.skip_serializing(),
-                default,
-                ..field.attrs.as_metadata()
-            };
+                prepend_type_def(type_def, &mut schema_expr);
 
-            let gen = quote!(gen);
-            let mut schema_expr = if field.validation_attrs.required() {
-                quote_spanned! {ty.span()=>
-                    <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
+                quote! {
+                    schemars::_private::flatten(&mut schema, #schema_expr);
                 }
             } else {
-                quote_spanned! {ty.span()=>
-                    #gen.subschema_for::<#ty>()
-                }
-            };
+                let name = field.name();
+                let default = field_default_expr(field, set_container_default.is_some());
 
-            metadata.apply_to_schema(&mut schema_expr);
-            field.validation_attrs.apply_to_schema(&mut schema_expr);
+                let (ty, type_def) = type_for_field_schema(field);
 
-            quote! {
-                {
-                    #type_def
-                    schemars::_private::insert_object_property::<#ty>(object_validation, #name, #has_default, #required, #schema_expr);
-                }
-            }
-        })
-        .collect();
+                let has_default = default.is_some();
+                let required = field.validation_attrs.required();
 
-    let flattens: Vec<_> = flattened_fields
-        .into_iter()
-        .map(|field| {
-            let (ty, type_def) = type_for_field_schema(field);
+                let metadata = SchemaMetadata {
+                    read_only: field.serde_attrs.skip_deserializing(),
+                    write_only: field.serde_attrs.skip_serializing(),
+                    default,
+                    ..field.attrs.as_metadata()
+                };
 
-            let required = field.validation_attrs.required();
+                let gen = quote!(gen);
+                let mut schema_expr = if field.validation_attrs.required() {
+                    quote_spanned! {ty.span()=>
+                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
+                    }
+                } else {
+                    quote_spanned! {ty.span()=>
+                        #gen.subschema_for::<#ty>()
+                    }
+                };
 
-            let args = quote!(gen, #required);
-            let mut schema_expr = quote_spanned! {ty.span()=>
-                schemars::_private::json_schema_for_flatten::<#ty>(#args)
-            };
+                metadata.apply_to_schema(&mut schema_expr);
+                field.validation_attrs.apply_to_schema(&mut schema_expr);
 
-            prepend_type_def(type_def, &mut schema_expr);
-            schema_expr
-        })
+                quote! {
+                    {
+                        #type_def
+                        schemars::_private::insert_object_property::<#ty>(&mut schema, #name, #has_default, #required, #schema_expr);
+                    }
+                }}
+            })
         .collect();
 
     let set_additional_properties = if deny_unknown_fields {
         quote! {
-            object_validation.additional_properties = Some(Box::new(false.into()));
+            "additionalProperties": false,
         }
     } else {
         TokenStream::new()
     };
-    quote! {
-        {
-            #set_container_default
-            let mut schema_object = schemars::schema::SchemaObject {
-                instance_type: Some(schemars::schema::InstanceType::Object.into()),
-                ..Default::default()
-            };
-            let object_validation = schema_object.object();
+
+    quote! ({
+        #set_container_default
+        let mut schema = schemars::json_schema!({
+            "type": "object",
             #set_additional_properties
-            #(#properties)*
-            schemars::schema::Schema::Object(schema_object)
-            #(.flatten(#flattens))*
-        }
-    }
+        });
+        #(#properties)*
+        schema
+    })
 }
 
 fn field_default_expr(field: &Field, container_has_default: bool) -> Option<TokenStream> {
@@ -576,16 +570,6 @@ fn field_default_expr(field: &Field, container_has_default: bool) -> Option<Toke
     } else {
         default_expr
     })
-}
-
-fn schema_object(properties: TokenStream) -> TokenStream {
-    quote! {
-        schemars::schema::Schema::Object(
-            schemars::schema::SchemaObject {
-            #properties
-            ..Default::default()
-        })
-    }
 }
 
 fn prepend_type_def(type_def: Option<TokenStream>, schema_expr: &mut TokenStream) {

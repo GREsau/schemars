@@ -1,6 +1,6 @@
 mod util;
 use schemars::JsonSchema;
-use semver::Version;
+use semver1::Version;
 use util::*;
 
 #[allow(dead_code)]

@@ -1,5 +1,5 @@
 mod util;
-use smallvec::SmallVec;
+use smallvec1::SmallVec;
 use util::*;
 
 #[test]

@@ -1,5 +1,4 @@
 ---
-layout: default
 title: Generate Schema from Example Value
 parent: Examples
 nav_order: 9

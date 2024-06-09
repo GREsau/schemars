@@ -1,7 +1,10 @@
 mod util;
-use enumset::{EnumSet, EnumSetType};
+use enumset1::{EnumSet, EnumSetType};
 use schemars::JsonSchema;
 use util::*;
+
+// needed to derive EnumSetType when using a crate alias
+extern crate enumset1 as enumset;
 
 #[derive(EnumSetType, JsonSchema)]
 enum Foo {

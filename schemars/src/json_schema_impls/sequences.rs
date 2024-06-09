@@ -1,6 +1,5 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{json_schema, JsonSchema, Schema};
 use std::borrow::Cow;
 
 macro_rules! seq_impl {
@@ -9,27 +8,21 @@ macro_rules! seq_impl {
         where
             T: JsonSchema,
         {
-            no_ref_schema!();
+            always_inline!();
 
-            fn schema_name() -> String {
-                format!("Array_of_{}", T::schema_name())
+            fn schema_name() -> Cow<'static, str> {
+                format!("Array_of_{}", T::schema_name()).into()
             }
 
             fn schema_id() -> Cow<'static, str> {
-                Cow::Owned(
-                    format!("[{}]", T::schema_id()))
+                format!("[{}]", T::schema_id()).into()
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                SchemaObject {
-                    instance_type: Some(InstanceType::Array.into()),
-                    array: Some(Box::new(ArrayValidation {
-                        items: Some(gen.subschema_for::<T>().into()),
-                        ..Default::default()
-                    })),
-                    ..Default::default()
-                }
-                .into()
+                json_schema!({
+                    "type": "array",
+                    "items": gen.subschema_for::<T>(),
+                })
             }
         }
     };
@@ -41,28 +34,22 @@ macro_rules! set_impl {
         where
             T: JsonSchema,
         {
-            no_ref_schema!();
+            always_inline!();
 
-            fn schema_name() -> String {
-                format!("Set_of_{}", T::schema_name())
+            fn schema_name() -> Cow<'static, str> {
+                format!("Set_of_{}", T::schema_name()).into()
             }
 
             fn schema_id() -> Cow<'static, str> {
-                Cow::Owned(
-                    format!("Set<{}>", T::schema_id()))
+                format!("Set<{}>", T::schema_id()).into()
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                SchemaObject {
-                    instance_type: Some(InstanceType::Array.into()),
-                    array: Some(Box::new(ArrayValidation {
-                        unique_items: Some(true),
-                        items: Some(gen.subschema_for::<T>().into()),
-                        ..Default::default()
-                    })),
-                    ..Default::default()
-                }
-                .into()
+                json_schema!({
+                    "type": "array",
+                    "uniqueItems": true,
+                    "items": gen.subschema_for::<T>(),
+                })
             }
         }
     };

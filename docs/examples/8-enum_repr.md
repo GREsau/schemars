@@ -1,5 +1,4 @@
 ---
-layout: default
 title: Serialize Enum as Number (serde_repr)
 parent: Examples
 nav_order: 8

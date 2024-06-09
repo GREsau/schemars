@@ -1,5 +1,4 @@
 ---
-layout: default
 title: Custom Schema Settings
 parent: Examples
 nav_order: 4

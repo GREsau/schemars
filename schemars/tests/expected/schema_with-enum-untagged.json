@@ -1,24 +1,24 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Untagged",
   "anyOf": [
     {
       "type": "object",
-      "required": [
-        "foo"
-      ],
       "properties": {
         "foo": {
           "type": "boolean"
         }
-      }
+      },
+      "required": [
+        "foo"
+      ]
     },
     {
       "type": "boolean"
     },
     {
       "type": "array",
-      "items": [
+      "prefixItems": [
         {
           "type": "boolean"
         },
@@ -27,8 +27,8 @@
           "format": "int32"
         }
       ],
-      "maxItems": 2,
-      "minItems": 2
+      "minItems": 2,
+      "maxItems": 2
     },
     {
       "type": "boolean"

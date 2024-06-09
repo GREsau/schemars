@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "This is the enum's title",
   "description": "This is the enum's description.",
   "oneOf": [
@@ -13,17 +13,12 @@
     {
       "description": "This comment is included in the generated schema :)",
       "type": "string",
-      "enum": [
-        "DocumentedUnit"
-      ]
+      "const": "DocumentedUnit"
     },
     {
       "title": "Complex variant",
       "description": "This is a struct-like variant.",
       "type": "object",
-      "required": [
-        "Complex"
-      ],
       "properties": {
         "Complex": {
           "type": "object",
@@ -39,6 +34,9 @@
           }
         }
       },
+      "required": [
+        "Complex"
+      ],
       "additionalProperties": false
     }
   ]

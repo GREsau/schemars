@@ -3,11 +3,6 @@
   "title": "This is the struct's title",
   "description": "This is the struct's description.",
   "type": "object",
-  "required": [
-    "my_int",
-    "my_undocumented_bool",
-    "my_unit"
-  ],
   "properties": {
     "my_int": {
       "title": "An integer",
@@ -19,10 +14,15 @@
     },
     "my_unit": {
       "description": "A unit struct instance",
-      "$ref": "#/definitions/MyUnitStruct"
+      "$ref": "#/$defs/MyUnitStruct"
     }
   },
-  "definitions": {
+  "required": [
+    "my_int",
+    "my_undocumented_bool",
+    "my_unit"
+  ],
+  "$defs": {
     "MyUnitStruct": {
       "title": "A Unit",
       "type": "null"

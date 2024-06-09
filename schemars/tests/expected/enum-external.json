@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "External",
   "oneOf": [
     {
@@ -11,9 +11,6 @@
     },
     {
       "type": "object",
-      "required": [
-        "stringMap"
-      ],
       "properties": {
         "stringMap": {
           "type": "object",
@@ -22,66 +19,66 @@
           }
         }
       },
+      "required": [
+        "stringMap"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
+      "properties": {
+        "unitStructNewType": {
+          "$ref": "#/$defs/UnitStruct"
+        }
+      },
       "required": [
         "unitStructNewType"
       ],
-      "properties": {
-        "unitStructNewType": {
-          "$ref": "#/definitions/UnitStruct"
-        }
-      },
       "additionalProperties": false
     },
     {
       "type": "object",
+      "properties": {
+        "structNewType": {
+          "$ref": "#/$defs/Struct"
+        }
+      },
       "required": [
         "structNewType"
       ],
-      "properties": {
-        "structNewType": {
-          "$ref": "#/definitions/Struct"
-        }
-      },
       "additionalProperties": false
     },
     {
       "type": "object",
-      "required": [
-        "struct"
-      ],
       "properties": {
         "struct": {
           "type": "object",
-          "required": [
-            "bar",
-            "foo"
-          ],
           "properties": {
-            "bar": {
-              "type": "boolean"
-            },
             "foo": {
               "type": "integer",
               "format": "int32"
+            },
+            "bar": {
+              "type": "boolean"
             }
-          }
+          },
+          "required": [
+            "foo",
+            "bar"
+          ]
         }
       },
+      "required": [
+        "struct"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
-      "required": [
-        "tuple"
-      ],
       "properties": {
         "tuple": {
           "type": "array",
-          "items": [
+          "prefixItems": [
             {
               "type": "integer",
               "format": "int32"
@@ -90,45 +87,48 @@
               "type": "boolean"
             }
           ],
-          "maxItems": 2,
-          "minItems": 2
+          "minItems": 2,
+          "maxItems": 2
         }
       },
+      "required": [
+        "tuple"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
-      "required": [
-        "withInt"
-      ],
       "properties": {
         "withInt": {
           "type": "integer",
           "format": "int32"
         }
       },
+      "required": [
+        "withInt"
+      ],
       "additionalProperties": false
     }
   ],
-  "definitions": {
+  "$defs": {
+    "UnitStruct": {
+      "type": "null"
+    },
     "Struct": {
       "type": "object",
-      "required": [
-        "bar",
-        "foo"
-      ],
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
         "foo": {
           "type": "integer",
           "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
         }
-      }
-    },
-    "UnitStruct": {
-      "type": "null"
+      },
+      "required": [
+        "foo",
+        "bar"
+      ]
     }
   }
 }

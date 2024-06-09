@@ -7,40 +7,44 @@ There are two main types in this module:
 * [`SchemaGenerator`], which manages the generation of a schema document.
 */
 
-use crate::schema::*;
-use crate::{visit::*, JsonSchema, Map};
+use crate::Schema;
+use crate::{visit::*, JsonSchema};
 use dyn_clone::DynClone;
 use serde::Serialize;
-use std::borrow::Cow;
-use std::collections::HashMap;
-use std::{any::Any, collections::HashSet, fmt::Debug};
+use serde_json::{Map, Value};
+use std::collections::{HashMap, HashSet};
+use std::{any::Any, fmt::Debug};
+
+type CowStr = std::borrow::Cow<'static, str>;
 
 /// Settings to customize how Schemas are generated.
 ///
-/// The default settings currently conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
-/// If you require your generated schemas to conform to draft 7, consider using the [`draft07`](#method.draft07) method.
+/// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
+/// If you rely on generated schemas conforming to draft 2020-12, consider using the [`SchemaSettings::draft2020_12()`] method.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct SchemaSettings {
-    /// If `true`, schemas for [`Option<T>`](Option) will include a `nullable` property.
+    /// If `true`, schemas for [`Option<T>`] will include a `nullable` property.
     ///
     /// This is not part of the JSON Schema spec, but is used in Swagger/OpenAPI schemas.
     ///
     /// Defaults to `false`.
     pub option_nullable: bool,
-    /// If `true`, schemas for [`Option<T>`](Option) will have `null` added to their [`type`](../schema/struct.SchemaObject.html#structfield.instance_type).
+    /// If `true`, schemas for [`Option<T>`] will have `null` added to their `type` property.
     ///
     /// Defaults to `true`.
     pub option_add_null_type: bool,
     /// A JSON pointer to the expected location of referenceable subschemas within the resulting root schema.
     ///
-    /// Defaults to `"#/definitions/"`.
+    /// A single leading `#` and/or single trailing `/` are ignored.
+    ///
+    /// Defaults to `"/$defs"`.
     pub definitions_path: String,
     /// The URI of the meta-schema describing the structure of the generated schemas.
     ///
-    /// Defaults to `"http://json-schema.org/draft-07/schema#"`.
+    /// Defaults to `"https://json-schema.org/draft/2020-12/schema"`.
     pub meta_schema: Option<String>,
-    /// A list of visitors that get applied to all generated root schemas.
+    /// A list of visitors that get applied to all generated schemas.
     pub visitors: Vec<Box<dyn GenVisitor>>,
     /// Inline all subschemas instead of using references.
     ///
@@ -51,44 +55,58 @@ pub struct SchemaSettings {
 }
 
 impl Default for SchemaSettings {
+    /// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
+    /// If you rely on generated schemas conforming to draft 2020-12, consider using the [`SchemaSettings::draft2020_12()`] method.
     fn default() -> SchemaSettings {
-        SchemaSettings::draft07()
+        SchemaSettings::draft2020_12()
     }
 }
 
 impl SchemaSettings {
-    /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7).
+    /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links#draft-7).
     pub fn draft07() -> SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
-            definitions_path: "#/definitions/".to_owned(),
+            definitions_path: "/definitions".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            visitors: vec![Box::new(RemoveRefSiblings)],
+            visitors: vec![Box::new(RemoveRefSiblings), Box::new(ReplacePrefixItems)],
             inline_subschemas: false,
         }
     }
 
-    /// Creates `SchemaSettings` that conform to [JSON Schema 2019-09](https://json-schema.org/specification-links.html#2019-09-formerly-known-as-draft-8).
+    /// Creates `SchemaSettings` that conform to [JSON Schema 2019-09](https://json-schema.org/specification-links#draft-2019-09-(formerly-known-as-draft-8)).
     pub fn draft2019_09() -> SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
-            definitions_path: "#/definitions/".to_owned(),
+            definitions_path: "/$defs".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
-            visitors: Vec::default(),
+            visitors: vec![Box::new(ReplacePrefixItems)],
             inline_subschemas: false,
         }
     }
 
-    /// Creates `SchemaSettings` that conform to [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schemaObject).
+    /// Creates `SchemaSettings` that conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12).
+    pub fn draft2020_12() -> SchemaSettings {
+        SchemaSettings {
+            option_nullable: false,
+            option_add_null_type: true,
+            definitions_path: "/$defs".to_owned(),
+            meta_schema: Some("https://json-schema.org/draft/2020-12/schema".to_owned()),
+            visitors: Vec::new(),
+            inline_subschemas: false,
+        }
+    }
+
+    /// Creates `SchemaSettings` that conform to [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema).
     pub fn openapi3() -> SchemaSettings {
         SchemaSettings {
             option_nullable: true,
             option_add_null_type: false,
-            definitions_path: "#/components/schemas/".to_owned(),
+            definitions_path: "/components/schemas".to_owned(),
             meta_schema: Some(
-                "https://spec.openapis.org/oas/3.0/schema/2019-04-02#/definitions/Schema"
+                "https://spec.openapis.org/oas/3.0/schema/2021-09-28#/definitions/Schema"
                     .to_owned(),
             ),
             visitors: vec![
@@ -96,9 +114,9 @@ impl SchemaSettings {
                 Box::new(ReplaceBoolSchemas {
                     skip_additional_properties: true,
                 }),
-                Box::new(SetSingleExample {
-                    retain_examples: false,
-                }),
+                Box::new(SetSingleExample),
+                Box::new(ReplaceConstValue),
+                Box::new(ReplacePrefixItems),
             ],
             inline_subschemas: false,
         }
@@ -137,7 +155,7 @@ impl SchemaSettings {
 ///
 /// # Example
 /// ```
-/// use schemars::{JsonSchema, gen::SchemaGenerator};
+/// use schemars::{JsonSchema, SchemaGenerator};
 ///
 /// #[derive(JsonSchema)]
 /// struct MyStruct {
@@ -150,10 +168,10 @@ impl SchemaSettings {
 #[derive(Debug, Default)]
 pub struct SchemaGenerator {
     settings: SchemaSettings,
-    definitions: Map<String, Schema>,
-    pending_schema_ids: HashSet<Cow<'static, str>>,
-    schema_id_to_name: HashMap<Cow<'static, str>, String>,
-    used_schema_names: HashSet<String>,
+    definitions: Map<String, Value>,
+    pending_schema_ids: HashSet<CowStr>,
+    schema_id_to_name: HashMap<CowStr, CowStr>,
+    used_schema_names: HashSet<CowStr>,
 }
 
 impl Clone for SchemaGenerator {
@@ -187,7 +205,7 @@ impl SchemaGenerator {
     ///
     /// # Example
     /// ```
-    /// use schemars::gen::SchemaGenerator;
+    /// use schemars::SchemaGenerator;
     ///
     /// let gen = SchemaGenerator::default();
     /// let settings = gen.settings();
@@ -198,29 +216,16 @@ impl SchemaGenerator {
         &self.settings
     }
 
-    #[deprecated = "This method no longer has any effect."]
-    pub fn make_extensible(&self, _schema: &mut SchemaObject) {}
-
-    #[deprecated = "Use `Schema::Bool(true)` instead"]
-    pub fn schema_for_any(&self) -> Schema {
-        Schema::Bool(true)
-    }
-
-    #[deprecated = "Use `Schema::Bool(false)` instead"]
-    pub fn schema_for_none(&self) -> Schema {
-        Schema::Bool(false)
-    }
-
     /// Generates a JSON Schema for the type `T`, and returns either the schema itself or a `$ref` schema referencing `T`'s schema.
     ///
-    /// If `T` is [referenceable](JsonSchema::is_referenceable), this will add `T`'s schema to this generator's definitions, and
+    /// If `T` is not [inlined](JsonSchema::always_inline_schema), this will add `T`'s schema to this generator's definitions, and
     /// return a `$ref` schema referencing that schema. Otherwise, this method behaves identically to [`JsonSchema::json_schema`].
     ///
-    /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
+    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
     /// add them to the `SchemaGenerator`'s schema definitions.
     pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
         let id = T::schema_id();
-        let return_ref = T::is_referenceable()
+        let return_ref = !T::always_inline_schema()
             && (!self.settings.inline_subschemas || self.pending_schema_ids.contains(&id));
 
         if return_ref {
@@ -228,11 +233,11 @@ impl SchemaGenerator {
                 Some(n) => n,
                 None => {
                     let base_name = T::schema_name();
-                    let mut name = String::new();
+                    let mut name = CowStr::Borrowed("");
 
-                    if self.used_schema_names.contains(&base_name) {
+                    if self.used_schema_names.contains(base_name.as_ref()) {
                         for i in 2.. {
-                            name = format!("{}{}", base_name, i);
+                            name = format!("{}{}", base_name, i).into();
                             if !self.used_schema_names.contains(&name) {
                                 break;
                             }
@@ -247,8 +252,8 @@ impl SchemaGenerator {
                 }
             };
 
-            let reference = format!("{}{}", self.settings.definitions_path, name);
-            if !self.definitions.contains_key(&name) {
+            let reference = format!("#{}/{}", self.definitions_path_stripped(), name);
+            if !self.definitions.contains_key(name.as_ref()) {
                 self.insert_new_subschema_for::<T>(name, id);
             }
             Schema::new_ref(reference)
@@ -257,42 +262,38 @@ impl SchemaGenerator {
         }
     }
 
-    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(
-        &mut self,
-        name: String,
-        id: Cow<'static, str>,
-    ) {
-        let dummy = Schema::Bool(false);
+    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: CowStr, id: CowStr) {
+        let dummy = false.into();
         // insert into definitions BEFORE calling json_schema to avoid infinite recursion
-        self.definitions.insert(name.clone(), dummy);
+        self.definitions.insert(name.clone().into(), dummy);
 
         let schema = self.json_schema_internal::<T>(id);
 
-        self.definitions.insert(name, schema);
+        self.definitions.insert(name.into(), schema.to_value());
     }
 
-    /// Borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
+    /// Borrows the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that have been generated.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn definitions(&self) -> &Map<String, Schema> {
+    pub fn definitions(&self) -> &Map<String, Value> {
         &self.definitions
     }
 
-    /// Mutably borrows the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated.
+    /// Mutably borrows the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that have been generated.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn definitions_mut(&mut self) -> &mut Map<String, Schema> {
+    pub fn definitions_mut(&mut self) -> &mut Map<String, Value> {
         &mut self.definitions
     }
 
-    /// Returns the collection of all [referenceable](JsonSchema::is_referenceable) schemas that have been generated,
-    /// leaving an empty map in its place.
+    /// Returns the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that have been generated,
+    /// leaving an empty `Map` in its place.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn take_definitions(&mut self) -> Map<String, Schema> {
+    pub fn take_definitions(&mut self) -> Map<String, Value> {
         std::mem::take(&mut self.definitions)
     }
 
@@ -301,163 +302,125 @@ impl SchemaGenerator {
         self.settings.visitors.iter_mut().map(|v| v.as_mut())
     }
 
-    /// Generates a root JSON Schema for the type `T`.
+    /// Generates a JSON Schema for the type `T`.
     ///
-    /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
-    /// add them to the `SchemaGenerator`'s schema definitions and include them in the returned `SchemaObject`'s
-    /// [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
-    pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> RootSchema {
-        let mut schema = self.json_schema_internal::<T>(T::schema_id()).into_object();
-        schema.metadata().title.get_or_insert_with(T::schema_name);
-        let mut root = RootSchema {
-            meta_schema: self.settings.meta_schema.clone(),
-            definitions: self.definitions.clone(),
-            schema,
-        };
+    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
+    /// include them in the returned `Schema` at the [definitions path](SchemaSettings::definitions_path) (by default `"$defs"`).
+    pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
+        let mut schema = self.json_schema_internal::<T>(T::schema_id());
 
-        for visitor in &mut self.settings.visitors {
-            visitor.visit_root_schema(&mut root)
+        let object = schema.ensure_object();
+
+        object
+            .entry("title")
+            .or_insert_with(|| T::schema_name().into());
+
+        if let Some(meta_schema) = self.settings.meta_schema.as_deref() {
+            object.insert("$schema".into(), meta_schema.into());
         }
 
-        root
+        self.add_definitions(object, self.definitions.clone());
+        self.run_visitors(&mut schema);
+
+        schema
     }
 
-    /// Consumes `self` and generates a root JSON Schema for the type `T`.
+    /// Consumes `self` and generates a JSON Schema for the type `T`.
     ///
-    /// If `T`'s schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
-    /// include them in the returned `SchemaObject`'s [`definitions`](../schema/struct.Metadata.html#structfield.definitions)
-    pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> RootSchema {
-        let mut schema = self.json_schema_internal::<T>(T::schema_id()).into_object();
-        schema.metadata().title.get_or_insert_with(T::schema_name);
-        let mut root = RootSchema {
-            meta_schema: self.settings.meta_schema,
-            definitions: self.definitions,
-            schema,
-        };
+    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
+    /// include them in the returned `Schema` at the [definitions path](SchemaSettings::definitions_path) (by default `"$defs"`).
+    pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Schema {
+        let mut schema = self.json_schema_internal::<T>(T::schema_id());
 
-        for visitor in &mut self.settings.visitors {
-            visitor.visit_root_schema(&mut root)
+        let object = schema.ensure_object();
+
+        object
+            .entry("title")
+            .or_insert_with(|| T::schema_name().into());
+
+        if let Some(meta_schema) = std::mem::take(&mut self.settings.meta_schema) {
+            object.insert("$schema".into(), meta_schema.into());
         }
 
-        root
+        let definitions = self.take_definitions();
+        self.add_definitions(object, definitions);
+        self.run_visitors(&mut schema);
+
+        schema
     }
 
-    /// Generates a root JSON Schema for the given example value.
+    /// Generates a JSON Schema for the given example value.
     ///
     /// If the value implements [`JsonSchema`](crate::JsonSchema), then prefer using the [`root_schema_for()`](Self::root_schema_for())
     /// function which will generally produce a more precise schema, particularly when the value contains any enums.
+    ///
+    /// If the `Serialize` implementation of the value decides to fail, this will return an [`Err`].
     pub fn root_schema_for_value<T: ?Sized + Serialize>(
         &mut self,
         value: &T,
-    ) -> Result<RootSchema, serde_json::Error> {
-        let mut schema = value
-            .serialize(crate::ser::Serializer {
-                gen: self,
-                include_title: true,
-            })?
-            .into_object();
+    ) -> Result<Schema, serde_json::Error> {
+        let mut schema = value.serialize(crate::ser::Serializer {
+            gen: self,
+            include_title: true,
+        })?;
+
+        let object = schema.ensure_object();
 
         if let Ok(example) = serde_json::to_value(value) {
-            schema.metadata().examples.push(example);
+            object.insert("examples".into(), vec![example].into());
         }
 
-        let mut root = RootSchema {
-            meta_schema: self.settings.meta_schema.clone(),
-            definitions: self.definitions.clone(),
-            schema,
-        };
-
-        for visitor in &mut self.settings.visitors {
-            visitor.visit_root_schema(&mut root)
+        if let Some(meta_schema) = self.settings.meta_schema.as_deref() {
+            object.insert("$schema".into(), meta_schema.into());
         }
 
-        Ok(root)
+        self.add_definitions(object, self.definitions.clone());
+        self.run_visitors(&mut schema);
+
+        Ok(schema)
     }
 
-    /// Consumes `self` and generates a root JSON Schema for the given example value.
+    /// Consumes `self` and generates a JSON Schema for the given example value.
     ///
     /// If the value  implements [`JsonSchema`](crate::JsonSchema), then prefer using the [`into_root_schema_for()!`](Self::into_root_schema_for())
     /// function which will generally produce a more precise schema, particularly when the value contains any enums.
+    ///
+    /// If the `Serialize` implementation of the value decides to fail, this will return an [`Err`].
     pub fn into_root_schema_for_value<T: ?Sized + Serialize>(
         mut self,
         value: &T,
-    ) -> Result<RootSchema, serde_json::Error> {
-        let mut schema = value
-            .serialize(crate::ser::Serializer {
-                gen: &mut self,
-                include_title: true,
-            })?
-            .into_object();
+    ) -> Result<Schema, serde_json::Error> {
+        let mut schema = value.serialize(crate::ser::Serializer {
+            gen: &mut self,
+            include_title: true,
+        })?;
+
+        let object = schema.ensure_object();
 
         if let Ok(example) = serde_json::to_value(value) {
-            schema.metadata().examples.push(example);
+            object.insert("examples".into(), vec![example].into());
         }
 
-        let mut root = RootSchema {
-            meta_schema: self.settings.meta_schema,
-            definitions: self.definitions,
-            schema,
-        };
-
-        for visitor in &mut self.settings.visitors {
-            visitor.visit_root_schema(&mut root)
+        if let Some(meta_schema) = std::mem::take(&mut self.settings.meta_schema) {
+            object.insert("$schema".into(), meta_schema.into());
         }
 
-        Ok(root)
+        let definitions = self.take_definitions();
+        self.add_definitions(object, definitions);
+        self.run_visitors(&mut schema);
+
+        Ok(schema)
     }
 
-    /// Attemps to find the schema that the given `schema` is referencing.
-    ///
-    /// If the given `schema` has a [`$ref`](../schema/struct.SchemaObject.html#structfield.reference) property which refers
-    /// to another schema in `self`'s schema definitions, the referenced schema will be returned. Otherwise, returns `None`.
-    ///
-    /// # Example
-    /// ```
-    /// use schemars::{JsonSchema, gen::SchemaGenerator};
-    ///
-    /// #[derive(JsonSchema)]
-    /// struct MyStruct {
-    ///     foo: i32,
-    /// }
-    ///
-    /// let mut gen = SchemaGenerator::default();
-    /// let ref_schema = gen.subschema_for::<MyStruct>();
-    ///
-    /// assert!(ref_schema.is_ref());
-    ///
-    /// let dereferenced = gen.dereference(&ref_schema);
-    ///
-    /// assert!(dereferenced.is_some());
-    /// assert!(!dereferenced.unwrap().is_ref());
-    /// assert_eq!(dereferenced, gen.definitions().get("MyStruct"));
-    /// ```
-    pub fn dereference<'a>(&'a self, schema: &Schema) -> Option<&'a Schema> {
-        match schema {
-            Schema::Object(SchemaObject {
-                reference: Some(ref schema_ref),
-                ..
-            }) => {
-                let definitions_path = &self.settings().definitions_path;
-                if schema_ref.starts_with(definitions_path) {
-                    let name = &schema_ref[definitions_path.len()..];
-                    self.definitions.get(name)
-                } else {
-                    None
-                }
-            }
-            _ => None,
-        }
-    }
-
-    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, id: Cow<'static, str>) -> Schema {
+    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, id: CowStr) -> Schema {
         struct PendingSchemaState<'a> {
             gen: &'a mut SchemaGenerator,
-            id: Cow<'static, str>,
+            id: CowStr,
             did_add: bool,
         }
 
         impl<'a> PendingSchemaState<'a> {
-            fn new(gen: &'a mut SchemaGenerator, id: Cow<'static, str>) -> Self {
+            fn new(gen: &'a mut SchemaGenerator, id: CowStr) -> Self {
                 let did_add = gen.pending_schema_ids.insert(id.clone());
                 Self { gen, id, did_add }
             }
@@ -474,9 +437,88 @@ impl SchemaGenerator {
         let pss = PendingSchemaState::new(self, id);
         T::json_schema(pss.gen)
     }
+
+    fn add_definitions(
+        &mut self,
+        schema_object: &mut Map<String, Value>,
+        mut definitions: Map<String, Value>,
+    ) {
+        if definitions.is_empty() {
+            return;
+        }
+
+        let pointer = self.definitions_path_stripped();
+        let target = match json_pointer_mut(schema_object, pointer, true) {
+            Some(d) => d,
+            None => return,
+        };
+
+        target.append(&mut definitions);
+    }
+
+    fn run_visitors(&mut self, schema: &mut Schema) {
+        for visitor in self.visitors_mut() {
+            visitor.visit_schema(schema);
+        }
+
+        let pointer = self.definitions_path_stripped();
+        // `$defs` and `definitions` are both handled internally by `Visitor::visit_schema`.
+        // If the definitions are in any other location, explicitly visit them here to ensure
+        // they're run against any referenced subschemas.
+        if pointer != "/$defs" && pointer != "/definitions" {
+            if let Some(definitions) = schema
+                .as_object_mut()
+                .and_then(|so| json_pointer_mut(so, pointer, false))
+            {
+                for subschema in definitions.values_mut().flat_map(<&mut Schema>::try_from) {
+                    for visitor in self.visitors_mut() {
+                        visitor.visit_schema(subschema);
+                    }
+                }
+            }
+        }
+    }
+
+    /// Returns `self.settings.definitions_path` as a plain JSON pointer to the definitions object,
+    /// i.e. without a leading '#' or trailing '/'
+    fn definitions_path_stripped(&self) -> &str {
+        let path = &self.settings.definitions_path;
+        let path = path.strip_prefix('#').unwrap_or(path);
+        path.strip_suffix('/').unwrap_or(path)
+    }
 }
 
-/// A [Visitor](Visitor) which implements additional traits required to be included in a [SchemaSettings].
+fn json_pointer_mut<'a>(
+    mut object: &'a mut Map<String, Value>,
+    pointer: &str,
+    create_if_missing: bool,
+) -> Option<&'a mut Map<String, Value>> {
+    let pointer = pointer.strip_prefix('/')?;
+    if pointer.is_empty() {
+        return Some(object);
+    }
+
+    for mut segment in pointer.split('/') {
+        let replaced: String;
+        if segment.contains('~') {
+            replaced = segment.replace("~1", "/").replace("~0", "~");
+            segment = &replaced;
+        }
+
+        use serde_json::map::Entry;
+        let next_value = match object.entry(segment) {
+            Entry::Occupied(o) => o.into_mut(),
+            Entry::Vacant(v) if create_if_missing => v.insert(Value::Object(Map::default())),
+            Entry::Vacant(_) => return None,
+        };
+
+        object = next_value.as_object_mut()?;
+    }
+
+    Some(object)
+}
+
+/// A [Visitor] which implements additional traits required to be included in a [SchemaSettings].
 ///
 /// You will rarely need to use this trait directly as it is automatically implemented for any type which implements all of:
 /// - [`Visitor`]

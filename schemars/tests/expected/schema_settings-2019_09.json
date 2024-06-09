@@ -2,19 +2,14 @@
   "$schema": "https://json-schema.org/draft/2019-09/schema",
   "title": "Outer",
   "type": "object",
-  "required": [
-    "int",
-    "value",
-    "values"
-  ],
   "properties": {
     "int": {
+      "type": "integer",
+      "format": "int32",
       "examples": [
         8,
         null
-      ],
-      "type": "integer",
-      "format": "int32"
+      ]
     },
     "values": {
       "type": "object",
@@ -24,15 +19,40 @@
     "inner": {
       "anyOf": [
         {
-          "$ref": "#/definitions/Inner"
+          "$ref": "#/$defs/Inner"
         },
         {
           "type": "null"
         }
       ]
+    },
+    "tuples": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "maxItems": 2,
+        "minItems": 2,
+        "items": [
+          {
+            "type": "integer",
+            "format": "uint8",
+            "minimum": 0
+          },
+          {
+            "type": "integer",
+            "format": "int64"
+          }
+        ]
+      }
     }
   },
-  "definitions": {
+  "required": [
+    "int",
+    "values",
+    "value",
+    "tuples"
+  ],
+  "$defs": {
     "Inner": {
       "oneOf": [
         {
@@ -45,18 +65,16 @@
         {
           "description": "This is a documented unit variant",
           "type": "string",
-          "enum": [
-            "DocumentedUnit"
-          ]
+          "const": "DocumentedUnit"
         },
         {
           "type": "object",
-          "required": [
-            "ValueNewType"
-          ],
           "properties": {
             "ValueNewType": true
           },
+          "required": [
+            "ValueNewType"
+          ],
           "additionalProperties": false
         }
       ]

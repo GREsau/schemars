@@ -1,6 +1,6 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Array_of_String",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Array_of_string",
   "type": "array",
   "items": {
     "type": "string"

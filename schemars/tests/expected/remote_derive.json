@@ -1,45 +1,33 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Process",
   "type": "object",
-  "required": [
-    "command_line",
-    "wall_time"
-  ],
   "properties": {
     "command_line": {
       "type": "string"
     },
     "wall_time": {
-      "$ref": "#/definitions/Duration"
+      "$ref": "#/$defs/Duration"
     },
     "user_cpu_time": {
+      "$ref": "#/$defs/Duration",
       "default": {
-        "nanos": 0,
-        "secs": 0
-      },
-      "allOf": [
-        {
-          "$ref": "#/definitions/Duration"
-        }
-      ]
+        "secs": 0,
+        "nanos": 0
+      }
     },
     "system_cpu_time": {
-      "default": "0.000000000s",
-      "allOf": [
-        {
-          "$ref": "#/definitions/Duration"
-        }
-      ]
+      "$ref": "#/$defs/Duration",
+      "default": "0.000000000s"
     }
   },
-  "definitions": {
+  "required": [
+    "command_line",
+    "wall_time"
+  ],
+  "$defs": {
     "Duration": {
       "type": "object",
-      "required": [
-        "nanos",
-        "secs"
-      ],
       "properties": {
         "secs": {
           "type": "integer",
@@ -49,7 +37,11 @@
           "type": "integer",
           "format": "int32"
         }
-      }
+      },
+      "required": [
+        "secs",
+        "nanos"
+      ]
     }
   }
 }

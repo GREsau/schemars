@@ -1,28 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyStruct",
-  "examples": [
-    {
-      "myBool": true,
-      "myInnerStruct": {
-        "my_empty_map": {},
-        "my_empty_vec": [],
-        "my_map": {
-          "": 0.0
-        },
-        "my_tuple": [
-          "💩",
-          42
-        ],
-        "my_vec": [
-          "hello",
-          "world"
-        ]
-      },
-      "myInt": 123,
-      "myNullableEnum": null
-    }
-  ],
   "type": "object",
   "properties": {
     "myInt": {
@@ -57,20 +35,42 @@
         },
         "my_tuple": {
           "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
           "items": [
             {
               "type": "string",
-              "maxLength": 1,
-              "minLength": 1
+              "minLength": 1,
+              "maxLength": 1
             },
             {
               "type": "integer"
             }
-          ],
-          "maxItems": 2,
-          "minItems": 2
+          ]
         }
       }
     }
-  }
+  },
+  "examples": [
+    {
+      "myInt": 123,
+      "myBool": true,
+      "myNullableEnum": null,
+      "myInnerStruct": {
+        "my_map": {
+          "": 0.0
+        },
+        "my_vec": [
+          "hello",
+          "world"
+        ],
+        "my_empty_map": {},
+        "my_empty_vec": [],
+        "my_tuple": [
+          "💩",
+          42
+        ]
+      }
+    }
+  ]
 }

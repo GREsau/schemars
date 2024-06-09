@@ -1,53 +1,53 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "OsStrings",
   "type": "object",
-  "required": [
-    "borrowed",
-    "owned"
-  ],
   "properties": {
     "owned": {
-      "$ref": "#/definitions/OsString"
+      "$ref": "#/$defs/OsString"
     },
     "borrowed": {
-      "$ref": "#/definitions/OsString"
+      "$ref": "#/$defs/OsString"
     }
   },
-  "definitions": {
+  "required": [
+    "owned",
+    "borrowed"
+  ],
+  "$defs": {
     "OsString": {
       "oneOf": [
         {
           "type": "object",
-          "required": [
-            "Unix"
-          ],
           "properties": {
             "Unix": {
               "type": "array",
               "items": {
                 "type": "integer",
                 "format": "uint8",
-                "minimum": 0.0
+                "minimum": 0
               }
             }
-          }
+          },
+          "required": [
+            "Unix"
+          ]
         },
         {
           "type": "object",
-          "required": [
-            "Windows"
-          ],
           "properties": {
             "Windows": {
               "type": "array",
               "items": {
                 "type": "integer",
                 "format": "uint16",
-                "minimum": 0.0
+                "minimum": 0
               }
             }
-          }
+          },
+          "required": [
+            "Windows"
+          ]
         }
       ]
     }

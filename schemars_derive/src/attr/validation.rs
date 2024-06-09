@@ -325,119 +325,85 @@ impl ValidationAttrs {
     }
 
     pub fn apply_to_schema(&self, schema_expr: &mut TokenStream) {
-        if let Some(apply_expr) = self.apply_to_schema_expr() {
-            *schema_expr = quote! {
-                {
-                    let mut schema = #schema_expr;
-                    #apply_expr
-                    schema
-                }
-            }
+        let setters = self.make_setters(quote!(&mut schema));
+        if !setters.is_empty() {
+            *schema_expr = quote!({
+                let mut schema = #schema_expr;
+                #(#setters)*
+                schema
+            });
         }
     }
 
-    fn apply_to_schema_expr(&self) -> Option<TokenStream> {
-        let mut array_validation = Vec::new();
-        let mut number_validation = Vec::new();
-        let mut object_validation = Vec::new();
-        let mut string_validation = Vec::new();
+    fn make_setters(&self, mut_schema: impl ToTokens) -> Vec<TokenStream> {
+        let mut result = Vec::new();
 
         if let Some(length_min) = self.length_min.as_ref().or(self.length_equal.as_ref()) {
-            string_validation.push(quote! {
-                validation.min_length = Some(#length_min as u32);
+            result.push(quote! {
+                schemars::_private::insert_validation_property(#mut_schema, "string", "minLength", #length_min);
             });
-            array_validation.push(quote! {
-                validation.min_items = Some(#length_min as u32);
+            result.push(quote! {
+                schemars::_private::insert_validation_property(#mut_schema, "array", "minItems", #length_min);
             });
         }
 
         if let Some(length_max) = self.length_max.as_ref().or(self.length_equal.as_ref()) {
-            string_validation.push(quote! {
-                validation.max_length = Some(#length_max as u32);
+            result.push(quote! {
+                schemars::_private::insert_validation_property(#mut_schema, "string", "maxLength", #length_max);
             });
-            array_validation.push(quote! {
-                validation.max_items = Some(#length_max as u32);
+            result.push(quote! {
+                schemars::_private::insert_validation_property(#mut_schema, "array", "maxItems", #length_max);
             });
         }
 
         if let Some(range_min) = &self.range_min {
-            number_validation.push(quote! {
-                validation.minimum = Some(#range_min as f64);
+            result.push(quote! {
+                schemars::_private::insert_validation_property(#mut_schema, "number", "minimum", #range_min);
             });
         }
 
         if let Some(range_max) = &self.range_max {
-            number_validation.push(quote! {
-                validation.maximum = Some(#range_max as f64);
+            result.push(quote! {
+                schemars::_private::insert_validation_property(#mut_schema, "number", "maximum", #range_max);
             });
         }
 
         if let Some(regex) = &self.regex {
-            string_validation.push(quote! {
-                validation.pattern = Some(#regex.to_string());
+            result.push(quote! {
+                schemars::_private::insert_validation_property(#mut_schema, "string", "pattern", #regex);
             });
         }
 
         if let Some(contains) = &self.contains {
-            object_validation.push(quote! {
-                validation.required.insert(#contains.to_string());
+            result.push(quote! {
+                schemars::_private::append_required(#mut_schema, #contains);
             });
 
             if self.regex.is_none() {
                 let pattern = crate::regex_syntax::escape(contains);
-                string_validation.push(quote! {
-                    validation.pattern = Some(#pattern.to_string());
+                result.push(quote! {
+                    schemars::_private::insert_validation_property(#mut_schema, "string", "pattern", #pattern);
                 });
             }
         }
 
-        let format = self.format.as_ref().map(|f| {
-            let f = f.schema_str();
-            quote! {
-                schema_object.format = Some(#f.to_string());
-            }
-        });
-
-        let inner_validation = self
-            .inner
-            .as_deref()
-            .and_then(|inner| inner.apply_to_schema_expr())
-            .map(|apply_expr| {
-                quote! {
-                    if schema_object.has_type(schemars::schema::InstanceType::Array) {
-                        if let Some(schemars::schema::SingleOrVec::Single(inner_schema)) = &mut schema_object.array().items {
-                            let mut schema = &mut **inner_schema;
-                            #apply_expr
-                        }
-                    }
-                }
-            });
-
-        let array_validation = wrap_array_validation(array_validation);
-        let number_validation = wrap_number_validation(number_validation);
-        let object_validation = wrap_object_validation(object_validation);
-        let string_validation = wrap_string_validation(string_validation);
-
-        if array_validation.is_some()
-            || number_validation.is_some()
-            || object_validation.is_some()
-            || string_validation.is_some()
-            || format.is_some()
-            || inner_validation.is_some()
-        {
-            Some(quote! {
-                if let schemars::schema::Schema::Object(schema_object) = &mut schema {
-                    #array_validation
-                    #number_validation
-                    #object_validation
-                    #string_validation
-                    #format
-                    #inner_validation
-                }
+        if let Some(format) = &self.format {
+            let f = format.schema_str();
+            result.push(quote! {
+                schema.ensure_object().insert("format".to_owned(), #f.into());
             })
-        } else {
-            None
+        };
+
+        if let Some(inner) = &self.inner {
+            let inner_setters = inner.make_setters(quote!(schema));
+            if !inner_setters.is_empty() {
+                result.push(quote! {
+                    schemars::_private::apply_inner_validation(#mut_schema, |schema| { #(#inner_setters)* });
+                })
+            }
         }
+
+        result
     }
 }
 
@@ -454,59 +420,6 @@ fn parse_lit_into_expr_path(
             path,
         })
     })
-}
-
-fn wrap_array_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
-    if v.is_empty() {
-        None
-    } else {
-        Some(quote! {
-            if schema_object.has_type(schemars::schema::InstanceType::Array) {
-                let validation = schema_object.array();
-                #(#v)*
-            }
-        })
-    }
-}
-
-fn wrap_number_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
-    if v.is_empty() {
-        None
-    } else {
-        Some(quote! {
-            if schema_object.has_type(schemars::schema::InstanceType::Integer)
-                || schema_object.has_type(schemars::schema::InstanceType::Number) {
-                let validation = schema_object.number();
-                #(#v)*
-            }
-        })
-    }
-}
-
-fn wrap_object_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
-    if v.is_empty() {
-        None
-    } else {
-        Some(quote! {
-            if schema_object.has_type(schemars::schema::InstanceType::Object) {
-                let validation = schema_object.object();
-                #(#v)*
-            }
-        })
-    }
-}
-
-fn wrap_string_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
-    if v.is_empty() {
-        None
-    } else {
-        Some(quote! {
-            if schema_object.has_type(schemars::schema::InstanceType::String) {
-                let validation = schema_object.string();
-                #(#v)*
-            }
-        })
-    }
 }
 
 fn str_or_num_to_expr(cx: &Ctxt, meta_item_name: &str, expr: Expr) -> Option<Expr> {
