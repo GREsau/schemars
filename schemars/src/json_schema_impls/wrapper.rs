@@ -22,3 +22,6 @@ wrapper_impl!(<T: ?Sized> JsonSchema for std::cell::RefCell<T>);
 wrapper_impl!(<'a, T: ?Sized + ToOwned> JsonSchema for std::borrow::Cow<'a, T>);
 wrapper_impl!(<T> JsonSchema for std::num::Wrapping<T>);
 wrapper_impl!(<T> JsonSchema for std::cmp::Reverse<T>);
+
+#[cfg(feature = "parking_lot")]
+wrapper_impl!(<T: ?Sized> JsonSchema for parking_lot::Mutex<T>);
