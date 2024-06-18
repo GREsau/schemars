@@ -277,6 +277,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `bigdecimal04` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.4)
 - `smol_str` - [smol_str](https://crates.io/crates/smol_str) (^0.1.17)
 - `semver` - [semver](https://crates.io/crates/semver) (^1.0.9)
+- `parking_lot` - [parking_lot](https://crates.io/crates/parking_lot) (^0.12)
 
 For example, to implement `JsonSchema` on types from `chrono`, enable it as a feature in the `schemars` dependency in your `Cargo.toml` like so:
 
