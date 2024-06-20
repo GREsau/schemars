@@ -46,6 +46,8 @@ mod arrayvec05;
 mod arrayvec07;
 #[cfg(std_atomic)]
 mod atomic;
+#[cfg(feature = "bson")]
+mod bson;
 #[cfg(feature = "bytes")]
 mod bytes;
 #[cfg(feature = "chrono")]
