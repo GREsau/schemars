@@ -175,7 +175,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
             #[allow(unused_braces)]
             impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
                 fn schema_name() -> std::string::String {
-                    #schema_name
+                    format!("{}::{}", module_path!(), #schema_name)
                 }
 
                 fn schema_id() -> std::borrow::Cow<'static, str> {
