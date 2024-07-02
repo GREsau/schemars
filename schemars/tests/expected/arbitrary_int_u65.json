@@ -1,0 +1,8 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "u65",
+  "type": "integer",
+  "format": "uint128",
+  "maximum": 36893488147419103231.0,
+  "minimum": 0.0
+}
