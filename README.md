@@ -260,6 +260,7 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 
 Schemars can implement `JsonSchema` on types from several popular crates, enabled via feature flags (dependency versions are shown in brackets):
 
+- `arbitrary_int` - [arbitrary-int](https://crates.io/crates/arbitrary-int) (^1.2.7)
 - `chrono` - [chrono](https://crates.io/crates/chrono) (^0.4)
 - `indexmap1` - [indexmap](https://crates.io/crates/indexmap) (^1.2)
 - `indexmap2` - [indexmap](https://crates.io/crates/indexmap) (^2.0)
