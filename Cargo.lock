@@ -3,6 +3,12 @@
 version = 3
 
 [[package]]
+name = "arbitrary-int"
+version = "1.2.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c84fc003e338a6f69fbd4f7fe9f92b535ff13e9af8997f3b14b6ddff8b1df46d"
+
+[[package]]
 name = "arrayvec"
 version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -320,6 +326,7 @@ checksum = "1ad4cc8da4ef723ed60bced201181d83791ad433213d8c24efffda1eec85d741"
 name = "schemars"
 version = "0.8.21"
 dependencies = [
+ "arbitrary-int",
  "arrayvec 0.5.2",
  "arrayvec 0.7.4",
  "bigdecimal 0.3.1",
