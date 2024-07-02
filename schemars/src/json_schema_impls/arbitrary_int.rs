@@ -3,6 +3,9 @@ use crate::schema::*;
 use crate::JsonSchema;
 use std::borrow::Cow;
 
+// We need almost everything.
+// Only thing we don't is the struct [`arbitrary_int::TryNewError`].
+// But this is more legible this way and LTO can optimise away for size anyway.
 use arbitrary_int::*;
 
 macro_rules! arbitrary_int_impl
@@ -27,6 +30,10 @@ macro_rules! arbitrary_int_impl
         }
     }
 }
+
+// Maybe we can do a macro to generate 1->127?
+// Would have to skip every power of 2.
+// Not sure if it's worth when this work.
 
 arbitrary_int_impl!(u1 => u8);
 arbitrary_int_impl!(u2 => u8);
