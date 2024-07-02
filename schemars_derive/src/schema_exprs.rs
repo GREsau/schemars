@@ -151,7 +151,7 @@ fn expr_for_external_tagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
     deny_unknown_fields: bool,
 ) -> TokenStream {
-    let mut unique_names = HashSet::<String>::new();
+    let mut unique_names = HashSet::<&str>::new();
     let mut count = 0;
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) = variants
         .inspect(|v| {
@@ -178,35 +178,14 @@ fn expr_for_external_tagged_enum<'a>(
         let name = variant.name();
 
         let mut schema_expr = if variant.is_unit() && variant.attrs.with.is_none() {
-            schema_object(quote! {
-                instance_type: Some(schemars::schema::InstanceType::String.into()),
-                enum_values: Some(vec![#name.into()]),
-            })
+            quote! {
+                schemars::_private::new_unit_enum(#name)
+            }
         } else {
             let sub_schema = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
-            schema_object(quote! {
-                instance_type: Some(schemars::schema::InstanceType::Object.into()),
-                object: Some(Box::new(schemars::schema::ObjectValidation {
-                    properties: {
-                        let mut props = schemars::Map::new();
-                        props.insert(#name.to_owned(), #sub_schema);
-                        props
-                    },
-                    required: {
-                        let mut required = schemars::Set::new();
-                        required.insert(#name.to_owned());
-                        required
-                    },
-                    // Externally tagged variants must prohibit additional
-                    // properties irrespective of the disposition of
-                    // `deny_unknown_fields`. If additional properties were allowed
-                    // one could easily construct an object that validated against
-                    // multiple variants since here it's the properties rather than
-                    // the values of a property that distingish between variants.
-                    additional_properties: Some(Box::new(false.into())),
-                    ..Default::default()
-                })),
-            })
+            quote! {
+                schemars::_private::new_externally_tagged_enum(#name, #sub_schema)
+            }
         };
 
         variant
@@ -227,43 +206,16 @@ fn expr_for_internal_tagged_enum<'a>(
 ) -> TokenStream {
     let mut unique_names = HashSet::new();
     let mut count = 0;
-    let set_additional_properties = if deny_unknown_fields {
-        quote! {
-            additional_properties: Some(Box::new(false.into())),
-        }
-    } else {
-        TokenStream::new()
-    };
     let variant_schemas = variants
         .map(|variant| {
             unique_names.insert(variant.name());
             count += 1;
 
             let name = variant.name();
-            let type_schema = schema_object(quote! {
-                instance_type: Some(schemars::schema::InstanceType::String.into()),
-                enum_values: Some(vec![#name.into()]),
-            });
 
-            let mut tag_schema = schema_object(quote! {
-                instance_type: Some(schemars::schema::InstanceType::Object.into()),
-                object: Some(Box::new(schemars::schema::ObjectValidation {
-                    properties: {
-                        let mut props = schemars::Map::new();
-                        props.insert(#tag_name.to_owned(), #type_schema);
-                        props
-                    },
-                    required: {
-                        let mut required = schemars::Set::new();
-                        required.insert(#tag_name.to_owned());
-                        required
-                    },
-                    // As we're creating a "wrapper" object, we can honor the
-                    // disposition of deny_unknown_fields.
-                    #set_additional_properties
-                    ..Default::default()
-                })),
-            });
+            let mut tag_schema = quote! {
+                schemars::_private::new_internally_tagged_enum(#tag_name, #name, #deny_unknown_fields)
+            };
 
             variant.attrs.as_metadata().apply_to_schema(&mut tag_schema);
 
@@ -498,19 +450,8 @@ fn expr_for_struct(
 
             let (ty, type_def) = type_for_field_schema(field);
 
-            let maybe_insert_required = match (&default, field.validation_attrs.required()) {
-                (Some(_), _) => TokenStream::new(),
-                (None, false) => {
-                    quote! {
-                        if !<#ty as schemars::JsonSchema>::_schemars_private_is_option() {
-                            object_validation.required.insert(#name.to_owned());
-                        }
-                    }
-                }
-                (None, true) => quote! {
-                    object_validation.required.insert(#name.to_owned());
-                },
-            };
+            let has_default = default.is_some();
+            let required = field.validation_attrs.required();
 
             let metadata = SchemaMetadata {
                 read_only: field.serde_attrs.skip_deserializing(),
@@ -536,8 +477,7 @@ fn expr_for_struct(
             quote! {
                 {
                     #type_def
-                    object_validation.properties.insert(#name.to_owned(), #schema_expr);
-                    #maybe_insert_required
+                    schemars::_private::insert_object_property::<#ty>(object_validation, #name, #has_default, #required, #schema_expr);
                 }
             }
         })

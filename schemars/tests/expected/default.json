@@ -12,6 +12,13 @@
       "default": false,
       "type": "boolean"
     },
+    "my_optional_string": {
+      "default": null,
+      "type": [
+        "string",
+        "null"
+      ]
+    },
     "my_struct2": {
       "default": "i:0 b:false",
       "allOf": [

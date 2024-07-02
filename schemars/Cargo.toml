@@ -3,7 +3,7 @@ name = "schemars"
 description = "Generate JSON Schemas from Rust code"
 homepage = "https://graham.cool/schemars/"
 repository = "https://github.com/GREsau/schemars"
-version = "0.8.16"
+version = "0.8.21"
 authors = ["Graham Esau <gesau@hotmail.co.uk>"]
 edition = "2021"
 license = "MIT"
@@ -14,7 +14,7 @@ build = "build.rs"
 rust-version = "1.60"
 
 [dependencies]
-schemars_derive = { version = "=0.8.16", optional = true, path = "../schemars_derive" }
+schemars_derive = { version = "=0.8.21", optional = true, path = "../schemars_derive" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.25"
 dyn-clone = "1.0"

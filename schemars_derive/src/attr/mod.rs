@@ -10,9 +10,7 @@ use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
 use syn::parse::{self, Parse};
-use syn::Meta::{List, NameValue};
-use syn::MetaNameValue;
-use syn::NestedMeta::{Lit, Meta};
+use syn::{Meta, MetaNameValue};
 
 // FIXME using the same struct for containers+variants+fields means that
 //  with/schema_with are accepted (but ignored) on containers, and
@@ -42,10 +40,10 @@ impl Attrs {
             .populate(attrs, "schemars", false, errors)
             .populate(attrs, "serde", true, errors);
 
-        result.deprecated = attrs.iter().any(|a| a.path.is_ident("deprecated"));
+        result.deprecated = attrs.iter().any(|a| a.path().is_ident("deprecated"));
         result.repr = attrs
             .iter()
-            .find(|a| a.path.is_ident("repr"))
+            .find(|a| a.path().is_ident("repr"))
             .and_then(|a| a.parse_args().ok());
 
         let (doc_title, doc_description) = doc::get_title_and_desc_from_doc(attrs);
@@ -105,8 +103,8 @@ impl Attrs {
 
         for meta_item in get_meta_items(attrs, attr_type, errors, ignore_errors) {
             match &meta_item {
-                Meta(NameValue(m)) if m.path.is_ident("with") => {
-                    if let Ok(ty) = parse_lit_into_ty(errors, attr_type, "with", &m.lit) {
+                Meta::NameValue(m) if m.path.is_ident("with") => {
+                    if let Ok(ty) = parse_lit_into_ty(errors, attr_type, "with", &m.value) {
                         match self.with {
                             Some(WithAttr::Type(_)) => duplicate_error(m),
                             Some(WithAttr::Function(_)) => mutual_exclusive_error(m, "schema_with"),
@@ -115,8 +113,9 @@ impl Attrs {
                     }
                 }
 
-                Meta(NameValue(m)) if m.path.is_ident("schema_with") => {
-                    if let Ok(fun) = parse_lit_into_path(errors, attr_type, "schema_with", &m.lit) {
+                Meta::NameValue(m) if m.path.is_ident("schema_with") => {
+                    if let Ok(fun) = parse_lit_into_path(errors, attr_type, "schema_with", &m.value)
+                    {
                         match self.with {
                             Some(WithAttr::Function(_)) => duplicate_error(m),
                             Some(WithAttr::Type(_)) => mutual_exclusive_error(m, "with"),
@@ -125,8 +124,8 @@ impl Attrs {
                     }
                 }
 
-                Meta(NameValue(m)) if m.path.is_ident("title") => {
-                    if let Ok(title) = get_lit_str(errors, attr_type, "title", &m.lit) {
+                Meta::NameValue(m) if m.path.is_ident("title") => {
+                    if let Ok(title) = expr_as_lit_str(errors, attr_type, "title", &m.value) {
                         match self.title {
                             Some(_) => duplicate_error(m),
                             None => self.title = Some(title.value()),
@@ -134,8 +133,10 @@ impl Attrs {
                     }
                 }
 
-                Meta(NameValue(m)) if m.path.is_ident("description") => {
-                    if let Ok(description) = get_lit_str(errors, attr_type, "description", &m.lit) {
+                Meta::NameValue(m) if m.path.is_ident("description") => {
+                    if let Ok(description) =
+                        expr_as_lit_str(errors, attr_type, "description", &m.value)
+                    {
                         match self.description {
                             Some(_) => duplicate_error(m),
                             None => self.description = Some(description.value()),
@@ -143,16 +144,16 @@ impl Attrs {
                     }
                 }
 
-                Meta(NameValue(m)) if m.path.is_ident("example") => {
-                    if let Ok(fun) = parse_lit_into_path(errors, attr_type, "example", &m.lit) {
+                Meta::NameValue(m) if m.path.is_ident("example") => {
+                    if let Ok(fun) = parse_lit_into_path(errors, attr_type, "example", &m.value) {
                         self.examples.push(fun)
                     }
                 }
 
-                Meta(NameValue(m)) if m.path.is_ident("rename") => self.is_renamed = true,
+                Meta::NameValue(m) if m.path.is_ident("rename") => self.is_renamed = true,
 
-                Meta(NameValue(m)) if m.path.is_ident("crate") && attr_type == "schemars" => {
-                    if let Ok(p) = parse_lit_into_path(errors, attr_type, "crate", &m.lit) {
+                Meta::NameValue(m) if m.path.is_ident("crate") && attr_type == "schemars" => {
+                    if let Ok(p) = parse_lit_into_path(errors, attr_type, "crate", &m.value) {
                         if self.crate_name.is_some() {
                             duplicate_error(m)
                         } else {
@@ -163,14 +164,14 @@ impl Attrs {
 
                 _ if ignore_errors => {}
 
-                Meta(List(m)) if m.path.is_ident("inner") && attr_type == "schemars" => {
+                Meta::List(m) if m.path.is_ident("inner") && attr_type == "schemars" => {
                     // This will be processed with the validation attributes.
                     // It's allowed only for the schemars attribute because the
                     // validator crate doesn't support it yet.
                 }
 
-                Meta(meta_item) => {
-                    if !is_known_serde_or_validation_keyword(meta_item) {
+                _ => {
+                    if !is_known_serde_or_validation_keyword(&meta_item) {
                         let path = meta_item
                             .path()
                             .into_token_stream()
@@ -181,10 +182,6 @@ impl Attrs {
                             format!("unknown schemars attribute `{}`", path),
                         );
                     }
-                }
-
-                Lit(lit) => {
-                    errors.error_spanned_by(lit, "unexpected literal in schemars attribute");
                 }
             }
         }
@@ -220,34 +217,35 @@ fn get_meta_items(
     attr_type: &'static str,
     errors: &Ctxt,
     ignore_errors: bool,
-) -> Vec<syn::NestedMeta> {
-    attrs.iter().fold(vec![], |mut acc, attr| {
-        if !attr.path.is_ident(attr_type) {
-            return acc;
+) -> Vec<Meta> {
+    let mut result = vec![];
+    for attr in attrs.iter().filter(|a| a.path().is_ident(attr_type)) {
+        match attr.parse_args_with(syn::punctuated::Punctuated::<Meta, Token![,]>::parse_terminated)
+        {
+            Ok(list) => result.extend(list),
+            Err(err) if !ignore_errors => errors.syn_error(err),
+            Err(_) => {}
         }
-        match attr.parse_meta() {
-            Ok(List(meta)) => acc.extend(meta.nested),
-            Ok(other) if !ignore_errors => {
-                errors.error_spanned_by(other, format!("expected #[{}(...)]", attr_type))
-            }
-            Err(err) if !ignore_errors => errors.error_spanned_by(attr, err),
-            _ => (),
-        }
-        acc
-    })
+    }
+
+    result
 }
 
-fn get_lit_str<'a>(
+fn expr_as_lit_str<'a>(
     cx: &Ctxt,
     attr_type: &'static str,
     meta_item_name: &'static str,
-    lit: &'a syn::Lit,
+    expr: &'a syn::Expr,
 ) -> Result<&'a syn::LitStr, ()> {
-    if let syn::Lit::Str(lit) = lit {
-        Ok(lit)
+    if let syn::Expr::Lit(syn::ExprLit {
+        lit: syn::Lit::Str(lit_str),
+        ..
+    }) = expr
+    {
+        Ok(lit_str)
     } else {
         cx.error_spanned_by(
-            lit,
+            expr,
             format!(
                 "expected {} {} attribute to be a string: `{} = \"...\"`",
                 attr_type, meta_item_name, meta_item_name
@@ -261,9 +259,9 @@ fn parse_lit_into_ty(
     cx: &Ctxt,
     attr_type: &'static str,
     meta_item_name: &'static str,
-    lit: &syn::Lit,
+    lit: &syn::Expr,
 ) -> Result<syn::Type, ()> {
-    let string = get_lit_str(cx, attr_type, meta_item_name, lit)?;
+    let string = expr_as_lit_str(cx, attr_type, meta_item_name, lit)?;
 
     parse_lit_str(string).map_err(|_| {
         cx.error_spanned_by(
@@ -281,17 +279,17 @@ fn parse_lit_into_path(
     cx: &Ctxt,
     attr_type: &'static str,
     meta_item_name: &'static str,
-    lit: &syn::Lit,
+    expr: &syn::Expr,
 ) -> Result<syn::Path, ()> {
-    let string = get_lit_str(cx, attr_type, meta_item_name, lit)?;
+    let lit_str = expr_as_lit_str(cx, attr_type, meta_item_name, expr)?;
 
-    parse_lit_str(string).map_err(|_| {
+    parse_lit_str(lit_str).map_err(|_| {
         cx.error_spanned_by(
-            lit,
+            expr,
             format!(
                 "failed to parse path: `{} = {:?}`",
                 meta_item_name,
-                string.value()
+                lit_str.value()
             ),
         )
     })

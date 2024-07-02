@@ -16,10 +16,12 @@ pub struct TransparentStruct {
     inner: (),
 }
 
+#[allow(dead_code)]
 #[derive(JsonSchema)]
 #[schemars(transparent)]
 pub struct TransparentNewType(Option<InnerStruct>);
 
+#[allow(dead_code)]
 #[derive(JsonSchema)]
 pub struct InnerStruct(String, i32);
 

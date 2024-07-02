@@ -136,3 +136,11 @@ enum SoundOfMusic {
 fn enum_unit_with_doc_comments() -> TestResult {
     test_default_generated_schema::<SoundOfMusic>("enum-unit-doc")
 }
+
+#[derive(JsonSchema)]
+enum NoVariants {}
+
+#[test]
+fn enum_no_variants() -> TestResult {
+    test_default_generated_schema::<NoVariants>("no-variants")
+}

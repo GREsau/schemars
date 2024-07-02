@@ -23,6 +23,7 @@ fn struct_normal() -> TestResult {
     test_default_generated_schema::<Struct>("schema_with-struct")
 }
 
+#[allow(dead_code)]
 #[derive(JsonSchema)]
 pub struct Tuple(
     #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,

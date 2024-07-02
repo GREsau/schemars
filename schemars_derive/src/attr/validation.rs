@@ -1,7 +1,10 @@
-use super::{get_lit_str, get_meta_items, parse_lit_into_path, parse_lit_str};
+use super::{expr_as_lit_str, get_meta_items, parse_lit_into_path, parse_lit_str};
 use proc_macro2::TokenStream;
+use quote::ToTokens;
 use serde_derive_internals::Ctxt;
-use syn::{Expr, ExprLit, ExprPath, Lit, Meta, MetaNameValue, NestedMeta, Path};
+use syn::{
+    parse::Parser, punctuated::Punctuated, Expr, ExprPath, Lit, Meta, MetaList, MetaNameValue, Path,
+};
 
 pub(crate) static VALIDATION_KEYWORDS: &[&str] = &[
     "range", "regex", "contains", "email", "phone", "url", "length", "required",
@@ -62,7 +65,7 @@ impl ValidationAttrs {
 
     fn populate(
         mut self,
-        meta_items: Vec<syn::NestedMeta>,
+        meta_items: Vec<Meta>,
         attr_type: &'static str,
         ignore_errors: bool,
         errors: &Ctxt,
@@ -100,31 +103,43 @@ impl ValidationAttrs {
                 errors.error_spanned_by(path, msg)
             }
         };
+        let parse_nested_meta = |meta_list: MetaList| {
+            let parser = Punctuated::<syn::Meta, Token![,]>::parse_terminated;
+            match parser.parse2(meta_list.tokens) {
+                Ok(p) => p,
+                Err(e) => {
+                    if !ignore_errors {
+                        errors.syn_error(e);
+                    }
+                    Default::default()
+                }
+            }
+        };
 
         for meta_item in meta_items {
-            match &meta_item {
-                NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("length") => {
-                    for nested in meta_list.nested.iter() {
+            match meta_item {
+                Meta::List(meta_list) if meta_list.path.is_ident("length") => {
+                    for nested in parse_nested_meta(meta_list) {
                         match nested {
-                            NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("min") => {
+                            Meta::NameValue(nv) if nv.path.is_ident("min") => {
                                 if self.length_min.is_some() {
                                     duplicate_error(&nv.path)
                                 } else if self.length_equal.is_some() {
                                     mutual_exclusive_error(&nv.path, "equal")
                                 } else {
-                                    self.length_min = str_or_num_to_expr(errors, "min", &nv.lit);
+                                    self.length_min = str_or_num_to_expr(errors, "min", nv.value);
                                 }
                             }
-                            NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("max") => {
+                            Meta::NameValue(nv) if nv.path.is_ident("max") => {
                                 if self.length_max.is_some() {
                                     duplicate_error(&nv.path)
                                 } else if self.length_equal.is_some() {
                                     mutual_exclusive_error(&nv.path, "equal")
                                 } else {
-                                    self.length_max = str_or_num_to_expr(errors, "max", &nv.lit);
+                                    self.length_max = str_or_num_to_expr(errors, "max", nv.value);
                                 }
                             }
-                            NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("equal") => {
+                            Meta::NameValue(nv) if nv.path.is_ident("equal") => {
                                 if self.length_equal.is_some() {
                                     duplicate_error(&nv.path)
                                 } else if self.length_min.is_some() {
@@ -133,7 +148,7 @@ impl ValidationAttrs {
                                     mutual_exclusive_error(&nv.path, "max")
                                 } else {
                                     self.length_equal =
-                                        str_or_num_to_expr(errors, "equal", &nv.lit);
+                                        str_or_num_to_expr(errors, "equal", nv.value);
                                 }
                             }
                             meta => {
@@ -148,21 +163,21 @@ impl ValidationAttrs {
                     }
                 }
 
-                NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("range") => {
-                    for nested in meta_list.nested.iter() {
+                Meta::List(meta_list) if meta_list.path.is_ident("range") => {
+                    for nested in parse_nested_meta(meta_list) {
                         match nested {
-                            NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("min") => {
+                            Meta::NameValue(nv) if nv.path.is_ident("min") => {
                                 if self.range_min.is_some() {
                                     duplicate_error(&nv.path)
                                 } else {
-                                    self.range_min = str_or_num_to_expr(errors, "min", &nv.lit);
+                                    self.range_min = str_or_num_to_expr(errors, "min", nv.value);
                                 }
                             }
-                            NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("max") => {
+                            Meta::NameValue(nv) if nv.path.is_ident("max") => {
                                 if self.range_max.is_some() {
                                     duplicate_error(&nv.path)
                                 } else {
-                                    self.range_max = str_or_num_to_expr(errors, "max", &nv.lit);
+                                    self.range_max = str_or_num_to_expr(errors, "max", nv.value);
                                 }
                             }
                             meta => {
@@ -177,71 +192,61 @@ impl ValidationAttrs {
                     }
                 }
 
-                NestedMeta::Meta(Meta::Path(m))
-                    if m.is_ident("required") || m.is_ident("required_nested") =>
-                {
+                Meta::Path(m) if m.is_ident("required") || m.is_ident("required_nested") => {
                     self.required = true;
                 }
 
-                NestedMeta::Meta(Meta::Path(p)) if p.is_ident(Format::Email.attr_str()) => {
-                    match self.format {
-                        Some(f) => duplicate_format_error(f, Format::Email, p),
-                        None => self.format = Some(Format::Email),
-                    }
-                }
-                NestedMeta::Meta(Meta::Path(p)) if p.is_ident(Format::Uri.attr_str()) => {
-                    match self.format {
-                        Some(f) => duplicate_format_error(f, Format::Uri, p),
-                        None => self.format = Some(Format::Uri),
-                    }
-                }
-                NestedMeta::Meta(Meta::Path(p)) if p.is_ident(Format::Phone.attr_str()) => {
-                    match self.format {
-                        Some(f) => duplicate_format_error(f, Format::Phone, p),
-                        None => self.format = Some(Format::Phone),
-                    }
-                }
+                Meta::Path(p) if p.is_ident(Format::Email.attr_str()) => match self.format {
+                    Some(f) => duplicate_format_error(f, Format::Email, &p),
+                    None => self.format = Some(Format::Email),
+                },
+                Meta::Path(p) if p.is_ident(Format::Uri.attr_str()) => match self.format {
+                    Some(f) => duplicate_format_error(f, Format::Uri, &p),
+                    None => self.format = Some(Format::Uri),
+                },
+                Meta::Path(p) if p.is_ident(Format::Phone.attr_str()) => match self.format {
+                    Some(f) => duplicate_format_error(f, Format::Phone, &p),
+                    None => self.format = Some(Format::Phone),
+                },
 
-                NestedMeta::Meta(Meta::NameValue(nv)) if nv.path.is_ident("regex") => {
+                Meta::NameValue(nv) if nv.path.is_ident("regex") => {
                     match (&self.regex, &self.contains) {
                         (Some(_), _) => duplicate_error(&nv.path),
                         (None, Some(_)) => mutual_exclusive_error(&nv.path, "contains"),
                         (None, None) => {
                             self.regex =
-                                parse_lit_into_expr_path(errors, attr_type, "regex", &nv.lit).ok()
+                                parse_lit_into_expr_path(errors, attr_type, "regex", &nv.value).ok()
                         }
                     }
                 }
 
-                NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("regex") => {
+                Meta::List(meta_list) if meta_list.path.is_ident("regex") => {
                     match (&self.regex, &self.contains) {
                         (Some(_), _) => duplicate_error(&meta_list.path),
                         (None, Some(_)) => mutual_exclusive_error(&meta_list.path, "contains"),
                         (None, None) => {
-                            for x in meta_list.nested.iter() {
+                            for x in parse_nested_meta(meta_list) {
                                 match x {
-                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                        path,
-                                        lit,
-                                        ..
-                                    })) if path.is_ident("path") => {
-                                        self.regex =
-                                            parse_lit_into_expr_path(errors, attr_type, "path", lit)
-                                                .ok()
+                                    Meta::NameValue(MetaNameValue { path, value, .. })
+                                        if path.is_ident("path") =>
+                                    {
+                                        self.regex = parse_lit_into_expr_path(
+                                            errors, attr_type, "path", &value,
+                                        )
+                                        .ok()
                                     }
-                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                        path,
-                                        lit,
-                                        ..
-                                    })) if path.is_ident("pattern") => {
-                                        self.regex = get_lit_str(errors, attr_type, "pattern", lit)
-                                            .ok()
-                                            .map(|litstr| {
-                                                Expr::Lit(syn::ExprLit {
-                                                    attrs: Vec::new(),
-                                                    lit: Lit::Str(litstr.clone()),
+                                    Meta::NameValue(MetaNameValue { path, value, .. })
+                                        if path.is_ident("pattern") =>
+                                    {
+                                        self.regex =
+                                            expr_as_lit_str(errors, attr_type, "pattern", &value)
+                                                .ok()
+                                                .map(|litstr| {
+                                                    Expr::Lit(syn::ExprLit {
+                                                        attrs: Vec::new(),
+                                                        lit: Lit::Str(litstr.clone()),
+                                                    })
                                                 })
-                                            })
                                     }
                                     meta => {
                                         if !ignore_errors {
@@ -258,34 +263,30 @@ impl ValidationAttrs {
                     }
                 }
 
-                NestedMeta::Meta(Meta::NameValue(MetaNameValue { path, lit, .. }))
-                    if path.is_ident("contains") =>
-                {
+                Meta::NameValue(MetaNameValue { path, value, .. }) if path.is_ident("contains") => {
                     match (&self.contains, &self.regex) {
-                        (Some(_), _) => duplicate_error(path),
-                        (None, Some(_)) => mutual_exclusive_error(path, "regex"),
+                        (Some(_), _) => duplicate_error(&path),
+                        (None, Some(_)) => mutual_exclusive_error(&path, "regex"),
                         (None, None) => {
-                            self.contains = get_lit_str(errors, attr_type, "contains", lit)
+                            self.contains = expr_as_lit_str(errors, attr_type, "contains", &value)
                                 .map(|litstr| litstr.value())
                                 .ok()
                         }
                     }
                 }
 
-                NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("contains") => {
+                Meta::List(meta_list) if meta_list.path.is_ident("contains") => {
                     match (&self.contains, &self.regex) {
                         (Some(_), _) => duplicate_error(&meta_list.path),
                         (None, Some(_)) => mutual_exclusive_error(&meta_list.path, "regex"),
                         (None, None) => {
-                            for x in meta_list.nested.iter() {
+                            for x in parse_nested_meta(meta_list) {
                                 match x {
-                                    NestedMeta::Meta(Meta::NameValue(MetaNameValue {
-                                        path,
-                                        lit,
-                                        ..
-                                    })) if path.is_ident("pattern") => {
+                                    Meta::NameValue(MetaNameValue { path, value, .. })
+                                        if path.is_ident("pattern") =>
+                                    {
                                         self.contains =
-                                            get_lit_str(errors, attr_type, "contains", lit)
+                                            expr_as_lit_str(errors, attr_type, "contains", &value)
                                                 .ok()
                                                 .map(|litstr| litstr.value())
                                     }
@@ -304,20 +305,18 @@ impl ValidationAttrs {
                     }
                 }
 
-                NestedMeta::Meta(Meta::List(meta_list)) if meta_list.path.is_ident("inner") => {
-                    match self.inner {
-                        Some(_) => duplicate_error(&meta_list.path),
-                        None => {
-                            let inner_attrs = ValidationAttrs::default().populate(
-                                meta_list.nested.clone().into_iter().collect(),
-                                attr_type,
-                                ignore_errors,
-                                errors,
-                            );
-                            self.inner = Some(Box::new(inner_attrs));
-                        }
+                Meta::List(meta_list) if meta_list.path.is_ident("inner") => match self.inner {
+                    Some(_) => duplicate_error(&meta_list.path),
+                    None => {
+                        let inner_attrs = ValidationAttrs::default().populate(
+                            parse_nested_meta(meta_list).into_iter().collect(),
+                            attr_type,
+                            ignore_errors,
+                            errors,
+                        );
+                        self.inner = Some(Box::new(inner_attrs));
                     }
-                }
+                },
 
                 _ => {}
             }
@@ -446,7 +445,7 @@ fn parse_lit_into_expr_path(
     cx: &Ctxt,
     attr_type: &'static str,
     meta_item_name: &'static str,
-    lit: &syn::Lit,
+    lit: &Expr,
 ) -> Result<Expr, ()> {
     parse_lit_into_path(cx, attr_type, meta_item_name, lit).map(|path| {
         Expr::Path(ExprPath {
@@ -510,19 +509,25 @@ fn wrap_string_validation(v: Vec<TokenStream>) -> Option<TokenStream> {
     }
 }
 
-fn str_or_num_to_expr(cx: &Ctxt, meta_item_name: &str, lit: &Lit) -> Option<Expr> {
+fn str_or_num_to_expr(cx: &Ctxt, meta_item_name: &str, expr: Expr) -> Option<Expr> {
+    // this odd double-parsing is to make `-10` parsed as an Lit instead of an Expr::Unary
+    let lit: Lit = match syn::parse2(expr.to_token_stream()) {
+        Ok(l) => l,
+        Err(err) => {
+            cx.syn_error(err);
+            return None;
+        }
+    };
+
     match lit {
-        Lit::Str(s) => parse_lit_str::<ExprPath>(s).ok().map(Expr::Path),
-        Lit::Int(_) | Lit::Float(_) => Some(Expr::Lit(ExprLit {
-            attrs: Vec::new(),
-            lit: lit.clone(),
-        })),
+        Lit::Str(s) => parse_lit_str::<ExprPath>(&s).ok().map(Expr::Path),
+        Lit::Int(_) | Lit::Float(_) => Some(expr),
         _ => {
             cx.error_spanned_by(
-                lit,
+                &expr,
                 format!(
-                    "expected `{}` to be a string or number literal",
-                    meta_item_name
+                    "expected `{}` to be a string or number literal, not {:?}",
+                    meta_item_name, &expr
                 ),
             );
             None

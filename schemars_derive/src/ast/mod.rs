@@ -38,7 +38,7 @@ pub struct Field<'a> {
 }
 
 impl<'a> Container<'a> {
-    pub fn from_ast(item: &'a syn::DeriveInput) -> Result<Container<'a>, Vec<syn::Error>> {
+    pub fn from_ast(item: &'a syn::DeriveInput) -> syn::Result<Container<'a>> {
         let ctxt = Ctxt::new();
         let result = serde_ast::Container::from_ast(&ctxt, item, Derive::Deserialize)
             .ok_or(())
@@ -48,7 +48,7 @@ impl<'a> Container<'a> {
             .map(|_| result.expect("from_ast set no errors on Ctxt, so should have returned Ok"))
     }
 
-    pub fn name(&self) -> String {
+    pub fn name(&self) -> &str {
         self.serde_attrs.name().deserialize_name()
     }
 
@@ -64,7 +64,7 @@ impl<'a> Container<'a> {
 }
 
 impl<'a> Variant<'a> {
-    pub fn name(&self) -> String {
+    pub fn name(&self) -> &str {
         self.serde_attrs.name().deserialize_name()
     }
 
@@ -74,7 +74,7 @@ impl<'a> Variant<'a> {
 }
 
 impl<'a> Field<'a> {
-    pub fn name(&self) -> String {
+    pub fn name(&self) -> &str {
         self.serde_attrs.name().deserialize_name()
     }
 }
