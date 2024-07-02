@@ -19,6 +19,7 @@ serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.25"
 dyn-clone = "1.0"
 
+arbitrary-int = { version = "1.2.7", default-features = false, optional = true }
 chrono = { version = "0.4", default-features = false, optional = true }
 indexmap = { version = "1.2", features = ["serde-1"], optional = true }
 indexmap2 = { version = "2.0", features = ["serde"], optional = true, package = "indexmap" }
@@ -55,6 +56,7 @@ impl_json_schema = ["derive"]
 # derive_json_schema will be removed in a later version
 derive_json_schema = ["impl_json_schema"]
 
+arbitrary_int = ["arbitrary-int"]
 # `uuid` feature contains `uuid08` only for back-compat - will be changed to include uuid 1.0 instead in a later version
 uuid = ["uuid08"]
 # `arrayvec` feature without version suffix is included only for back-compat - will be removed in a later version
@@ -66,6 +68,10 @@ raw_value = ["serde_json/raw_value"]
 bigdecimal = ["bigdecimal03"]
 
 ui_test = []
+
+[[test]]
+name = "arbitrary_int"
+required-features = ["arbitrary_int"]
 
 [[test]]
 name = "chrono"
