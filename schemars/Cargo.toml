@@ -43,8 +43,6 @@ pretty_assertions = "1.2.1"
 trybuild = "1.0"
 
 [features]
-arbitrary_int = []
-
 default = ["derive"]
 
 derive = ["schemars_derive"]
@@ -58,6 +56,7 @@ impl_json_schema = ["derive"]
 # derive_json_schema will be removed in a later version
 derive_json_schema = ["impl_json_schema"]
 
+arbitrary_int = ["arbitrary-int"]
 # `uuid` feature contains `uuid08` only for back-compat - will be changed to include uuid 1.0 instead in a later version
 uuid = ["uuid08"]
 # `arrayvec` feature without version suffix is included only for back-compat - will be removed in a later version
@@ -69,6 +68,10 @@ raw_value = ["serde_json/raw_value"]
 bigdecimal = ["bigdecimal03"]
 
 ui_test = []
+
+[[test]]
+name = "arbitrary_int"
+required-features = ["arbitrary_int"]
 
 [[test]]
 name = "chrono"
