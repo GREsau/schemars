@@ -129,7 +129,8 @@ pub enum MyEnum {
 }
 
 let schema = schema_for!(MyStruct);
-println!("{}", serde_json::to_string_pretty(&schema).unwrap());
+let mut stdout = std::io::stdout().lock();
+serde_json::to_writer_pretty(&mut stdout, &schema).unwrap();
 ```
 
 <details>
