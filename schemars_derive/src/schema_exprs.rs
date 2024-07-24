@@ -562,7 +562,7 @@ fn field_default_expr(field: &Field, container_has_default: bool) -> Option<Toke
 
                 impl serde::Serialize for _SchemarsDefaultSerialize<#ty>
                 {
-                    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+                    fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
                     where
                         S: serde::Serializer
                     {
