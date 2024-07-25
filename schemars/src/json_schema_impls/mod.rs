@@ -50,6 +50,8 @@ mod atomic;
 mod bytes;
 #[cfg(feature = "chrono")]
 mod chrono;
+#[cfg(feature = "compact_str")]
+mod compact_str;
 mod core;
 #[cfg(any(
     feature = "rust_decimal",
