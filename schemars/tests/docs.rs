@@ -5,12 +5,10 @@ use util::*;
 #[allow(dead_code)]
 #[derive(JsonSchema)]
 /**
- *
- * # This is the struct's title
- *
- * This is the struct's description.
- *
- */
+# This is the struct's title
+
+This is the struct's description.
+*/
 struct MyStruct {
     /// # An integer
     my_int: i32,
