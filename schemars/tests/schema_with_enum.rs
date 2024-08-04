@@ -21,7 +21,6 @@ pub enum External {
         #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,
         i32,
     ),
-    // FIXME this should probably only replace the "payload" of the enum
     #[schemars(schema_with = "schema_fn")]
     Unit,
 }
@@ -39,7 +38,6 @@ pub enum Internal {
         foo: DoesntImplementJsonSchema,
     },
     NewType(#[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema),
-    // FIXME this should probably only replace the "payload" of the enum
     #[schemars(schema_with = "schema_fn")]
     Unit,
 }
@@ -61,7 +59,6 @@ pub enum Untagged {
         #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,
         i32,
     ),
-    // FIXME this should probably only replace the "payload" of the enum
     #[schemars(schema_with = "schema_fn")]
     Unit,
 }
@@ -83,7 +80,6 @@ pub enum Adjacent {
         #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,
         i32,
     ),
-    // FIXME this should probably only replace the "payload" of the enum
     #[schemars(schema_with = "schema_fn")]
     Unit,
 }
