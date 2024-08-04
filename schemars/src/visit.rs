@@ -36,9 +36,7 @@ pub trait Visitor {
     /// Override this method to modify a [`Schema`] and (optionally) its subschemas.
     ///
     /// When overriding this method, you will usually want to call the [`visit_schema`] function to visit subschemas.
-    fn visit_schema(&mut self, schema: &mut Schema) {
-        visit_schema(self, schema)
-    }
+    fn visit_schema(&mut self, schema: &mut Schema);
 }
 
 /// Visits all subschemas of the [`Schema`].
