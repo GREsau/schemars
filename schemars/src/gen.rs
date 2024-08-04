@@ -534,7 +534,11 @@ fn json_pointer_mut<'a>(
 /// #[derive(Debug, Clone)]
 /// struct MyVisitor;
 ///
-/// impl Visitor for MyVisitor { }
+/// impl Visitor for MyVisitor {
+///   fn visit_schema(&mut self, schema: &mut schemars::Schema) {
+///     todo!()
+///   }
+/// }
 ///
 /// let v: &dyn GenVisitor = &MyVisitor;
 /// assert!(v.as_any().is::<MyVisitor>());
