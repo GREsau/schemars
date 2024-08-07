@@ -1,6 +1,6 @@
 mod util;
 use schemars::gen::SchemaSettings;
-use schemars::JsonSchema;
+use schemars::{JsonSchema, Schema};
 use serde_json::Value;
 use std::collections::BTreeMap;
 use util::*;
@@ -47,5 +47,22 @@ fn schema_matches_2020_12() -> TestResult {
 
 #[test]
 fn schema_matches_openapi3() -> TestResult {
-    test_generated_schema::<Outer>("schema_settings-openapi3", SchemaSettings::openapi3())
+    let mut settings = SchemaSettings::openapi3();
+
+    // Hack to apply recursive transforms to schemas at components.schemas:
+    // First, move them to $defs, then run the transforms, then move them back again.
+    settings.transforms.insert(
+        0,
+        Box::new(|s: &mut Schema| {
+            let obj = s.ensure_object();
+            let defs = obj["components"]["schemas"].take();
+            obj.insert("$defs".to_owned(), defs);
+        }),
+    );
+    settings.transforms.push(Box::new(|s: &mut Schema| {
+        let obj = s.ensure_object();
+        obj["components"]["schemas"] = obj.remove("$defs").unwrap();
+    }));
+
+    test_generated_schema::<Outer>("schema_settings-openapi3", settings)
 }

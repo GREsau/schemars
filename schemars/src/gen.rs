@@ -8,7 +8,7 @@ There are two main types in this module:
 */
 
 use crate::Schema;
-use crate::{visit::*, JsonSchema};
+use crate::{transform::*, JsonSchema};
 use dyn_clone::DynClone;
 use serde::Serialize;
 use serde_json::{Map, Value};
@@ -44,8 +44,8 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `"https://json-schema.org/draft/2020-12/schema"`.
     pub meta_schema: Option<String>,
-    /// A list of visitors that get applied to all generated schemas.
-    pub visitors: Vec<Box<dyn GenVisitor>>,
+    /// A list of [`Transform`]s that get applied to generated root schemas.
+    pub transforms: Vec<Box<dyn GenTransform>>,
     /// Inline all subschemas instead of using references.
     ///
     /// Some references may still be generated in schemas for recursive types.
@@ -70,7 +70,7 @@ impl SchemaSettings {
             option_add_null_type: true,
             definitions_path: "/definitions".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            visitors: vec![Box::new(RemoveRefSiblings), Box::new(ReplacePrefixItems)],
+            transforms: vec![Box::new(RemoveRefSiblings), Box::new(ReplacePrefixItems)],
             inline_subschemas: false,
         }
     }
@@ -82,7 +82,7 @@ impl SchemaSettings {
             option_add_null_type: true,
             definitions_path: "/$defs".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
-            visitors: vec![Box::new(ReplacePrefixItems)],
+            transforms: vec![Box::new(ReplacePrefixItems)],
             inline_subschemas: false,
         }
     }
@@ -94,7 +94,7 @@ impl SchemaSettings {
             option_add_null_type: true,
             definitions_path: "/$defs".to_owned(),
             meta_schema: Some("https://json-schema.org/draft/2020-12/schema".to_owned()),
-            visitors: Vec::new(),
+            transforms: Vec::new(),
             inline_subschemas: false,
         }
     }
@@ -109,7 +109,7 @@ impl SchemaSettings {
                 "https://spec.openapis.org/oas/3.0/schema/2021-09-28#/definitions/Schema"
                     .to_owned(),
             ),
-            visitors: vec![
+            transforms: vec![
                 Box::new(RemoveRefSiblings),
                 Box::new(ReplaceBoolSchemas {
                     skip_additional_properties: true,
@@ -139,9 +139,9 @@ impl SchemaSettings {
         self
     }
 
-    /// Appends the given visitor to the list of [visitors](SchemaSettings::visitors) for these `SchemaSettings`.
-    pub fn with_visitor(mut self, visitor: impl Visitor + Debug + Clone + 'static) -> Self {
-        self.visitors.push(Box::new(visitor));
+    /// Appends the given transform to the list of [transforms](SchemaSettings::transforms) for these `SchemaSettings`.
+    pub fn with_transform(mut self, transform: impl Transform + Clone + 'static) -> Self {
+        self.transforms.push(Box::new(transform));
         self
     }
 
@@ -297,9 +297,9 @@ impl SchemaGenerator {
         std::mem::take(&mut self.definitions)
     }
 
-    /// Returns an iterator over the [visitors](SchemaSettings::visitors) being used by this `SchemaGenerator`.
-    pub fn visitors_mut(&mut self) -> impl Iterator<Item = &mut dyn GenVisitor> {
-        self.settings.visitors.iter_mut().map(|v| v.as_mut())
+    /// Returns an iterator over the [transforms](SchemaSettings::transforms) being used by this `SchemaGenerator`.
+    pub fn transforms_mut(&mut self) -> impl Iterator<Item = &mut dyn GenTransform> {
+        self.settings.transforms.iter_mut().map(|v| v.as_mut())
     }
 
     /// Generates a JSON Schema for the type `T`.
@@ -320,7 +320,7 @@ impl SchemaGenerator {
         }
 
         self.add_definitions(object, self.definitions.clone());
-        self.run_visitors(&mut schema);
+        self.apply_transforms(&mut schema);
 
         schema
     }
@@ -344,7 +344,7 @@ impl SchemaGenerator {
 
         let definitions = self.take_definitions();
         self.add_definitions(object, definitions);
-        self.run_visitors(&mut schema);
+        self.apply_transforms(&mut schema);
 
         schema
     }
@@ -375,7 +375,7 @@ impl SchemaGenerator {
         }
 
         self.add_definitions(object, self.definitions.clone());
-        self.run_visitors(&mut schema);
+        self.apply_transforms(&mut schema);
 
         Ok(schema)
     }
@@ -407,7 +407,7 @@ impl SchemaGenerator {
 
         let definitions = self.take_definitions();
         self.add_definitions(object, definitions);
-        self.run_visitors(&mut schema);
+        self.apply_transforms(&mut schema);
 
         Ok(schema)
     }
@@ -456,26 +456,9 @@ impl SchemaGenerator {
         target.append(&mut definitions);
     }
 
-    fn run_visitors(&mut self, schema: &mut Schema) {
-        for visitor in self.visitors_mut() {
-            visitor.visit_schema(schema);
-        }
-
-        let pointer = self.definitions_path_stripped();
-        // `$defs` and `definitions` are both handled internally by `Visitor::visit_schema`.
-        // If the definitions are in any other location, explicitly visit them here to ensure
-        // they're run against any referenced subschemas.
-        if pointer != "/$defs" && pointer != "/definitions" {
-            if let Some(definitions) = schema
-                .as_object_mut()
-                .and_then(|so| json_pointer_mut(so, pointer, false))
-            {
-                for subschema in definitions.values_mut().flat_map(<&mut Schema>::try_from) {
-                    for visitor in self.visitors_mut() {
-                        visitor.visit_schema(subschema);
-                    }
-                }
-            }
+    fn apply_transforms(&mut self, schema: &mut Schema) {
+        for transform in self.transforms_mut() {
+            transform.transform(schema);
         }
     }
 
@@ -518,43 +501,48 @@ fn json_pointer_mut<'a>(
     Some(object)
 }
 
-/// A [Visitor] which implements additional traits required to be included in a [SchemaSettings].
+/// A [Transform] which implements additional traits required to be included in a [SchemaSettings].
 ///
 /// You will rarely need to use this trait directly as it is automatically implemented for any type which implements all of:
-/// - [`Visitor`]
-/// - [`std::fmt::Debug`]
+/// - [`Transform`]
 /// - [`std::any::Any`] (implemented for all `'static` types)
 /// - [`std::clone::Clone`]
 ///
 /// # Example
 /// ```
-/// use schemars::visit::Visitor;
-/// use schemars::gen::GenVisitor;
+/// use schemars::transform::Transform;
+/// use schemars::gen::GenTransform;
 ///
 /// #[derive(Debug, Clone)]
-/// struct MyVisitor;
+/// struct MyTransform;
 ///
-/// impl Visitor for MyVisitor {
-///   fn visit_schema(&mut self, schema: &mut schemars::Schema) {
+/// impl Transform for MyTransform {
+///   fn transform(&mut self, schema: &mut schemars::Schema) {
 ///     todo!()
 ///   }
 /// }
 ///
-/// let v: &dyn GenVisitor = &MyVisitor;
-/// assert!(v.as_any().is::<MyVisitor>());
+/// let v: &dyn GenTransform = &MyTransform;
+/// assert!(v.as_any().is::<MyTransform>());
 /// ```
-pub trait GenVisitor: Visitor + Debug + DynClone + Any {
-    /// Upcasts this visitor into an `Any`, which can be used to inspect and manipulate it as its concrete type.
+pub trait GenTransform: Transform + DynClone + Any {
+    /// Upcasts this transform into an [`Any`], which can be used to inspect and manipulate it as its concrete type.
     fn as_any(&self) -> &dyn Any;
 }
 
-dyn_clone::clone_trait_object!(GenVisitor);
+dyn_clone::clone_trait_object!(GenTransform);
 
-impl<T> GenVisitor for T
+impl<T> GenTransform for T
 where
-    T: Visitor + Debug + Clone + Any,
+    T: Transform + Clone + Any,
 {
     fn as_any(&self) -> &dyn Any {
         self
+    }
+}
+
+impl Debug for Box<dyn GenTransform> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self._debug_type_name(f)
     }
 }

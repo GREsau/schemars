@@ -13,8 +13,8 @@ mod macros;
 pub mod _private;
 /// Types for generating JSON schemas.
 pub mod gen;
-/// Types for recursively modifying JSON schemas.
-pub mod visit;
+/// Types for defining modifications to JSON schemas.
+pub mod transform;
 
 #[cfg(feature = "schemars_derive")]
 extern crate schemars_derive;
