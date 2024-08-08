@@ -140,7 +140,7 @@ impl SchemaSettings {
     }
 
     /// Appends the given transform to the list of [transforms](SchemaSettings::transforms) for these `SchemaSettings`.
-    pub fn with_transform(mut self, transform: impl Transform + Clone + 'static) -> Self {
+    pub fn with_transform(mut self, transform: impl Transform + Clone + 'static + Send) -> Self {
         self.transforms.push(Box::new(transform));
         self
     }
@@ -507,6 +507,7 @@ fn json_pointer_mut<'a>(
 /// - [`Transform`]
 /// - [`std::any::Any`] (implemented for all `'static` types)
 /// - [`std::clone::Clone`]
+/// - [`std::marker::Send`]
 ///
 /// # Example
 /// ```
@@ -525,7 +526,7 @@ fn json_pointer_mut<'a>(
 /// let v: &dyn GenTransform = &MyTransform;
 /// assert!(v.as_any().is::<MyTransform>());
 /// ```
-pub trait GenTransform: Transform + DynClone + Any {
+pub trait GenTransform: Transform + DynClone + Any + Send {
     /// Upcasts this transform into an [`Any`], which can be used to inspect and manipulate it as its concrete type.
     fn as_any(&self) -> &dyn Any;
 }
@@ -534,7 +535,7 @@ dyn_clone::clone_trait_object!(GenTransform);
 
 impl<T> GenTransform for T
 where
-    T: Transform + Clone + Any,
+    T: Transform + Clone + Any + Send,
 {
     fn as_any(&self) -> &dyn Any {
         self
@@ -545,4 +546,11 @@ impl Debug for Box<dyn GenTransform> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         self._debug_type_name(f)
     }
+}
+
+fn _assert_send() {
+    fn _assert<T: Send>() {}
+
+    _assert::<SchemaSettings>();
+    _assert::<SchemaGenerator>();
 }
