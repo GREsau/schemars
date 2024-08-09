@@ -27,6 +27,7 @@ pub struct Attrs {
     pub crate_name: Option<syn::Path>,
     pub is_renamed: bool,
     pub extensions: Vec<(String, TokenStream)>,
+    pub transforms: Vec<syn::Expr>,
 }
 
 #[derive(Debug)]
@@ -70,6 +71,7 @@ impl Attrs {
             deprecated: self.deprecated,
             examples: &self.examples,
             extensions: &self.extensions,
+            transforms: &self.transforms,
             read_only: false,
             write_only: false,
             default: None,
@@ -164,6 +166,10 @@ impl Attrs {
                     }
                 }
 
+                Meta::NameValue(m) if m.path.is_ident("transform") && attr_type == "schemars" => {
+                    self.transforms.push(m.value.clone());
+                }
+
                 Meta::List(m) if m.path.is_ident("extend") && attr_type == "schemars" => {
                     let parser =
                         syn::punctuated::Punctuated::<Extension, Token![,]>::parse_terminated;
@@ -224,7 +230,8 @@ impl Attrs {
                 crate_name: None,
                 is_renamed: _,
                 extensions,
-            } if examples.is_empty() && extensions.is_empty())
+                transforms
+            } if examples.is_empty() && extensions.is_empty() && transforms.is_empty())
     }
 }
 
