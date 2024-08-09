@@ -528,7 +528,40 @@ fn json_pointer_mut<'a>(
 /// ```
 pub trait GenTransform: Transform + DynClone + Any + Send {
     /// Upcasts this transform into an [`Any`], which can be used to inspect and manipulate it as its concrete type.
+    ///
+    /// # Example
+    /// To remove a specific transform from an instance of `SchemaSettings`:
+    /// ```
+    /// use schemars::gen::SchemaSettings;
+    /// use schemars::transform::ReplaceBoolSchemas;
+    ///
+    /// let mut settings = SchemaSettings::openapi3();
+    /// let original_len = settings.transforms.len();
+    ///
+    /// settings
+    ///     .transforms
+    ///     .retain(|t| !t.as_any().is::<ReplaceBoolSchemas>());
+    ///
+    /// assert_eq!(settings.transforms.len(), original_len - 1);
+    /// ```
     fn as_any(&self) -> &dyn Any;
+
+    /// Mutably upcasts this transform into an [`Any`], which can be used to inspect and manipulate it as its concrete type.
+    ///
+    /// # Example
+    /// To modify a specific transform in an instance of `SchemaSettings`:
+    /// ```
+    /// use schemars::gen::SchemaSettings;
+    /// use schemars::transform::ReplaceBoolSchemas;
+    ///
+    /// let mut settings = SchemaSettings::openapi3();
+    /// for t in &mut settings.transforms {
+    ///     if let Some(replace_bool_schemas) = t.as_any_mut().downcast_mut::<ReplaceBoolSchemas>() {
+    ///         replace_bool_schemas.skip_additional_properties = false;
+    ///     }
+    /// }
+    /// ```
+    fn as_any_mut(&mut self) -> &mut dyn Any;
 }
 
 dyn_clone::clone_trait_object!(GenTransform);
@@ -538,6 +571,10 @@ where
     T: Transform + Clone + Any + Send,
 {
     fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 }
