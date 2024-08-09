@@ -167,6 +167,21 @@ impl Attrs {
                 }
 
                 Meta::NameValue(m) if m.path.is_ident("transform") && attr_type == "schemars" => {
+                    if let syn::Expr::Lit(syn::ExprLit {
+                        lit: syn::Lit::Str(lit_str),
+                        ..
+                    }) = &m.value
+                    {
+                        if parse_lit_str::<syn::Expr>(lit_str).is_ok() {
+                            errors.error_spanned_by(
+                                &m.value,
+                                format!(
+                                    "Expected a `fn(&mut Schema)` or other value implementing `schemars::transform::Transform`, found `&str`.\nDid you mean `[schemars(transform = {})]`?",
+                                    lit_str.value()
+                                ),
+                            )
+                        }
+                    }
                     self.transforms.push(m.value.clone());
                 }
 
