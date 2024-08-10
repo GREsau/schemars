@@ -1,6 +1,6 @@
 ---
 title: Generating Schemas
-nav_order: 4
+nav_order: 5
 permalink: /generating/
 ---
 
