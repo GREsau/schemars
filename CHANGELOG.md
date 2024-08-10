@@ -1,5 +1,89 @@
 # Changelog
 
+## [1.0.0-alpha.3] - 2024-08-10
+
+### Added
+
+- `#[schemars(transform = some::transform)]` for applying arbitrary modifications to generated schemas. `some::transform` must be an expression of type `schemars::transform::Transform` - note that this can be a function with the signature `fn(&mut Schema) -> ()`.
+- `SchemaSettings` and `SchemaGenerator` are both now `Send`
+
+### Changed (_⚠️ breaking changes ⚠️_)
+
+- `visit` module and `Visitor` trait have been replace with `transform` and `Transform` respectively. Accordingly, these items have been renamed:
+  - `SchemaSettings::visitors` -> `SchemaSettings::transforms`
+  - `SchemaSettings::with_visitor` -> `SchemaSettings::with_transform`
+  - `SchemaGenerator::visitors_mut` -> `SchemaGenerator::transforms_mut`
+  - `GenVisitor` -> `GenTransform`
+  - `Visitor::visit_schema` -> `Transform::transform`
+  - `visit::visit_schema` -> `transform::transform_subschemas`
+- `GenTransform` must also impl `Send`, but no longer needs to impl `Debug`
+- Doc comments no longer have newlines collapsed when generating the `description` property (https://github.com/GREsau/schemars/pull/310)
+
+## [1.0.0-alpha.2] - 2024-06-05
+
+### Added
+
+- `#[schemars(extend("key" = value))]` attribute which can be used to add properties (or replace existing properties) in a generated schema (https://github.com/GREsau/schemars/issues/50 / https://github.com/GREsau/schemars/pull/297)
+  - Can be set on a struct, enum, or enum variant
+  - Value can be any expression that results in a value implementing `Serialize`
+  - Value can also be a JSON literal following the rules of `serde_json::json!(value)` macro, i.e. it can interpolate other values that implement `Serialize`
+
+## [1.0.0-alpha.1] - 2024-05-27
+
+### Added
+
+- `json_schema!` macro for creating a custom `Schema`
+- Implement `JsonSchema` for [uuid](https://crates.io/crates/uuid) 1.x types, under the optional `uuid1` feature flag
+- `SchemaSettings::draft2020_12()` to construct settings conforming to [JSON Schema draft 2020-12](https://json-schema.org/draft/2020-12/release-notes)
+
+### Changed (_⚠️ breaking changes ⚠️_)
+
+- The `Schema` type is now defined as a thin wrapper around a `serde_json::Value`
+- The default `SchemaSettings` (used by the `schema_for!()`/`schema_for_value!()` macros and `SchemaGenerator::default()`) now conform to JSON Schema draft 2020-12 instead of draft 7.
+- Schemas generated using `SchemaSettings::draft2019_09()` (and `draft2020_12()` and `default()`) now use `$defs` instead of `definitions`. While using `definitions` is allowed by the spec, `$defs` is the preferred property for storing reusable schemas.
+- `JsonSchema::schema_name()` now returns `Cow<'static, str>` instead of `String`
+- `JsonSchema::is_referenceable()` has been removed, and replaced with the more clearly-named `JsonSchema::always_inline()` (which should returns the **opposite** value to what `is_referenceable` returned!)
+- The `SchemaGenerator.definitions` field is now a `serde_json::Map<String, Value>`
+- Macros/functions that previously returned a `RootSchema` now return a `Schema` instead
+- All optional dependencies are now suffixed by their version:
+  - `chrono` is now `chrono04`
+  - `either` is now `either1`
+  - `smallvec` is now `smallvec1`
+  - `url` is now `url2`
+  - `bytes` is now `bytes1`
+  - `rust_decimal` is now `rust_decimal1`
+  - `enumset` is now `enumset1`
+  - `smol_str` is now `smol_str02`
+  - `semver` is now `semver1`
+  - `indexmap2`, `arrayvec07` and `bigdecimal04` are unchanged
+
+### Removed (_⚠️ breaking changes ⚠️_)
+
+- Removed deprecated `SchemaGenerator` methods `make_extensible`, `schema_for_any` and `schema_for_none`
+- Removed the `schema` module
+  - The `Schema` type is now accessible from the crate root (i.e. `schemars::Schema` instead of `schemars::schema::Schema`)
+  - All other types that were in the module have been removed:
+    - `RootSchema`
+    - `SchemaObject`
+    - `Metadata`
+    - `SubschemaValidation`
+    - `NumberValidation`
+    - `StringValidation`
+    - `ArrayValidation`
+    - `ObjectValidation`
+    - `InstanceType`
+    - `SingleOrVec`
+- Removed `schemars::Set` and `schemars::Map` type aliases
+- Removed the `impl_json_schema` feature flag - `JsonSchema` is now always implemented on `Schema`
+- Remove methods `visit_schema_object` and `visit_root_schema` from the `Visitor` trait (`visit_schema` is unchanged)
+  - Visitors that previously defined `visit_schema_object` should instead define `visit_schema` and use an `if let Some(obj) = schema.as_object_mut()` or similar construct
+- Old versions of optional dependencies have been removed - all of these have newer versions (shown in brackets) which are supported by schemars
+  - `indexmap` (consider using `indexmap2`)
+  - `uuid08` (consider using `uuid1`)
+  - `arrayvec05` (consider using `arrayvec07`)
+  - `bigdecimal03` (consider using `bigdecimal04`)
+- Remove the retain_examples field from SetSingleExample, which is now a unit struct
+
 ## [0.8.21] - 2024-05-23
 
 ### Fixed:
