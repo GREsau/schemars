@@ -1,9 +1,13 @@
 # Schemars
 
+> [!NOTE]
+> This branch is for the current v1 alpha version of Schemars which is still under development.
+> For the current stable release of Schemars (v0.8.x), see the [v0 branch](https://github.com/GREsau/schemars/tree/v0).
+
 [![CI Build](https://img.shields.io/github/actions/workflow/status/GREsau/schemars/ci.yml?branch=master&logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
-[![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
-[![MSRV 1.60+](https://img.shields.io/badge/schemars-rustc_1.60+-lightgray.svg)](https://blog.rust-lang.org/2022/04/07/Rust-1.60.0.html)
+[![Docs](https://img.shields.io/docsrs/schemars)](https://docs.rs/schemars)
+[![MSRV 1.60+](https://img.shields.io/crates/msrv/schemars)](https://blog.rust-lang.org/2022/04/07/Rust-1.60.0.html)
 
 Generate JSON Schema documents from Rust code
 
