@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.0.0-alpha.3] - 2024-08-10
+
+### Added
+
+- `#[schemars(transform = some::transform)]` for applying arbitrary modifications to generated schemas. `some::transform` must be an expression of type `schemars::transform::Transform` - note that this can be a function with the signature `fn(&mut Schema) -> ()`.
+- `SchemaSettings` and `SchemaGenerator` are both now `Send`
+
+### Changed (_⚠️ breaking changes ⚠️_)
+
+- `visit` module and `Visitor` trait have been replace with `transform` and `Transform` respectively. Accordingly, these items have been renamed:
+  - `SchemaSettings::visitors` -> `SchemaSettings::transforms`
+  - `SchemaSettings::with_visitor` -> `SchemaSettings::with_transform`
+  - `SchemaGenerator::visitors_mut` -> `SchemaGenerator::transforms_mut`
+  - `GenVisitor` -> `GenTransform`
+  - `Visitor::visit_schema` -> `Transform::transform`
+  - `visit::visit_schema` -> `transform::transform_subschemas`
+- `GenTransform` must also impl `Send`, but no longer needs to impl `Debug`
+- Doc comments no longer have newlines collapsed when generating the `description` property (https://github.com/GREsau/schemars/pull/310)
+
 ## [1.0.0-alpha.2] - 2024-06-05
 
 ### Added

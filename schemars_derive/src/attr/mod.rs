@@ -10,7 +10,7 @@ use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
 use syn::parse::{self, Parse};
-use syn::{Meta, MetaNameValue};
+use syn::{LitStr, Meta, MetaNameValue};
 
 // FIXME using the same struct for containers+variants+fields means that
 //  with/schema_with are accepted (but ignored) on containers, and
@@ -26,6 +26,8 @@ pub struct Attrs {
     pub repr: Option<syn::Type>,
     pub crate_name: Option<syn::Path>,
     pub is_renamed: bool,
+    pub extensions: Vec<(String, TokenStream)>,
+    pub transforms: Vec<syn::Expr>,
 }
 
 #[derive(Debug)]
@@ -68,6 +70,8 @@ impl Attrs {
             description: self.description.as_ref().and_then(none_if_empty),
             deprecated: self.deprecated,
             examples: &self.examples,
+            extensions: &self.extensions,
+            transforms: &self.transforms,
             read_only: false,
             write_only: false,
             default: None,
@@ -162,6 +166,48 @@ impl Attrs {
                     }
                 }
 
+                Meta::NameValue(m) if m.path.is_ident("transform") && attr_type == "schemars" => {
+                    if let syn::Expr::Lit(syn::ExprLit {
+                        lit: syn::Lit::Str(lit_str),
+                        ..
+                    }) = &m.value
+                    {
+                        if parse_lit_str::<syn::Expr>(lit_str).is_ok() {
+                            errors.error_spanned_by(
+                                &m.value,
+                                format!(
+                                    "Expected a `fn(&mut Schema)` or other value implementing `schemars::transform::Transform`, found `&str`.\nDid you mean `[schemars(transform = {})]`?",
+                                    lit_str.value()
+                                ),
+                            )
+                        }
+                    }
+                    self.transforms.push(m.value.clone());
+                }
+
+                Meta::List(m) if m.path.is_ident("extend") && attr_type == "schemars" => {
+                    let parser =
+                        syn::punctuated::Punctuated::<Extension, Token![,]>::parse_terminated;
+                    match m.parse_args_with(parser) {
+                        Ok(extensions) => {
+                            for extension in extensions {
+                                let key = extension.key.value();
+                                // This is O(n^2) but should be fine with the typically small number of extensions.
+                                // If this does become a problem, it can be changed to use IndexMap, or a separate Map with cloned keys.
+                                if self.extensions.iter().any(|e| e.0 == key) {
+                                    errors.error_spanned_by(
+                                        extension.key,
+                                        format!("Duplicate extension key '{}'", key),
+                                    );
+                                } else {
+                                    self.extensions.push((key, extension.value));
+                                }
+                            }
+                        }
+                        Err(err) => errors.syn_error(err),
+                    }
+                }
+
                 _ if ignore_errors => {}
 
                 Meta::List(m) if m.path.is_ident("inner") && attr_type == "schemars" => {
@@ -198,7 +244,9 @@ impl Attrs {
                 repr: None,
                 crate_name: None,
                 is_renamed: _,
-            } if examples.is_empty())
+                extensions,
+                transforms
+            } if examples.is_empty() && extensions.is_empty() && transforms.is_empty())
     }
 }
 
@@ -321,4 +369,28 @@ fn respan_token_tree(mut token: TokenTree, span: Span) -> TokenTree {
     }
     token.set_span(span);
     token
+}
+
+#[derive(Debug)]
+struct Extension {
+    key: LitStr,
+    value: TokenStream,
+}
+
+impl Parse for Extension {
+    fn parse(input: parse::ParseStream) -> syn::Result<Self> {
+        let key = input.parse::<LitStr>()?;
+        input.parse::<Token![=]>()?;
+        let mut value = TokenStream::new();
+
+        while !input.is_empty() && !input.peek(Token![,]) {
+            value.extend([input.parse::<TokenTree>()?]);
+        }
+
+        if value.is_empty() {
+            return Err(syn::Error::new(input.span(), "Expected extension value"));
+        }
+
+        Ok(Extension { key, value })
+    }
 }

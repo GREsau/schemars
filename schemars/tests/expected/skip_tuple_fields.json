@@ -1,8 +1,8 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "TupleStruct",
   "type": "array",
-  "items": [
+  "prefixItems": [
     {
       "type": "number",
       "format": "float"
@@ -11,6 +11,6 @@
       "type": "null"
     }
   ],
-  "maxItems": 2,
-  "minItems": 2
+  "minItems": 2,
+  "maxItems": 2
 }

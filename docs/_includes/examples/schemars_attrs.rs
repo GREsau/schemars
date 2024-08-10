@@ -1,11 +1,11 @@
-use schemars::{schema_for, JsonSchema};
+use schemars::{schema_for, JsonSchema, Schema};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, JsonSchema)]
-#[schemars(rename_all = "camelCase", deny_unknown_fields)]
+#[schemars(rename_all = "camelCase", deny_unknown_fields, extend("x-customProperty" = "example"))]
 pub struct MyStruct {
     #[serde(rename = "thisIsOverridden")]
-    #[schemars(rename = "myNumber", range(min = 1, max = 10))]
+    #[schemars(rename = "myNumber", range(min = 1, max = 10), transform = remove_format)]
     pub my_int: i32,
     pub my_bool: bool,
     #[schemars(default)]
@@ -22,6 +22,12 @@ pub enum MyEnum {
         #[schemars(length(min = 1, max = 100))]
         floats: Vec<f32>,
     },
+}
+
+fn remove_format(schema: &mut Schema) {
+    if let Some(obj) = schema.as_object_mut() {
+        obj.remove("format");
+    }
 }
 
 fn main() {

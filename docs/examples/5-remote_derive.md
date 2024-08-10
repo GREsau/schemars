@@ -1,5 +1,4 @@
 ---
-layout: default
 title: Derive for Remote Crate
 parent: Examples
 nav_order: 5

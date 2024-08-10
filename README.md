@@ -1,12 +1,13 @@
 # Schemars
 
 > [!NOTE]
-> Schemars 1.0 is in development on [the v1 branch](https://github.com/GREsau/schemars/tree/v1), see [draft PR 290](https://github.com/GREsau/schemars/pull/290) for updates
+> This branch is for the current v1 alpha version of Schemars which is still under development.
+> For the current stable release of Schemars (v0.8.x), see the [v0 branch](https://github.com/GREsau/schemars/tree/v0).
 
 [![CI Build](https://img.shields.io/github/actions/workflow/status/GREsau/schemars/ci.yml?branch=master&logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
-[![Docs](https://docs.rs/schemars/badge.svg)](https://docs.rs/schemars)
-[![MSRV 1.60+](https://img.shields.io/badge/schemars-rustc_1.60+-lightgray.svg)](https://blog.rust-lang.org/2022/04/07/Rust-1.60.0.html)
+[![Docs](https://img.shields.io/docsrs/schemars)](https://docs.rs/schemars)
+[![MSRV 1.60+](https://img.shields.io/crates/msrv/schemars)](https://blog.rust-lang.org/2022/04/07/Rust-1.60.0.html)
 
 Generate JSON Schema documents from Rust code
 
@@ -39,10 +40,9 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 
 ```json
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyStruct",
   "type": "object",
-  "required": ["my_bool", "my_int"],
   "properties": {
     "my_bool": {
       "type": "boolean"
@@ -54,7 +54,7 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
     "my_nullable_enum": {
       "anyOf": [
         {
-          "$ref": "#/definitions/MyEnum"
+          "$ref": "#/$defs/MyEnum"
         },
         {
           "type": "null"
@@ -62,26 +62,25 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
       ]
     }
   },
-  "definitions": {
+  "required": ["my_int", "my_bool"],
+  "$defs": {
     "MyEnum": {
-      "anyOf": [
+      "oneOf": [
         {
           "type": "object",
-          "required": ["StringNewType"],
           "properties": {
             "StringNewType": {
               "type": "string"
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": ["StringNewType"]
         },
         {
           "type": "object",
-          "required": ["StructVariant"],
           "properties": {
             "StructVariant": {
               "type": "object",
-              "required": ["floats"],
               "properties": {
                 "floats": {
                   "type": "array",
@@ -90,10 +89,12 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
                     "format": "float"
                   }
                 }
-              }
+              },
+              "required": ["floats"]
             }
           },
-          "additionalProperties": false
+          "additionalProperties": false,
+          "required": ["StructVariant"]
         }
       ]
     }
@@ -137,24 +138,23 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 
 ```json
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyStruct",
   "type": "object",
-  "required": ["myBool", "myNumber"],
   "properties": {
     "myBool": {
       "type": "boolean"
     },
     "myNullableEnum": {
-      "default": null,
       "anyOf": [
         {
-          "$ref": "#/definitions/MyEnum"
+          "$ref": "#/$defs/MyEnum"
         },
         {
           "type": "null"
         }
-      ]
+      ],
+      "default": null
     },
     "myNumber": {
       "type": "integer",
@@ -162,7 +162,8 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
     }
   },
   "additionalProperties": false,
-  "definitions": {
+  "required": ["myNumber", "myBool"],
+  "$defs": {
     "MyEnum": {
       "anyOf": [
         {
@@ -170,7 +171,6 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
         },
         {
           "type": "object",
-          "required": ["floats"],
           "properties": {
             "floats": {
               "type": "array",
@@ -179,7 +179,8 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
                 "format": "float"
               }
             }
-          }
+          },
+          "required": ["floats"]
         }
       ]
     }
@@ -254,33 +255,28 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 ## Feature Flags
 
 - `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro
-- `impl_json_schema` - implements `JsonSchema` for Schemars types themselves
-- `preserve_order` - keep the order of struct fields in `Schema` and `SchemaObject`
+- `preserve_order` - keep the order of struct fields in `Schema` properties
 - `raw_value` - implements `JsonSchema` for `serde_json::value::RawValue` (enables the serde_json `raw_value` feature)
 
 Schemars can implement `JsonSchema` on types from several popular crates, enabled via feature flags (dependency versions are shown in brackets):
 
-- `chrono` - [chrono](https://crates.io/crates/chrono) (^0.4)
-- `indexmap1` - [indexmap](https://crates.io/crates/indexmap) (^1.2)
-- `indexmap2` - [indexmap](https://crates.io/crates/indexmap) (^2.0)
-- `either` - [either](https://crates.io/crates/either) (^1.3)
-- `uuid08` - [uuid](https://crates.io/crates/uuid) (^0.8)
-- `uuid1` - [uuid](https://crates.io/crates/uuid) (^1.0)
-- `smallvec` - [smallvec](https://crates.io/crates/smallvec) (^1.0)
-- `arrayvec05` - [arrayvec](https://crates.io/crates/arrayvec) (^0.5)
 - `arrayvec07` - [arrayvec](https://crates.io/crates/arrayvec) (^0.7)
-- `url` - [url](https://crates.io/crates/url) (^2.0)
-- `bytes` - [bytes](https://crates.io/crates/bytes) (^1.0)
-- `enumset` - [enumset](https://crates.io/crates/enumset) (^1.0)
-- `rust_decimal` - [rust_decimal](https://crates.io/crates/rust_decimal) (^1.0)
-- `bigdecimal03` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.3)
 - `bigdecimal04` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.4)
-- `smol_str` - [smol_str](https://crates.io/crates/smol_str) (^0.1.17)
-- `semver` - [semver](https://crates.io/crates/semver) (^1.0.9)
+- `bytes1` - [bytes](https://crates.io/crates/bytes) (^1.0)
+- `chrono04` - [chrono](https://crates.io/crates/chrono) (^0.4)
+- `either1` - [either](https://crates.io/crates/either) (^1.3)
+- `enumset1` - [enumset](https://crates.io/crates/enumset) (^1.0)
+- `indexmap2` - [indexmap](https://crates.io/crates/indexmap) (^2.0)
+- `rust_decimal1` - [rust_decimal](https://crates.io/crates/rust_decimal) (^1.0)
+- `semver1` - [semver](https://crates.io/crates/semver) (^1.0.9)
+- `smallvec1` - [smallvec](https://crates.io/crates/smallvec) (^1.0)
+- `smol_str02` - [smol_str](https://crates.io/crates/smol_str) (^0.2.1)
+- `url2` - [url](https://crates.io/crates/url) (^2.0)
+- `uuid1` - [uuid](https://crates.io/crates/uuid) (^1.0)
 
 For example, to implement `JsonSchema` on types from `chrono`, enable it as a feature in the `schemars` dependency in your `Cargo.toml` like so:
 
 ```toml
 [dependencies]
-schemars = { version = "0.8", features = ["chrono"] }
+schemars = { version = "1.0.0-alpha.3", features = ["chrono04"] }
 ```

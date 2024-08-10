@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyEnum",
   "oneOf": [
     {
@@ -10,15 +10,15 @@
     },
     {
       "type": "object",
-      "required": [
-        "Included1"
-      ],
       "properties": {
         "Included1": {
           "type": "number",
           "format": "float"
         }
       },
+      "required": [
+        "Included1"
+      ],
       "additionalProperties": false
     }
   ]

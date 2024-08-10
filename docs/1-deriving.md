@@ -1,7 +1,6 @@
 ---
-layout: default
 title: Deriving JsonSchema
-nav_order: 2
+nav_order: 3
 has_children: true
 has_toc: false
 permalink: /deriving/
@@ -12,6 +11,7 @@ permalink: /deriving/
 The most important trait in Schemars is `JsonSchema`, and the most important function of that trait is `json_schema(...)` which returns a JSON schema describing the type. Implementing this manually on many types would be slow and error-prone, so Schemars includes a derive macro which can implement that trait for you. Any derived implementation of `JsonSchema` should create a schema that describes the JSON representation of the type if it were to be serialized by serde_json.
 
 Usually, all you need to do to use it is to add a `#[derive(JsonSchema)]` attribute to your type:
+
 ```rust
 use schemars::{JsonSchema, schema_for};
 
@@ -28,7 +28,8 @@ fn main() {
     println!("{}", serialized);
 }
 ```
-<!-- TODO: 
+
+<!-- TODO:
 show example output
 requirements - when can/can't it be derived
 generic params behaviour

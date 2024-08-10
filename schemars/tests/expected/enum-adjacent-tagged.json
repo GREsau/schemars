@@ -1,12 +1,9 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Adjacent",
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "t"
-      ],
       "properties": {
         "t": {
           "type": "string",
@@ -14,106 +11,111 @@
             "UnitOne"
           ]
         }
-      }
+      },
+      "required": [
+        "t"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "c",
-        "t"
-      ],
       "properties": {
-        "c": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
         "t": {
           "type": "string",
           "enum": [
             "StringMap"
           ]
+        },
+        "c": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
-      }
+      },
+      "required": [
+        "t",
+        "c"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "c",
-        "t"
-      ],
       "properties": {
-        "c": {
-          "$ref": "#/definitions/UnitStruct"
-        },
         "t": {
           "type": "string",
           "enum": [
             "UnitStructNewType"
           ]
+        },
+        "c": {
+          "$ref": "#/$defs/UnitStruct"
         }
-      }
+      },
+      "required": [
+        "t",
+        "c"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "c",
-        "t"
-      ],
       "properties": {
-        "c": {
-          "$ref": "#/definitions/Struct"
-        },
         "t": {
           "type": "string",
           "enum": [
             "StructNewType"
           ]
+        },
+        "c": {
+          "$ref": "#/$defs/Struct"
         }
-      }
+      },
+      "required": [
+        "t",
+        "c"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "c",
-        "t"
-      ],
       "properties": {
-        "c": {
-          "type": "object",
-          "required": [
-            "bar",
-            "foo"
-          ],
-          "properties": {
-            "bar": {
-              "type": "boolean"
-            },
-            "foo": {
-              "type": "integer",
-              "format": "int32"
-            }
-          }
-        },
         "t": {
           "type": "string",
           "enum": [
             "Struct"
           ]
+        },
+        "c": {
+          "type": "object",
+          "properties": {
+            "foo": {
+              "type": "integer",
+              "format": "int32"
+            },
+            "bar": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "foo",
+            "bar"
+          ]
         }
-      }
+      },
+      "required": [
+        "t",
+        "c"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "c",
-        "t"
-      ],
       "properties": {
+        "t": {
+          "type": "string",
+          "enum": [
+            "Tuple"
+          ]
+        },
         "c": {
           "type": "array",
-          "items": [
+          "prefixItems": [
             {
               "type": "integer",
               "format": "int32"
@@ -122,22 +124,17 @@
               "type": "boolean"
             }
           ],
-          "maxItems": 2,
-          "minItems": 2
-        },
-        "t": {
-          "type": "string",
-          "enum": [
-            "Tuple"
-          ]
+          "minItems": 2,
+          "maxItems": 2
         }
-      }
+      },
+      "required": [
+        "t",
+        "c"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "t"
-      ],
       "properties": {
         "t": {
           "type": "string",
@@ -145,47 +142,50 @@
             "UnitTwo"
           ]
         }
-      }
+      },
+      "required": [
+        "t"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "c",
-        "t"
-      ],
       "properties": {
-        "c": {
-          "type": "integer",
-          "format": "int32"
-        },
         "t": {
           "type": "string",
           "enum": [
             "WithInt"
           ]
-        }
-      }
-    }
-  ],
-  "definitions": {
-    "Struct": {
-      "type": "object",
-      "required": [
-        "bar",
-        "foo"
-      ],
-      "properties": {
-        "bar": {
-          "type": "boolean"
         },
-        "foo": {
+        "c": {
           "type": "integer",
           "format": "int32"
         }
-      }
-    },
+      },
+      "required": [
+        "t",
+        "c"
+      ]
+    }
+  ],
+  "$defs": {
     "UnitStruct": {
       "type": "null"
+    },
+    "Struct": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "foo",
+        "bar"
+      ]
     }
   }
 }

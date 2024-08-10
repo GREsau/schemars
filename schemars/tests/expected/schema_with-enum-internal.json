@@ -1,58 +1,46 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Internal",
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "foo",
-        "typeProperty"
-      ],
       "properties": {
         "foo": {
           "type": "boolean"
         },
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "Struct"
-          ]
+          "const": "Struct"
         }
-      }
+      },
+      "required": [
+        "typeProperty",
+        "foo"
+      ]
     },
     {
-      "type": [
-        "boolean",
-        "object"
-      ],
-      "required": [
-        "typeProperty"
-      ],
+      "type": "object",
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "NewType"
-          ]
+          "const": "NewType"
         }
-      }
-    },
-    {
-      "type": [
-        "boolean",
-        "object"
-      ],
+      },
       "required": [
         "typeProperty"
-      ],
+      ]
+    },
+    {
+      "type": "object",
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "Unit"
-          ]
+          "const": "Unit"
         }
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     }
   ]
 }

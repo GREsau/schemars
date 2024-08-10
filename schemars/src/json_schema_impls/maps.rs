@@ -1,6 +1,5 @@
 use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::{json_schema, JsonSchema, Schema};
 use std::borrow::Cow;
 
 macro_rules! map_impl {
@@ -9,27 +8,21 @@ macro_rules! map_impl {
         where
             V: JsonSchema,
         {
-            no_ref_schema!();
+            always_inline!();
 
-            fn schema_name() -> String {
-                format!("Map_of_{}", V::schema_name())
+            fn schema_name() -> Cow<'static, str> {
+                format!("Map_of_{}", V::schema_name()).into()
             }
 
             fn schema_id() -> Cow<'static, str> {
-                Cow::Owned(format!("Map<{}>", V::schema_id()))
+                format!("Map<{}>", V::schema_id()).into()
             }
 
             fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                let subschema = gen.subschema_for::<V>();
-                SchemaObject {
-                    instance_type: Some(InstanceType::Object.into()),
-                    object: Some(Box::new(ObjectValidation {
-                        additional_properties: Some(Box::new(subschema)),
-                        ..Default::default()
-                    })),
-                    ..Default::default()
-                }
-                .into()
+                json_schema!({
+                    "type": "object",
+                    "additionalProperties": gen.subschema_for::<V>(),
+                })
             }
         }
     };

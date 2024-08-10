@@ -1,28 +1,21 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "examples": [
-    {
-      "bool": true,
-      "minusOne": -1,
-      "null": null,
-      "object": {
-        "array": [
-          "foo",
-          "bar"
-        ]
-      },
-      "one": 1,
-      "zero": 0,
-      "zeroPointZero": 0.0
-    }
-  ],
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "type": "object",
   "properties": {
-    "bool": {
-      "type": "boolean"
+    "zero": {
+      "type": "integer"
+    },
+    "one": {
+      "type": "integer"
     },
     "minusOne": {
       "type": "integer"
+    },
+    "zeroPointZero": {
+      "type": "number"
+    },
+    "bool": {
+      "type": "boolean"
     },
     "null": true,
     "object": {
@@ -35,15 +28,22 @@
           }
         }
       }
-    },
-    "one": {
-      "type": "integer"
-    },
-    "zero": {
-      "type": "integer"
-    },
-    "zeroPointZero": {
-      "type": "number"
     }
-  }
+  },
+  "examples": [
+    {
+      "zero": 0,
+      "one": 1,
+      "minusOne": -1,
+      "zeroPointZero": 0.0,
+      "bool": true,
+      "null": null,
+      "object": {
+        "array": [
+          "foo",
+          "bar"
+        ]
+      }
+    }
+  ]
 }

@@ -14,25 +14,15 @@ pub fn get_title_and_desc_from_doc(attrs: &[Attribute]) -> (Option<String>, Opti
             .trim_start_matches('#')
             .trim()
             .to_owned();
-        let maybe_desc = split.next().and_then(merge_description_lines);
+        let maybe_desc = split.next().map(|s| s.trim().to_owned());
         (none_if_empty(title), maybe_desc)
     } else {
-        (None, merge_description_lines(&doc))
+        (None, Some(doc))
     }
 }
 
-fn merge_description_lines(doc: &str) -> Option<String> {
-    let desc = doc
-        .trim()
-        .split("\n\n")
-        .filter_map(|line| none_if_empty(line.trim().replace('\n', " ")))
-        .collect::<Vec<_>>()
-        .join("\n\n");
-    none_if_empty(desc)
-}
-
 fn get_doc(attrs: &[Attribute]) -> Option<String> {
-    let attrs = attrs
+    let lines = attrs
         .iter()
         .filter_map(|attr| {
             if !attr.path().is_ident("doc") {
@@ -52,29 +42,7 @@ fn get_doc(attrs: &[Attribute]) -> Option<String> {
         })
         .collect::<Vec<_>>();
 
-    let mut lines = attrs
-        .iter()
-        .flat_map(|a| a.split('\n'))
-        .map(str::trim)
-        .skip_while(|s| s.is_empty())
-        .collect::<Vec<_>>();
-
-    if let Some(&"") = lines.last() {
-        lines.pop();
-    }
-
-    // Added for backward-compatibility, but perhaps we shouldn't do this
-    // https://github.com/rust-lang/rust/issues/32088
-    if lines.iter().all(|l| l.starts_with('*')) {
-        for line in lines.iter_mut() {
-            *line = line[1..].trim()
-        }
-        while let Some(&"") = lines.first() {
-            lines.remove(0);
-        }
-    };
-
-    none_if_empty(lines.join("\n"))
+    none_if_empty(lines.join("\n").trim().to_owned())
 }
 
 fn none_if_empty(s: String) -> Option<String> {

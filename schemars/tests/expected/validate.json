@@ -1,37 +1,19 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Struct",
   "type": "object",
-  "required": [
-    "contains_str1",
-    "contains_str2",
-    "email_address",
-    "homepage",
-    "map_contains",
-    "min_max",
-    "min_max2",
-    "non_empty_str",
-    "non_empty_str2",
-    "pair",
-    "regex_str1",
-    "regex_str2",
-    "regex_str3",
-    "required_option",
-    "tel",
-    "x"
-  ],
   "properties": {
     "min_max": {
       "type": "number",
       "format": "float",
-      "maximum": 100.0,
-      "minimum": 0.01
+      "minimum": 0.01,
+      "maximum": 100
     },
     "min_max2": {
       "type": "number",
       "format": "float",
-      "maximum": 1000.0,
-      "minimum": 1.0
+      "minimum": 1,
+      "maximum": 1000
     },
     "regex_str1": {
       "type": "string",
@@ -67,13 +49,13 @@
     },
     "non_empty_str": {
       "type": "string",
-      "maxLength": 100,
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 100
     },
     "non_empty_str2": {
       "type": "string",
-      "maxLength": 1000,
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 1000
     },
     "pair": {
       "type": "array",
@@ -81,17 +63,17 @@
         "type": "integer",
         "format": "int32"
       },
-      "maxItems": 2,
-      "minItems": 2
+      "minItems": 2,
+      "maxItems": 2
     },
     "map_contains": {
       "type": "object",
-      "required": [
-        "map_key"
-      ],
       "additionalProperties": {
         "type": "null"
-      }
+      },
+      "required": [
+        "map_key"
+      ]
     },
     "required_option": {
       "type": "boolean"
@@ -100,5 +82,23 @@
       "type": "integer",
       "format": "int32"
     }
-  }
+  },
+  "required": [
+    "min_max",
+    "min_max2",
+    "regex_str1",
+    "regex_str2",
+    "regex_str3",
+    "contains_str1",
+    "contains_str2",
+    "email_address",
+    "tel",
+    "homepage",
+    "non_empty_str",
+    "non_empty_str2",
+    "pair",
+    "map_contains",
+    "required_option",
+    "x"
+  ]
 }

@@ -12,14 +12,14 @@ pre.highlight, figure.highlight {
     line-height: 1.2em;
 }
 code {
-    font-size: 14px;
+    font-size: 0.85em;
 }
 
 // Always expand nav menu items
-.nav-list .nav-list-item > .nav-list {
+.nav-list:not(.nav-category-list) .nav-list-item > .nav-list {
     display: block;
 }
-.nav-list-expander {
+.nav-list:not(.nav-category-list) .nav-list-expander {
     display: none;
 }
 

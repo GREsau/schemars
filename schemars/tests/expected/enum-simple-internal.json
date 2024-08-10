@@ -1,48 +1,42 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "SimpleInternal",
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "A"
-          ]
+          "const": "A"
         }
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "B"
-          ]
+          "const": "B"
         }
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "C"
-          ]
+          "const": "C"
         }
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     }
   ]
 }
