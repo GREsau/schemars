@@ -19,7 +19,6 @@
     },
     "myNumber": {
       "type": "integer",
-      "format": "int32",
       "maximum": 10,
       "minimum": 1
     },
@@ -37,6 +36,7 @@
     "myBool",
     "myVecStr"
   ],
+  "x-customProperty": "example",
   "$defs": {
     "MyEnum": {
       "anyOf": [
