@@ -17,7 +17,7 @@ struct Struct {
 }
 
 #[test]
-fn doc_comments_struct() -> TestResult {
+fn extend_struct() -> TestResult {
     test_default_generated_schema::<Struct>("extend_struct")
 }
 
@@ -36,7 +36,7 @@ enum External {
 }
 
 #[test]
-fn doc_comments_enum_external() -> TestResult {
+fn extend_enum_external() -> TestResult {
     test_default_generated_schema::<External>("extend_enum_external")
 }
 
@@ -53,7 +53,7 @@ enum Internal {
 }
 
 #[test]
-fn doc_comments_enum_internal() -> TestResult {
+fn extend_enum_internal() -> TestResult {
     test_default_generated_schema::<Internal>("extend_enum_internal")
 }
 
@@ -72,7 +72,7 @@ enum Untagged {
 }
 
 #[test]
-fn doc_comments_enum_untagged() -> TestResult {
+fn extend_enum_untagged() -> TestResult {
     test_default_generated_schema::<Untagged>("extend_enum_untagged")
 }
 
@@ -91,6 +91,6 @@ enum Adjacent {
 }
 
 #[test]
-fn doc_comments_enum_adjacent() -> TestResult {
+fn extend_enum_adjacent() -> TestResult {
     test_default_generated_schema::<Adjacent>("extend_enum_adjacent")
 }

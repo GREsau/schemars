@@ -1,4 +1,5 @@
 use proc_macro2::TokenStream;
+use syn::spanned::Spanned;
 
 #[derive(Debug, Clone)]
 pub struct SchemaMetadata<'a> {
@@ -10,6 +11,7 @@ pub struct SchemaMetadata<'a> {
     pub examples: &'a [syn::Path],
     pub default: Option<TokenStream>,
     pub extensions: &'a [(String, TokenStream)],
+    pub transforms: &'a [syn::Expr],
 }
 
 impl<'a> SchemaMetadata<'a> {
@@ -22,6 +24,18 @@ impl<'a> SchemaMetadata<'a> {
                 #(#setters)*
                 schema
             }}
+        }
+        if !self.transforms.is_empty() {
+            let apply_transforms = self.transforms.iter().map(|t| {
+                quote_spanned! {t.span()=>
+                    schemars::transform::Transform::transform(&mut #t, &mut schema);
+                }
+            });
+            *schema_expr = quote! {{
+                let mut schema = #schema_expr;
+                #(#apply_transforms)*
+                schema
+            }};
         }
     }
 
