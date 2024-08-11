@@ -351,7 +351,7 @@ impl SchemaGenerator {
 
     /// Generates a JSON Schema for the given example value.
     ///
-    /// If the value implements [`JsonSchema`](crate::JsonSchema), then prefer using the [`root_schema_for()`](Self::root_schema_for())
+    /// If the value implements [`JsonSchema`], then prefer using the [`root_schema_for()`](Self::root_schema_for())
     /// function which will generally produce a more precise schema, particularly when the value contains any enums.
     ///
     /// If the `Serialize` implementation of the value decides to fail, this will return an [`Err`].
@@ -382,7 +382,7 @@ impl SchemaGenerator {
 
     /// Consumes `self` and generates a JSON Schema for the given example value.
     ///
-    /// If the value  implements [`JsonSchema`](crate::JsonSchema), then prefer using the [`into_root_schema_for()!`](Self::into_root_schema_for())
+    /// If the value  implements [`JsonSchema`], then prefer using the [`into_root_schema_for()!`](Self::into_root_schema_for())
     /// function which will generally produce a more precise schema, particularly when the value contains any enums.
     ///
     /// If the `Serialize` implementation of the value decides to fail, this will return an [`Err`].

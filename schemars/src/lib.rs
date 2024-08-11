@@ -11,9 +11,7 @@ mod macros;
 /// outside of `schemars`, and should not be considered part of the public API.
 #[doc(hidden)]
 pub mod _private;
-/// Types for generating JSON schemas.
 pub mod gen;
-/// Types for defining modifications to JSON schemas.
 pub mod transform;
 
 #[cfg(feature = "schemars_derive")]
@@ -141,7 +139,7 @@ pub trait JsonSchema {
     /// Generates a JSON Schema for this type.
     ///
     /// If the returned schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
-    /// add them to the [`SchemaGenerator`](SchemaGenerator)'s schema definitions.
+    /// add them to the [`SchemaGenerator`]'s schema definitions.
     ///
     /// This should not return a `$ref` schema.
     fn json_schema(gen: &mut SchemaGenerator) -> Schema;

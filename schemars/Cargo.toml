@@ -104,3 +104,4 @@ required-features = ["rust_decimal1", "bigdecimal04"]
 
 [package.metadata.docs.rs]
 all-features = true
+rustdoc-args = ["--extend-css", "docs-rs-custom.css "]

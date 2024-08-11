@@ -1,4 +1,5 @@
-/// Generates a [`RootSchema`](crate::schema::RootSchema) for the given type using default settings.
+/// Generates a [`Schema`](crate::Schema) for the given type using default settings.
+/// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
 ///
 /// The type must implement [`JsonSchema`](crate::JsonSchema).
 ///
