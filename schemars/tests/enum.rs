@@ -1,7 +1,7 @@
 mod util;
 use std::collections::BTreeMap;
 
-use schemars::JsonSchema;
+use schemars::{schema_for, JsonSchema};
 use util::*;
 
 // Ensure that schemars_derive uses the full path to std::string::String
@@ -88,6 +88,33 @@ fn enum_untagged() -> TestResult {
 #[derive(JsonSchema)]
 #[schemars(tag = "t", content = "c")]
 enum Adjacent {
+    /// Has a description
+    UnitOne,
+    #[schemars(title = "String Map")]
+    StringMap(BTreeMap<&'static str, &'static str>),
+    UnitStructNewType(UnitStruct),
+    StructNewType(Struct),
+    Struct {
+        foo: i32,
+        bar: bool,
+    },
+    Tuple(i32, bool),
+    UnitTwo,
+    WithInt,
+}
+
+#[test]
+fn enum_adjacent_tagged() -> TestResult {
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&schema_for!(Adjacent)).unwrap()
+    );
+    test_default_generated_schema::<Adjacent>("enum-adjacent-tagged")
+}
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+#[schemars(tag = "t", content = "c")]
+enum AdjacentNoExtras {
     UnitOne,
     StringMap(BTreeMap<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
@@ -101,12 +128,11 @@ enum Adjacent {
     #[schemars(with = "i32")]
     WithInt,
 }
-
 #[test]
-fn enum_adjacent_tagged() -> TestResult {
-    test_default_generated_schema::<Adjacent>("enum-adjacent-tagged")
-}
+fn enum_adjacent_tagged_no_extras() -> TestResult {
 
+    test_default_generated_schema::<AdjacentNoExtras>("enum-adjacent-tagged-no-extras")
+}
 #[allow(dead_code)]
 #[derive(JsonSchema)]
 #[schemars(tag = "typeProperty")]

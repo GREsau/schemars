@@ -1,49 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Adjacent",
+  "title": "AdjacentNoExtras",
   "properties": {
     "t": {
-      "oneOf": [
-        {
-          "description": "Has a description",
-          "type": "string",
-          "const": "UnitOne"
-        },
-        {
-          "title": "String Map",
-          "type": "string",
-          "const": "StringMap"
-        },
-        {
-          "type": "string",
-          "const": "UnitStructNewType"
-        },
-        {
-          "type": "string",
-          "const": "StructNewType"
-        },
-        {
-          "type": "string",
-          "const": "Struct"
-        },
-        {
-          "type": "string",
-          "const": "Tuple"
-        },
-        {
-          "type": "string",
-          "const": "UnitTwo"
-        },
-        {
-          "type": "string",
-          "const": "WithInt"
-        }
+      "type": "string",
+      "enum": [
+        "UnitOne",
+        "StringMap",
+        "UnitStructNewType",
+        "StructNewType",
+        "Struct",
+        "Tuple",
+        "UnitTwo",
+        "WithInt"
       ]
     }
   },
   "allOf": [
     {
-      "title": "String Map",
       "if": {
         "properties": {
           "t": {
@@ -158,6 +132,26 @@
                 "type": "boolean"
               }
             ]
+          }
+        },
+        "required": [
+          "c"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "t": {
+            "const": "WithInt"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "c": {
+            "type": "integer",
+            "format": "int32"
           }
         },
         "required": [

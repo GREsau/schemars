@@ -266,78 +266,114 @@ fn expr_for_untagged_enum<'a>(
     // that checking the exclusivity of each subschema we simply us `any_of`.
     variant_subschemas(false, schemas)
 }
-
 fn expr_for_adjacent_tagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
     tag_name: &str,
     content_name: &str,
     deny_unknown_fields: bool,
 ) -> TokenStream {
-    let mut unique_names = HashSet::new();
-    let mut count = 0;
-    let schemas = variants
-        .map(|variant| {
-            unique_names.insert(variant.name());
-            count += 1;
+    let mut has_tag_name_extras = false;
+    let mut enum_values = Vec::with_capacity(variants.size_hint().0);
+    let mut if_tags = Vec::with_capacity(variants.size_hint().0);
+    for variant in variants {
+        if variant.attrs.title.is_some() || variant.attrs.description.is_some() {
+            has_tag_name_extras = true;
+        }
 
-            let content_schema = if variant.is_unit() && variant.attrs.with.is_none() {
-                None
-            } else {
-                Some(expr_for_untagged_enum_variant(variant, deny_unknown_fields))
-            };
+        let content_schema = if variant.is_unit() && variant.attrs.with.is_none() {
+            None
+        } else {
+            Some(expr_for_untagged_enum_variant(variant, deny_unknown_fields))
+        };
+        enum_values.push((variant.name(), &variant.attrs));
+        if matches!(variant.style, Style::Unit) && content_schema.is_none() {
+            continue;
+        }
+        let (add_content_to_props, add_content_to_required) = content_schema
+            .map(|content_schema| {
+                (
+                    quote!(#content_name: (#content_schema),),
+                    quote!(#content_name,),
+                )
+            })
+            .unwrap_or_default();
 
-            let (add_content_to_props, add_content_to_required) = content_schema
-                .map(|content_schema| {
-                    (
-                        quote!(#content_name: (#content_schema),),
-                        quote!(#content_name,),
-                    )
-                })
-                .unwrap_or_default();
-
-            let name = variant.name();
-            let tag_schema = quote! {
-                schemars::json_schema!({
-                    "type": "string",
-                    "enum": [#name],
-                })
-            };
-
-            let set_additional_properties = if deny_unknown_fields {
-                quote! {
-                    "additionalProperties": false,
-                }
-            } else {
-                TokenStream::new()
-            };
-
-            let mut outer_schema = quote! {
-                schemars::json_schema!({
-                    "type": "object",
+        let name = variant.name();
+        let mut if_tag = quote! {
+            schemars::json_schema!({
+                "if": {
                     "properties": {
-                        #tag_name: (#tag_schema),
+                        #tag_name: {
+                            "const": #name
+                        }
+                    },
+                },
+                "then": {
+                    "properties": {
                         #add_content_to_props
                     },
                     "required": [
-                        #tag_name,
                         #add_content_to_required
                     ],
-                    // As we're creating a "wrapper" object, we can honor the
-                    // disposition of deny_unknown_fields.
-                    #set_additional_properties
-                })
+                },
+            })
+        };
+
+        variant.attrs.as_metadata().apply_to_schema(&mut if_tag);
+        if_tags.push(if_tag);
+    }
+    let set_additional_properties = if deny_unknown_fields {
+        quote! {
+            map.insert("additionalProperties", false.into());
+        }
+    } else {
+        TokenStream::new()
+    };
+    let tag_property = if has_tag_name_extras {
+        let mut one_of = Vec::new();
+        for (name, attrs) in enum_values {
+            let mut schema = quote! {
+                schemars::_private::new_unit_enum_variant(#name)
             };
+            attrs.as_metadata().apply_to_schema(&mut schema);
+            one_of.push(schema);
+        }
+        quote! {
+                let mut tag_properties = schemars::_serde_json::Map::new();
+                tag_properties.insert("oneOf".to_owned(), schemars::_serde_json::Value::Array({
+                    let mut enum_values = Vec::new();
+                    #(enum_values.push(#one_of.to_value());)*
+                    enum_values
+                }));
+        }
+    } else {
+        let names = enum_values.iter().map(|(name, _)| quote!(#name));
+        quote! {
+            let mut tag_properties = schemars::_serde_json::Map::new();
+            tag_properties.insert("type".to_owned(), "string".into());
+            tag_properties.insert("enum".to_owned(), schemars::_serde_json::Value::Array({
+                let mut enum_values = Vec::new();
+                #(enum_values.push(#names.into());)*
+                enum_values
+            }));
+        }
+    };
+    quote! {
+        let mut map = schemars::_serde_json::Map::new();
+        #tag_property
+        map.insert("properties".to_owned(), schemars::_serde_json::json!({
+            #tag_name: tag_properties
+        }));
+        map.insert("required".to_owned(), schemars::_serde_json::json!([#tag_name]));
+        #set_additional_properties
 
-            variant
-                .attrs
-                .as_metadata()
-                .apply_to_schema(&mut outer_schema);
-
-            outer_schema
-        })
-        .collect();
-
-    variant_subschemas(unique_names.len() == count, schemas)
+        map.insert("allOf".to_owned(), schemars::_serde_json::Value::Array({
+            let mut enum_values = Vec::new();
+            #(enum_values.push(#if_tags.to_value());)*
+            enum_values
+        }));
+        schemars::Schema::from(map)
+    }
 }
 
 /// Callers must determine if all subschemas are mutually exclusive. This can
