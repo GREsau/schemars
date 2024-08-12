@@ -135,6 +135,10 @@ pub fn insert_object_property<T: ?Sized + JsonSchema>(
     }
 }
 
+pub fn insert_metadata_property(schema: &mut Schema, key: &str, value: impl Into<Value>) {
+    schema.ensure_object().insert(key.to_owned(), value.into());
+}
+
 pub fn insert_validation_property(
     schema: &mut Schema,
     required_type: &str,

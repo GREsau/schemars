@@ -20,7 +20,6 @@ impl<'a> SchemaMetadata<'a> {
         if !setters.is_empty() {
             *schema_expr = quote! {{
                 let mut schema = #schema_expr;
-                let obj = schema.ensure_object();
                 #(#setters)*
                 schema
             }}
@@ -44,29 +43,29 @@ impl<'a> SchemaMetadata<'a> {
 
         if let Some(title) = &self.title {
             setters.push(quote! {
-                obj.insert("title".to_owned(), #title.into());
+                schemars::_private::insert_metadata_property(&mut schema, "title", #title);
             });
         }
         if let Some(description) = &self.description {
             setters.push(quote! {
-                obj.insert("description".to_owned(), #description.into());
+                schemars::_private::insert_metadata_property(&mut schema, "description", #description);
             });
         }
 
         if self.deprecated {
             setters.push(quote! {
-                obj.insert("deprecated".to_owned(), true.into());
+                schemars::_private::insert_metadata_property(&mut schema, "deprecated", true);
             });
         }
 
         if self.read_only {
             setters.push(quote! {
-                obj.insert("readOnly".to_owned(), true.into());
+                schemars::_private::insert_metadata_property(&mut schema, "readOnly", true);
             });
         }
         if self.write_only {
             setters.push(quote! {
-                obj.insert("writeOnly".to_owned(), true.into());
+                schemars::_private::insert_metadata_property(&mut schema, "writeOnly", true);
             });
         }
 
@@ -77,21 +76,21 @@ impl<'a> SchemaMetadata<'a> {
                 }
             });
             setters.push(quote! {
-                obj.insert("examples".to_owned(), schemars::_serde_json::Value::Array([#(#examples),*].into_iter().flatten().collect()));
+                schemars::_private::insert_metadata_property(&mut schema, "examples", schemars::_serde_json::Value::Array([#(#examples),*].into_iter().flatten().collect()));
             });
         }
 
         if let Some(default) = &self.default {
             setters.push(quote! {
                 if let Some(default) = #default.and_then(|d| schemars::_schemars_maybe_to_value!(d)) {
-                    obj.insert("default".to_owned(), default);
+                    schemars::_private::insert_metadata_property(&mut schema, "default", default);
                 }
             });
         }
 
         for (k, v) in self.extensions {
             setters.push(quote! {
-                obj.insert(#k.to_owned(), schemars::_serde_json::json!(#v));
+                schemars::_private::insert_metadata_property(&mut schema, #k, schemars::_serde_json::json!(#v));
             });
         }
 
