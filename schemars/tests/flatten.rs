@@ -1,5 +1,7 @@
 mod util;
 use schemars::JsonSchema;
+use serde_json::Value;
+use std::collections::BTreeMap;
 use util::*;
 
 #[allow(dead_code)]
@@ -53,5 +55,34 @@ fn test_flat_schema() -> TestResult {
 
 #[test]
 fn test_flattened_schema() -> TestResult {
+    // intentionally using the same file as test_flat_schema, as the schema should be identical
     test_default_generated_schema::<Deep1>("flatten")
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct FlattenValue {
+    flag: bool,
+    #[serde(flatten)]
+    value: Value,
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+#[schemars(rename = "FlattenValue")]
+struct FlattenMap {
+    flag: bool,
+    #[serde(flatten)]
+    value: BTreeMap<String, Value>,
+}
+
+#[test]
+fn test_flattened_value() -> TestResult {
+    test_default_generated_schema::<FlattenValue>("flattened_value")
+}
+
+#[test]
+fn test_flattened_map() -> TestResult {
+    // intentionally using the same file as test_flattened_value, as the schema should be identical
+    test_default_generated_schema::<FlattenMap>("flattened_value")
 }
