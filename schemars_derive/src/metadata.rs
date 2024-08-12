@@ -17,14 +17,7 @@ pub struct SchemaMetadata<'a> {
 impl<'a> SchemaMetadata<'a> {
     pub fn apply_to_schema(&self, schema_expr: &mut TokenStream) {
         let setters = self.make_setters();
-        if !setters.is_empty() {
-            *schema_expr = quote! {{
-                let mut schema = #schema_expr;
-                #(#setters)*
-                schema
-            }}
-        }
-        if !self.transforms.is_empty() {
+        if !setters.is_empty() || !self.transforms.is_empty() {
             let apply_transforms = self.transforms.iter().map(|t| {
                 quote_spanned! {t.span()=>
                     schemars::transform::Transform::transform(&mut #t, &mut schema);
@@ -32,9 +25,10 @@ impl<'a> SchemaMetadata<'a> {
             });
             *schema_expr = quote! {{
                 let mut schema = #schema_expr;
+                #(#setters)*
                 #(#apply_transforms)*
                 schema
-            }};
+            }}
         }
     }
 
