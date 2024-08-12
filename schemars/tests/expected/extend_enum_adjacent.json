@@ -1,101 +1,103 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Adjacent",
-  "oneOf": [
+  "properties": {
+    "t": {
+      "type": "string",
+      "enum": [
+        "Unit",
+        "NewType",
+        "Tuple",
+        "Struct"
+      ]
+    }
+  },
+  "allOf": [
     {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "Unit"
-          ]
+      "foo": "bar",
+      "if": {
+        "properties": {
+          "t": {
+            "const": "NewType"
+          }
         }
       },
-      "required": [
-        "t"
-      ],
-      "foo": "bar"
+      "then": {
+        "properties": {
+          "c": true
+        },
+        "required": [
+          "c"
+        ]
+      }
     },
     {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "NewType"
-          ]
-        },
-        "c": true
+      "foo": "bar",
+      "if": {
+        "properties": {
+          "t": {
+            "const": "Tuple"
+          }
+        }
       },
-      "required": [
-        "t",
-        "c"
-      ],
-      "foo": "bar"
+      "then": {
+        "properties": {
+          "c": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "integer",
+                "format": "int32"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          }
+        },
+        "required": [
+          "c"
+        ]
+      }
     },
     {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "Tuple"
-          ]
-        },
-        "c": {
-          "type": "array",
-          "prefixItems": [
-            {
-              "type": "integer",
-              "format": "int32"
+      "foo": "bar",
+      "if": {
+        "properties": {
+          "t": {
+            "const": "Struct"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "c": {
+            "type": "object",
+            "properties": {
+              "b": {
+                "type": "boolean"
+              },
+              "i": {
+                "type": "integer",
+                "format": "int32"
+              }
             },
-            {
-              "type": "boolean"
-            }
-          ],
-          "minItems": 2,
-          "maxItems": 2
-        }
-      },
-      "required": [
-        "t",
-        "c"
-      ],
-      "foo": "bar"
-    },
-    {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "Struct"
-          ]
+            "required": [
+              "i",
+              "b"
+            ]
+          }
         },
-        "c": {
-          "type": "object",
-          "properties": {
-            "i": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "b": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "i",
-            "b"
-          ]
-        }
-      },
-      "required": [
-        "t",
-        "c"
-      ],
-      "foo": "bar"
+        "required": [
+          "c"
+        ]
+      }
     }
   ],
-  "foo": "bar"
+  "foo": "bar",
+  "required": [
+    "t"
+  ]
 }

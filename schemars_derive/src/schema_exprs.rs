@@ -324,7 +324,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
     }
     let set_additional_properties = if deny_unknown_fields {
         quote! {
-            map.insert("additionalProperties", false.into());
+            map.insert("additionalProperties".to_owned(), false.into());
         }
     } else {
         TokenStream::new()
@@ -358,8 +358,9 @@ fn expr_for_adjacent_tagged_enum<'a>(
             }));
         }
     };
-    quote! {
-        let mut map = schemars::_serde_json::Map::new();
+    quote! (
+    {
+    let mut map = schemars::_serde_json::Map::new();
         #tag_property
         map.insert("properties".to_owned(), schemars::_serde_json::json!({
             #tag_name: tag_properties
@@ -373,7 +374,8 @@ fn expr_for_adjacent_tagged_enum<'a>(
             enum_values
         }));
         schemars::Schema::from(map)
-    }
+     }
+    )
 }
 
 /// Callers must determine if all subschemas are mutually exclusive. This can
