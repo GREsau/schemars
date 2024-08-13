@@ -3,6 +3,8 @@
 > [!NOTE]
 > This branch is for the current v1 alpha version of Schemars which is still under development.
 > For the current stable release of Schemars (v0.8.x), see the [v0 branch](https://github.com/GREsau/schemars/tree/v0).
+>
+> For information on migrating from 0.8 to 1.0, see [the migration guide](https://graham.cool/schemars/migrating/).
 
 [![CI Build](https://img.shields.io/github/actions/workflow/status/GREsau/schemars/ci.yml?branch=master&logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
