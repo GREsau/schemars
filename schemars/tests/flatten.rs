@@ -86,3 +86,40 @@ fn test_flattened_map() -> TestResult {
     // intentionally using the same file as test_flattened_value, as the schema should be identical
     test_default_generated_schema::<FlattenMap>("flattened_value")
 }
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct Nested {
+    flag: bool
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct FlattenOption {
+    #[serde(flatten)]
+    nested: Option<Nested>
+}
+
+#[test]
+fn test_flatten_option() -> TestResult {
+    test_default_generated_schema::<FlattenOption>("flatten_option")
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+enum Enum {
+    Var1(String),
+    Var2(u32)
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct FlattenOptionEnum {
+    #[serde(flatten)]
+    enum_: Option<Enum>
+}
+
+#[test]
+fn test_flatten_option_enum() -> TestResult {
+    test_default_generated_schema::<FlattenOptionEnum>("flatten_option_enum")
+}

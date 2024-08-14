@@ -12,6 +12,19 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
     if T::_schemars_private_is_option() && !required {
         if let Some(object) = schema.as_object_mut() {
             object.remove("required");
+
+            let mut add_null_type = |prop: &str| {
+                if let Some(cond) = object.get_mut(prop).and_then(|cond| cond.as_array_mut()) {
+                    cond.push(json!({
+                        "additionalProperties": false,
+                        "type": null
+                    }));
+                }
+            };
+
+            // for enum representation based on `variant_subschemas` implementation
+            add_null_type("oneOf");
+            add_null_type("allOf");
         }
     }
 
