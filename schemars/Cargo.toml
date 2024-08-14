@@ -10,7 +10,6 @@ license = "MIT"
 readme = "README.md"
 keywords = ["rust", "json-schema", "serde"]
 categories = ["encoding"]
-build = "build.rs"
 rust-version = "1.60"
 
 [dependencies]
