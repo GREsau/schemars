@@ -52,7 +52,7 @@ mod time;
 mod tuple;
 mod wrapper;
 
-#[cfg(std_atomic)]
+#[cfg(target_has_atomic)]
 mod atomic;
 
 #[cfg(feature = "arrayvec07")]
