@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.6] - 2024-08-17
+
+### Fixed
+
+- Fixed a configuration error that caused rustdoc generation to fail on docs.rs
+
 ## [1.0.0-alpha.5] - 2024-08-17
 
 ### Added
