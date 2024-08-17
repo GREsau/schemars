@@ -1,3 +1,4 @@
+use crate::_alloc_prelude::*;
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
@@ -62,4 +63,6 @@ seq_impl!(<T> JsonSchema for alloc::vec::Vec<T>);
 seq_impl!(<T> JsonSchema for alloc::collections::VecDeque<T>);
 
 set_impl!(<T> JsonSchema for alloc::collections::BTreeSet<T>);
+
+#[cfg(feature = "std")]
 set_impl!(<T, H> JsonSchema for std::collections::HashSet<T, H>);

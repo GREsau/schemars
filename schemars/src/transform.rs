@@ -112,9 +112,9 @@ assert_eq!(
 ```
 
 */
-use serde_json::{json, Value};
-
 use crate::Schema;
+use crate::_alloc_prelude::*;
+use serde_json::{json, Value};
 
 /// Trait used to modify a constructed schema and optionally its subschemas.
 ///

@@ -2,7 +2,7 @@ mod util;
 
 use schemars::JsonSchema;
 use serde::Serialize;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use util::*;
 
 #[allow(dead_code)]
@@ -39,7 +39,7 @@ struct MyStruct<'a, T: Serialize> {
     s: Str<'a>,
     // #[schemars(with = "HashMap::<_, HashSet<_>>")]
     // map: BTreeMap<String, BTreeSet<String>>,
-    #[schemars(with = "HashMap::<String, HashSet<String>>")]
+    #[schemars(with = "BTreeMap::<String, BTreeSet<String>>")]
     fake_map: (),
 }
 

@@ -1,7 +1,10 @@
 #![deny(unsafe_code)]
 #![doc = include_str!("../README.md")]
+#![no_std]
 
 extern crate alloc;
+#[cfg(feature = "std")]
+extern crate std;
 
 mod json_schema_impls;
 mod schema;
@@ -23,12 +26,23 @@ use alloc::borrow::Cow;
 #[cfg(feature = "schemars_derive")]
 pub use schemars_derive::*;
 
-// Export serde_json so schemars_derive can use it
+// Export crates so schemars_derive can use them
 #[doc(hidden)]
-pub use serde_json as _serde_json;
+pub extern crate alloc as _alloc;
+#[doc(hidden)]
+pub extern crate serde_json as _serde_json;
 
 pub use gen::SchemaGenerator;
 pub use schema::Schema;
+
+mod _alloc_prelude {
+    pub use alloc::borrow::ToOwned;
+    pub use alloc::boxed::Box;
+    pub use alloc::format;
+    pub use alloc::string::{String, ToString};
+    pub use alloc::vec;
+    pub use alloc::vec::Vec;
+}
 
 /// A type which can be described as a JSON Schema document.
 ///

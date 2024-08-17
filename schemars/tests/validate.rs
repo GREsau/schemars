@@ -1,6 +1,6 @@
 mod util;
 use schemars::JsonSchema;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use util::*;
 
 // In real code, this would typically be a Regex, potentially created in a `lazy_static!`.
@@ -39,7 +39,7 @@ pub struct Struct {
     #[validate(length(equal = 2))]
     pair: Vec<i32>,
     #[validate(contains = "map_key")]
-    map_contains: HashMap<String, ()>,
+    map_contains: BTreeMap<String, ()>,
     #[validate(required)]
     required_option: Option<bool>,
     #[validate(required)]
@@ -91,7 +91,7 @@ pub struct Struct2 {
     #[schemars(length(equal = 2))]
     pair: Vec<i32>,
     #[schemars(contains = "map_key")]
-    map_contains: HashMap<String, ()>,
+    map_contains: BTreeMap<String, ()>,
     #[schemars(required)]
     required_option: Option<bool>,
     #[schemars(required)]

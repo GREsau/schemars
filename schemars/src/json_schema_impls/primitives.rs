@@ -1,8 +1,7 @@
+use crate::_alloc_prelude::*;
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
-use std::path::{Path, PathBuf};
 
 macro_rules! simple_impl {
     ($type:ty => $instance_type:literal) => {
@@ -51,16 +50,23 @@ simple_impl!(i128 => "integer", "int128");
 simple_impl!(isize => "integer", "int");
 simple_impl!(() => "null");
 
-simple_impl!(Path => "string");
-simple_impl!(PathBuf => "string");
+#[cfg(feature = "std")]
+mod std_types {
+    use super::*;
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
+    use std::path::{Path, PathBuf};
 
-simple_impl!(Ipv4Addr => "string", "ipv4");
-simple_impl!(Ipv6Addr => "string", "ipv6");
-simple_impl!(IpAddr => "string", "ip");
+    simple_impl!(Path => "string");
+    simple_impl!(PathBuf => "string");
 
-simple_impl!(SocketAddr => "string");
-simple_impl!(SocketAddrV4 => "string");
-simple_impl!(SocketAddrV6 => "string");
+    simple_impl!(Ipv4Addr => "string", "ipv4");
+    simple_impl!(Ipv6Addr => "string", "ipv6");
+    simple_impl!(IpAddr => "string", "ip");
+
+    simple_impl!(SocketAddr => "string");
+    simple_impl!(SocketAddrV4 => "string");
+    simple_impl!(SocketAddrV6 => "string");
+}
 
 macro_rules! unsigned_impl {
     ($type:ty => $instance_type:literal, $format:literal) => {

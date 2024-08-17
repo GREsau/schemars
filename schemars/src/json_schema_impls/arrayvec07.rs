@@ -1,3 +1,4 @@
+use crate::_alloc_prelude::*;
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use arrayvec07::{ArrayString, ArrayVec};

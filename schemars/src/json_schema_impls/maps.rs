@@ -1,3 +1,4 @@
+use crate::_alloc_prelude::*;
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
@@ -29,4 +30,6 @@ macro_rules! map_impl {
 }
 
 map_impl!(<K, V> JsonSchema for alloc::collections::BTreeMap<K, V>);
+
+#[cfg(feature = "std")]
 map_impl!(<K, V, H> JsonSchema for std::collections::HashMap<K, V, H>);
