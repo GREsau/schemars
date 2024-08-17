@@ -8,7 +8,7 @@
 
 [![CI Build](https://img.shields.io/github/actions/workflow/status/GREsau/schemars/ci.yml?branch=master&logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
-[![Docs](https://img.shields.io/docsrs/schemars)](https://docs.rs/schemars)
+[![Docs](https://img.shields.io/docsrs/schemars/1.0.0--latest?label=docs)](https://docs.rs/schemars/1.0.0--latest)
 [![MSRV 1.60+](https://img.shields.io/crates/msrv/schemars)](https://blog.rust-lang.org/2022/04/07/Rust-1.60.0.html)
 
 Generate JSON Schema documents from Rust code
