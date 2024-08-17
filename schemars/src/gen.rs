@@ -10,8 +10,8 @@ There are two main types in this module:
 use crate::Schema;
 use crate::_alloc_prelude::*;
 use crate::{transform::*, JsonSchema};
-use ::core::{any::Any, fmt::Debug};
 use alloc::collections::{BTreeMap, BTreeSet};
+use core::{any::Any, fmt::Debug};
 use dyn_clone::DynClone;
 use serde::Serialize;
 use serde_json::{Map as JsonMap, Value};
