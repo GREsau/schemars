@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.0-alpha.4] - 2024-08-17
+
+### Fixed
+
+- Reduce size of MIR output (and improve release-mode compile time) when deriving `JsonSchema` involving applying schema metadata
+- Fix `flatten`ing of `serde_json::Value`
+- Use absolute import for `Result` in derive output, ignoring any locally imported types called `Result` (https://github.com/GREsau/schemars/pull/307)
+
 ## [1.0.0-alpha.3] - 2024-08-10
 
 ### Added
