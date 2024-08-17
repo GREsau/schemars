@@ -13,11 +13,11 @@ macro_rules! forward_impl {
                 <$target>::always_inline_schema()
             }
 
-            fn schema_name() -> std::borrow::Cow<'static, str> {
+            fn schema_name() -> alloc::borrow::Cow<'static, str> {
                 <$target>::schema_name()
             }
 
-            fn schema_id() -> std::borrow::Cow<'static, str> {
+            fn schema_id() -> alloc::borrow::Cow<'static, str> {
                 <$target>::schema_id()
             }
 
@@ -41,27 +41,29 @@ macro_rules! forward_impl {
 
 mod array;
 mod core;
-mod ffi;
 mod maps;
 mod nonzero_signed;
 mod nonzero_unsigned;
 mod primitives;
 mod sequences;
 mod serdejson;
-mod time;
+mod std_time;
 mod tuple;
 mod wrapper;
 
 #[cfg(target_has_atomic)]
 mod atomic;
 
+#[cfg(feature = "std")]
+mod ffi;
+
 #[cfg(feature = "arrayvec07")]
 mod arrayvec07;
 
 #[cfg(feature = "bytes1")]
 mod bytes1 {
-    forward_impl!(bytes1::Bytes => Vec<u8>);
-    forward_impl!(bytes1::BytesMut => Vec<u8>);
+    forward_impl!(bytes1::Bytes => alloc::vec::Vec<u8>);
+    forward_impl!(bytes1::BytesMut => alloc::vec::Vec<u8>);
 }
 
 #[cfg(feature = "chrono04")]
@@ -74,7 +76,7 @@ mod decimal;
 mod either1;
 
 #[cfg(feature = "enumset1")]
-forward_impl!((<T: enumset1::EnumSetType + crate::JsonSchema> crate::JsonSchema for enumset1::EnumSet<T>) => std::collections::BTreeSet<T>);
+forward_impl!((<T: enumset1::EnumSetType + crate::JsonSchema> crate::JsonSchema for enumset1::EnumSet<T>) => alloc::collections::BTreeSet<T>);
 
 #[cfg(feature = "indexmap2")]
 mod indexmap2;
@@ -83,10 +85,10 @@ mod indexmap2;
 mod semver1;
 
 #[cfg(feature = "smallvec1")]
-forward_impl!((<A: smallvec1::Array> crate::JsonSchema for smallvec1::SmallVec<A> where A::Item: crate::JsonSchema) => Vec<A::Item>);
+forward_impl!((<A: smallvec1::Array> crate::JsonSchema for smallvec1::SmallVec<A> where A::Item: crate::JsonSchema) => alloc::vec::Vec<A::Item>);
 
 #[cfg(feature = "smol_str02")]
-forward_impl!(smol_str02::SmolStr => String);
+forward_impl!(smol_str02::SmolStr => alloc::string::String);
 
 #[cfg(feature = "url2")]
 mod url2;

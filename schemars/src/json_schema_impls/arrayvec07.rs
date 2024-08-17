@@ -1,3 +1,4 @@
+use crate::_alloc_prelude::*;
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use arrayvec07::{ArrayString, ArrayVec};
@@ -12,7 +13,7 @@ where
 {
     always_inline!();
 
-    fn schema_name() -> std::borrow::Cow<'static, str> {
+    fn schema_name() -> alloc::borrow::Cow<'static, str> {
         format!("Array_up_to_size_{}_of_{}", CAP, T::schema_name()).into()
     }
 

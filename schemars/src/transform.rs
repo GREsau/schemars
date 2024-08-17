@@ -112,9 +112,9 @@ assert_eq!(
 ```
 
 */
-use serde_json::{json, Value};
-
 use crate::Schema;
+use crate::_alloc_prelude::*;
+use serde_json::{json, Value};
 
 /// Trait used to modify a constructed schema and optionally its subschemas.
 ///
@@ -128,8 +128,8 @@ pub trait Transform {
     // Not public API
     // Hack to enable implementing Debug on Box<dyn GenTransform> even though closures don't implement Debug
     #[doc(hidden)]
-    fn _debug_type_name(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(std::any::type_name::<Self>())
+    fn _debug_type_name(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.write_str(core::any::type_name::<Self>())
     }
 }
 

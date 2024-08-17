@@ -60,11 +60,11 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                         <#ty as schemars::JsonSchema>::always_inline_schema()
                     }
 
-                    fn schema_name() -> std::borrow::Cow<'static, str> {
+                    fn schema_name() -> schemars::_alloc::borrow::Cow<'static, str> {
                         <#ty as schemars::JsonSchema>::schema_name()
                     }
 
-                    fn schema_id() -> std::borrow::Cow<'static, str> {
+                    fn schema_id() -> schemars::_alloc::borrow::Cow<'static, str> {
                         <#ty as schemars::JsonSchema>::schema_id()
                     }
 
@@ -104,11 +104,11 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
     {
         (
             quote! {
-                std::borrow::Cow::Borrowed(#schema_base_name)
+                schemars::_alloc::borrow::Cow::Borrowed(#schema_base_name)
             },
             quote! {
-                std::borrow::Cow::Borrowed(std::concat!(
-                    std::module_path!(),
+                schemars::_alloc::borrow::Cow::Borrowed(::core::concat!(
+                    ::core::module_path!(),
                     "::",
                     #schema_base_name
                 ))
@@ -121,15 +121,15 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
         }
         (
             quote! {
-                std::borrow::Cow::Owned(
-                    format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())* #(,#const_params=#const_params)*)
+                schemars::_alloc::borrow::Cow::Owned(
+                    schemars::_alloc::format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())* #(,#const_params=#const_params)*)
                 )
             },
             quote! {
-                std::borrow::Cow::Owned(
-                    format!(
-                        std::concat!(
-                            std::module_path!(),
+                schemars::_alloc::borrow::Cow::Owned(
+                    schemars::_alloc::format!(
+                        ::core::concat!(
+                            ::core::module_path!(),
                             "::",
                             #schema_name_fmt
                         )
@@ -145,15 +145,15 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
         schema_name_fmt.push_str(&"_and_{}".repeat(params.len() - 1));
         (
             quote! {
-                std::borrow::Cow::Owned(
-                    format!(#schema_name_fmt #(,#type_params::schema_name())* #(,#const_params)*)
+                schemars::_alloc::borrow::Cow::Owned(
+                    schemars::_alloc::format!(#schema_name_fmt #(,#type_params::schema_name())* #(,#const_params)*)
                 )
             },
             quote! {
-                std::borrow::Cow::Owned(
-                    format!(
-                        std::concat!(
-                            std::module_path!(),
+                schemars::_alloc::borrow::Cow::Owned(
+                    schemars::_alloc::format!(
+                        ::core::concat!(
+                            ::core::module_path!(),
                             "::",
                             #schema_name_fmt
                         )
@@ -178,11 +178,11 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
             #[automatically_derived]
             #[allow(unused_braces)]
             impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
-                fn schema_name() -> std::borrow::Cow<'static, str> {
+                fn schema_name() -> schemars::_alloc::borrow::Cow<'static, str> {
                     #schema_name
                 }
 
-                fn schema_id() -> std::borrow::Cow<'static, str> {
+                fn schema_id() -> schemars::_alloc::borrow::Cow<'static, str> {
                     #schema_id
                 }
 

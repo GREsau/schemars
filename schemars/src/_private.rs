@@ -1,3 +1,4 @@
+use crate::_alloc_prelude::*;
 use crate::{JsonSchema, Schema, SchemaGenerator};
 use serde::Serialize;
 use serde_json::{json, map::Entry, Map, Value};

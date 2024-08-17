@@ -155,7 +155,7 @@ impl ValidationAttrs {
                                 if !ignore_errors {
                                     errors.error_spanned_by(
                                         meta,
-                                        "unknown item in schemars length attribute".to_string(),
+                                        "unknown item in schemars length attribute",
                                     );
                                 }
                             }
@@ -184,7 +184,7 @@ impl ValidationAttrs {
                                 if !ignore_errors {
                                     errors.error_spanned_by(
                                         meta,
-                                        "unknown item in schemars range attribute".to_string(),
+                                        "unknown item in schemars range attribute",
                                     );
                                 }
                             }
@@ -252,8 +252,7 @@ impl ValidationAttrs {
                                         if !ignore_errors {
                                             errors.error_spanned_by(
                                                 meta,
-                                                "unknown item in schemars regex attribute"
-                                                    .to_string(),
+                                                "unknown item in schemars regex attribute",
                                             );
                                         }
                                     }
@@ -294,8 +293,7 @@ impl ValidationAttrs {
                                         if !ignore_errors {
                                             errors.error_spanned_by(
                                                 meta,
-                                                "unknown item in schemars contains attribute"
-                                                    .to_string(),
+                                                "unknown item in schemars contains attribute",
                                             );
                                         }
                                     }
@@ -390,7 +388,7 @@ impl ValidationAttrs {
         if let Some(format) = &self.format {
             let f = format.schema_str();
             result.push(quote! {
-                schema.ensure_object().insert("format".to_owned(), #f.into());
+                schema.ensure_object().insert("format".into(), #f.into());
             })
         };
 

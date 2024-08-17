@@ -2,6 +2,7 @@
 JSON Schema types.
 */
 
+use crate::_alloc_prelude::*;
 use ref_cast::{ref_cast_custom, RefCastCustom};
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
@@ -186,7 +187,7 @@ impl From<Schema> for Value {
     }
 }
 
-impl std::convert::TryFrom<Value> for Schema {
+impl core::convert::TryFrom<Value> for Schema {
     type Error = serde_json::Error;
 
     fn try_from(value: Value) -> serde_json::Result<Schema> {
@@ -195,7 +196,7 @@ impl std::convert::TryFrom<Value> for Schema {
     }
 }
 
-impl<'a> std::convert::TryFrom<&'a Value> for &'a Schema {
+impl<'a> core::convert::TryFrom<&'a Value> for &'a Schema {
     type Error = serde_json::Error;
 
     fn try_from(value: &Value) -> serde_json::Result<&Schema> {
@@ -204,7 +205,7 @@ impl<'a> std::convert::TryFrom<&'a Value> for &'a Schema {
     }
 }
 
-impl<'a> std::convert::TryFrom<&'a mut Value> for &'a mut Schema {
+impl<'a> core::convert::TryFrom<&'a mut Value> for &'a mut Schema {
     type Error = serde_json::Error;
 
     fn try_from(value: &mut Value) -> serde_json::Result<&mut Schema> {
@@ -232,11 +233,11 @@ impl From<bool> for Schema {
 }
 
 impl crate::JsonSchema for Schema {
-    fn schema_name() -> std::borrow::Cow<'static, str> {
+    fn schema_name() -> alloc::borrow::Cow<'static, str> {
         "Schema".into()
     }
 
-    fn schema_id() -> std::borrow::Cow<'static, str> {
+    fn schema_id() -> alloc::borrow::Cow<'static, str> {
         "schemars::Schema".into()
     }
 

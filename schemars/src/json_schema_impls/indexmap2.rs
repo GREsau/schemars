@@ -1,6 +1,6 @@
 use crate::JsonSchema;
+use alloc::collections::{BTreeMap, BTreeSet};
 use indexmap2::{IndexMap, IndexSet};
-use std::collections::{HashMap, HashSet};
 
-forward_impl!((<K, V: JsonSchema, H> JsonSchema for IndexMap<K, V, H>) => HashMap<K, V, H>);
-forward_impl!((<T: JsonSchema, H> JsonSchema for IndexSet<T, H>) => HashSet<T, H>);
+forward_impl!((<K, V: JsonSchema, H> JsonSchema for IndexMap<K, V, H>) => BTreeMap<K, V>);
+forward_impl!((<T: JsonSchema, H> JsonSchema for IndexSet<T, H>) => BTreeSet<T>);

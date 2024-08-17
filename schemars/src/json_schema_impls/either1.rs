@@ -1,7 +1,8 @@
+use crate::_alloc_prelude::*;
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
+use alloc::borrow::Cow;
 use either1::Either;
-use std::borrow::Cow;
 
 impl<L: JsonSchema, R: JsonSchema> JsonSchema for Either<L, R> {
     always_inline!();

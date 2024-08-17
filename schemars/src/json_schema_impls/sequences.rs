@@ -1,6 +1,7 @@
+use crate::_alloc_prelude::*;
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
-use std::borrow::Cow;
+use alloc::borrow::Cow;
 
 macro_rules! seq_impl {
     ($($desc:tt)+) => {
@@ -55,11 +56,13 @@ macro_rules! set_impl {
     };
 }
 
-seq_impl!(<T> JsonSchema for std::collections::BinaryHeap<T>);
-seq_impl!(<T> JsonSchema for std::collections::LinkedList<T>);
+seq_impl!(<T> JsonSchema for alloc::collections::BinaryHeap<T>);
+seq_impl!(<T> JsonSchema for alloc::collections::LinkedList<T>);
 seq_impl!(<T> JsonSchema for [T]);
-seq_impl!(<T> JsonSchema for Vec<T>);
-seq_impl!(<T> JsonSchema for std::collections::VecDeque<T>);
+seq_impl!(<T> JsonSchema for alloc::vec::Vec<T>);
+seq_impl!(<T> JsonSchema for alloc::collections::VecDeque<T>);
 
-set_impl!(<T> JsonSchema for std::collections::BTreeSet<T>);
+set_impl!(<T> JsonSchema for alloc::collections::BTreeSet<T>);
+
+#[cfg(feature = "std")]
 set_impl!(<T, H> JsonSchema for std::collections::HashSet<T, H>);

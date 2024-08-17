@@ -1,6 +1,7 @@
+use crate::_alloc_prelude::*;
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
-use std::borrow::Cow;
+use alloc::borrow::Cow;
 
 macro_rules! tuple_impls {
     ($($len:expr => ($($name:ident)+))+) => {

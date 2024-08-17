@@ -1,8 +1,9 @@
+use crate::_alloc_prelude::*;
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
+use alloc::borrow::Cow;
+use alloc::collections::BTreeMap;
 use serde_json::{Map, Number, Value};
-use std::borrow::Cow;
-use std::collections::BTreeMap;
 
 impl JsonSchema for Value {
     always_inline!();

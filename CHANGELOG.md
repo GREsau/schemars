@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.5] - _in-dev_
+
+### Added
+
+- Schemars can now be used in `no_std` environments by disabling the new `std` feature flag (which is enabled by default). Schemars still requires an allocator to be available.
+
 ## [1.0.0-alpha.4] - 2024-08-17
 
 ### Fixed

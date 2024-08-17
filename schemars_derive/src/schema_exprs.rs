@@ -51,11 +51,11 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
 
     let mut schema_expr = quote!({
         let mut map = schemars::_serde_json::Map::new();
-        map.insert("type".to_owned(), "integer".into());
+        map.insert("type".into(), "integer".into());
         map.insert(
-            "enum".to_owned(),
+            "enum".into(),
             schemars::_serde_json::Value::Array({
-                let mut enum_values = Vec::new();
+                let mut enum_values = schemars::_alloc::vec::Vec::new();
                 #(enum_values.push((#enum_ident::#variant_idents as #repr_type).into());)*
                 enum_values
             }),
@@ -114,14 +114,14 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
                         true
                     }
 
-                    fn schema_name() -> std::borrow::Cow<'static, str> {
-                        std::borrow::Cow::Borrowed(#fn_name)
+                    fn schema_name() -> schemars::_alloc::borrow::Cow<'static, str> {
+                        schemars::_alloc::borrow::Cow::Borrowed(#fn_name)
                     }
 
-                    fn schema_id() -> std::borrow::Cow<'static, str> {
-                        std::borrow::Cow::Borrowed(std::concat!(
+                    fn schema_id() -> schemars::_alloc::borrow::Cow<'static, str> {
+                        schemars::_alloc::borrow::Cow::Borrowed(::core::concat!(
                             "_SchemarsSchemaWithFunction/",
-                            std::module_path!(),
+                            ::core::module_path!(),
                             "/",
                             #fn_name
                         ))
@@ -171,11 +171,11 @@ fn expr_for_external_tagged_enum<'a>(
     let unit_names = unit_variants.iter().map(|v| v.name());
     let unit_schema = quote!({
         let mut map = schemars::_serde_json::Map::new();
-        map.insert("type".to_owned(), "string".into());
+        map.insert("type".into(), "string".into());
         map.insert(
-            "enum".to_owned(),
+            "enum".into(),
             schemars::_serde_json::Value::Array({
-                let mut enum_values = Vec::new();
+                let mut enum_values = schemars::_alloc::vec::Vec::new();
                 #(enum_values.push((#unit_names).into());)*
                 enum_values
             }),
@@ -347,9 +347,9 @@ fn variant_subschemas(unique: bool, schemas: Vec<TokenStream>) -> TokenStream {
     quote!({
         let mut map = schemars::_serde_json::Map::new();
         map.insert(
-            #keyword.to_owned(),
+            #keyword.into(),
             schemars::_serde_json::Value::Array({
-                let mut enum_values = Vec::new();
+                let mut enum_values = schemars::_alloc::vec::Vec::new();
                 #(enum_values.push(#schemas.to_value());)*
                 enum_values
             }),
@@ -556,7 +556,7 @@ fn field_default_expr(field: &Field, container_has_default: bool) -> Option<Toke
 
                 impl serde::Serialize for _SchemarsDefaultSerialize<#ty>
                 {
-                    fn serialize<S>(&self, serializer: S) -> core::result::Result<S::Ok, S::Error>
+                    fn serialize<S>(&self, serializer: S) -> ::core::result::Result<S::Ok, S::Error>
                     where
                         S: serde::Serializer
                     {

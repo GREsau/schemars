@@ -14,8 +14,8 @@ rust-version = "1.60"
 
 [dependencies]
 schemars_derive = { version = "=1.0.0-alpha.4", optional = true, path = "../schemars_derive" }
-serde = "1.0"
-serde_json = "1.0.25"
+serde = { version = "1.0", default-features = false, features = ["alloc"]}
+serde_json = { version =  "1.0.122", default-features = false, features = ["alloc"] }
 dyn-clone = "1.0"
 ref-cast = "1.0.22"
 
@@ -40,18 +40,37 @@ trybuild = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 
 [features]
-default = ["derive"]
+default = ["derive", "std"]
 
+# Provide impls for common standard library types like `HashMap<K, V>`.
+# Requires a dependency on the Rust standard library.
+std = []
+
+# Provide `derive(JsonSchema)` macro.
 derive = ["schemars_derive"]
+
+# Preserves order of properties inserted into a `Schema`.
+# When deriving `JsonSchema`, this ensures that the `properties` entires match
+# the order of the fields in the struct definition.
 preserve_order  = ["serde_json/preserve_order"]
 
+# Implements `JsonSchema` on `serde_json::value::RawValue`
 raw_value = ["serde_json/raw_value"]
 
-ui_test = []
+# For internal/CI use only
+_ui_test = []
+
+[[test]]
+name = "std_time"
+required-features = ["std"]
+
+[[test]]
+name = "ffi"
+required-features = ["std"]
 
 [[test]]
 name = "ui"
-required-features = ["ui_test"]
+required-features = ["_ui_test"]
 
 [[test]]
 name = "chrono"
@@ -103,4 +122,4 @@ required-features = ["rust_decimal1", "bigdecimal04"]
 
 [package.metadata.docs.rs]
 all-features = true
-rustdoc-args = ["--extend-css", "docs-rs-custom.css "]
+rustdoc-args = ["--extend-css", "docs-rs-custom.css"]
