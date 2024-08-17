@@ -1,6 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
-use std::borrow::Cow;
+use alloc::borrow::Cow;
 
 // Does not require T: JsonSchema.
 impl<T> JsonSchema for [T; 0] {

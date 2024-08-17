@@ -9,13 +9,13 @@ There are two main types in this module:
 
 use crate::Schema;
 use crate::{transform::*, JsonSchema};
+use ::core::{any::Any, fmt::Debug};
+use alloc::collections::{BTreeMap, BTreeSet};
 use dyn_clone::DynClone;
 use serde::Serialize;
-use serde_json::{Map, Value};
-use std::collections::{HashMap, HashSet};
-use std::{any::Any, fmt::Debug};
+use serde_json::{Map as JsonMap, Value};
 
-type CowStr = std::borrow::Cow<'static, str>;
+type CowStr = alloc::borrow::Cow<'static, str>;
 
 /// Settings to customize how Schemas are generated.
 ///
@@ -168,10 +168,10 @@ impl SchemaSettings {
 #[derive(Debug, Default)]
 pub struct SchemaGenerator {
     settings: SchemaSettings,
-    definitions: Map<String, Value>,
-    pending_schema_ids: HashSet<CowStr>,
-    schema_id_to_name: HashMap<CowStr, CowStr>,
-    used_schema_names: HashSet<CowStr>,
+    definitions: JsonMap<String, Value>,
+    pending_schema_ids: BTreeSet<CowStr>,
+    schema_id_to_name: BTreeMap<CowStr, CowStr>,
+    used_schema_names: BTreeSet<CowStr>,
 }
 
 impl Clone for SchemaGenerator {
@@ -179,9 +179,9 @@ impl Clone for SchemaGenerator {
         Self {
             settings: self.settings.clone(),
             definitions: self.definitions.clone(),
-            pending_schema_ids: HashSet::new(),
-            schema_id_to_name: HashMap::new(),
-            used_schema_names: HashSet::new(),
+            pending_schema_ids: BTreeSet::new(),
+            schema_id_to_name: BTreeMap::new(),
+            used_schema_names: BTreeSet::new(),
         }
     }
 }
@@ -276,7 +276,7 @@ impl SchemaGenerator {
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn definitions(&self) -> &Map<String, Value> {
+    pub fn definitions(&self) -> &JsonMap<String, Value> {
         &self.definitions
     }
 
@@ -284,7 +284,7 @@ impl SchemaGenerator {
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn definitions_mut(&mut self) -> &mut Map<String, Value> {
+    pub fn definitions_mut(&mut self) -> &mut JsonMap<String, Value> {
         &mut self.definitions
     }
 
@@ -293,8 +293,8 @@ impl SchemaGenerator {
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
     /// themselves.
-    pub fn take_definitions(&mut self) -> Map<String, Value> {
-        std::mem::take(&mut self.definitions)
+    pub fn take_definitions(&mut self) -> JsonMap<String, Value> {
+        core::mem::take(&mut self.definitions)
     }
 
     /// Returns an iterator over the [transforms](SchemaSettings::transforms) being used by this `SchemaGenerator`.
@@ -338,7 +338,7 @@ impl SchemaGenerator {
             .entry("title")
             .or_insert_with(|| T::schema_name().into());
 
-        if let Some(meta_schema) = std::mem::take(&mut self.settings.meta_schema) {
+        if let Some(meta_schema) = core::mem::take(&mut self.settings.meta_schema) {
             object.insert("$schema".into(), meta_schema.into());
         }
 
@@ -401,7 +401,7 @@ impl SchemaGenerator {
             object.insert("examples".into(), vec![example].into());
         }
 
-        if let Some(meta_schema) = std::mem::take(&mut self.settings.meta_schema) {
+        if let Some(meta_schema) = core::mem::take(&mut self.settings.meta_schema) {
             object.insert("$schema".into(), meta_schema.into());
         }
 
@@ -440,8 +440,8 @@ impl SchemaGenerator {
 
     fn add_definitions(
         &mut self,
-        schema_object: &mut Map<String, Value>,
-        mut definitions: Map<String, Value>,
+        schema_object: &mut JsonMap<String, Value>,
+        mut definitions: JsonMap<String, Value>,
     ) {
         if definitions.is_empty() {
             return;
@@ -472,10 +472,10 @@ impl SchemaGenerator {
 }
 
 fn json_pointer_mut<'a>(
-    mut object: &'a mut Map<String, Value>,
+    mut object: &'a mut JsonMap<String, Value>,
     pointer: &str,
     create_if_missing: bool,
-) -> Option<&'a mut Map<String, Value>> {
+) -> Option<&'a mut JsonMap<String, Value>> {
     let pointer = pointer.strip_prefix('/')?;
     if pointer.is_empty() {
         return Some(object);
@@ -491,7 +491,7 @@ fn json_pointer_mut<'a>(
         use serde_json::map::Entry;
         let next_value = match object.entry(segment) {
             Entry::Occupied(o) => o.into_mut(),
-            Entry::Vacant(v) if create_if_missing => v.insert(Value::Object(Map::default())),
+            Entry::Vacant(v) if create_if_missing => v.insert(Value::Object(JsonMap::default())),
             Entry::Vacant(_) => return None,
         };
 
@@ -580,7 +580,7 @@ where
 }
 
 impl Debug for Box<dyn GenTransform> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         self._debug_type_name(f)
     }
 }

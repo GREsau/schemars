@@ -1,6 +1,6 @@
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
-use std::borrow::Cow;
+use alloc::borrow::Cow;
 
 macro_rules! map_impl {
     ($($desc:tt)+) => {
@@ -28,5 +28,5 @@ macro_rules! map_impl {
     };
 }
 
-map_impl!(<K, V> JsonSchema for std::collections::BTreeMap<K, V>);
+map_impl!(<K, V> JsonSchema for alloc::collections::BTreeMap<K, V>);
 map_impl!(<K, V, H> JsonSchema for std::collections::HashMap<K, V, H>);

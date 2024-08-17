@@ -1,7 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::{JsonSchema, Schema};
-use std::borrow::Cow;
-use std::num::*;
+use alloc::borrow::Cow;
+use core::num::*;
 
 macro_rules! nonzero_unsigned_impl {
     ($type:ty => $primitive:ty) => {

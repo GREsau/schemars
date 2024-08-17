@@ -1,6 +1,6 @@
 use crate::{json_schema, JsonSchema, Schema, SchemaGenerator};
+use core::fmt::Display;
 use serde_json::{Error, Map, Value};
-use std::fmt::Display;
 
 pub(crate) struct Serializer<'a> {
     pub(crate) gen: &'a mut SchemaGenerator,
@@ -142,8 +142,10 @@ impl<'a> serde::Serializer for Serializer<'a> {
                         }
                         Some(Value::String(string)) => {
                             if string != "null" {
-                                *value.unwrap() =
-                                    Value::Array(vec![std::mem::take(string).into(), "null".into()])
+                                *value.unwrap() = Value::Array(vec![
+                                    core::mem::take(string).into(),
+                                    "null".into(),
+                                ])
                             }
                             obj.into()
                         }

@@ -1,6 +1,8 @@
 #![deny(unsafe_code)]
 #![doc = include_str!("../README.md")]
 
+extern crate alloc;
+
 mod json_schema_impls;
 mod schema;
 mod ser;
@@ -16,7 +18,7 @@ pub mod transform;
 
 #[cfg(feature = "schemars_derive")]
 extern crate schemars_derive;
-use std::borrow::Cow;
+use alloc::borrow::Cow;
 
 #[cfg(feature = "schemars_derive")]
 pub use schemars_derive::*;

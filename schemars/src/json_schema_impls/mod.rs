@@ -13,11 +13,11 @@ macro_rules! forward_impl {
                 <$target>::always_inline_schema()
             }
 
-            fn schema_name() -> std::borrow::Cow<'static, str> {
+            fn schema_name() -> alloc::borrow::Cow<'static, str> {
                 <$target>::schema_name()
             }
 
-            fn schema_id() -> std::borrow::Cow<'static, str> {
+            fn schema_id() -> alloc::borrow::Cow<'static, str> {
                 <$target>::schema_id()
             }
 
@@ -74,7 +74,7 @@ mod decimal;
 mod either1;
 
 #[cfg(feature = "enumset1")]
-forward_impl!((<T: enumset1::EnumSetType + crate::JsonSchema> crate::JsonSchema for enumset1::EnumSet<T>) => std::collections::BTreeSet<T>);
+forward_impl!((<T: enumset1::EnumSetType + crate::JsonSchema> crate::JsonSchema for enumset1::EnumSet<T>) => alloc::collections::BTreeSet<T>);
 
 #[cfg(feature = "indexmap2")]
 mod indexmap2;

@@ -1,4 +1,4 @@
-use std::sync::atomic::*;
+use core::sync::atomic::*;
 
 #[cfg(target_has_atomic = "8")]
 forward_impl!(AtomicBool => bool);

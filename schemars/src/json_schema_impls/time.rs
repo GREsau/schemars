@@ -1,7 +1,8 @@
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
-use std::borrow::Cow;
-use std::time::{Duration, SystemTime};
+use alloc::borrow::Cow;
+use core::time::Duration;
+use std::time::SystemTime;
 
 impl JsonSchema for Duration {
     fn schema_name() -> Cow<'static, str> {

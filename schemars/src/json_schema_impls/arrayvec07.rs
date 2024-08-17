@@ -12,7 +12,7 @@ where
 {
     always_inline!();
 
-    fn schema_name() -> std::borrow::Cow<'static, str> {
+    fn schema_name() -> alloc::borrow::Cow<'static, str> {
         format!("Array_up_to_size_{}_of_{}", CAP, T::schema_name()).into()
     }
 

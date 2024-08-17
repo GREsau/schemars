@@ -1,8 +1,8 @@
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
+use alloc::borrow::Cow;
+use core::ops::{Bound, Range, RangeInclusive};
 use serde_json::Value;
-use std::borrow::Cow;
-use std::ops::{Bound, Range, RangeInclusive};
 
 impl<T: JsonSchema> JsonSchema for Option<T> {
     always_inline!();
@@ -32,8 +32,10 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
                         }
                         Some(Value::String(string)) => {
                             if string != "null" {
-                                *instance_type.unwrap() =
-                                    Value::Array(vec![std::mem::take(string).into(), "null".into()])
+                                *instance_type.unwrap() = Value::Array(vec![
+                                    core::mem::take(string).into(),
+                                    "null".into(),
+                                ])
                             }
                             obj.into()
                         }
@@ -158,6 +160,6 @@ impl<T: JsonSchema> JsonSchema for Range<T> {
 
 forward_impl!((<T: JsonSchema> JsonSchema for RangeInclusive<T>) => Range<T>);
 
-forward_impl!((<T: ?Sized> JsonSchema for std::marker::PhantomData<T>) => ());
+forward_impl!((<T: ?Sized> JsonSchema for core::marker::PhantomData<T>) => ());
 
-forward_impl!((<'a> JsonSchema for std::fmt::Arguments<'a>) => String);
+forward_impl!((<'a> JsonSchema for core::fmt::Arguments<'a>) => String);
