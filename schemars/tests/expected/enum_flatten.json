@@ -70,6 +70,91 @@
           "additionalProperties": false
         }
       ]
+    },
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "B2": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "B2"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "S2": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "S2"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    },
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "U2": {
+              "type": "integer",
+              "format": "uint32",
+              "minimum": 0
+            }
+          },
+          "required": [
+            "U2"
+          ],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "F2": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          "required": [
+            "F2"
+          ],
+          "additionalProperties": false
+        }
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "B3": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "B3"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "S3": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "S3"
+      ],
+      "additionalProperties": false
     }
   ]
 }
