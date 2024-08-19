@@ -185,17 +185,23 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
         Err(true) => {
             schema
                 .ensure_object()
-                .entry("additionalProperties")
-                .or_insert(true.into());
+                .insert("additionalProperties".to_owned(), true.into());
         }
         Ok(obj2) => {
             let obj1 = schema.ensure_object();
 
             for (key, value2) in obj2 {
                 match obj1.entry(key) {
-                    Entry::Vacant(vacant) => {
-                        vacant.insert(value2);
-                    }
+                    Entry::Vacant(vacant) => match vacant.key().as_str() {
+                        "additionalProperties" | "unevaluatedProperties" => {
+                            if value2 != Value::Bool(false) {
+                                vacant.insert(value2);
+                            }
+                        }
+                        _ => {
+                            vacant.insert(value2);
+                        }
+                    },
                     Entry::Occupied(occupied) => {
                         match occupied.key().as_str() {
                             "required" => {
@@ -210,6 +216,13 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
                                     if let Value::Object(o2) = value2 {
                                         o1.extend(o2);
                                     }
+                                }
+                            }
+                            "additionalProperties" | "unevaluatedProperties" => {
+                                // Even if an outer type has `deny_unknown_fields`, unknown fields
+                                // may be accepted by the flattened type
+                                if occupied.get() == &Value::Bool(false) {
+                                    *occupied.into_mut() = value2;
                                 }
                             }
                             _ => {
