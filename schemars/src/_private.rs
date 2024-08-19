@@ -180,6 +180,62 @@ pub fn apply_inner_validation(schema: &mut Schema, f: fn(&mut Schema) -> ()) {
 }
 
 pub fn flatten(schema: &mut Schema, other: Schema) {
+    fn flatten_property(obj1: &mut Map<String, Value>, key: String, value2: Value) {
+        match obj1.entry(key) {
+            Entry::Vacant(vacant) => match vacant.key().as_str() {
+                "additionalProperties" | "unevaluatedProperties" => {
+                    if value2 != Value::Bool(false) {
+                        vacant.insert(value2);
+                    }
+                }
+                _ => {
+                    vacant.insert(value2);
+                }
+            },
+            Entry::Occupied(occupied) => {
+                match occupied.key().as_str() {
+                    "required" | "allOf" => {
+                        if let Value::Array(a1) = occupied.into_mut() {
+                            if let Value::Array(a2) = value2 {
+                                a1.extend(a2);
+                            }
+                        }
+                    }
+                    "properties" | "patternProperties" => {
+                        if let Value::Object(o1) = occupied.into_mut() {
+                            if let Value::Object(o2) = value2 {
+                                o1.extend(o2);
+                            }
+                        }
+                    }
+                    "additionalProperties" | "unevaluatedProperties" => {
+                        // Even if an outer type has `deny_unknown_fields`, unknown fields
+                        // may be accepted by the flattened type
+                        if occupied.get() == &Value::Bool(false) {
+                            *occupied.into_mut() = value2;
+                        }
+                    }
+                    "oneOf" | "anyOf" => {
+                        // `OccupiedEntry` currently has no `.remove_entry()` method :(
+                        let key = occupied.key().clone();
+                        let current = occupied.remove();
+                        flatten_property(
+                            obj1,
+                            "allOf".to_owned(),
+                            json!([
+                                { &key: current },
+                                { key: value2 }
+                            ]),
+                        );
+                    }
+                    _ => {
+                        // leave the original value as it is (don't modify `schema`)
+                    }
+                };
+            }
+        }
+    }
+
     match other.try_to_object() {
         Err(false) => {}
         Err(true) => {
@@ -191,46 +247,7 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
             let obj1 = schema.ensure_object();
 
             for (key, value2) in obj2 {
-                match obj1.entry(key) {
-                    Entry::Vacant(vacant) => match vacant.key().as_str() {
-                        "additionalProperties" | "unevaluatedProperties" => {
-                            if value2 != Value::Bool(false) {
-                                vacant.insert(value2);
-                            }
-                        }
-                        _ => {
-                            vacant.insert(value2);
-                        }
-                    },
-                    Entry::Occupied(occupied) => {
-                        match occupied.key().as_str() {
-                            "required" => {
-                                if let Value::Array(a1) = occupied.into_mut() {
-                                    if let Value::Array(a2) = value2 {
-                                        a1.extend(a2);
-                                    }
-                                }
-                            }
-                            "properties" | "patternProperties" => {
-                                if let Value::Object(o1) = occupied.into_mut() {
-                                    if let Value::Object(o2) = value2 {
-                                        o1.extend(o2);
-                                    }
-                                }
-                            }
-                            "additionalProperties" | "unevaluatedProperties" => {
-                                // Even if an outer type has `deny_unknown_fields`, unknown fields
-                                // may be accepted by the flattened type
-                                if occupied.get() == &Value::Bool(false) {
-                                    *occupied.into_mut() = value2;
-                                }
-                            }
-                            _ => {
-                                // leave the original value as it is (don't modify `schema`)
-                            }
-                        };
-                    }
-                }
+                flatten_property(obj1, key, value2);
             }
         }
     }

@@ -1,7 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
-use semver1::Version;
 use alloc::borrow::Cow;
+use semver1::Version;
 
 impl JsonSchema for Version {
     always_inline!();
