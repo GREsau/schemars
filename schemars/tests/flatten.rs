@@ -76,6 +76,24 @@ struct FlattenMap {
     value: BTreeMap<String, Value>,
 }
 
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+#[schemars(rename = "FlattenValue", deny_unknown_fields)]
+struct FlattenValueDenyUnknownFields {
+    flag: bool,
+    #[serde(flatten)]
+    value: Value,
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+#[schemars(rename = "FlattenValue", deny_unknown_fields)]
+struct FlattenMapDenyUnknownFields {
+    flag: bool,
+    #[serde(flatten)]
+    value: BTreeMap<String, Value>,
+}
+
 #[test]
 fn test_flattened_value() -> TestResult {
     test_default_generated_schema::<FlattenValue>("flattened_value")
@@ -85,4 +103,43 @@ fn test_flattened_value() -> TestResult {
 fn test_flattened_map() -> TestResult {
     // intentionally using the same file as test_flattened_value, as the schema should be identical
     test_default_generated_schema::<FlattenMap>("flattened_value")
+}
+
+#[test]
+fn test_flattened_value_deny_unknown_fields() -> TestResult {
+    // intentionally using the same file as test_flattened_value, as the schema should be identical
+    test_default_generated_schema::<FlattenValueDenyUnknownFields>("flattened_value")
+}
+
+#[test]
+fn test_flattened_map_deny_unknown_fields() -> TestResult {
+    // intentionally using the same file as test_flattened_value, as the schema should be identical
+    test_default_generated_schema::<FlattenMapDenyUnknownFields>("flattened_value")
+}
+
+#[derive(JsonSchema)]
+pub struct OuterAllowUnknownFields {
+    pub outer_field: bool,
+    #[serde(flatten)]
+    pub middle: MiddleDenyUnknownFields,
+}
+
+#[derive(JsonSchema)]
+#[serde(deny_unknown_fields)]
+pub struct MiddleDenyUnknownFields {
+    pub middle_field: bool,
+    #[serde(flatten)]
+    pub inner: InnerAllowUnknownFields,
+}
+
+#[derive(JsonSchema)]
+pub struct InnerAllowUnknownFields {
+    pub inner_field: bool,
+}
+
+#[test]
+fn test_flattened_struct_deny_unknown_fields() -> TestResult {
+    test_default_generated_schema::<(OuterAllowUnknownFields, MiddleDenyUnknownFields)>(
+        "test_flattened_struct_deny_unknown_fields",
+    )
 }

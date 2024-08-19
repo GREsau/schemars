@@ -49,7 +49,7 @@ assert_eq!(
 );
 ```
 
-The same example with a `fn` transform`:
+The same example with a `fn` transform:
 ```
 # use schemars::{Schema, json_schema};
 use schemars::transform::transform_subschemas;
@@ -138,7 +138,7 @@ where
     F: FnMut(&mut Schema),
 {
     fn transform(&mut self, schema: &mut Schema) {
-        self(schema)
+        self(schema);
     }
 }
 
@@ -161,14 +161,14 @@ pub fn transform_subschemas<T: Transform + ?Sized>(t: &mut T, schema: &mut Schem
                 | "propertyNames"
                 | "additionalItems" => {
                     if let Ok(subschema) = value.try_into() {
-                        t.transform(subschema)
+                        t.transform(subschema);
                     }
                 }
                 "allOf" | "anyOf" | "oneOf" | "prefixItems" => {
                     if let Some(array) = value.as_array_mut() {
                         for value in array {
                             if let Ok(subschema) = value.try_into() {
-                                t.transform(subschema)
+                                t.transform(subschema);
                             }
                         }
                     }
@@ -178,18 +178,18 @@ pub fn transform_subschemas<T: Transform + ?Sized>(t: &mut T, schema: &mut Schem
                     if let Some(array) = value.as_array_mut() {
                         for value in array {
                             if let Ok(subschema) = value.try_into() {
-                                t.transform(subschema)
+                                t.transform(subschema);
                             }
                         }
                     } else if let Ok(subschema) = value.try_into() {
-                        t.transform(subschema)
+                        t.transform(subschema);
                     }
                 }
                 "properties" | "patternProperties" | "$defs" | "definitions" => {
                     if let Some(obj) = value.as_object_mut() {
                         for value in obj.values_mut() {
                             if let Ok(subschema) = value.try_into() {
-                                t.transform(subschema)
+                                t.transform(subschema);
                             }
                         }
                     }

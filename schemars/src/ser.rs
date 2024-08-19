@@ -146,7 +146,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
                                 *value.unwrap() = Value::Array(vec![
                                     core::mem::take(string).into(),
                                     "null".into(),
-                                ])
+                                ]);
                             }
                             obj.into()
                         }
@@ -341,7 +341,7 @@ impl serde::ser::SerializeSeq for SerializeSeq<'_> {
                 None => self.items = Some(schema),
                 Some(items) => {
                     if items != &schema {
-                        self.items = Some(true.into())
+                        self.items = Some(true.into());
                     }
                 }
             }

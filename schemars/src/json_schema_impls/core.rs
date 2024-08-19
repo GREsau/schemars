@@ -36,7 +36,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
                                 *instance_type.unwrap() = Value::Array(vec![
                                     core::mem::take(string).into(),
                                     "null".into(),
-                                ])
+                                ]);
                             }
                             obj.into()
                         }

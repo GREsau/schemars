@@ -59,7 +59,10 @@ pub fn new_unit_enum_variant(variant: &str) -> Schema {
 }
 
 /// Create a schema for an externally tagged enum variant
+#[allow(clippy::needless_pass_by_value)]
 pub fn new_externally_tagged_enum_variant(variant: &str, sub_schema: Schema) -> Schema {
+    // TODO: this can be optimised by inserting the `sub_schema` as a `Value` rather than
+    // using the `json_schema!` macro which borrows and serializes the sub_schema
     json_schema!({
         "type": "object",
         "properties": {
@@ -179,9 +182,16 @@ pub fn apply_inner_validation(schema: &mut Schema, f: fn(&mut Schema) -> ()) {
 pub fn flatten(schema: &mut Schema, other: Schema) {
     fn flatten_property(obj1: &mut Map<String, Value>, key: String, value2: Value) {
         match obj1.entry(key) {
-            Entry::Vacant(vacant) => {
-                vacant.insert(value2);
-            }
+            Entry::Vacant(vacant) => match vacant.key().as_str() {
+                "additionalProperties" | "unevaluatedProperties" => {
+                    if value2 != Value::Bool(false) {
+                        vacant.insert(value2);
+                    }
+                }
+                _ => {
+                    vacant.insert(value2);
+                }
+            },
             Entry::Occupied(occupied) => {
                 match occupied.key().as_str() {
                     "required" => {
@@ -196,6 +206,13 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
                             if let Value::Object(o2) = value2 {
                                 o1.extend(o2);
                             }
+                        }
+                    }
+                    "additionalProperties" | "unevaluatedProperties" => {
+                        // Even if an outer type has `deny_unknown_fields`, unknown fields
+                        // may be accepted by the flattened type
+                        if occupied.get() == &Value::Bool(false) {
+                            *occupied.into_mut() = value2;
                         }
                     }
                     "oneOf" | "anyOf" => {
@@ -231,8 +248,7 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
         Err(true) => {
             schema
                 .ensure_object()
-                .entry("additionalProperties")
-                .or_insert(true.into());
+                .insert("additionalProperties".to_owned(), true.into());
         }
         Ok(obj2) => {
             let obj1 = schema.ensure_object();
