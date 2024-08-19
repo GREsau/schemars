@@ -81,6 +81,9 @@ forward_impl!((<T: enumset1::EnumSetType + crate::JsonSchema> crate::JsonSchema 
 #[cfg(feature = "indexmap2")]
 mod indexmap2;
 
+#[cfg(feature = "ipnetwork020")]
+mod ipnetwork020;
+
 #[cfg(feature = "semver1")]
 mod semver1;
 

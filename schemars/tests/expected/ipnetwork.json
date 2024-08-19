@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Ip",
+  "oneOf": [
+    {
+      "type": "string",
+      "format": "ipv4"
+    },
+    {
+      "type": "string",
+      "format": "ipv6"
+    }
+  ]
+}

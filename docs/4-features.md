@@ -19,6 +19,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `either1` - [either](https://crates.io/crates/either) (^1.3)
 - `enumset1` - [enumset](https://crates.io/crates/enumset) (^1.0)
 - `indexmap2` - [indexmap](https://crates.io/crates/indexmap) (^2.0)
+- `ipnetwork020` - [ipnetwork](https://crates.io/crates/ipnetwork) (^0.20)
 - `rust_decimal1` - [rust_decimal](https://crates.io/crates/rust_decimal) (^1.0)
 - `semver1` - [semver](https://crates.io/crates/semver) (^1.0.9)
 - `smallvec1` - [smallvec](https://crates.io/crates/smallvec) (^1.0)
