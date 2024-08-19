@@ -238,7 +238,7 @@ impl SchemaGenerator {
 
                     if self.used_schema_names.contains(base_name.as_ref()) {
                         for i in 2.. {
-                            name = format!("{}{}", base_name, i).into();
+                            name = format!("{base_name}{i}").into();
                             if !self.used_schema_names.contains(&name) {
                                 break;
                             }
@@ -300,7 +300,7 @@ impl SchemaGenerator {
 
     /// Returns an iterator over the [transforms](SchemaSettings::transforms) being used by this `SchemaGenerator`.
     pub fn transforms_mut(&mut self) -> impl Iterator<Item = &mut dyn GenTransform> {
-        self.settings.transforms.iter_mut().map(|v| v.as_mut())
+        self.settings.transforms.iter_mut().map(Box::as_mut)
     }
 
     /// Generates a JSON Schema for the type `T`.
@@ -477,6 +477,8 @@ fn json_pointer_mut<'a>(
     pointer: &str,
     create_if_missing: bool,
 ) -> Option<&'a mut JsonMap<String, Value>> {
+    use serde_json::map::Entry;
+
     let pointer = pointer.strip_prefix('/')?;
     if pointer.is_empty() {
         return Some(object);
@@ -489,7 +491,6 @@ fn json_pointer_mut<'a>(
             segment = &replaced;
         }
 
-        use serde_json::map::Entry;
         let next_value = match object.entry(segment) {
             Entry::Occupied(o) => o.into_mut(),
             Entry::Vacant(v) if create_if_missing => v.insert(Value::Object(JsonMap::default())),
@@ -502,7 +503,7 @@ fn json_pointer_mut<'a>(
     Some(object)
 }
 
-/// A [Transform] which implements additional traits required to be included in a [SchemaSettings].
+/// A [`Transform`] which implements additional traits required to be included in a [`SchemaSettings`].
 ///
 /// You will rarely need to use this trait directly as it is automatically implemented for any type which implements all of:
 /// - [`Transform`]

@@ -59,7 +59,10 @@ pub fn new_unit_enum_variant(variant: &str) -> Schema {
 }
 
 /// Create a schema for an externally tagged enum variant
+#[allow(clippy::needless_pass_by_value)]
 pub fn new_externally_tagged_enum_variant(variant: &str, sub_schema: Schema) -> Schema {
+    // TODO: this can be optimised by inserting the `sub_schema` as a `Value` rather than
+    // using the `json_schema!` macro which borrows and serializes the sub_schema
     json_schema!({
         "type": "object",
         "properties": {

@@ -128,6 +128,7 @@ impl Schema {
     ///
     /// `true` is transformed into an empty schema `{}`, which successfully validates against all possible values.
     /// `false` is transformed into the schema `{"not": {}}`, which does not successfully validate against any value.
+    #[allow(clippy::missing_panics_doc)]
     pub fn ensure_object(&mut self) -> &mut Map<String, Value> {
         if let Some(b) = self.as_bool() {
             let mut map = Map::new();

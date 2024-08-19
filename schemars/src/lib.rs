@@ -1,4 +1,12 @@
-#![deny(unsafe_code)]
+#![deny(unsafe_code, clippy::cargo, clippy::pedantic)]
+#![allow(
+    clippy::must_use_candidate,
+    clippy::return_self_not_must_use,
+    clippy::wildcard_imports,
+    clippy::single_match_else,
+    clippy::missing_errors_doc,
+    clippy::module_name_repetitions
+)]
 #![doc = include_str!("../README.md")]
 #![no_std]
 

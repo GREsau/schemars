@@ -9,7 +9,7 @@ edition = "2021"
 license = "MIT"
 readme = "README.md"
 keywords = ["rust", "json-schema", "serde"]
-categories = ["encoding"]
+categories = ["encoding", "no-std"]
 rust-version = "1.60"
 
 [dependencies]
