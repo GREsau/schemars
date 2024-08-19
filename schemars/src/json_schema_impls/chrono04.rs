@@ -1,7 +1,7 @@
 use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
-use chrono04::prelude::*;
 use alloc::borrow::Cow;
+use chrono04::prelude::*;
 
 impl JsonSchema for Weekday {
     always_inline!();

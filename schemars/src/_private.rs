@@ -209,6 +209,20 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
                                     }
                                 }
                             }
+                            "oneOf" => {
+                                if let a1 @ Value::Array(_) = occupied.get().clone() {
+                                    occupied.remove();
+                                    let all_of = Value::Array(vec![
+                                        json!({
+                                          "oneOf": a1
+                                        }),
+                                        json!({
+                                          "oneOf": value2
+                                        }),
+                                    ]);
+                                    obj1.insert("allOf".to_string(), all_of);
+                                }
+                            }
                             _ => {
                                 // leave the original value as it is (don't modify `schema`)
                             }
