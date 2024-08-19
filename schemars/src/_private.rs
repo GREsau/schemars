@@ -194,7 +194,7 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
             },
             Entry::Occupied(occupied) => {
                 match occupied.key().as_str() {
-                    "required" => {
+                    "required" | "allOf" => {
                         if let Value::Array(a1) = occupied.into_mut() {
                             if let Value::Array(a2) = value2 {
                                 a1.extend(a2);
@@ -227,13 +227,6 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
                                 { key: value2 }
                             ]),
                         );
-                    }
-                    "allOf" => {
-                        if let Value::Array(a1) = occupied.into_mut() {
-                            if let Value::Array(a2) = value2 {
-                                a1.extend(a2);
-                            }
-                        }
                     }
                     _ => {
                         // leave the original value as it is (don't modify `schema`)
