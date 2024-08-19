@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.7] - 2024-08-19
+
+### Fixed
+
+- Fix behaviour of `flatten` for schemas with `additionalProperties`
+- Fix behaviour of `flatten` of multiple enums (https://github.com/GREsau/schemars/issues/165 / https://github.com/GREsau/schemars/pull/320)
+
 ## [1.0.0-alpha.6] - 2024-08-17
 
 ### Fixed
