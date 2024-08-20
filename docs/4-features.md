@@ -6,6 +6,7 @@ permalink: /features/
 
 # Feature Flags and Optional Dependencies
 
+- `std` (enabled by default) - implements `JsonSchema` for types in the rust standard library (`JsonSchema` is still implemented on types in `core` and `alloc`, even when this feature is disabled). Disable this feature to use schemars in `no_std` environments.
 - `derive` (enabled by default) - provides `#[derive(JsonSchema)]` macro
 - `preserve_order` - keep the order of struct fields in `Schema` properties
 - `raw_value` - implements `JsonSchema` for `serde_json::value::RawValue` (enables the serde_json `raw_value` feature)

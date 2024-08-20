@@ -27,7 +27,7 @@ url: "https://graham.cool" # the base hostname & protocol for your site, e.g. ht
 permalink: pretty
 
 # Build settings
-remote_theme: pmarsceill/just-the-docs@v0.8.2
+remote_theme: pmarsceill/just-the-docs@v0.9.0
 markdown: CommonMarkGhPages
 commonmark:
   options: ["UNSAFE", "FOOTNOTES"]
