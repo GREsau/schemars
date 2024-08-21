@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.9] - 2024-08-21
+
+### Added
+
+- Add rustdoc for `derive(JsonSchema)` macro (https://github.com/GREsau/schemars/issues/322 / https://github.com/GREsau/schemars/issues/322)
+
 ## [1.0.0-alpha.8] - 2024-08-21
 
 ### Changed

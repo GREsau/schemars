@@ -281,5 +281,5 @@ For example, to implement `JsonSchema` on types from `chrono`, enable it as a fe
 
 ```toml
 [dependencies]
-schemars = { version = "1.0.0-alpha.8", features = ["chrono04"] }
+schemars = { version = "1.0.0-alpha.9", features = ["chrono04"] }
 ```
