@@ -17,8 +17,8 @@ struct Struct {
     bar: bool,
 }
 
-// Outer container should always have additionalProperties: false
-// `Struct` variant should have additionalProperties: false
+// Outer container should always have unevaluatedProperties: false
+// `Struct` variant should have unevaluatedProperties: false
 #[allow(dead_code)]
 #[derive(JsonSchema)]
 #[schemars(rename_all = "camelCase", deny_unknown_fields)]
@@ -42,7 +42,7 @@ fn enum_external_tag() -> TestResult {
     test_default_generated_schema::<External>("enum-external-duf")
 }
 
-// Only `Struct` variant should have additionalProperties: false
+// Only `Struct` variant should have unevaluatedProperties: false
 #[allow(dead_code)]
 #[derive(JsonSchema)]
 #[schemars(tag = "typeProperty", deny_unknown_fields)]
@@ -65,7 +65,7 @@ fn enum_internal_tag() -> TestResult {
     test_default_generated_schema::<Internal>("enum-internal-duf")
 }
 
-// Only `Struct` variant should have additionalProperties: false
+// Only `Struct` variant should have unevaluatedProperties: false
 #[allow(dead_code)]
 #[derive(JsonSchema)]
 #[schemars(untagged, deny_unknown_fields)]
@@ -88,7 +88,7 @@ fn enum_untagged() -> TestResult {
     test_default_generated_schema::<Untagged>("enum-untagged-duf")
 }
 
-// Outer container and `Struct` variant should have additionalProperties: false
+// Outer container and `Struct` variant should have unevaluatedProperties: false
 #[allow(dead_code)]
 #[derive(JsonSchema)]
 #[schemars(tag = "t", content = "c", deny_unknown_fields)]

@@ -7,7 +7,7 @@
     },
     {
       "type": "object",
-      "additionalProperties": {
+      "unevaluatedProperties": {
         "type": "string"
       }
     },

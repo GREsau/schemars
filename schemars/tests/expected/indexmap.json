@@ -5,7 +5,7 @@
   "properties": {
     "map": {
       "type": "object",
-      "additionalProperties": {
+      "unevaluatedProperties": {
         "type": "boolean"
       }
     },

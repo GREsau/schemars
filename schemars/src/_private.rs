@@ -1,4 +1,5 @@
 use crate::_alloc_prelude::*;
+use crate::transform::{SemiRecursiveTransform, Transform};
 use crate::{JsonSchema, Schema, SchemaGenerator};
 use serde::Serialize;
 use serde_json::{json, map::Entry, Map, Value};
@@ -16,53 +17,19 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
         }
     }
 
-    allow_additional_properties(&mut schema);
-
-    schema
-}
-
-// Ideally this would use the `Transform` trait, but we only want to recurse into subschemas that
-// apply to the top-level object, e.g. not into "properties"
-fn allow_additional_properties(schema: &mut Schema) {
-    if let Some(obj) = schema.as_object_mut() {
-        let mut remove_additional_properties = false;
-        let mut remove_unevaluated_properties = false;
-
-        for (key, value) in obj.iter_mut() {
-            match key.as_str() {
-                "not" | "if" | "then" | "else" => {
-                    if let Ok(subschema) = value.try_into() {
-                        allow_additional_properties(subschema);
-                    }
-                }
-                "allOf" | "anyOf" | "oneOf" => {
-                    if let Some(array) = value.as_array_mut() {
-                        for value in array {
-                            if let Ok(subschema) = value.try_into() {
-                                allow_additional_properties(subschema);
-                            }
-                        }
-                    }
-                }
-                "additionalProperties" if value.as_bool() == Some(false) => {
-                    // We can't remove the property while iterating - set a flag to do it later
-                    remove_additional_properties = true;
-                }
-                "unevaluatedProperties" if value.as_bool() == Some(false) => {
-                    // We can't remove the property while iterating - set a flag to do it later
-                    remove_unevaluated_properties = true;
-                }
-                _ => {}
+    SemiRecursiveTransform(|schema: &mut Schema| {
+        if let Some(obj) = schema.as_object_mut() {
+            if obj.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
+                obj.remove("additionalProperties");
+            }
+            if obj.get("unevaluatedProperties").and_then(Value::as_bool) == Some(false) {
+                obj.remove("unevaluatedProperties");
             }
         }
+    })
+    .transform(&mut schema);
 
-        if remove_additional_properties {
-            obj.remove("additionalProperties");
-        }
-        if remove_unevaluated_properties {
-            obj.remove("unevaluatedProperties");
-        }
-    }
+    schema
 }
 
 /// Hack to simulate specialization:
@@ -280,7 +247,7 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
         Err(true) => {
             schema
                 .ensure_object()
-                .insert("additionalProperties".to_owned(), true.into());
+                .insert("unevaluatedProperties".to_owned(), true.into());
         }
         Ok(obj2) => {
             let obj1 = schema.ensure_object();

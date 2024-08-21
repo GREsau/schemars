@@ -14,7 +14,7 @@
     },
     "fake_map": {
       "type": "object",
-      "additionalProperties": {
+      "unevaluatedProperties": {
         "type": "array",
         "uniqueItems": true,
         "items": {

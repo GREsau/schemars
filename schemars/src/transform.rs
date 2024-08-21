@@ -114,7 +114,8 @@ assert_eq!(
 */
 use crate::Schema;
 use crate::_alloc_prelude::*;
-use serde_json::{json, Value};
+use serde_json::{json, Map, Value};
+use std::collections::BTreeSet;
 
 /// Trait used to modify a constructed schema and optionally its subschemas.
 ///
@@ -246,6 +247,42 @@ where
     }
 }
 
+// Similar to `RecursiveTransform`, but only recurses into subschemas that
+// apply to the top-level object, e.g. "oneOf" but not "properties".
+#[derive(Debug, Clone)]
+pub(crate) struct SemiRecursiveTransform<T>(pub T);
+
+impl<T> Transform for SemiRecursiveTransform<T>
+where
+    T: Transform,
+{
+    fn transform(&mut self, schema: &mut Schema) {
+        self.0.transform(schema);
+
+        if let Some(obj) = schema.as_object_mut() {
+            for (key, value) in obj.iter_mut() {
+                match key.as_str() {
+                    "not" | "if" | "then" | "else" => {
+                        if let Ok(subschema) = value.try_into() {
+                            self.transform(subschema);
+                        }
+                    }
+                    "allOf" | "anyOf" | "oneOf" => {
+                        if let Some(array) = value.as_array_mut() {
+                            for value in array {
+                                if let Ok(subschema) = value.try_into() {
+                                    self.transform(subschema);
+                                }
+                            }
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+    }
+}
+
 /// Replaces boolean JSON Schemas with equivalent object schemas.
 /// This also applies to subschemas.
 ///
@@ -365,6 +402,60 @@ impl Transform for ReplacePrefixItems {
                 if let Some(previous_items) = previous_items {
                     obj.insert("additionalItems".to_owned(), previous_items);
                 }
+            }
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ReplaceUnevaluatedProperties;
+
+impl Transform for ReplaceUnevaluatedProperties {
+    fn transform(&mut self, schema: &mut Schema) {
+        transform_subschemas(self, schema);
+
+        if let Some(obj) = schema.as_object_mut() {
+            if let Some(up) = obj.remove("unevaluatedProperties") {
+                obj.insert("additionalProperties".to_owned(), up);
+            } else {
+                return;
+            }
+        } else {
+            return;
+        }
+
+        let mut property_names = BTreeSet::new();
+        // Slight optimization: skip the top-level schema because we don't need its properties
+        let mut has_skipped = false;
+        SemiRecursiveTransform(|subschema: &mut Schema| {
+            if has_skipped {
+                property_names.extend(
+                    subschema
+                        .as_object()
+                        .iter()
+                        .filter_map(|o| o.get("properties"))
+                        .filter_map(Value::as_object)
+                        .flat_map(Map::keys)
+                        .cloned(),
+                );
+            } else {
+                has_skipped = true;
+            }
+        })
+        .transform(schema);
+
+        if property_names.is_empty() {
+            return;
+        }
+
+        if let Some(properties) = schema
+            .ensure_object()
+            .entry("properties")
+            .or_insert(Map::new().into())
+            .as_object_mut()
+        {
+            for name in property_names {
+                properties.entry(name).or_insert(true.into());
             }
         }
     }

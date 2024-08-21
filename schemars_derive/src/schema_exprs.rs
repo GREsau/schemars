@@ -303,9 +303,9 @@ fn expr_for_adjacent_tagged_enum<'a>(
                 })
             };
 
-            let set_additional_properties = if deny_unknown_fields {
+            let set_unevaluated_properties = if deny_unknown_fields {
                 quote! {
-                    "additionalProperties": false,
+                    "unevaluatedProperties": false,
                 }
             } else {
                 TokenStream::new()
@@ -324,7 +324,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
                     ],
                     // As we're creating a "wrapper" object, we can honor the
                     // disposition of deny_unknown_fields.
-                    #set_additional_properties
+                    #set_unevaluated_properties
                 })
             };
 
@@ -498,9 +498,9 @@ fn expr_for_struct(
             })
         .collect();
 
-    let set_additional_properties = if deny_unknown_fields {
+    let set_unevaluated_properties = if deny_unknown_fields {
         quote! {
-            "additionalProperties": false,
+            "unevaluatedProperties": false,
         }
     } else {
         TokenStream::new()
@@ -510,7 +510,7 @@ fn expr_for_struct(
         #set_container_default
         let mut schema = schemars::json_schema!({
             "type": "object",
-            #set_additional_properties
+            #set_unevaluated_properties
         });
         #(#properties)*
         schema

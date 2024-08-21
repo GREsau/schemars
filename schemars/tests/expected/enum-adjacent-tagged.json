@@ -27,7 +27,7 @@
         },
         "c": {
           "type": "object",
-          "additionalProperties": {
+          "unevaluatedProperties": {
             "type": "string"
           }
         }

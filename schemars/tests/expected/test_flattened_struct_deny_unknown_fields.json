@@ -42,7 +42,7 @@
           "type": "boolean"
         }
       },
-      "additionalProperties": false,
+      "unevaluatedProperties": false,
       "required": [
         "middle_field",
         "inner_field"

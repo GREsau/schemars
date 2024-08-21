@@ -71,7 +71,11 @@ impl SchemaSettings {
             option_add_null_type: true,
             definitions_path: "/definitions".to_owned(),
             meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
-            transforms: vec![Box::new(RemoveRefSiblings), Box::new(ReplacePrefixItems)],
+            transforms: vec![
+                Box::new(ReplaceUnevaluatedProperties),
+                Box::new(RemoveRefSiblings),
+                Box::new(ReplacePrefixItems),
+            ],
             inline_subschemas: false,
         }
     }
@@ -111,6 +115,7 @@ impl SchemaSettings {
                     .to_owned(),
             ),
             transforms: vec![
+                Box::new(ReplaceUnevaluatedProperties),
                 Box::new(RemoveRefSiblings),
                 Box::new(ReplaceBoolSchemas {
                     skip_additional_properties: true,

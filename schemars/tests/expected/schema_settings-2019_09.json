@@ -13,7 +13,7 @@
     },
     "values": {
       "type": "object",
-      "additionalProperties": true
+      "unevaluatedProperties": true
     },
     "value": true,
     "inner": {

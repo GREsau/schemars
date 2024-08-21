@@ -2,6 +2,8 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
+// TODO rename file and test
+
 #[allow(dead_code)]
 #[derive(JsonSchema)]
 #[serde(deny_unknown_fields)]

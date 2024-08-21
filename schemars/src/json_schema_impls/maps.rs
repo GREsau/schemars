@@ -1,6 +1,5 @@
 use crate::_alloc_prelude::*;
-use crate::SchemaGenerator;
-use crate::{json_schema, JsonSchema, Schema};
+use crate::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use alloc::borrow::Cow;
 
 macro_rules! map_impl {
@@ -22,7 +21,7 @@ macro_rules! map_impl {
             fn json_schema(generator: &mut SchemaGenerator) -> Schema {
                 json_schema!({
                     "type": "object",
-                    "additionalProperties": generator.subschema_for::<V>(),
+                    "unevaluatedProperties": generator.subschema_for::<V>(),
                 })
             }
         }
