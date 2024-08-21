@@ -242,7 +242,7 @@ impl crate::JsonSchema for Schema {
         "schemars::Schema".into()
     }
 
-    fn json_schema(_: &mut crate::gen::SchemaGenerator) -> Schema {
+    fn json_schema(_: &mut crate::SchemaGenerator) -> Schema {
         crate::json_schema!({
             "type": ["object", "boolean"]
         })

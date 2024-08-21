@@ -1,5 +1,5 @@
+use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
-use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 
@@ -19,10 +19,10 @@ macro_rules! seq_impl {
                 format!("[{}]", T::schema_id()).into()
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            fn json_schema(generator: &mut SchemaGenerator) -> Schema {
                 json_schema!({
                     "type": "array",
-                    "items": gen.subschema_for::<T>(),
+                    "items": generator.subschema_for::<T>(),
                 })
             }
         }
@@ -45,11 +45,11 @@ macro_rules! set_impl {
                 format!("Set<{}>", T::schema_id()).into()
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            fn json_schema(generator: &mut SchemaGenerator) -> Schema {
                 json_schema!({
                     "type": "array",
                     "uniqueItems": true,
-                    "items": gen.subschema_for::<T>(),
+                    "items": generator.subschema_for::<T>(),
                 })
             }
         }

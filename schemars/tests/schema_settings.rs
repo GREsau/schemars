@@ -1,5 +1,5 @@
 mod util;
-use schemars::gen::SchemaSettings;
+use schemars::generate::SchemaSettings;
 use schemars::{JsonSchema, Schema};
 use serde_json::Value;
 use std::collections::BTreeMap;

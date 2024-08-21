@@ -1,4 +1,4 @@
-use schemars::{gen::SchemaSettings, JsonSchema};
+use schemars::{generate::SchemaSettings, JsonSchema};
 
 #[derive(JsonSchema)]
 pub struct MyStruct {
@@ -18,7 +18,7 @@ fn main() {
         s.option_nullable = true;
         s.option_add_null_type = false;
     });
-    let gen = settings.into_generator();
-    let schema = gen.into_root_schema_for::<MyStruct>();
+    let generator = settings.into_generator();
+    let schema = generator.into_root_schema_for::<MyStruct>();
     println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 }

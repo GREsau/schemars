@@ -1,5 +1,5 @@
 use crate::_alloc_prelude::*;
-use crate::gen::SchemaGenerator;
+use crate::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 use either1::Either;
@@ -15,9 +15,9 @@ impl<L: JsonSchema, R: JsonSchema> JsonSchema for Either<L, R> {
         format!("either::Either<{}, {}>", L::schema_id(), R::schema_id()).into()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
-            "anyOf": [gen.subschema_for::<L>(), gen.subschema_for::<R>()],
+            "anyOf": [generator.subschema_for::<L>(), generator.subschema_for::<R>()],
         })
     }
 }

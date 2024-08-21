@@ -1,5 +1,5 @@
+use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
-use crate::gen::SchemaGenerator;
 use crate::{JsonSchema, Schema};
 use alloc::borrow::Cow;
 use core::num::*;
@@ -17,8 +17,8 @@ macro_rules! nonzero_unsigned_impl {
                 stringify!(std::num::$type).into()
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                let mut schema = <$primitive>::json_schema(gen);
+            fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+                let mut schema = <$primitive>::json_schema(generator);
                 let object = schema.ensure_object();
                 object.insert("not".to_owned(), serde_json::json!({
                     "const": 0

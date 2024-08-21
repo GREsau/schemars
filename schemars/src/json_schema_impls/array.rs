@@ -1,5 +1,5 @@
+use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
-use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 
@@ -37,10 +37,10 @@ macro_rules! array_impls {
                     format!("[{}; {}]", $len, T::schema_id()).into()
                 }
 
-                fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+                fn json_schema(generator: &mut SchemaGenerator) -> Schema {
                     json_schema!({
                         "type": "array",
-                        "items": serde_json::Value::from(gen.subschema_for::<T>()),
+                        "items": serde_json::Value::from(generator.subschema_for::<T>()),
                         "minItems": $len,
                         "maxItems": $len,
                     })

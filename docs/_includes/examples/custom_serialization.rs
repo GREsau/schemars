@@ -19,8 +19,8 @@ pub struct MyStruct {
     pub bool_normal: bool,
 }
 
-fn make_custom_schema(gen: &mut SchemaGenerator) -> Schema {
-    let mut schema = String::json_schema(gen);
+fn make_custom_schema(generator: &mut SchemaGenerator) -> Schema {
+    let mut schema = String::json_schema(generator);
     schema
         .ensure_object()
         .insert("format".into(), "boolean".into());

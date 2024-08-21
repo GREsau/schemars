@@ -1,4 +1,4 @@
-use crate::gen::SchemaGenerator;
+use crate::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 
@@ -11,13 +11,13 @@ impl JsonSchema for core::time::Duration {
         "std::time::Duration".into()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
             "type": "object",
             "required": ["secs", "nanos"],
             "properties": {
-                "secs": u64::json_schema(gen),
-                "nanos": u32::json_schema(gen),
+                "secs": u64::json_schema(generator),
+                "nanos": u32::json_schema(generator),
             }
         })
     }
@@ -33,13 +33,13 @@ impl JsonSchema for std::time::SystemTime {
         "std::time::SystemTime".into()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
             "type": "object",
             "required": ["secs_since_epoch", "nanos_since_epoch"],
             "properties": {
-                "secs_since_epoch": u64::json_schema(gen),
-                "nanos_since_epoch": u32::json_schema(gen),
+                "secs_since_epoch": u64::json_schema(generator),
+                "nanos_since_epoch": u32::json_schema(generator),
             }
         })
     }
