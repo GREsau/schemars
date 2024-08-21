@@ -67,7 +67,9 @@ pub mod r#gen {
 ///
 /// This is implemented for many Rust primitive and standard library types.
 ///
-/// This can also be automatically derived on most custom types with `#[derive(JsonSchema)]`.
+/// This can also be automatically derived on most custom types with `#[derive(JsonSchema)]` by
+/// enabling the `derive` feature flag (which is enabled by default).
+/// For more info on deriving `JsonSchema`, see <https://graham.cool/schemars/deriving/>.
 ///
 /// # Examples
 /// Deriving an implementation:
