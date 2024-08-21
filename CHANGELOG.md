@@ -2,6 +2,8 @@
 
 ## [1.0.0-alpha.8] - 2024-08-21
 
+### Changed
+
 - Replace `schemars::gen` module with `schemars::generate`. This is because `gen` is a reserved keyword in rust 2024, so can only be used as `r#gen`. The `schemars::gen` module is still available for ease of upgrading, but is marked as deprecated and _may_ be removed in the future 1.0.0 release. (https://github.com/GREsau/schemars/issues/306 / https://github.com/GREsau/schemars/pull/323)
 
 ## [1.0.0-alpha.7] - 2024-08-19
