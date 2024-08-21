@@ -296,7 +296,7 @@ Set the path to the schemars crate instance the generated code should depend on.
 
 Sets properties specified by [validator attributes](#supported-validator-attributes) on items of an array schema. For example:
 
-```rs
+```rust
 struct Struct {
     #[schemars(inner(url, regex(pattern = "^https://")))]
     urls: Vec<String>,
