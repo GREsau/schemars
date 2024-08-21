@@ -40,6 +40,7 @@ pub extern crate alloc as _alloc;
 #[doc(hidden)]
 pub extern crate serde_json as _serde_json;
 
+#[doc(inline)]
 pub use generate::SchemaGenerator;
 pub use schema::Schema;
 
@@ -69,7 +70,7 @@ pub mod r#gen {
 ///
 /// This can also be automatically derived on most custom types with `#[derive(JsonSchema)]` by
 /// enabling the `derive` feature flag (which is enabled by default).
-/// For more info on deriving `JsonSchema`, see <https://graham.cool/schemars/deriving/>.
+/// For more info on deriving `JsonSchema`, see [the derive macro documentation](derive@JsonSchema).
 ///
 /// # Examples
 /// Deriving an implementation:
