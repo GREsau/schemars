@@ -16,6 +16,9 @@ use ast::*;
 use proc_macro2::TokenStream;
 use syn::spanned::Spanned;
 
+#[doc = "Derive macro for `JsonSchema` trait."]
+#[doc = include_str!("../deriving.md")]
+#[doc = include_str!("../attributes.md")]
 #[proc_macro_derive(JsonSchema, attributes(schemars, serde, validate))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
