@@ -1,5 +1,5 @@
 use crate::_alloc_prelude::*;
-use crate::gen::SchemaGenerator;
+use crate::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 use alloc::collections::BTreeMap;

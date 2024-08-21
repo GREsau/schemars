@@ -1,5 +1,5 @@
+use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
-use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 use core::ops::{Bound, Range, RangeInclusive};
@@ -16,10 +16,10 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         format!("Option<{}>", T::schema_id()).into()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        let mut schema = gen.subschema_for::<T>();
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+        let mut schema = generator.subschema_for::<T>();
 
-        if gen.settings().option_add_null_type {
+        if generator.settings().option_add_null_type {
             schema = match schema.try_to_object() {
                 Ok(mut obj) => {
                     let instance_type = obj.get_mut("type");
@@ -43,17 +43,17 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
                         _ => json_schema!({
                             "anyOf": [
                                 obj,
-                                <()>::json_schema(gen)
+                                <()>::json_schema(generator)
                             ]
                         }),
                     }
                 }
                 Err(true) => true.into(),
-                Err(false) => <()>::json_schema(gen),
+                Err(false) => <()>::json_schema(generator),
             }
         }
 
-        if gen.settings().option_nullable {
+        if generator.settings().option_nullable {
             schema
                 .ensure_object()
                 .insert("nullable".into(), true.into());
@@ -62,8 +62,8 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
         schema
     }
 
-    fn _schemars_private_non_optional_json_schema(gen: &mut SchemaGenerator) -> Schema {
-        T::_schemars_private_non_optional_json_schema(gen)
+    fn _schemars_private_non_optional_json_schema(generator: &mut SchemaGenerator) -> Schema {
+        T::_schemars_private_non_optional_json_schema(generator)
     }
 
     fn _schemars_private_is_option() -> bool {
@@ -80,20 +80,20 @@ impl<T: JsonSchema, E: JsonSchema> JsonSchema for Result<T, E> {
         format!("Result<{}, {}>", T::schema_id(), E::schema_id()).into()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
             "oneOf": [
                 {
                     "type": "object",
                     "properties": {
-                        "Ok": gen.subschema_for::<T>()
+                        "Ok": generator.subschema_for::<T>()
                     },
                     "required": ["Ok"]
                 },
                 {
                     "type": "object",
                     "properties": {
-                        "Err": gen.subschema_for::<E>()
+                        "Err": generator.subschema_for::<E>()
                     },
                     "required": ["Err"]
                 }
@@ -111,20 +111,20 @@ impl<T: JsonSchema> JsonSchema for Bound<T> {
         format!("Bound<{}>", T::schema_id()).into()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
             "oneOf": [
                 {
                     "type": "object",
                     "properties": {
-                        "Included": gen.subschema_for::<T>()
+                        "Included": generator.subschema_for::<T>()
                     },
                     "required": ["Included"]
                 },
                 {
                     "type": "object",
                     "properties": {
-                        "Excluded": gen.subschema_for::<T>()
+                        "Excluded": generator.subschema_for::<T>()
                     },
                     "required": ["Excluded"]
                 },
@@ -146,8 +146,8 @@ impl<T: JsonSchema> JsonSchema for Range<T> {
         format!("Range<{}>", T::schema_id()).into()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-        let subschema = gen.subschema_for::<T>();
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+        let subschema = generator.subschema_for::<T>();
         json_schema!({
             "type": "object",
             "properties": {

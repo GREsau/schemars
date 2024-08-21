@@ -1,5 +1,5 @@
+use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
-use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 use std::ffi::{CStr, CString, OsStr, OsString};
@@ -13,20 +13,20 @@ impl JsonSchema for OsString {
         "std::ffi::OsString".into()
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
             "oneOf": [
                 {
                     "type": "object",
                     "properties": {
-                        "Unix": <Vec<u8>>::json_schema(gen)
+                        "Unix": <Vec<u8>>::json_schema(generator)
                     },
                     "required": ["Unix"]
                 },
                 {
                     "type": "object",
                     "properties": {
-                        "Windows": <Vec<u16>>::json_schema(gen)
+                        "Windows": <Vec<u16>>::json_schema(generator)
                     },
                     "required": ["Windows"]
                 },

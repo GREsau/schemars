@@ -1,5 +1,5 @@
+use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
-use crate::gen::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 
@@ -23,11 +23,11 @@ macro_rules! tuple_impls {
                     id.into()
                 }
 
-                fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+                fn json_schema(generator: &mut SchemaGenerator) -> Schema {
                     json_schema!({
                         "type": "array",
                         "prefixItems": [
-                            $(gen.subschema_for::<$name>()),+
+                            $(generator.subschema_for::<$name>()),+
                         ],
                         "minItems": $len,
                         "maxItems": $len,

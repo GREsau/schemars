@@ -127,13 +127,13 @@ impl SchemaSettings {
     ///
     /// # Example
     /// ```
-    /// use schemars::gen::{SchemaGenerator, SchemaSettings};
+    /// use schemars::generate::{SchemaGenerator, SchemaSettings};
     ///
     /// let settings = SchemaSettings::default().with(|s| {
     ///     s.option_nullable = true;
     ///     s.option_add_null_type = false;
     /// });
-    /// let gen = settings.into_generator();
+    /// let generator = settings.into_generator();
     /// ```
     pub fn with(mut self, configure_fn: impl FnOnce(&mut Self)) -> Self {
         configure_fn(&mut self);
@@ -163,8 +163,8 @@ impl SchemaSettings {
 ///     foo: i32,
 /// }
 ///
-/// let gen = SchemaGenerator::default();
-/// let schema = gen.into_root_schema_for::<MyStruct>();
+/// let generator = SchemaGenerator::default();
+/// let schema = generator.into_root_schema_for::<MyStruct>();
 /// ```
 #[derive(Debug, Default)]
 pub struct SchemaGenerator {
@@ -208,8 +208,8 @@ impl SchemaGenerator {
     /// ```
     /// use schemars::SchemaGenerator;
     ///
-    /// let gen = SchemaGenerator::default();
-    /// let settings = gen.settings();
+    /// let generator = SchemaGenerator::default();
+    /// let settings = generator.settings();
     ///
     /// assert_eq!(settings.option_add_null_type, true);
     /// ```
@@ -361,7 +361,7 @@ impl SchemaGenerator {
         value: &T,
     ) -> Result<Schema, serde_json::Error> {
         let mut schema = value.serialize(crate::ser::Serializer {
-            gen: self,
+            generator: self,
             include_title: true,
         })?;
 
@@ -392,7 +392,7 @@ impl SchemaGenerator {
         value: &T,
     ) -> Result<Schema, serde_json::Error> {
         let mut schema = value.serialize(crate::ser::Serializer {
-            gen: &mut self,
+            generator: &mut self,
             include_title: true,
         })?;
 
@@ -415,28 +415,32 @@ impl SchemaGenerator {
 
     fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, id: CowStr) -> Schema {
         struct PendingSchemaState<'a> {
-            gen: &'a mut SchemaGenerator,
+            generator: &'a mut SchemaGenerator,
             id: CowStr,
             did_add: bool,
         }
 
         impl<'a> PendingSchemaState<'a> {
-            fn new(gen: &'a mut SchemaGenerator, id: CowStr) -> Self {
-                let did_add = gen.pending_schema_ids.insert(id.clone());
-                Self { gen, id, did_add }
+            fn new(generator: &'a mut SchemaGenerator, id: CowStr) -> Self {
+                let did_add = generator.pending_schema_ids.insert(id.clone());
+                Self {
+                    generator,
+                    id,
+                    did_add,
+                }
             }
         }
 
         impl Drop for PendingSchemaState<'_> {
             fn drop(&mut self) {
                 if self.did_add {
-                    self.gen.pending_schema_ids.remove(&self.id);
+                    self.generator.pending_schema_ids.remove(&self.id);
                 }
             }
         }
 
         let pss = PendingSchemaState::new(self, id);
-        T::json_schema(pss.gen)
+        T::json_schema(pss.generator)
     }
 
     fn add_definitions(
@@ -514,7 +518,7 @@ fn json_pointer_mut<'a>(
 /// # Example
 /// ```
 /// use schemars::transform::Transform;
-/// use schemars::gen::GenTransform;
+/// use schemars::generate::GenTransform;
 ///
 /// #[derive(Debug, Clone)]
 /// struct MyTransform;
@@ -534,7 +538,7 @@ pub trait GenTransform: Transform + DynClone + Any + Send {
     /// # Example
     /// To remove a specific transform from an instance of `SchemaSettings`:
     /// ```
-    /// use schemars::gen::SchemaSettings;
+    /// use schemars::generate::SchemaSettings;
     /// use schemars::transform::ReplaceBoolSchemas;
     ///
     /// let mut settings = SchemaSettings::openapi3();
@@ -553,7 +557,7 @@ pub trait GenTransform: Transform + DynClone + Any + Send {
     /// # Example
     /// To modify a specific transform in an instance of `SchemaSettings`:
     /// ```
-    /// use schemars::gen::SchemaSettings;
+    /// use schemars::generate::SchemaSettings;
     /// use schemars::transform::ReplaceBoolSchemas;
     ///
     /// let mut settings = SchemaSettings::openapi3();

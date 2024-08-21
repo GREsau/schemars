@@ -5,10 +5,10 @@ use serde_json::{json, map::Entry, Map, Value};
 
 // Helper for generating schemas for flattened `Option` fields.
 pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
-    gen: &mut SchemaGenerator,
+    generator: &mut SchemaGenerator,
     required: bool,
 ) -> Schema {
-    let mut schema = T::_schemars_private_non_optional_json_schema(gen);
+    let mut schema = T::_schemars_private_non_optional_json_schema(generator);
 
     if T::_schemars_private_is_option() && !required {
         if let Some(object) = schema.as_object_mut() {

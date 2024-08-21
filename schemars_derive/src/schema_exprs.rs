@@ -70,19 +70,19 @@ pub fn expr_for_repr(cont: &Container) -> Result<TokenStream, syn::Error> {
 fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     let (ty, type_def) = type_for_field_schema(field);
     let span = field.original.span();
-    let gen = quote!(gen);
+    let generator = quote!(generator);
 
     let mut schema_expr = if field.validation_attrs.required() {
         quote_spanned! {span=>
-            <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
+            <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#generator)
         }
     } else if allow_ref {
         quote_spanned! {span=>
-            #gen.subschema_for::<#ty>()
+            #generator.subschema_for::<#ty>()
         }
     } else {
         quote_spanned! {span=>
-            <#ty as schemars::JsonSchema>::json_schema(#gen)
+            <#ty as schemars::JsonSchema>::json_schema(#generator)
         }
     };
 
@@ -127,8 +127,8 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
                         ))
                     }
 
-                    fn json_schema(gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
-                        #fun(gen)
+                    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                        #fun(generator)
                     }
                 }
             };
@@ -361,9 +361,9 @@ fn variant_subschemas(unique: bool, schemas: Vec<TokenStream>) -> TokenStream {
 fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) -> TokenStream {
     if let Some(with_attr) = &variant.attrs.with {
         let (ty, type_def) = type_for_schema(with_attr);
-        let gen = quote!(gen);
+        let generator = quote!(generator);
         let mut schema_expr = quote_spanned! {variant.original.span()=>
-            #gen.subschema_for::<#ty>()
+            #generator.subschema_for::<#ty>()
         };
 
         prepend_type_def(type_def, &mut schema_expr);
@@ -384,9 +384,9 @@ fn expr_for_internal_tagged_enum_variant(
 ) -> TokenStream {
     if let Some(with_attr) = &variant.attrs.with {
         let (ty, type_def) = type_for_schema(with_attr);
-        let gen = quote!(gen);
+        let generator = quote!(generator);
         let mut schema_expr = quote_spanned! {variant.original.span()=>
-            <#ty as schemars::JsonSchema>::json_schema(#gen)
+            <#ty as schemars::JsonSchema>::json_schema(#generator)
         };
 
         prepend_type_def(type_def, &mut schema_expr);
@@ -403,7 +403,7 @@ fn expr_for_internal_tagged_enum_variant(
 
 fn expr_for_unit_struct() -> TokenStream {
     quote! {
-        gen.subschema_for::<()>()
+        generator.subschema_for::<()>()
     }
 }
 
@@ -449,7 +449,7 @@ fn expr_for_struct(
 
                 let required = field.validation_attrs.required();
 
-                let args = quote!(gen, #required);
+                let args = quote!(generator, #required);
                 let mut schema_expr = quote_spanned! {ty.span()=>
                     schemars::_private::json_schema_for_flatten::<#ty>(#args)
                 };
@@ -475,14 +475,14 @@ fn expr_for_struct(
                     ..field.attrs.as_metadata()
                 };
 
-                let gen = quote!(gen);
+                let generator = quote!(generator);
                 let mut schema_expr = if field.validation_attrs.required() {
                     quote_spanned! {ty.span()=>
-                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#gen)
+                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#generator)
                     }
                 } else {
                     quote_spanned! {ty.span()=>
-                        #gen.subschema_for::<#ty>()
+                        #generator.subschema_for::<#ty>()
                     }
                 };
 

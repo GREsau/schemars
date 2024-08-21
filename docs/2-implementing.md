@@ -60,10 +60,10 @@ The default implementation of this function returns `Self::schema_name()`.
 ## json_schema
 
 ```rust
-fn json_schema(gen: &mut gen::SchemaGenerator) -> Schema;
+fn json_schema(generator: &mut SchemaGenerator) -> Schema;
 ```
 
-This function creates the JSON schema itself. The `gen` argument can be used to check the schema generation settings, or to get schemas for other types. If you do need schemas for other types, you should call the `gen.subschema_for::<T>()` method instead of `<T>::json_schema(gen)`, as `subschema_for` can add `T`'s schema to the root schema's `$defs` so that it does not need to be duplicated when used more than once.
+This function creates the JSON schema itself. The `generator` argument can be used to check the schema generation settings, or to get schemas for other types. If you do need schemas for other types, you should call the `generator.subschema_for::<T>()` method instead of `<T>::json_schema(generator)`, as `subschema_for` can add `T`'s schema to the root schema's `$defs` so that it does not need to be duplicated when used more than once.
 
 `json_schema` should not return a `$ref` schema.
 

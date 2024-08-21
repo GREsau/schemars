@@ -2,8 +2,8 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
-fn schema_fn(gen: &mut schemars::SchemaGenerator) -> schemars::Schema {
-    <bool>::json_schema(gen)
+fn schema_fn(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    <bool>::json_schema(generator)
 }
 
 #[derive(Debug)]

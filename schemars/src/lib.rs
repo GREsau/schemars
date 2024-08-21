@@ -24,7 +24,7 @@ mod macros;
 /// outside of `schemars`, and should not be considered part of the public API.
 #[doc(hidden)]
 pub mod _private;
-pub mod gen;
+pub mod generate;
 pub mod transform;
 
 #[cfg(feature = "schemars_derive")]
@@ -40,7 +40,7 @@ pub extern crate alloc as _alloc;
 #[doc(hidden)]
 pub extern crate serde_json as _serde_json;
 
-pub use gen::SchemaGenerator;
+pub use generate::SchemaGenerator;
 pub use schema::Schema;
 
 mod _alloc_prelude {
@@ -50,6 +50,17 @@ mod _alloc_prelude {
     pub use alloc::string::{String, ToString};
     pub use alloc::vec;
     pub use alloc::vec::Vec;
+}
+
+#[deprecated = "Only included for backward-compatibility - use the `schemars::generate` module instead."]
+#[doc(hidden)]
+pub mod r#gen {
+    #[deprecated = "Only included for backward-compatibility - use `schemars::SchemaGenerator` or `schemars::generate::SchemaGenerator` instead."]
+    pub type SchemaGenerator = crate::generate::SchemaGenerator;
+    #[deprecated = "Only included for backward-compatibility - use `schemars::generate::SchemaSettings` instead."]
+    pub type SchemaSettings = crate::generate::SchemaSettings;
+    #[deprecated = "Only included for backward-compatibility - use `schemars::generate::GenTransform` instead."]
+    pub use crate::generate::GenTransform;
 }
 
 /// A type which can be described as a JSON Schema document.
@@ -166,12 +177,12 @@ pub trait JsonSchema {
     /// add them to the [`SchemaGenerator`]'s schema definitions.
     ///
     /// This should not return a `$ref` schema.
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema;
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema;
 
     // TODO document and bring into public API?
     #[doc(hidden)]
-    fn _schemars_private_non_optional_json_schema(gen: &mut SchemaGenerator) -> Schema {
-        Self::json_schema(gen)
+    fn _schemars_private_non_optional_json_schema(generator: &mut SchemaGenerator) -> Schema {
+        Self::json_schema(generator)
     }
 
     // TODO document and bring into public API?
