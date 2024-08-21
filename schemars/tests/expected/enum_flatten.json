@@ -23,8 +23,7 @@
           },
           "required": [
             "B"
-          ],
-          "additionalProperties": false
+          ]
         },
         {
           "type": "object",
@@ -35,8 +34,7 @@
           },
           "required": [
             "S"
-          ],
-          "additionalProperties": false
+          ]
         }
       ]
     },
@@ -53,8 +51,7 @@
           },
           "required": [
             "U"
-          ],
-          "additionalProperties": false
+          ]
         },
         {
           "type": "object",
@@ -66,8 +63,7 @@
           },
           "required": [
             "F"
-          ],
-          "additionalProperties": false
+          ]
         }
       ]
     },
@@ -82,8 +78,7 @@
           },
           "required": [
             "B2"
-          ],
-          "additionalProperties": false
+          ]
         },
         {
           "type": "object",
@@ -94,8 +89,7 @@
           },
           "required": [
             "S2"
-          ],
-          "additionalProperties": false
+          ]
         }
       ]
     },
@@ -112,8 +106,7 @@
           },
           "required": [
             "U2"
-          ],
-          "additionalProperties": false
+          ]
         },
         {
           "type": "object",
@@ -125,8 +118,7 @@
           },
           "required": [
             "F2"
-          ],
-          "additionalProperties": false
+          ]
         }
       ]
     }
@@ -141,8 +133,7 @@
       },
       "required": [
         "B3"
-      ],
-      "additionalProperties": false
+      ]
     },
     {
       "type": "object",
@@ -153,8 +144,7 @@
       },
       "required": [
         "S3"
-      ],
-      "additionalProperties": false
+      ]
     }
   ]
 }

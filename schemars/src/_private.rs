@@ -16,7 +16,53 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
         }
     }
 
+    allow_additional_properties(&mut schema);
+
     schema
+}
+
+// Ideally this would use the `Transform` trait, but we only want to recurse into subschemas that
+// apply to the top-level object, e.g. not into "properties"
+fn allow_additional_properties(schema: &mut Schema) {
+    if let Some(obj) = schema.as_object_mut() {
+        let mut remove_additional_properties = false;
+        let mut remove_unevaluated_properties = false;
+
+        for (key, value) in obj.iter_mut() {
+            match key.as_str() {
+                "not" | "if" | "then" | "else" => {
+                    if let Ok(subschema) = value.try_into() {
+                        allow_additional_properties(subschema);
+                    }
+                }
+                "allOf" | "anyOf" | "oneOf" => {
+                    if let Some(array) = value.as_array_mut() {
+                        for value in array {
+                            if let Ok(subschema) = value.try_into() {
+                                allow_additional_properties(subschema);
+                            }
+                        }
+                    }
+                }
+                "additionalProperties" if value.as_bool() == Some(false) => {
+                    // We can't remove the property while iterating - set a flag to do it later
+                    remove_additional_properties = true;
+                }
+                "unevaluatedProperties" if value.as_bool() == Some(false) => {
+                    // We can't remove the property while iterating - set a flag to do it later
+                    remove_unevaluated_properties = true;
+                }
+                _ => {}
+            }
+        }
+
+        if remove_additional_properties {
+            obj.remove("additionalProperties");
+        }
+        if remove_unevaluated_properties {
+            obj.remove("unevaluatedProperties");
+        }
+    }
 }
 
 /// Hack to simulate specialization:
@@ -182,16 +228,9 @@ pub fn apply_inner_validation(schema: &mut Schema, f: fn(&mut Schema) -> ()) {
 pub fn flatten(schema: &mut Schema, other: Schema) {
     fn flatten_property(obj1: &mut Map<String, Value>, key: String, value2: Value) {
         match obj1.entry(key) {
-            Entry::Vacant(vacant) => match vacant.key().as_str() {
-                "additionalProperties" | "unevaluatedProperties" => {
-                    if value2 != Value::Bool(false) {
-                        vacant.insert(value2);
-                    }
-                }
-                _ => {
-                    vacant.insert(value2);
-                }
-            },
+            Entry::Vacant(vacant) => {
+                vacant.insert(value2);
+            }
             Entry::Occupied(occupied) => {
                 match occupied.key().as_str() {
                     "required" | "allOf" => {
