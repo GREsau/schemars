@@ -18,6 +18,8 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
     }
 
     SemiRecursiveTransform(|schema: &mut Schema| {
+        // Always allow aditional/unevaluated properties, because the outer struct determines
+        // whether it denies unknown fields.
         if let Some(obj) = schema.as_object_mut() {
             if obj.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
                 obj.remove("additionalProperties");
@@ -214,13 +216,6 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
                             }
                         }
                     }
-                    "additionalProperties" | "unevaluatedProperties" => {
-                        // Even if an outer type has `deny_unknown_fields`, unknown fields
-                        // may be accepted by the flattened type
-                        if occupied.get() == &Value::Bool(false) {
-                            *occupied.into_mut() = value2;
-                        }
-                    }
                     "oneOf" | "anyOf" => {
                         // `OccupiedEntry` currently has no `.remove_entry()` method :(
                         let key = occupied.key().clone();
@@ -245,16 +240,49 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
     match other.try_to_object() {
         Err(false) => {}
         Err(true) => {
-            schema
-                .ensure_object()
-                .insert("unevaluatedProperties".to_owned(), true.into());
+            if let Some(obj) = schema.as_object_mut() {
+                if !obj.contains_key("additionalProperties")
+                    && !obj.contains_key("unevaluatedProperties")
+                {
+                    let key = if contains_immediate_subschema(obj) {
+                        "unevaluatedProperties"
+                    } else {
+                        "additionalProperties"
+                    };
+                    obj.insert(key.to_owned(), true.into());
+                }
+            }
         }
-        Ok(obj2) => {
+        Ok(mut obj2) => {
             let obj1 = schema.ensure_object();
+
+            // For complex merges, replace `additionalProperties` with `unevaluatedProperties`
+            // which usually "works out better".
+            normalise_additional_unevaluated_properties(obj1, &obj2);
+            normalise_additional_unevaluated_properties(&mut obj2, obj1);
 
             for (key, value2) in obj2 {
                 flatten_property(obj1, key, value2);
             }
         }
     }
+}
+
+fn normalise_additional_unevaluated_properties(
+    schema_obj1: &mut Map<String, Value>,
+    schema_obj2: &Map<String, Value>,
+) {
+    if schema_obj1.contains_key("additionalProperties")
+        && (schema_obj2.contains_key("unevaluatedProperties")
+            || contains_immediate_subschema(schema_obj2))
+    {
+        let ap = schema_obj1.remove("additionalProperties");
+        schema_obj1.insert("unevaluatedProperties".to_owned(), ap.into());
+    }
+}
+
+fn contains_immediate_subschema(schema_obj: &Map<String, Value>) -> bool {
+    ["if", "then", "else", "allOf", "anyOf", "oneOf", "$ref"]
+        .into_iter()
+        .any(|k| schema_obj.contains_key(k))
 }

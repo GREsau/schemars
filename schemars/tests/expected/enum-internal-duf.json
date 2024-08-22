@@ -23,7 +23,7 @@
           "const": "StringMap"
         }
       },
-      "unevaluatedProperties": {
+      "additionalProperties": {
         "type": "string"
       },
       "required": [
@@ -79,7 +79,7 @@
           "const": "Struct"
         }
       },
-      "unevaluatedProperties": false,
+      "additionalProperties": false,
       "required": [
         "typeProperty",
         "foo",

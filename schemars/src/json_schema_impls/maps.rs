@@ -21,7 +21,7 @@ macro_rules! map_impl {
             fn json_schema(generator: &mut SchemaGenerator) -> Schema {
                 json_schema!({
                     "type": "object",
-                    "unevaluatedProperties": generator.subschema_for::<V>(),
+                    "additionalProperties": generator.subschema_for::<V>(),
                 })
             }
         }

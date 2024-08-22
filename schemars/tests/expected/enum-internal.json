@@ -22,7 +22,7 @@
           "const": "StringMap"
         }
       },
-      "unevaluatedProperties": {
+      "additionalProperties": {
         "type": "string"
       },
       "required": [

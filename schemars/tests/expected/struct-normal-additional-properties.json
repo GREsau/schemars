@@ -17,7 +17,7 @@
       ]
     }
   },
-  "unevaluatedProperties": false,
+  "additionalProperties": false,
   "required": [
     "foo",
     "bar"

@@ -7,7 +7,7 @@
     },
     {
       "type": "object",
-      "unevaluatedProperties": {
+      "additionalProperties": {
         "type": "string"
       }
     },
@@ -28,7 +28,7 @@
           "type": "boolean"
         }
       },
-      "unevaluatedProperties": false,
+      "additionalProperties": false,
       "required": [
         "foo",
         "bar"

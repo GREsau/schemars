@@ -68,7 +68,7 @@
     },
     "map_contains": {
       "type": "object",
-      "unevaluatedProperties": {
+      "additionalProperties": {
         "type": "null"
       },
       "required": [
