@@ -1,5 +1,5 @@
 use crate::_alloc_prelude::*;
-use crate::transform::{SemiRecursiveTransform, Transform};
+use crate::transform::transform_immediate_subschemas;
 use crate::{JsonSchema, Schema, SchemaGenerator};
 use serde::Serialize;
 use serde_json::{json, map::Entry, Map, Value};
@@ -17,21 +17,24 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
         }
     }
 
-    SemiRecursiveTransform(|schema: &mut Schema| {
-        // Always allow aditional/unevaluated properties, because the outer struct determines
-        // whether it denies unknown fields.
-        if let Some(obj) = schema.as_object_mut() {
-            if obj.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
-                obj.remove("additionalProperties");
-            }
-            if obj.get("unevaluatedProperties").and_then(Value::as_bool) == Some(false) {
-                obj.remove("unevaluatedProperties");
-            }
-        }
-    })
-    .transform(&mut schema);
+    // Always allow aditional/unevaluated properties, because the outer struct determines
+    // whether it denies unknown fields.
+    allow_unknown_properties(&mut schema);
 
     schema
+}
+
+fn allow_unknown_properties(schema: &mut Schema) {
+    if let Some(obj) = schema.as_object_mut() {
+        if obj.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
+            obj.remove("additionalProperties");
+        }
+        if obj.get("unevaluatedProperties").and_then(Value::as_bool) == Some(false) {
+            obj.remove("unevaluatedProperties");
+        }
+
+        transform_immediate_subschemas(&mut allow_unknown_properties, schema);
+    }
 }
 
 /// Hack to simulate specialization:
