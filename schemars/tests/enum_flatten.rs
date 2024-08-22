@@ -1,10 +1,9 @@
 mod util;
-use schemars::JsonSchema;
+use schemars::{generate::SchemaSettings, JsonSchema};
 use util::*;
 
 #[allow(dead_code)]
 #[derive(JsonSchema)]
-#[schemars(rename = "Flat")]
 struct Flat {
     f: f32,
     #[schemars(flatten)]
@@ -57,4 +56,34 @@ enum Enum5 {
 #[test]
 fn test_flat_schema() -> TestResult {
     test_default_generated_schema::<Flat>("enum_flatten")
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+#[schemars(deny_unknown_fields)]
+struct FlatDenyUnknownFields {
+    f: f32,
+    #[schemars(flatten)]
+    e1: Enum1,
+    #[schemars(flatten)]
+    e2: Enum2,
+    #[schemars(flatten)]
+    e3: Enum3,
+    #[schemars(flatten)]
+    e4: Enum4,
+    #[schemars(flatten)]
+    e5: Enum5,
+}
+
+#[test]
+fn test_flat_schema_duf() -> TestResult {
+    test_default_generated_schema::<FlatDenyUnknownFields>("enum_flatten_duf")
+}
+
+#[test]
+fn test_flat_schema_duf_draft07() -> TestResult {
+    test_generated_schema::<FlatDenyUnknownFields>(
+        "enum_flatten_duf_draft07",
+        SchemaSettings::draft07(),
+    )
 }
