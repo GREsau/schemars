@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.10] - 2024-08-22
+
+### Fixed
+
+- Fix some cases of unsatisfiable schemas generated when flattening enums (https://github.com/GREsau/schemars/pull/325 / https://github.com/GREsau/schemars/issues/164 / https://github.com/GREsau/schemars/issues/165)
+
 ## [1.0.0-alpha.9] - 2024-08-21
 
 ### Added
