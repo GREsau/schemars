@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Flat",
+  "title": "FlatDenyUnknownFields",
   "type": "object",
   "properties": {
     "f": {
@@ -11,6 +11,7 @@
   "required": [
     "f"
   ],
+  "unevaluatedProperties": false,
   "allOf": [
     {
       "oneOf": [

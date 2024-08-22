@@ -114,7 +114,8 @@ assert_eq!(
 */
 use crate::Schema;
 use crate::_alloc_prelude::*;
-use serde_json::{json, Value};
+use alloc::collections::BTreeSet;
+use serde_json::{json, Map, Value};
 
 /// Trait used to modify a constructed schema and optionally its subschemas.
 ///
@@ -144,58 +145,83 @@ where
 
 /// Applies the given [`Transform`] to all direct subschemas of the [`Schema`].
 pub fn transform_subschemas<T: Transform + ?Sized>(t: &mut T, schema: &mut Schema) {
-    if let Some(obj) = schema.as_object_mut() {
-        for (key, value) in obj {
-            // This is intentionally written to work with multiple JSON Schema versions, so that
-            // users can add their own transforms on the end of e.g. `SchemaSettings::draft07()` and
-            // they will still apply to all subschemas "as expected".
-            // This is why this match statement contains both `additionalProperties` (which was
-            // dropped in draft 2020-12) and `prefixItems` (which was added in draft 2020-12).
-            match key.as_str() {
-                "not"
-                | "if"
-                | "then"
-                | "else"
-                | "contains"
-                | "additionalProperties"
-                | "propertyNames"
-                | "additionalItems" => {
-                    if let Ok(subschema) = value.try_into() {
-                        t.transform(subschema);
-                    }
+    for (key, value) in schema.as_object_mut().into_iter().flatten() {
+        // This is intentionally written to work with multiple JSON Schema versions, so that
+        // users can add their own transforms on the end of e.g. `SchemaSettings::draft07()` and
+        // they will still apply to all subschemas "as expected".
+        // This is why this match statement contains both `additionalProperties` (which was
+        // dropped in draft 2020-12) and `prefixItems` (which was added in draft 2020-12).
+        match key.as_str() {
+            "not"
+            | "if"
+            | "then"
+            | "else"
+            | "contains"
+            | "additionalProperties"
+            | "propertyNames"
+            | "additionalItems" => {
+                if let Ok(subschema) = value.try_into() {
+                    t.transform(subschema);
                 }
-                "allOf" | "anyOf" | "oneOf" | "prefixItems" => {
-                    if let Some(array) = value.as_array_mut() {
-                        for value in array {
-                            if let Ok(subschema) = value.try_into() {
-                                t.transform(subschema);
-                            }
-                        }
-                    }
-                }
-                // Support `items` array even though this is not allowed in draft 2020-12 (see above comment)
-                "items" => {
-                    if let Some(array) = value.as_array_mut() {
-                        for value in array {
-                            if let Ok(subschema) = value.try_into() {
-                                t.transform(subschema);
-                            }
-                        }
-                    } else if let Ok(subschema) = value.try_into() {
-                        t.transform(subschema);
-                    }
-                }
-                "properties" | "patternProperties" | "$defs" | "definitions" => {
-                    if let Some(obj) = value.as_object_mut() {
-                        for value in obj.values_mut() {
-                            if let Ok(subschema) = value.try_into() {
-                                t.transform(subschema);
-                            }
-                        }
-                    }
-                }
-                _ => {}
             }
+            "allOf" | "anyOf" | "oneOf" | "prefixItems" => {
+                if let Some(array) = value.as_array_mut() {
+                    for value in array {
+                        if let Ok(subschema) = value.try_into() {
+                            t.transform(subschema);
+                        }
+                    }
+                }
+            }
+            // Support `items` array even though this is not allowed in draft 2020-12 (see above comment)
+            "items" => {
+                if let Some(array) = value.as_array_mut() {
+                    for value in array {
+                        if let Ok(subschema) = value.try_into() {
+                            t.transform(subschema);
+                        }
+                    }
+                } else if let Ok(subschema) = value.try_into() {
+                    t.transform(subschema);
+                }
+            }
+            "properties" | "patternProperties" | "$defs" | "definitions" => {
+                if let Some(obj) = value.as_object_mut() {
+                    for value in obj.values_mut() {
+                        if let Ok(subschema) = value.try_into() {
+                            t.transform(subschema);
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+// Similar to `transform_subschemas`, but only transforms subschemas that apply to the top-level
+// object, e.g. "oneOf" but not "properties".
+pub(crate) fn transform_immediate_subschemas<T: Transform + ?Sized>(
+    t: &mut T,
+    schema: &mut Schema,
+) {
+    for (key, value) in schema.as_object_mut().into_iter().flatten() {
+        match key.as_str() {
+            "if" | "then" | "else" => {
+                if let Ok(subschema) = value.try_into() {
+                    t.transform(subschema);
+                }
+            }
+            "allOf" | "anyOf" | "oneOf" => {
+                if let Some(array) = value.as_array_mut() {
+                    for value in array {
+                        if let Ok(subschema) = value.try_into() {
+                            t.transform(subschema);
+                        }
+                    }
+                }
+            }
+            _ => {}
         }
     }
 }
@@ -367,5 +393,63 @@ impl Transform for ReplacePrefixItems {
                 }
             }
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ReplaceUnevaluatedProperties;
+
+impl Transform for ReplaceUnevaluatedProperties {
+    fn transform(&mut self, schema: &mut Schema) {
+        transform_subschemas(self, schema);
+
+        if let Some(obj) = schema.as_object_mut() {
+            if let Some(up) = obj.remove("unevaluatedProperties") {
+                obj.insert("additionalProperties".to_owned(), up);
+            } else {
+                return;
+            }
+        } else {
+            return;
+        }
+
+        let mut gather_property_names = GatherPropertyNames::default();
+        gather_property_names.transform(schema);
+        let property_names = gather_property_names.0;
+
+        if property_names.is_empty() {
+            return;
+        }
+
+        if let Some(properties) = schema
+            .ensure_object()
+            .entry("properties")
+            .or_insert(Map::new().into())
+            .as_object_mut()
+        {
+            for name in property_names {
+                properties.entry(name).or_insert(true.into());
+            }
+        }
+    }
+}
+
+// Helper for getting property names for all *immediate* subschemas
+#[derive(Default)]
+struct GatherPropertyNames(BTreeSet<String>);
+
+impl Transform for GatherPropertyNames {
+    fn transform(&mut self, schema: &mut Schema) {
+        self.0.extend(
+            schema
+                .as_object()
+                .iter()
+                .filter_map(|o| o.get("properties"))
+                .filter_map(Value::as_object)
+                .flat_map(Map::keys)
+                .cloned(),
+        );
+
+        transform_immediate_subschemas(self, schema);
     }
 }

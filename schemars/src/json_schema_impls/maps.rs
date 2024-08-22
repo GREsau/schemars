@@ -1,6 +1,5 @@
 use crate::_alloc_prelude::*;
-use crate::SchemaGenerator;
-use crate::{json_schema, JsonSchema, Schema};
+use crate::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use alloc::borrow::Cow;
 
 macro_rules! map_impl {

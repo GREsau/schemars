@@ -1,4 +1,5 @@
 use crate::_alloc_prelude::*;
+use crate::transform::transform_immediate_subschemas;
 use crate::{JsonSchema, Schema, SchemaGenerator};
 use serde::Serialize;
 use serde_json::{json, map::Entry, Map, Value};
@@ -16,7 +17,24 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
         }
     }
 
+    // Always allow aditional/unevaluated properties, because the outer struct determines
+    // whether it denies unknown fields.
+    allow_unknown_properties(&mut schema);
+
     schema
+}
+
+fn allow_unknown_properties(schema: &mut Schema) {
+    if let Some(obj) = schema.as_object_mut() {
+        if obj.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
+            obj.remove("additionalProperties");
+        }
+        if obj.get("unevaluatedProperties").and_then(Value::as_bool) == Some(false) {
+            obj.remove("unevaluatedProperties");
+        }
+
+        transform_immediate_subschemas(&mut allow_unknown_properties, schema);
+    }
 }
 
 /// Hack to simulate specialization:
@@ -182,16 +200,9 @@ pub fn apply_inner_validation(schema: &mut Schema, f: fn(&mut Schema) -> ()) {
 pub fn flatten(schema: &mut Schema, other: Schema) {
     fn flatten_property(obj1: &mut Map<String, Value>, key: String, value2: Value) {
         match obj1.entry(key) {
-            Entry::Vacant(vacant) => match vacant.key().as_str() {
-                "additionalProperties" | "unevaluatedProperties" => {
-                    if value2 != Value::Bool(false) {
-                        vacant.insert(value2);
-                    }
-                }
-                _ => {
-                    vacant.insert(value2);
-                }
-            },
+            Entry::Vacant(vacant) => {
+                vacant.insert(value2);
+            }
             Entry::Occupied(occupied) => {
                 match occupied.key().as_str() {
                     "required" | "allOf" => {
@@ -206,13 +217,6 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
                             if let Value::Object(o2) = value2 {
                                 o1.extend(o2);
                             }
-                        }
-                    }
-                    "additionalProperties" | "unevaluatedProperties" => {
-                        // Even if an outer type has `deny_unknown_fields`, unknown fields
-                        // may be accepted by the flattened type
-                        if occupied.get() == &Value::Bool(false) {
-                            *occupied.into_mut() = value2;
                         }
                     }
                     "oneOf" | "anyOf" => {
@@ -239,16 +243,49 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
     match other.try_to_object() {
         Err(false) => {}
         Err(true) => {
-            schema
-                .ensure_object()
-                .insert("additionalProperties".to_owned(), true.into());
+            if let Some(obj) = schema.as_object_mut() {
+                if !obj.contains_key("additionalProperties")
+                    && !obj.contains_key("unevaluatedProperties")
+                {
+                    let key = if contains_immediate_subschema(obj) {
+                        "unevaluatedProperties"
+                    } else {
+                        "additionalProperties"
+                    };
+                    obj.insert(key.to_owned(), true.into());
+                }
+            }
         }
-        Ok(obj2) => {
+        Ok(mut obj2) => {
             let obj1 = schema.ensure_object();
+
+            // For complex merges, replace `additionalProperties` with `unevaluatedProperties`
+            // which usually "works out better".
+            normalise_additional_unevaluated_properties(obj1, &obj2);
+            normalise_additional_unevaluated_properties(&mut obj2, obj1);
 
             for (key, value2) in obj2 {
                 flatten_property(obj1, key, value2);
             }
         }
     }
+}
+
+fn normalise_additional_unevaluated_properties(
+    schema_obj1: &mut Map<String, Value>,
+    schema_obj2: &Map<String, Value>,
+) {
+    if schema_obj1.contains_key("additionalProperties")
+        && (schema_obj2.contains_key("unevaluatedProperties")
+            || contains_immediate_subschema(schema_obj2))
+    {
+        let ap = schema_obj1.remove("additionalProperties");
+        schema_obj1.insert("unevaluatedProperties".to_owned(), ap.into());
+    }
+}
+
+fn contains_immediate_subschema(schema_obj: &Map<String, Value>) -> bool {
+    ["if", "then", "else", "allOf", "anyOf", "oneOf", "$ref"]
+        .into_iter()
+        .any(|k| schema_obj.contains_key(k))
 }
