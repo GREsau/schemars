@@ -262,7 +262,7 @@ where
         if let Some(obj) = schema.as_object_mut() {
             for (key, value) in obj.iter_mut() {
                 match key.as_str() {
-                    "not" | "if" | "then" | "else" => {
+                    "if" | "then" | "else" => {
                         if let Ok(subschema) = value.try_into() {
                             self.transform(subschema);
                         }
