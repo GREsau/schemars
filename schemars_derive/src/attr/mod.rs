@@ -10,7 +10,7 @@ use proc_macro2::{Group, Span, TokenStream, TokenTree};
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
 use syn::parse::{self, Parse};
-use syn::{LitStr, Meta, MetaNameValue};
+use syn::{Expr, LitStr, Meta, MetaNameValue};
 
 // FIXME using the same struct for containers+variants+fields means that
 //  with/schema_with are accepted (but ignored) on containers, and
@@ -19,15 +19,16 @@ use syn::{LitStr, Meta, MetaNameValue};
 #[derive(Debug, Default)]
 pub struct Attrs {
     pub with: Option<WithAttr>,
-    pub title: Option<String>,
-    pub description: Option<String>,
+    pub title: Option<Expr>,
+    pub description: Option<Expr>,
+    pub doc: Option<Expr>,
     pub deprecated: bool,
     pub examples: Vec<syn::Path>,
     pub repr: Option<syn::Type>,
     pub crate_name: Option<syn::Path>,
     pub is_renamed: bool,
     pub extensions: Vec<(String, TokenStream)>,
-    pub transforms: Vec<syn::Expr>,
+    pub transforms: Vec<Expr>,
 }
 
 #[derive(Debug)]
@@ -48,26 +49,15 @@ impl Attrs {
             .find(|a| a.path().is_ident("repr"))
             .and_then(|a| a.parse_args().ok());
 
-        let (doc_title, doc_description) = doc::get_title_and_desc_from_doc(attrs);
-        result.title = result.title.or(doc_title);
-        result.description = result.description.or(doc_description);
-
+        result.doc = doc::get_doc(attrs);
         result
     }
 
     pub fn as_metadata(&self) -> SchemaMetadata<'_> {
-        #[allow(clippy::ptr_arg)]
-        fn none_if_empty(s: &String) -> Option<&str> {
-            if s.is_empty() {
-                None
-            } else {
-                Some(s)
-            }
-        }
-
         SchemaMetadata {
-            title: self.title.as_ref().and_then(none_if_empty),
-            description: self.description.as_ref().and_then(none_if_empty),
+            doc: self.doc.as_ref(),
+            title: self.title.as_ref(),
+            description: self.description.as_ref(),
             deprecated: self.deprecated,
             examples: &self.examples,
             extensions: &self.extensions,
@@ -128,25 +118,15 @@ impl Attrs {
                     }
                 }
 
-                Meta::NameValue(m) if m.path.is_ident("title") => {
-                    if let Ok(title) = expr_as_lit_str(errors, attr_type, "title", &m.value) {
-                        match self.title {
-                            Some(_) => duplicate_error(m),
-                            None => self.title = Some(title.value()),
-                        }
-                    }
-                }
+                Meta::NameValue(m) if m.path.is_ident("title") => match self.title {
+                    Some(_) => duplicate_error(m),
+                    None => self.title = Some(m.value.clone()),
+                },
 
-                Meta::NameValue(m) if m.path.is_ident("description") => {
-                    if let Ok(description) =
-                        expr_as_lit_str(errors, attr_type, "description", &m.value)
-                    {
-                        match self.description {
-                            Some(_) => duplicate_error(m),
-                            None => self.description = Some(description.value()),
-                        }
-                    }
-                }
+                Meta::NameValue(m) if m.path.is_ident("description") => match self.description {
+                    Some(_) => duplicate_error(m),
+                    None => self.description = Some(m.value.clone()),
+                },
 
                 Meta::NameValue(m) if m.path.is_ident("example") => {
                     if let Ok(fun) = parse_lit_into_path(errors, attr_type, "example", &m.value) {
@@ -239,6 +219,7 @@ impl Attrs {
                 with: None,
                 title: None,
                 description: None,
+                doc: None,
                 deprecated: false,
                 examples,
                 repr: None,

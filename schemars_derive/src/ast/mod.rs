@@ -10,7 +10,6 @@ pub struct Container<'a> {
     pub serde_attrs: serde_derive_internals::attr::Container,
     pub data: Data<'a>,
     pub generics: syn::Generics,
-    pub original: &'a syn::DeriveInput,
     pub attrs: Attrs,
 }
 
