@@ -1,17 +1,18 @@
 use proc_macro2::TokenStream;
-use syn::spanned::Spanned;
+use syn::{spanned::Spanned, Expr};
 
 #[derive(Debug, Clone)]
 pub struct SchemaMetadata<'a> {
-    pub title: Option<&'a str>,
-    pub description: Option<&'a str>,
+    pub title: Option<&'a Expr>,
+    pub description: Option<&'a Expr>,
+    pub doc: Option<&'a Expr>,
     pub deprecated: bool,
     pub read_only: bool,
     pub write_only: bool,
     pub examples: &'a [syn::Path],
     pub default: Option<TokenStream>,
     pub extensions: &'a [(String, TokenStream)],
-    pub transforms: &'a [syn::Expr],
+    pub transforms: &'a [Expr],
 }
 
 impl<'a> SchemaMetadata<'a> {
@@ -35,14 +36,29 @@ impl<'a> SchemaMetadata<'a> {
     fn make_setters(&self) -> Vec<TokenStream> {
         let mut setters = Vec::<TokenStream>::new();
 
+        if let Some(doc) = &self.doc {
+            if self.title.is_none() || self.description.is_none() {
+                setters.push(quote!{
+                    const title_and_description: (&str, &str) = schemars::_private::get_title_and_description(#doc);
+                });
+            }
+        }
         if let Some(title) = &self.title {
             setters.push(quote! {
-                schemars::_private::insert_metadata_property(&mut schema, "title", #title);
+                schemars::_private::insert_metadata_property_if_nonempty(&mut schema, "title", #title);
+            });
+        } else if self.doc.is_some() {
+            setters.push(quote! {
+                schemars::_private::insert_metadata_property_if_nonempty(&mut schema, "title", title_and_description.0);
             });
         }
         if let Some(description) = &self.description {
             setters.push(quote! {
-                schemars::_private::insert_metadata_property(&mut schema, "description", #description);
+                schemars::_private::insert_metadata_property_if_nonempty(&mut schema, "description", #description);
+            });
+        } else if self.doc.is_some() {
+            setters.push(quote! {
+                schemars::_private::insert_metadata_property_if_nonempty(&mut schema, "description", title_and_description.1);
             });
         }
 

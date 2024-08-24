@@ -4,6 +4,10 @@ use crate::{JsonSchema, Schema, SchemaGenerator};
 use serde::Serialize;
 use serde_json::{json, map::Entry, Map, Value};
 
+mod rustdoc;
+
+pub use rustdoc::get_title_and_description;
+
 // Helper for generating schemas for flattened `Option` fields.
 pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
     generator: &mut SchemaGenerator,
@@ -159,6 +163,17 @@ pub fn insert_object_property<T: ?Sized + JsonSchema>(
 
 pub fn insert_metadata_property(schema: &mut Schema, key: &str, value: impl Into<Value>) {
     schema.ensure_object().insert(key.to_owned(), value.into());
+}
+
+pub fn insert_metadata_property_if_nonempty(
+    schema: &mut Schema,
+    key: &str,
+    value: impl Into<String>,
+) {
+    let value: String = value.into();
+    if !value.is_empty() {
+        insert_metadata_property(schema, key, value);
+    }
 }
 
 pub fn insert_validation_property(

@@ -315,16 +315,13 @@ impl Transform for RemoveRefSiblings {
     fn transform(&mut self, schema: &mut Schema) {
         transform_subschemas(self, schema);
 
-        if let Some(obj) = schema.as_object_mut() {
-            if obj.len() > 1 {
-                if let Some(ref_value) = obj.remove("$ref") {
-                    if let Value::Array(all_of) =
-                        obj.entry("allOf").or_insert(Value::Array(Vec::new()))
-                    {
-                        all_of.push(json!({
-                            "$ref": ref_value
-                        }));
-                    }
+        if let Some(obj) = schema.as_object_mut().filter(|o| o.len() > 1) {
+            if let Some(ref_value) = obj.remove("$ref") {
+                if let Value::Array(all_of) = obj.entry("allOf").or_insert(Value::Array(Vec::new()))
+                {
+                    all_of.push(json!({
+                        "$ref": ref_value
+                    }));
                 }
             }
         }
@@ -403,15 +400,14 @@ impl Transform for ReplaceUnevaluatedProperties {
     fn transform(&mut self, schema: &mut Schema) {
         transform_subschemas(self, schema);
 
-        if let Some(obj) = schema.as_object_mut() {
-            if let Some(up) = obj.remove("unevaluatedProperties") {
-                obj.insert("additionalProperties".to_owned(), up);
-            } else {
-                return;
-            }
-        } else {
+        let Some(obj) = schema.as_object_mut() else {
             return;
-        }
+        };
+        let Some(up) = obj.remove("unevaluatedProperties") else {
+            return;
+        };
+
+        obj.insert("additionalProperties".to_owned(), up);
 
         let mut gather_property_names = GatherPropertyNames::default();
         gather_property_names.transform(schema);
