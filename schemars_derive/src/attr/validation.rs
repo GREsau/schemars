@@ -1,13 +1,14 @@
-use super::{expr_as_lit_str, get_meta_items, parse_lit_into_path, parse_lit_str};
+use super::{expr_as_lit_str, get_meta_items, parse_lit_str};
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
 use syn::{
-    parse::Parser, punctuated::Punctuated, Expr, ExprPath, Lit, Meta, MetaList, MetaNameValue, Path,
+    parse::Parser, punctuated::Punctuated, Expr, ExprLit, ExprPath, Lit, Meta, MetaList,
+    MetaNameValue, Path,
 };
 
 pub(crate) static VALIDATION_KEYWORDS: &[&str] = &[
-    "range", "regex", "contains", "email", "phone", "url", "length", "required",
+    "range", "regex", "contains", "email", "phone", "url", "length", "required", "inner",
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -214,8 +215,7 @@ impl ValidationAttrs {
                         (Some(_), _) => duplicate_error(&nv.path),
                         (None, Some(_)) => mutual_exclusive_error(&nv.path, "contains"),
                         (None, None) => {
-                            self.regex =
-                                parse_lit_into_expr_path(errors, attr_type, "regex", &nv.value).ok()
+                            self.regex = parse_regex_expr(errors, nv.value);
                         }
                     }
                 }
@@ -230,10 +230,7 @@ impl ValidationAttrs {
                                     Meta::NameValue(MetaNameValue { path, value, .. })
                                         if path.is_ident("path") =>
                                     {
-                                        self.regex = parse_lit_into_expr_path(
-                                            errors, attr_type, "path", &value,
-                                        )
-                                        .ok()
+                                        self.regex = parse_regex_expr(errors, value);
                                     }
                                     Meta::NameValue(MetaNameValue { path, value, .. })
                                         if path.is_ident("pattern") =>
@@ -242,7 +239,7 @@ impl ValidationAttrs {
                                             expr_as_lit_str(errors, attr_type, "pattern", &value)
                                                 .ok()
                                                 .map(|litstr| {
-                                                    Expr::Lit(syn::ExprLit {
+                                                    Expr::Lit(ExprLit {
                                                         attrs: Vec::new(),
                                                         lit: Lit::Str(litstr.clone()),
                                                     })
@@ -316,7 +313,18 @@ impl ValidationAttrs {
                     }
                 },
 
-                _ => {}
+                _ if ignore_errors => {}
+
+                _ => {
+                    if let Some(ident) = meta_item.path().get_ident() {
+                        if VALIDATION_KEYWORDS.iter().any(|k| ident == k) {
+                            errors.error_spanned_by(
+                                &meta_item,
+                                format!("could not parse `{ident}` item in schemars attribute"),
+                            );
+                        }
+                    }
+                }
             }
         }
         self
@@ -405,21 +413,6 @@ impl ValidationAttrs {
     }
 }
 
-fn parse_lit_into_expr_path(
-    cx: &Ctxt,
-    attr_type: &'static str,
-    meta_item_name: &'static str,
-    lit: &Expr,
-) -> Result<Expr, ()> {
-    parse_lit_into_path(cx, attr_type, meta_item_name, lit).map(|path| {
-        Expr::Path(ExprPath {
-            attrs: Vec::new(),
-            qself: None,
-            path,
-        })
-    })
-}
-
 fn str_or_num_to_expr(cx: &Ctxt, meta_item_name: &str, expr: Expr) -> Option<Expr> {
     // this odd double-parsing is to make `-10` parsed as an Lit instead of an Expr::Unary
     let lit: Lit = match syn::parse2(expr.to_token_stream()) {
@@ -443,5 +436,15 @@ fn str_or_num_to_expr(cx: &Ctxt, meta_item_name: &str, expr: Expr) -> Option<Exp
             );
             None
         }
+    }
+}
+
+fn parse_regex_expr(cx: &Ctxt, value: Expr) -> Option<Expr> {
+    match value {
+        Expr::Lit(ExprLit {
+            lit: Lit::Str(litstr),
+            ..
+        }) => parse_lit_str(&litstr).map_err(|e| cx.syn_error(e)).ok(),
+        v => Some(v),
     }
 }
