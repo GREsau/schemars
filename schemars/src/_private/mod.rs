@@ -168,10 +168,10 @@ pub fn insert_metadata_property(schema: &mut Schema, key: &str, value: impl Into
 pub fn insert_metadata_property_if_nonempty(
     schema: &mut Schema,
     key: &str,
-    value: impl Into<Value>,
+    value: impl Into<String>,
 ) {
-    let value: Value = value.into();
-    if value.as_str() != Some("") {
+    let value: String = value.into();
+    if !value.is_empty() {
         insert_metadata_property(schema, key, value);
     }
 }
