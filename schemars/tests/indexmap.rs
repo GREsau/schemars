@@ -1,5 +1,5 @@
 mod util;
-use std::hash::RandomState;
+use std::collections::hash_map::RandomState;
 
 use indexmap2::{IndexMap, IndexSet};
 use schemars::JsonSchema;
