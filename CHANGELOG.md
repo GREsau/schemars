@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.12] - _in-dev_
+
+### Fixed
+
+- Allow `regex(path = ...)` value to be a non-string expression (https://github.com/GREsau/schemars/issues/302 / https://github.com/GREsau/schemars/pull/328)
+
 ## [1.0.0-alpha.11] - 2024-08-24
 
 ### Changed
