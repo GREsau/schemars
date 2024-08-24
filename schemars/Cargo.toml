@@ -15,7 +15,7 @@ rust-version = "1.65"
 [dependencies]
 schemars_derive = { version = "=1.0.0-alpha.11", optional = true, path = "../schemars_derive" }
 serde = { version = "1.0", default-features = false, features = ["alloc"]}
-serde_json = { version =  "1.0.122", default-features = false, features = ["alloc"] }
+serde_json = { version =  "1.0.127", default-features = false, features = ["alloc"] }
 dyn-clone = "1.0"
 ref-cast = "1.0.22"
 

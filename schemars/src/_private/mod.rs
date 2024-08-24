@@ -235,9 +235,7 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
                         }
                     }
                     "oneOf" | "anyOf" => {
-                        // `OccupiedEntry` currently has no `.remove_entry()` method :(
-                        let key = occupied.key().clone();
-                        let current = occupied.remove();
+                        let (key, current) = occupied.remove_entry();
                         flatten_property(
                             obj1,
                             "allOf".to_owned(),
