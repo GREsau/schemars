@@ -16,7 +16,7 @@ pub struct Struct {
     min_max: f32,
     #[validate(range(min = "MIN", max = "MAX"))]
     min_max2: f32,
-    #[validate(regex = "STARTS_WITH_HELLO")]
+    #[validate(regex = &*STARTS_WITH_HELLO)]
     regex_str1: String,
     #[validate(regex(path = "STARTS_WITH_HELLO", code = "foo"))]
     regex_str2: String,
