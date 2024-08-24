@@ -309,7 +309,7 @@ checksum = "1ad4cc8da4ef723ed60bced201181d83791ad433213d8c24efffda1eec85d741"
 
 [[package]]
 name = "schemars"
-version = "1.0.0-alpha.10"
+version = "1.0.0-alpha.11"
 dependencies = [
  "arrayvec",
  "bigdecimal",
@@ -335,7 +335,7 @@ dependencies = [
 
 [[package]]
 name = "schemars_derive"
-version = "1.0.0-alpha.10"
+version = "1.0.0-alpha.11"
 dependencies = [
  "pretty_assertions",
  "proc-macro2",

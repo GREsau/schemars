@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.0-alpha.11] - 2024-08-24
+
+### Changed
+
+- Values in `#[doc = ...]` and `#[schemars(description = ..., title = ...)]` attributes may now be any arbitrary expression rather than just string literals. (https://github.com/GREsau/schemars/issues/204 / https://github.com/GREsau/schemars/pull/327)
+- ⚠️ MSRV is now 1.65 ⚠️
+
 ## [1.0.0-alpha.10] - 2024-08-22
 
 ### Fixed
