@@ -458,9 +458,8 @@ impl SchemaGenerator {
         }
 
         let pointer = self.definitions_path_stripped();
-        let target = match json_pointer_mut(schema_object, pointer, true) {
-            Some(d) => d,
-            None => return,
+        let Some(target) = json_pointer_mut(schema_object, pointer, true) else {
+            return;
         };
 
         target.append(&mut definitions);
