@@ -272,6 +272,8 @@ Set on a container, variant or field to set the generated schema's `title` and/o
 
 Set on a container, variant or field to include the result of the given function in the generated schema's `examples`. The function should take no parameters and can return any type that implements serde's `Serialize` trait - it does not need to return the same type as the attached struct/field. This attribute can be repeated to specify multiple examples.
 
+To use the result of arbitrary expressions as examples, you can instead use the [`extend`](#extend) attribute, e.g. `[schemars(extend("examples" = ["example string"]))]`.
+
 <h3 id="deprecated">
 
 `#[deprecated]`
