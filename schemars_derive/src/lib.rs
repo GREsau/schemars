@@ -8,6 +8,7 @@ extern crate proc_macro;
 
 mod ast;
 mod attr;
+mod attr2;
 mod metadata;
 mod regex_syntax;
 mod schema_exprs;
