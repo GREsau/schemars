@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Adjacent",
+  "title": "AdjacentNoExtras",
   "properties": {
     "t": {
       "type": "string",
@@ -16,7 +16,6 @@
       ]
     }
   },
-  "additionalProperties": false,
   "allOf": [
     {
       "if": {
@@ -99,7 +98,6 @@
                 "format": "int32"
               }
             },
-            "additionalProperties": false,
             "required": [
               "foo",
               "bar"

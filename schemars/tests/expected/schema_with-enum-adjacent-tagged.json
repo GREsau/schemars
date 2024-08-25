@@ -1,97 +1,115 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Adjacent",
-  "oneOf": [
-    {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "Struct"
-          ]
-        },
-        "c": {
-          "type": "object",
-          "properties": {
-            "foo": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "foo"
-          ]
-        }
-      },
-      "required": [
-        "t",
-        "c"
-      ]
-    },
-    {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "NewType"
-          ]
-        },
-        "c": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "t",
-        "c"
-      ]
-    },
-    {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "Tuple"
-          ]
-        },
-        "c": {
-          "type": "array",
-          "prefixItems": [
-            {
-              "type": "boolean"
-            },
-            {
-              "type": "integer",
-              "format": "int32"
-            }
-          ],
-          "minItems": 2,
-          "maxItems": 2
-        }
-      },
-      "required": [
-        "t",
-        "c"
-      ]
-    },
-    {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "enum": [
-            "Unit"
-          ]
-        },
-        "c": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "t",
-        "c"
+  "properties": {
+    "t": {
+      "type": "string",
+      "enum": [
+        "Struct",
+        "NewType",
+        "Tuple",
+        "Unit"
       ]
     }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "t": {
+            "const": "Struct"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "c": {
+            "type": "object",
+            "properties": {
+              "foo": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "foo"
+            ]
+          }
+        },
+        "required": [
+          "c"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "t": {
+            "const": "NewType"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "c": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "c"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "t": {
+            "const": "Tuple"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "c": {
+            "type": "array",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer",
+                "format": "int32"
+              }
+            ]
+          }
+        },
+        "required": [
+          "c"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "t": {
+            "const": "Unit"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "c": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "c"
+        ]
+      }
+    }
+  ],
+  "required": [
+    "t"
   ]
 }
