@@ -1,6 +1,8 @@
 mod from_serde;
 
-use crate::attr2::{ContainerAttrs, FieldAttrs, VariantAttrs};
+use crate::attr::{ContainerAttrs, FieldAttrs, VariantAttrs};
+use crate::idents::SCHEMA;
+use crate::schema_exprs::SchemaExpr;
 use from_serde::FromSerde;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::{Ctxt, Derive};
@@ -65,6 +67,10 @@ impl<'a> Container<'a> {
         let orig_name = self.ident.to_string();
         name.serialize_name() != orig_name || name.deserialize_name() != orig_name
     }
+
+    pub fn add_mutators(&self, expr: &mut SchemaExpr) {
+        self.attrs.common.add_mutators(expr);
+    }
 }
 
 impl<'a> Variant<'a> {
@@ -75,10 +81,29 @@ impl<'a> Variant<'a> {
     pub fn is_unit(&self) -> bool {
         matches!(self.style, serde_ast::Style::Unit)
     }
+
+    pub fn add_mutators(&self, expr: &mut SchemaExpr) {
+        self.attrs.common.add_mutators(expr);
+    }
 }
 
 impl<'a> Field<'a> {
     pub fn name(&self) -> &str {
         self.serde_attrs.name().deserialize_name()
+    }
+
+    pub fn add_mutators(&self, expr: &mut SchemaExpr) {
+        self.attrs.common.add_mutators(expr);
+
+        if self.serde_attrs.skip_deserializing() {
+            expr.add_mutator(quote! {
+                schemars::_private::insert_metadata_property(&mut #SCHEMA, "readOnly", true);
+            });
+        }
+        if self.serde_attrs.skip_serializing() {
+            expr.add_mutator(quote! {
+                schemars::_private::insert_metadata_property(&mut #SCHEMA, "writeOnly", true);
+            });
+        }
     }
 }

@@ -134,6 +134,10 @@ pub fn parse_length_or_range(outer_meta: Meta, cx: &AttrCtxt) -> Result<LengthOr
     Ok(result)
 }
 
+pub fn parse_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+    todo!()
+}
+
 pub fn parse_nested_meta(meta: Meta, cx: &AttrCtxt) -> Result<impl IntoIterator<Item = Meta>, ()> {
     let parser = Punctuated::<Meta, Token![,]>::parse_terminated;
     parse_meta_list(meta, cx, parser)

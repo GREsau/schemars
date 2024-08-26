@@ -211,12 +211,12 @@ Validator docs: [range](https://github.com/Keats/validator#range)
 
 <h3 id="regex">
 
-`#[validate(regex = "path::to::regex")]` / `#[schemars(regex = "path::to::regex")]`<br />
+`#[validate(regex(path = *static_regex)]`<br />
 `#[schemars(regex(pattern = r"^\d+$"))]`
 
 </h3>
 
-Sets the `pattern` property for string schemas. The `path::to::regex` will typically refer to a [`Regex`](https://docs.rs/regex/*/regex/struct.Regex.html) instance, but Schemars allows it to be any value with a `to_string()` method.
+Sets the `pattern` property for string schemas. The `static_regex` will typically refer to a [`Regex`](https://docs.rs/regex/*/regex/struct.Regex.html) instance, but Schemars allows it to be any value with a `to_string()` method.
 
 Providing an inline regex pattern using `regex(pattern = ...)` is a Schemars extension, and not currently supported by the Validator crate. When using this form, you may want to use a `r"raw string literal"` so that `\\` characters in the regex pattern are not interpreted as escape sequences in the string.
 
@@ -224,7 +224,7 @@ Validator docs: [regex](https://github.com/Keats/validator#regex)
 
 <h3 id="contains">
 
-`#[validate(contains = "string")]` / `#[schemars(contains = "string")]`
+`#[validate(contains(pattern = "string"))]` / `#[schemars(contains(pattern = "string"))]`
 
 </h3>
 

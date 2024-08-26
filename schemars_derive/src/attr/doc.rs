@@ -1,21 +1,15 @@
 use proc_macro2::TokenStream;
-use quote::ToTokens;
+use quote::TokenStreamExt;
 use syn::Attribute;
 
 pub fn get_doc(attrs: &[Attribute]) -> Option<syn::Expr> {
-    let joiner = quote! {, "\n",};
     let mut macro_args: TokenStream = TokenStream::new();
 
-    for nv in attrs
+    let lines = attrs
         .iter()
         .filter(|a| a.path().is_ident("doc"))
-        .filter_map(|a| a.meta.require_name_value().ok())
-    {
-        if !macro_args.is_empty() {
-            macro_args.extend(joiner.clone());
-        }
-        macro_args.extend(nv.value.to_token_stream());
-    }
+        .flat_map(|a| a.meta.require_name_value());
+    macro_args.append_separated(lines, quote!(, "\n",));
 
     if macro_args.is_empty() {
         None

@@ -8,12 +8,13 @@ extern crate proc_macro;
 
 mod ast;
 mod attr;
-mod attr2;
+mod idents;
 mod metadata;
 mod regex_syntax;
 mod schema_exprs;
 
 use ast::*;
+use idents::GENERATOR;
 use proc_macro2::TokenStream;
 use syn::spanned::Spanned;
 
@@ -71,12 +72,12 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                         <#ty as schemars::JsonSchema>::schema_id()
                     }
 
-                    fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-                        <#ty as schemars::JsonSchema>::json_schema(generator)
+                    fn json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                        <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
                     }
 
-                    fn _schemars_private_non_optional_json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
-                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(generator)
+                    fn _schemars_private_non_optional_json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#GENERATOR)
                     }
 
                     fn _schemars_private_is_option() -> bool {
@@ -189,7 +190,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                     #schema_id
                 }
 
-                fn json_schema(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                fn json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
                     #schema_expr
                 }
             };
