@@ -4,6 +4,7 @@ use crate::{JsonSchema, Schema, SchemaGenerator};
 use serde::Serialize;
 use serde_json::{json, map::Entry, Map, Value};
 
+mod regex_syntax;
 mod rustdoc;
 
 pub use rustdoc::get_title_and_description;
@@ -134,6 +135,8 @@ pub fn apply_internal_enum_variant_tag(
     }
 }
 
+// TODO this shouldn't need to take a type param - just alter the callers
+// to adjust `required` according to T::_schemars_private_is_option()
 pub fn insert_object_property<T: ?Sized + JsonSchema>(
     schema: &mut Schema,
     key: &str,
@@ -187,14 +190,21 @@ pub fn insert_validation_property(
     }
 }
 
-pub fn append_required(schema: &mut Schema, key: &str) {
+pub fn must_contain(schema: &mut Schema, contain: String) {
+    if schema.has_type("string") {
+        let pattern = regex_syntax::escape(&contain);
+        schema
+            .ensure_object()
+            .insert("pattern".to_owned(), pattern.into());
+    }
+
     if schema.has_type("object") {
         if let Value::Array(array) = schema
             .ensure_object()
             .entry("required")
             .or_insert(Value::Array(Vec::new()))
         {
-            let value = Value::from(key);
+            let value = Value::from(contain);
             if !array.contains(&value) {
                 array.push(value);
             }

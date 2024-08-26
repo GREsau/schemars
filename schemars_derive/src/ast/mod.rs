@@ -2,8 +2,8 @@ mod from_serde;
 
 use crate::attr::{ContainerAttrs, FieldAttrs, VariantAttrs};
 use crate::idents::SCHEMA;
-use crate::schema_exprs::SchemaExpr;
 use from_serde::FromSerde;
+use proc_macro2::TokenStream;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::{Ctxt, Derive};
 
@@ -68,8 +68,8 @@ impl<'a> Container<'a> {
         name.serialize_name() != orig_name || name.deserialize_name() != orig_name
     }
 
-    pub fn add_mutators(&self, expr: &mut SchemaExpr) {
-        self.attrs.common.add_mutators(expr);
+    pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
+        self.attrs.common.add_mutators(mutators);
     }
 }
 
@@ -82,8 +82,8 @@ impl<'a> Variant<'a> {
         matches!(self.style, serde_ast::Style::Unit)
     }
 
-    pub fn add_mutators(&self, expr: &mut SchemaExpr) {
-        self.attrs.common.add_mutators(expr);
+    pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
+        self.attrs.common.add_mutators(mutators);
     }
 }
 
@@ -92,16 +92,17 @@ impl<'a> Field<'a> {
         self.serde_attrs.name().deserialize_name()
     }
 
-    pub fn add_mutators(&self, expr: &mut SchemaExpr) {
-        self.attrs.common.add_mutators(expr);
+    pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
+        self.attrs.common.add_mutators(mutators);
+        self.attrs.validation.add_mutators(mutators);
 
         if self.serde_attrs.skip_deserializing() {
-            expr.add_mutator(quote! {
+            mutators.push(quote! {
                 schemars::_private::insert_metadata_property(&mut #SCHEMA, "readOnly", true);
             });
         }
         if self.serde_attrs.skip_serializing() {
-            expr.add_mutator(quote! {
+            mutators.push(quote! {
                 schemars::_private::insert_metadata_property(&mut #SCHEMA, "writeOnly", true);
             });
         }

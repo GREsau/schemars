@@ -1,10 +1,12 @@
-use syn::{Attribute, Expr, Ident, Meta};
+use proc_macro2::TokenStream;
+use syn::{Attribute, Expr, Meta};
 
-use crate::schema_exprs::SchemaExpr;
+use crate::idents::SCHEMA;
 
 use super::{
     parse_meta::{
-        parse_length_or_range, parse_nested_meta, parse_regex, require_path_only, LengthOrRange,
+        parse_contains, parse_length_or_range, parse_nested_meta, parse_regex, require_path_only,
+        LengthOrRange,
     },
     AttrCtxt,
 };
@@ -44,14 +46,79 @@ pub struct ValidationAttrs {
     pub length: Option<LengthOrRange>,
     pub range: Option<LengthOrRange>,
     pub regex: Option<Expr>,
-    pub contains: Option<String>,
+    pub contains: Option<Expr>,
     pub required: bool,
     pub format: Option<Format>,
     pub inner: Option<Box<ValidationAttrs>>,
 }
 
 impl ValidationAttrs {
-    pub fn add_mutators(&self, expr: &mut SchemaExpr) {}
+    pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
+        self.add_mutators2(mutators, &quote!(&mut #SCHEMA));
+    }
+
+    fn add_mutators2(&self, mutators: &mut Vec<TokenStream>, mut_ref_schema: &TokenStream) {
+        if let Some(length) = &self.length {
+            Self::add_length_or_range(length, mutators, "string", "Length", mut_ref_schema);
+            Self::add_length_or_range(length, mutators, "array", "Items", mut_ref_schema);
+        }
+
+        if let Some(range) = &self.range {
+            Self::add_length_or_range(range, mutators, "number", "imum", mut_ref_schema);
+        }
+
+        if let Some(regex) = &self.regex {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property(#mut_ref_schema, "string", "pattern", #regex.to_string());
+            });
+        }
+
+        if let Some(contains) = &self.contains {
+            mutators.push(quote! {
+                schemars::_private::must_contain(#mut_ref_schema, #contains.to_string());
+            });
+        }
+
+        if let Some(format) = &self.format {
+            let f = format.schema_str();
+            mutators.push(quote! {
+                (#mut_ref_schema).ensure_object().insert("format".into(), #f.into());
+            })
+        };
+
+        if let Some(inner) = &self.inner {
+            let mut inner_mutators = Vec::new();
+            inner.add_mutators2(&mut inner_mutators, &quote!(inner_schema));
+
+            if !inner_mutators.is_empty() {
+                mutators.push(quote! {
+                    schemars::_private::apply_inner_validation(#mut_ref_schema, |inner_schema| { #(#inner_mutators)* });
+                })
+            }
+        }
+    }
+
+    fn add_length_or_range(
+        value: &LengthOrRange,
+        mutators: &mut Vec<TokenStream>,
+        required_format: &str,
+        key_suffix: &str,
+        mut_ref_schema: &TokenStream,
+    ) {
+        if let Some(min) = value.min.as_ref().or(value.equal.as_ref()) {
+            let key = format!("min{key_suffix}");
+            mutators.push(quote!{
+                schemars::_private::insert_validation_property(#mut_ref_schema, #required_format, #key, #min);
+            });
+        }
+
+        if let Some(max) = value.max.as_ref().or(value.equal.as_ref()) {
+            let key = format!("max{key_suffix}");
+            mutators.push(quote!{
+                schemars::_private::insert_validation_property(#mut_ref_schema, #required_format, #key, #max);
+            });
+        }
+    }
 
     pub(super) fn populate(&mut self, attrs: &[Attribute], schemars_cx: &mut AttrCtxt) {
         self.process_attr(schemars_cx);
@@ -89,7 +156,11 @@ impl ValidationAttrs {
                 (_, Some(_)) => cx.mutual_exclusive_error(&meta, "contains"),
                 (None, None) => self.regex = parse_regex(meta, cx).ok(),
             },
-            "contains" => todo!(),
+            "contains" => match (&self.regex, &self.contains) {
+                (Some(_), _) => cx.mutual_exclusive_error(&meta, "regex"),
+                (_, Some(_)) => cx.duplicate_error(&meta),
+                (None, None) => self.contains = parse_contains(meta, cx).ok(),
+            },
 
             "inner" => {
                 if let Ok(nested_meta) = parse_nested_meta(meta, cx) {

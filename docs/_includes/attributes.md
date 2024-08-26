@@ -211,7 +211,7 @@ Validator docs: [range](https://github.com/Keats/validator#range)
 
 <h3 id="regex">
 
-`#[validate(regex(path = *static_regex)]`<br />
+`#[validate(regex(path = *static_regex)]` / `#[schemars(regex(path = *static_regex)]`<br />
 `#[schemars(regex(pattern = r"^\d+$"))]`
 
 </h3>

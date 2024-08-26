@@ -9,8 +9,6 @@ extern crate proc_macro;
 mod ast;
 mod attr;
 mod idents;
-mod metadata;
-mod regex_syntax;
 mod schema_exprs;
 
 use ast::*;

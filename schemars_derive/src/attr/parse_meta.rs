@@ -2,7 +2,7 @@ use proc_macro2::{TokenStream, TokenTree};
 use syn::{
     parse::{Parse, ParseStream, Parser},
     punctuated::Punctuated,
-    Expr, ExprLit, Ident, Lit, LitStr, Meta, MetaNameValue,
+    Expr, ExprLit, Lit, LitStr, Meta, MetaNameValue,
 };
 
 use super::{path_str, AttrCtxt};
@@ -94,13 +94,7 @@ pub fn parse_length_or_range(outer_meta: Meta, cx: &AttrCtxt) -> Result<LengthOr
     let mut result = LengthOrRange::default();
 
     for nested_meta in parse_nested_meta(outer_meta, cx)? {
-        match nested_meta
-            .path()
-            .get_ident()
-            .map(Ident::to_string)
-            .unwrap_or_default()
-            .as_str()
-        {
+        match path_str(nested_meta.path()).as_str() {
             "min" => match (&result.min, &result.equal) {
                 (Some(_), _) => cx.duplicate_error(&nested_meta),
                 (_, Some(_)) => cx.mutual_exclusive_error(&nested_meta, "equal"),
@@ -122,8 +116,7 @@ pub fn parse_length_or_range(outer_meta: Meta, cx: &AttrCtxt) -> Result<LengthOr
                     cx.error_spanned_by(
                         nested_meta,
                         format_args!(
-                            "unknown item in schemars {} attribute: `{}`",
-                            outer_name, unknown
+                            "unknown item in schemars {outer_name} attribute: `{unknown}`",
                         ),
                     );
                 }
@@ -135,7 +128,66 @@ pub fn parse_length_or_range(outer_meta: Meta, cx: &AttrCtxt) -> Result<LengthOr
 }
 
 pub fn parse_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
-    todo!()
+    let mut path = None;
+    let mut pattern = None;
+
+    for nested_meta in parse_nested_meta(outer_meta.clone(), cx)? {
+        match path_str(nested_meta.path()).as_str() {
+            "path" => match (&path, &pattern) {
+                (Some(_), _) => cx.duplicate_error(&nested_meta),
+                (_, Some(_)) => cx.mutual_exclusive_error(&nested_meta, "pattern"),
+                _ => path = parse_name_value_expr_handle_lit_str(nested_meta, cx).ok(),
+            },
+            "pattern" => match (&path, &pattern) {
+                (Some(_), _) => cx.mutual_exclusive_error(&nested_meta, "path"),
+                (_, Some(_)) => cx.duplicate_error(&nested_meta),
+                _ => pattern = parse_name_value_expr(nested_meta, cx).ok(),
+            },
+            unknown => {
+                if cx.attr_type == "schemars" {
+                    cx.error_spanned_by(
+                        nested_meta,
+                        format_args!("unknown item in schemars `regex` attribute: `{unknown}`"),
+                    );
+                }
+            }
+        }
+    }
+
+    path.or(pattern).ok_or_else(|| {
+        cx.error_spanned_by(
+            outer_meta,
+            "`regex` attribute item requires `pattern = ...` or `path = ...`",
+        )
+    })
+}
+
+pub fn parse_contains(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+    let mut pattern = None;
+
+    for nested_meta in parse_nested_meta(outer_meta.clone(), cx)? {
+        match path_str(nested_meta.path()).as_str() {
+            "pattern" => match &pattern {
+                Some(_) => cx.duplicate_error(&nested_meta),
+                None => pattern = parse_name_value_expr(nested_meta, cx).ok(),
+            },
+            unknown => {
+                if cx.attr_type == "schemars" {
+                    cx.error_spanned_by(
+                        nested_meta,
+                        format_args!("unknown item in schemars `contains` attribute: `{unknown}`"),
+                    );
+                }
+            }
+        }
+    }
+
+    pattern.ok_or_else(|| {
+        cx.error_spanned_by(
+            outer_meta,
+            "`contains` attribute item requires `pattern = ...`",
+        )
+    })
 }
 
 pub fn parse_nested_meta(meta: Meta, cx: &AttrCtxt) -> Result<impl IntoIterator<Item = Meta>, ()> {

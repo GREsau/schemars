@@ -12,7 +12,6 @@ use syn::{punctuated::Punctuated, Attribute, Expr, ExprLit, Lit, Meta, Path, Typ
 use validation::ValidationAttrs;
 
 use crate::idents::SCHEMA;
-use crate::schema_exprs::SchemaExpr;
 
 pub use schemars_to_serde::process_serde_attrs;
 
@@ -139,12 +138,12 @@ impl CommonAttrs {
         )
     }
 
-    pub fn add_mutators(&self, expr: &mut SchemaExpr) {
+    pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
         let mut title = self.title.as_ref().map(ToTokens::to_token_stream);
         let mut description = self.description.as_ref().map(ToTokens::to_token_stream);
         if let Some(doc) = &self.doc {
             if title.is_none() || description.is_none() {
-                expr.add_mutator(quote!{
+                mutators.push(quote!{
                     const title_and_description: (&str, &str) = schemars::_private::get_title_and_description(#doc);
                 });
                 title.get_or_insert_with(|| quote!(title_and_description.0));
@@ -152,19 +151,19 @@ impl CommonAttrs {
             }
         }
         if let Some(title) = title {
-            expr.add_mutator(quote! {
+            mutators.push(quote! {
                 schemars::_private::insert_metadata_property_if_nonempty(&mut #SCHEMA, "title", #title);
             });
         }
         if let Some(description) = description {
-            expr.add_mutator(quote! {
+            mutators.push(quote! {
                 schemars::_private::insert_metadata_property_if_nonempty(&mut #SCHEMA, "description", #description);
             });
         }
 
         if self.deprecated {
-            expr.add_mutator(quote! {
-                schemars::_private::insert_metadata_property(&mut schema, "deprecated", true);
+            mutators.push(quote! {
+                schemars::_private::insert_metadata_property(&mut #SCHEMA, "deprecated", true);
             });
         }
 
@@ -174,14 +173,20 @@ impl CommonAttrs {
                     schemars::_serde_json::value::to_value(#eg())
                 }
             });
-            expr.add_mutator(quote! {
-                schemars::_private::insert_metadata_property(&mut schema, "examples", schemars::_serde_json::Value::Array([#(#examples),*].into_iter().flatten().collect()));
+            mutators.push(quote! {
+                schemars::_private::insert_metadata_property(&mut #SCHEMA, "examples", schemars::_serde_json::Value::Array([#(#examples),*].into_iter().flatten().collect()));
             });
         }
 
         for (k, v) in &self.extensions {
-            expr.add_mutator(quote! {
-                schemars::_private::insert_metadata_property(&mut schema, #k, schemars::_serde_json::json!(#v));
+            mutators.push(quote! {
+                schemars::_private::insert_metadata_property(&mut #SCHEMA, #k, schemars::_serde_json::json!(#v));
+            });
+        }
+
+        for transform in &self.transforms {
+            mutators.push(quote! {
+                schemars::transform::Transform::transform(&mut #transform, &mut #SCHEMA);
             });
         }
     }
@@ -411,7 +416,7 @@ impl<'a> AttrCtxt<'a> {
 impl Drop for AttrCtxt<'_> {
     fn drop(&mut self) {
         if self.attr_type == "schemars" {
-            for unhandled_meta in &self.metas {
+            for unhandled_meta in self.metas.iter().filter(|m| !is_known_serde_keyword(m)) {
                 self.error_spanned_by(
                     unhandled_meta.path(),
                     format_args!(
@@ -422,4 +427,12 @@ impl Drop for AttrCtxt<'_> {
             }
         }
     }
+}
+
+fn is_known_serde_keyword(meta: &Meta) -> bool {
+    let known_keywords = schemars_to_serde::SERDE_KEYWORDS;
+    meta.path()
+        .get_ident()
+        .map(|i| known_keywords.contains(&i.to_string().as_str()))
+        .unwrap_or(false)
 }

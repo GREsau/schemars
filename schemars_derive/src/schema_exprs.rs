@@ -15,12 +15,6 @@ pub struct SchemaExpr {
     mutators: Vec<TokenStream>,
 }
 
-impl SchemaExpr {
-    pub fn add_mutator(&mut self, mutator: TokenStream) {
-        self.mutators.push(mutator);
-    }
-}
-
 impl From<TokenStream> for SchemaExpr {
     fn from(creator: TokenStream) -> Self {
         Self {
@@ -68,7 +62,7 @@ pub fn expr_for_container(cont: &Container) -> SchemaExpr {
         Data::Enum(variants) => expr_for_enum(variants, &cont.serde_attrs),
     };
 
-    cont.add_mutators(&mut schema_expr);
+    cont.add_mutators(&mut schema_expr.mutators);
     schema_expr
 }
 
@@ -98,7 +92,7 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
     let enum_ident = &cont.ident;
     let variant_idents = variants.iter().map(|v| &v.ident);
 
-    let mut schema_expr = quote!({
+    let mut schema_expr = SchemaExpr::from(quote!({
         let mut map = schemars::_serde_json::Map::new();
         map.insert("type".into(), "integer".into());
         map.insert(
@@ -110,10 +104,9 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
             }),
         );
         schemars::Schema::from(map)
-    })
-    .into();
+    }));
 
-    cont.add_mutators(&mut schema_expr);
+    cont.add_mutators(&mut schema_expr.mutators);
 
     Ok(schema_expr)
 }
@@ -137,7 +130,7 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> SchemaExpr {
     });
 
     schema_expr.definitions.extend(type_def);
-    field.add_mutators(&mut schema_expr);
+    field.add_mutators(&mut schema_expr.mutators);
 
     schema_expr
 }
@@ -257,7 +250,7 @@ fn expr_for_external_tagged_enum<'a>(
                 }
             });
 
-        variant.add_mutators(&mut schema_expr);
+        variant.add_mutators(&mut schema_expr.mutators);
 
         schema_expr
     }));
@@ -280,11 +273,11 @@ fn expr_for_internal_tagged_enum<'a>(
             let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
 
             let name = variant.name();
-            schema_expr.add_mutator(quote!(
+            schema_expr.mutators.push(quote!(
                 schemars::_private::apply_internal_enum_variant_tag(&mut #SCHEMA, #tag_name, #name, #deny_unknown_fields);
             ));
 
-            variant.add_mutators(&mut schema_expr);
+            variant.add_mutators(&mut schema_expr.mutators);
 
             schema_expr
         })
@@ -301,7 +294,7 @@ fn expr_for_untagged_enum<'a>(
         .map(|variant| {
             let mut schema_expr = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
 
-            variant.add_mutators(&mut schema_expr);
+            variant.add_mutators(&mut schema_expr.mutators);
 
             schema_expr
         })
@@ -371,7 +364,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
                 #set_additional_properties
             })));
 
-            variant.add_mutators(&mut outer_schema);
+            variant.add_mutators(&mut outer_schema.mutators);
 
             outer_schema
         })
@@ -520,19 +513,21 @@ fn expr_for_struct(
                     }
                 });
 
-                field.add_mutators(&mut schema_expr);
+                field.add_mutators(&mut schema_expr.mutators);
                 if let Some(default) = field_default_expr(field, set_container_default.is_some()) {
-                    schema_expr.add_mutator(quote! {
+                    schema_expr.mutators.push(quote! {
                         #default.and_then(|d| schemars::_schemars_maybe_to_value!(d))
                             .map(|d| schemars::_private::insert_metadata_property(&mut #SCHEMA, "default", d));
                     })
                 }
 
-                schema_expr.definitions.extend(type_def);
-
-                quote!{
+                // embed `#type_def` outside of `#schema_expr`, because it's used as the type param
+                // (i.e. `#type_def` is the definition of `#ty`)
+                quote!({
+                    #type_def
                     schemars::_private::insert_object_property::<#ty>(&mut #SCHEMA, #name, #has_default, #required, #schema_expr);
-                }}
+                })
+            }
             })
         .collect();
 
