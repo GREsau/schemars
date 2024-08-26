@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{ast::*, attr::WithAttr, metadata::SchemaMetadata};
+use crate::{ast::*, attr2::WithAttr, metadata::SchemaMetadata};
 use proc_macro2::{Span, TokenStream};
 use serde_derive_internals::ast::Style;
 use serde_derive_internals::attr::{self as serde_attr, Default as SerdeDefault, TagType};
@@ -72,7 +72,7 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     let span = field.original.span();
     let generator = quote!(generator);
 
-    let mut schema_expr = if field.validation_attrs.required() {
+    let mut schema_expr = if field.attrs.validation.required {
         quote_spanned! {span=>
             <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#generator)
         }
@@ -87,7 +87,7 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> TokenStream {
     };
 
     prepend_type_def(type_def, &mut schema_expr);
-    field.validation_attrs.apply_to_schema(&mut schema_expr);
+    field.attrs.validation.apply_to_schema(&mut schema_expr);
 
     schema_expr
 }
@@ -447,7 +447,7 @@ fn expr_for_struct(
             if field.serde_attrs.flatten() {
                 let (ty, type_def) = type_for_field_schema(field);
 
-                let required = field.validation_attrs.required();
+                let required = field.attrs.validation.required;
 
                 let args = quote!(generator, #required);
                 let mut schema_expr = quote_spanned! {ty.span()=>
@@ -466,7 +466,7 @@ fn expr_for_struct(
                 let (ty, type_def) = type_for_field_schema(field);
 
                 let has_default = default.is_some();
-                let required = field.validation_attrs.required();
+                let required = field.attrs.validation.required;
 
                 let metadata = SchemaMetadata {
                     read_only: field.serde_attrs.skip_deserializing(),
@@ -476,7 +476,7 @@ fn expr_for_struct(
                 };
 
                 let generator = quote!(generator);
-                let mut schema_expr = if field.validation_attrs.required() {
+                let mut schema_expr = if field.attrs.validation.required {
                     quote_spanned! {ty.span()=>
                         <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#generator)
                     }
@@ -487,7 +487,7 @@ fn expr_for_struct(
                 };
 
                 metadata.apply_to_schema(&mut schema_expr);
-                field.validation_attrs.apply_to_schema(&mut schema_expr);
+                field.attrs.validation.apply_to_schema(&mut schema_expr);
 
                 quote! {
                     {

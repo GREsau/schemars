@@ -1,6 +1,6 @@
 mod from_serde;
 
-use crate::attr::{Attrs, ValidationAttrs};
+use crate::attr2::{ContainerAttrs, FieldAttrs, VariantAttrs};
 use from_serde::FromSerde;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::{Ctxt, Derive};
@@ -10,7 +10,7 @@ pub struct Container<'a> {
     pub serde_attrs: serde_derive_internals::attr::Container,
     pub data: Data<'a>,
     pub generics: syn::Generics,
-    pub attrs: Attrs,
+    pub attrs: ContainerAttrs,
 }
 
 pub enum Data<'a> {
@@ -24,7 +24,7 @@ pub struct Variant<'a> {
     pub style: serde_ast::Style,
     pub fields: Vec<Field<'a>>,
     pub original: &'a syn::Variant,
-    pub attrs: Attrs,
+    pub attrs: VariantAttrs,
 }
 
 pub struct Field<'a> {
@@ -32,8 +32,7 @@ pub struct Field<'a> {
     pub serde_attrs: serde_derive_internals::attr::Field,
     pub ty: &'a syn::Type,
     pub original: &'a syn::Field,
-    pub attrs: Attrs,
-    pub validation_attrs: ValidationAttrs,
+    pub attrs: FieldAttrs,
 }
 
 impl<'a> Container<'a> {
@@ -59,6 +58,12 @@ impl<'a> Container<'a> {
         }
 
         None
+    }
+
+    pub fn is_renamed(&self) -> bool {
+        let name = self.serde_attrs.name();
+        let orig_name = self.ident.to_string();
+        name.serialize_name() != orig_name || name.deserialize_name() != orig_name
     }
 }
 

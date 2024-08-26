@@ -23,12 +23,12 @@ TABLE OF CONTENTS
    - [`with`](#with)
    - [`bound`](#bound)
 1. [Supported Validator Attributes](#supported-validator-attributes)
-   - [`email` / `phone` / `url`](#email-phone-url)
+   - [`email` / `url`](#email-url)
    - [`length`](#length)
    - [`range`](#range)
    - [`regex`](#regex)
    - [`contains`](#contains)
-   - [`required` / `required_nested`](#required)
+   - [`required`](#required)
 1. [Other Attributes](#other-attributes)
    - [`schema_with`](#schema_with)
    - [`title` / `description`](#title-description)
@@ -177,17 +177,16 @@ Serde docs: [container](https://serde.rs/container-attrs.html#bound)
 
 <div class="indented">
 
-<h3 id="email-phone-url">
+<h3 id="email-url">
 
 `#[validate(email)]` / `#[schemars(email)]`<br />
-`#[validate(phone)]` / `#[schemars(phone)]`<br />
 `#[validate(url)]` / `#[schemars(url)]`
 
 </h3>
 
-Sets the schema's `format` to `email`/`phone`/`uri`, as appropriate. Only one of these attributes may be present on a single field.
+Sets the schema's `format` to `email`/`uri`, as appropriate. Only one of these attributes may be present on a single field.
 
-Validator docs: [email](https://github.com/Keats/validator#email) / [phone](https://github.com/Keats/validator#phone) / [url](https://github.com/Keats/validator#url)
+Validator docs: [email](https://github.com/Keats/validator#email) / [url](https://github.com/Keats/validator#url)
 
 <h3 id="length">
 
@@ -236,13 +235,12 @@ Validator docs: [contains](https://github.com/Keats/validator#contains)
 <h3 id="required">
 
 `#[validate(required)]` / `#[schemars(required)]`<br />
-`#[validate(required_nested)]`
 
 </h3>
 
 When set on an `Option<T>` field, this will create a schemas as though the field were a `T`.
 
-Validator docs: [required](https://github.com/Keats/validator#required) / [required_nested](https://github.com/Keats/validator#required_nested)
+Validator docs: [required](https://github.com/Keats/validator#required)
 
 </div>
 
