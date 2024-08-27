@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.13] - 2024-08-27
+
+### Fixed
+
+- Fix compile errors when using `#[validate(regex(path = *expr))]` attribute
+
 ## [1.0.0-alpha.12] - 2024-08-27
 
 ### Fixed
