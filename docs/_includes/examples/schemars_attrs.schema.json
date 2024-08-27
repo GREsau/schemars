@@ -42,7 +42,7 @@
       "anyOf": [
         {
           "type": "string",
-          "format": "phone"
+          "format": "email"
         },
         {
           "type": "object",

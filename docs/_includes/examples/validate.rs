@@ -11,7 +11,7 @@ pub struct MyStruct {
 
 #[derive(JsonSchema)]
 pub enum MyEnum {
-    StringNewType(#[validate(phone)] String),
+    StringNewType(#[validate(email)] String),
     StructVariant {
         #[validate(length(min = 1, max = 100))]
         floats: Vec<f32>,

@@ -19,7 +19,7 @@
           "properties": {
             "StringNewType": {
               "type": "string",
-              "format": "phone"
+              "format": "email"
             }
           },
           "additionalProperties": false,
