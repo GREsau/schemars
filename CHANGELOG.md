@@ -5,6 +5,7 @@
 ### Fixed
 
 - Allow `regex(path = ...)` value to be a non-string expression (https://github.com/GREsau/schemars/issues/302 / https://github.com/GREsau/schemars/pull/328)
+- Respect `#[serde(rename_all_fields = ...)]` attribute (https://github.com/GREsau/schemars/issues/273 / https://github.com/GREsau/schemars/pull/304)
 
 ### Changed (_⚠️ possibly-breaking changes ⚠️_)
 
