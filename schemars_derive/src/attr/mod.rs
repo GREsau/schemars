@@ -354,7 +354,7 @@ fn path_str(path: &Path) -> String {
         .unwrap_or_else(|| path.into_token_stream().to_string().replace(' ', ""))
 }
 
-struct AttrCtxt<'a> {
+pub struct AttrCtxt<'a> {
     inner: &'a Ctxt,
     attr_type: &'static str,
     metas: Vec<Meta>,
