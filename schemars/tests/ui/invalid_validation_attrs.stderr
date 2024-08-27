@@ -46,26 +46,50 @@ error: expected validate contains attribute item to be of the form `contains(...
 15 |         contains = "bar",
    |         ^^^^^^^^^^^^^^^^
 
-error: expected schemars regex attribute item to be of the form `regex(...)`
-  --> tests/ui/invalid_validation_attrs.rs:27:9
+error: `pattern` is not supported in `validate(regex(...))` attribute - use either `validate(regex(path = ...))` or `schemars(regex(pattern = ...))` instead
+  --> tests/ui/invalid_validation_attrs.rs:16:15
    |
-27 |         regex = "foo",
+16 |         regex(pattern = "baz"),
+   |               ^^^^^^^^^^^^^^^
+
+error: `validate(regex(...))` attribute requires `path = ...`
+  --> tests/ui/invalid_validation_attrs.rs:16:9
+   |
+16 |         regex(pattern = "baz"),
+   |         ^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected schemars regex attribute item to be of the form `regex(...)`
+  --> tests/ui/invalid_validation_attrs.rs:28:9
+   |
+28 |         regex = "foo",
    |         ^^^^^^^^^^^^^
 
 error: expected schemars contains attribute item to be of the form `contains(...)`
-  --> tests/ui/invalid_validation_attrs.rs:28:9
+  --> tests/ui/invalid_validation_attrs.rs:29:9
    |
-28 |         contains = "bar",
+29 |         contains = "bar",
    |         ^^^^^^^^^^^^^^^^
 
-error: schemars attribute cannot contain both `url` and `email`
-  --> tests/ui/invalid_validation_attrs.rs:32:9
+error: `path` is not supported in `schemars(regex(...))` attribute - use `schemars(regex(pattern = ...))` instead
+  --> tests/ui/invalid_validation_attrs.rs:30:15
    |
-32 |         url
+30 |         regex(path = "baz"),
+   |               ^^^^^^^^^^^^
+
+error: `schemars(regex(...))` attribute requires `pattern = ...`
+  --> tests/ui/invalid_validation_attrs.rs:30:9
+   |
+30 |         regex(path = "baz"),
+   |         ^^^^^^^^^^^^^^^^^^^
+
+error: schemars attribute cannot contain both `url` and `email`
+  --> tests/ui/invalid_validation_attrs.rs:34:9
+   |
+34 |         url
    |         ^^^
 
 error: unknown schemars attribute `phone`
-  --> tests/ui/invalid_validation_attrs.rs:30:9
+  --> tests/ui/invalid_validation_attrs.rs:32:9
    |
-30 |         phone,
+32 |         phone,
    |         ^^^^^

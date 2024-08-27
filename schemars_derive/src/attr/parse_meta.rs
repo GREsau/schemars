@@ -127,37 +127,57 @@ pub fn parse_length_or_range(outer_meta: Meta, cx: &AttrCtxt) -> Result<LengthOr
     Ok(result)
 }
 
-pub fn parse_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
-    let mut path = None;
+pub fn parse_schemars_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
     let mut pattern = None;
 
     for nested_meta in parse_nested_meta(outer_meta.clone(), cx)? {
         match path_str(nested_meta.path()).as_str() {
-            "path" => match (&path, &pattern) {
-                (Some(_), _) => cx.duplicate_error(&nested_meta),
-                (_, Some(_)) => cx.mutual_exclusive_error(&nested_meta, "pattern"),
-                _ => path = parse_name_value_expr_handle_lit_str(nested_meta, cx).ok(),
+            "pattern" => match &pattern {
+                Some(_) => cx.duplicate_error(&nested_meta),
+                None => pattern = parse_name_value_expr(nested_meta, cx).ok(),
             },
-            "pattern" => match (&path, &pattern) {
-                (Some(_), _) => cx.mutual_exclusive_error(&nested_meta, "path"),
-                (_, Some(_)) => cx.duplicate_error(&nested_meta),
-                _ => pattern = parse_name_value_expr(nested_meta, cx).ok(),
+            "path" => {
+                cx.error_spanned_by(nested_meta, "`path` is not supported in `schemars(regex(...))` attribute - use `schemars(regex(pattern = ...))` instead")
             },
             unknown => {
-                if cx.attr_type == "schemars" {
-                    cx.error_spanned_by(
-                        nested_meta,
-                        format_args!("unknown item in schemars `regex` attribute: `{unknown}`"),
-                    );
-                }
+                cx.error_spanned_by(
+                    nested_meta,
+                    format_args!("unknown item in schemars `regex` attribute: `{unknown}`"),
+                );
             }
         }
     }
 
-    path.or(pattern).ok_or_else(|| {
+    pattern.ok_or_else(|| {
         cx.error_spanned_by(
             outer_meta,
-            "`regex` attribute item requires `pattern = ...` or `path = ...`",
+            "`schemars(regex(...))` attribute requires `pattern = ...`",
+        )
+    })
+}
+
+pub fn parse_validate_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+    let mut path = None;
+
+    for nested_meta in parse_nested_meta(outer_meta.clone(), cx)? {
+        match path_str(nested_meta.path()).as_str() {
+            "path" => match &path{
+                Some(_) => cx.duplicate_error(&nested_meta),
+                None => path = parse_name_value_expr_handle_lit_str(nested_meta, cx).ok(),
+            },
+            "pattern" => {
+                cx.error_spanned_by(nested_meta, "`pattern` is not supported in `validate(regex(...))` attribute - use either `validate(regex(path = ...))` or `schemars(regex(pattern = ...))` instead")
+            },
+            _ => {
+                // ignore unknown properties in `validate` attribute
+            }
+        }
+    }
+
+    path.ok_or_else(|| {
+        cx.error_spanned_by(
+            outer_meta,
+            "`validate(regex(...))` attribute requires `path = ...`",
         )
     })
 }

@@ -5,8 +5,8 @@ use crate::idents::SCHEMA;
 
 use super::{
     parse_meta::{
-        parse_contains, parse_length_or_range, parse_nested_meta, parse_regex, require_path_only,
-        LengthOrRange,
+        parse_contains, parse_length_or_range, parse_nested_meta, parse_schemars_regex,
+        parse_validate_regex, require_path_only, LengthOrRange,
     },
     AttrCtxt,
 };
@@ -36,7 +36,7 @@ impl Format {
         match s {
             "email" => Format::Email,
             "url" => Format::Uri,
-            _ => panic!("Invalid format attr string `{}`. This is a bug in schemars, please raise an issue!", s),
+            _ => panic!("Invalid format attr string `{s}`. This is a bug in schemars, please raise an issue!"),
         }
     }
 }
@@ -151,10 +151,12 @@ impl ValidationAttrs {
                 }
             }
 
-            "regex" => match (&self.regex, &self.contains) {
-                (Some(_), _) => cx.duplicate_error(&meta),
-                (_, Some(_)) => cx.mutual_exclusive_error(&meta, "contains"),
-                (None, None) => self.regex = parse_regex(meta, cx).ok(),
+            "regex" => match (&self.regex, &self.contains, cx.attr_type) {
+                (Some(_), _, _) => cx.duplicate_error(&meta),
+                (_, Some(_), _) => cx.mutual_exclusive_error(&meta, "contains"),
+                (None, None, "schemars") => self.regex = parse_schemars_regex(meta, cx).ok(),
+                (None, None, "validate") => self.regex = parse_validate_regex(meta, cx).ok(),
+                (None, None, wat) => panic!("Unexpected attr type `{wat}` for regex item. This is a bug in schemars, please raise an issue!"),
             },
             "contains" => match (&self.regex, &self.contains) {
                 (Some(_), _) => cx.mutual_exclusive_error(&meta, "regex"),

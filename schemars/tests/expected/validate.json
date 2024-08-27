@@ -23,10 +23,6 @@
       "type": "string",
       "pattern": "^[Hh]ello\\b"
     },
-    "regex_str3": {
-      "type": "string",
-      "pattern": "^\\d+$"
-    },
     "contains_str1": {
       "type": "string",
       "pattern": "substring\\.\\.\\."
@@ -84,7 +80,6 @@
     "min_max2",
     "regex_str1",
     "regex_str2",
-    "regex_str3",
     "contains_str1",
     "contains_str2",
     "email_address",

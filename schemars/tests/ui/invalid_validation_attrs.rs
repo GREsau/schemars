@@ -13,6 +13,7 @@ pub struct Struct3(
     #[validate(
         regex = "foo",
         contains = "bar",
+        regex(pattern = "baz"),
         regex(path = "baz"),
         phone,
         email,
@@ -27,6 +28,7 @@ pub struct Struct4(
         regex = "foo",
         contains = "bar",
         regex(path = "baz"),
+        regex(pattern = "baz"),
         phone,
         email,
         url

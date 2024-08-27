@@ -20,8 +20,6 @@ pub struct Struct {
     regex_str1: String,
     #[validate(regex(path = "STARTS_WITH_HELLO", code = "foo"))]
     regex_str2: String,
-    #[validate(regex(pattern = r"^\d+$"))]
-    regex_str3: String,
     #[validate(contains(pattern = "substring..."))]
     contains_str1: String,
     #[validate(contains(pattern = "substring...", message = "bar"))]
@@ -65,12 +63,10 @@ pub struct Struct2 {
     #[schemars(range(min = "MIN", max = "MAX"))]
     min_max2: f32,
     #[validate(regex(path = overridden))]
-    #[schemars(regex(path = &*STARTS_WITH_HELLO))]
+    #[schemars(regex(pattern = &*STARTS_WITH_HELLO))]
     regex_str1: String,
-    #[schemars(regex(path = "STARTS_WITH_HELLO"))]
-    regex_str2: String,
     #[schemars(regex(pattern = r"^\d+$"))]
-    regex_str3: String,
+    regex_str2: String,
     #[validate(contains(pattern = "overridden"))]
     #[schemars(contains(pattern = "substring..."))]
     contains_str1: String,
