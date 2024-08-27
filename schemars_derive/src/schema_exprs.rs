@@ -437,7 +437,7 @@ fn expr_for_internal_tagged_enum_variant(
 
 fn expr_for_unit_struct() -> SchemaExpr {
     quote! {
-        generator.subschema_for::<()>()
+        #GENERATOR.subschema_for::<()>()
     }
     .into()
 }
@@ -485,10 +485,8 @@ fn expr_for_struct(
                 let (ty, type_def) = type_for_field_schema(field);
 
                 let required = field.attrs.validation.required;
-
-                let args = quote!(generator, #required);
                 let mut schema_expr = SchemaExpr::from(quote_spanned! {ty.span()=>
-                    schemars::_private::json_schema_for_flatten::<#ty>(#args)
+                    schemars::_private::json_schema_for_flatten::<#ty>(#GENERATOR, #required)
                 });
 
                 schema_expr.definitions.extend(type_def);
