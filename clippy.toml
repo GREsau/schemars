@@ -1,1 +1,1 @@
-doc-valid-idents = ["OpenAPI", ".."]
+doc-valid-idents = ["OpenAPI", "serde_json", ".."]
