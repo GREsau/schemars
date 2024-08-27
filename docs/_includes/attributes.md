@@ -14,6 +14,7 @@ TABLE OF CONTENTS
 1. [Supported Serde Attributes](#supported-serde-attributes)
    - [`rename`](#rename)
    - [`rename_all`](#rename_all)
+   - [`rename_all_fields`](#rename_all_fields)
    - [`tag` / `content` / `untagged`](#tag)
    - [`default`](#default)
    - [`skip`](#skip)
@@ -66,6 +67,16 @@ Serde docs: [container](https://serde.rs/container-attrs.html#rename) / [variant
 Set on a struct, enum or variant to rename all fields according to the given case convention (see the Serde docs for details).
 
 Serde docs: [container](https://serde.rs/container-attrs.html#rename_all) / [variant](https://serde.rs/variant-attrs.html#rename_all)
+
+<h3 id="rename_all_fields">
+
+`#[serde(rename_all_fields = "...")]` / `#[schemars(rename_all_fields = "...")]`
+
+</h3>
+
+Set on an enum to rename all fields of all struct-style variants according to the given case convention (see the Serde docs for details).
+
+Serde docs: [container](https://serde.rs/container-attrs.html#rename_all)
 
 <h3 id="tag" style="line-height: 1.5">
 
