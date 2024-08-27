@@ -67,7 +67,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
 
     // Copy appropriate #[schemars(...)] attributes to #[serde(...)] attributes
     let (mut serde_meta, mut schemars_meta_names): (Vec<_>, HashSet<_>) =
-        get_meta_items(attrs, "schemars", ctxt, false)
+        get_meta_items(attrs, "schemars", ctxt)
             .into_iter()
             .filter_map(|meta| {
                 let keyword = get_meta_ident(&meta)?;
@@ -85,7 +85,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
     }
 
     // Re-add #[serde(...)] attributes that weren't overridden by #[schemars(...)] attributes
-    for meta in get_meta_items(&serde_attrs, "serde", ctxt, false) {
+    for meta in get_meta_items(&serde_attrs, "serde", ctxt) {
         if let Some(i) = get_meta_ident(&meta) {
             if !schemars_meta_names.contains(&i)
                 && SERDE_KEYWORDS.contains(&i.as_ref())

@@ -23,12 +23,12 @@ TABLE OF CONTENTS
    - [`with`](#with)
    - [`bound`](#bound)
 1. [Supported Validator Attributes](#supported-validator-attributes)
-   - [`email` / `phone` / `url`](#email-phone-url)
+   - [`email` / `url`](#email-url)
    - [`length`](#length)
    - [`range`](#range)
    - [`regex`](#regex)
    - [`contains`](#contains)
-   - [`required` / `required_nested`](#required)
+   - [`required`](#required)
 1. [Other Attributes](#other-attributes)
    - [`schema_with`](#schema_with)
    - [`title` / `description`](#title-description)
@@ -177,17 +177,16 @@ Serde docs: [container](https://serde.rs/container-attrs.html#bound)
 
 <div class="indented">
 
-<h3 id="email-phone-url">
+<h3 id="email-url">
 
 `#[validate(email)]` / `#[schemars(email)]`<br />
-`#[validate(phone)]` / `#[schemars(phone)]`<br />
 `#[validate(url)]` / `#[schemars(url)]`
 
 </h3>
 
-Sets the schema's `format` to `email`/`phone`/`uri`, as appropriate. Only one of these attributes may be present on a single field.
+Sets the schema's `format` to `email`/`uri`, as appropriate. Only one of these attributes may be present on a single field.
 
-Validator docs: [email](https://github.com/Keats/validator#email) / [phone](https://github.com/Keats/validator#phone) / [url](https://github.com/Keats/validator#url)
+Validator docs: [email](https://github.com/Keats/validator#email) / [url](https://github.com/Keats/validator#url)
 
 <h3 id="length">
 
@@ -212,20 +211,20 @@ Validator docs: [range](https://github.com/Keats/validator#range)
 
 <h3 id="regex">
 
-`#[validate(regex = "path::to::regex")]` / `#[schemars(regex = "path::to::regex")]`<br />
-`#[schemars(regex(pattern = r"^\d+$"))]`
+`#[validate(regex(path = *static_regex)]`<br />
+`#[schemars(regex(pattern = r"^\d+$"))]` / `#[schemars(regex(pattern = *static_regex))]`
 
 </h3>
 
-Sets the `pattern` property for string schemas. The `path::to::regex` will typically refer to a [`Regex`](https://docs.rs/regex/*/regex/struct.Regex.html) instance, but Schemars allows it to be any value with a `to_string()` method.
+Sets the `pattern` property for string schemas. The `static_regex` will typically refer to a [`Regex`](https://docs.rs/regex/*/regex/struct.Regex.html) instance, but Schemars allows it to be any value with a `to_string()` method.
 
-Providing an inline regex pattern using `regex(pattern = ...)` is a Schemars extension, and not currently supported by the Validator crate. When using this form, you may want to use a `r"raw string literal"` so that `\\` characters in the regex pattern are not interpreted as escape sequences in the string.
+`regex(pattern = ...)` is a Schemars extension, and not currently supported by the Validator crate. When using this form, you may want to use a `r"raw string literal"` so that `\\` characters in the regex pattern are not interpreted as escape sequences in the string. Using the `path` form is not allowed in a `#[schemars(...)]` attribute.
 
 Validator docs: [regex](https://github.com/Keats/validator#regex)
 
 <h3 id="contains">
 
-`#[validate(contains = "string")]` / `#[schemars(contains = "string")]`
+`#[validate(contains(pattern = "string"))]` / `#[schemars(contains(pattern = "string"))]`
 
 </h3>
 
@@ -236,13 +235,12 @@ Validator docs: [contains](https://github.com/Keats/validator#contains)
 <h3 id="required">
 
 `#[validate(required)]` / `#[schemars(required)]`<br />
-`#[validate(required_nested)]`
 
 </h3>
 
 When set on an `Option<T>` field, this will create a schemas as though the field were a `T`.
 
-Validator docs: [required](https://github.com/Keats/validator#required) / [required_nested](https://github.com/Keats/validator#required_nested)
+Validator docs: [required](https://github.com/Keats/validator#required)
 
 </div>
 

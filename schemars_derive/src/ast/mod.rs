@@ -1,7 +1,9 @@
 mod from_serde;
 
-use crate::attr::{Attrs, ValidationAttrs};
+use crate::attr::{ContainerAttrs, FieldAttrs, VariantAttrs};
+use crate::idents::SCHEMA;
 use from_serde::FromSerde;
+use proc_macro2::TokenStream;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::{Ctxt, Derive};
 
@@ -10,7 +12,7 @@ pub struct Container<'a> {
     pub serde_attrs: serde_derive_internals::attr::Container,
     pub data: Data<'a>,
     pub generics: syn::Generics,
-    pub attrs: Attrs,
+    pub attrs: ContainerAttrs,
 }
 
 pub enum Data<'a> {
@@ -24,7 +26,7 @@ pub struct Variant<'a> {
     pub style: serde_ast::Style,
     pub fields: Vec<Field<'a>>,
     pub original: &'a syn::Variant,
-    pub attrs: Attrs,
+    pub attrs: VariantAttrs,
 }
 
 pub struct Field<'a> {
@@ -32,8 +34,7 @@ pub struct Field<'a> {
     pub serde_attrs: serde_derive_internals::attr::Field,
     pub ty: &'a syn::Type,
     pub original: &'a syn::Field,
-    pub attrs: Attrs,
-    pub validation_attrs: ValidationAttrs,
+    pub attrs: FieldAttrs,
 }
 
 impl<'a> Container<'a> {
@@ -60,6 +61,10 @@ impl<'a> Container<'a> {
 
         None
     }
+
+    pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
+        self.attrs.common.add_mutators(mutators);
+    }
 }
 
 impl<'a> Variant<'a> {
@@ -70,10 +75,30 @@ impl<'a> Variant<'a> {
     pub fn is_unit(&self) -> bool {
         matches!(self.style, serde_ast::Style::Unit)
     }
+
+    pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
+        self.attrs.common.add_mutators(mutators);
+    }
 }
 
 impl<'a> Field<'a> {
     pub fn name(&self) -> &str {
         self.serde_attrs.name().deserialize_name()
+    }
+
+    pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
+        self.attrs.common.add_mutators(mutators);
+        self.attrs.validation.add_mutators(mutators);
+
+        if self.serde_attrs.skip_deserializing() {
+            mutators.push(quote! {
+                schemars::_private::insert_metadata_property(&mut #SCHEMA, "readOnly", true);
+            });
+        }
+        if self.serde_attrs.skip_serializing() {
+            mutators.push(quote! {
+                schemars::_private::insert_metadata_property(&mut #SCHEMA, "writeOnly", true);
+            });
+        }
     }
 }

@@ -1,4 +1,5 @@
 #![allow(clippy::all)]
+use crate::_alloc_prelude::*;
 // Copied from regex_syntax crate to avoid pulling in the whole crate just for a utility function
 // https://github.com/rust-lang/regex/blob/431c4e4867e1eb33eb39b23ed47c9934b2672f8f/regex-syntax/src/lib.rs
 //

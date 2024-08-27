@@ -6,6 +6,14 @@
 
 - Allow `regex(path = ...)` value to be a non-string expression (https://github.com/GREsau/schemars/issues/302 / https://github.com/GREsau/schemars/pull/328)
 
+### Changed (_⚠️ possibly-breaking changes ⚠️_)
+
+- Invalid attributes that were previously silently ignored (e.g. setting `schema_with` on structs) will now cause compile errors
+- Validation attribute parsing has been altered to match the latest version of the validator crate:
+  - Remove the `phone` attribute
+  - Remove the `required_nested` attribute
+  - `regex` and `contains` attributes must now be specified in list form `#[validate(regex(path = ...))]` rather than name/value form `#[validate(regex = ...)]`
+
 ## [1.0.0-alpha.11] - 2024-08-24
 
 ### Changed

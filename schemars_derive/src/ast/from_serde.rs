@@ -1,5 +1,4 @@
 use super::*;
-use crate::attr::Attrs;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::Ctxt;
 
@@ -26,8 +25,7 @@ impl<'a> FromSerde for Container<'a> {
             serde_attrs: serde.attrs,
             data: Data::from_serde(errors, serde.data)?,
             generics: serde.generics.clone(),
-            // FIXME this allows with/schema_with attribute on containers
-            attrs: Attrs::new(&serde.original.attrs, errors),
+            attrs: ContainerAttrs::new(&serde.original.attrs, errors),
         })
     }
 }
@@ -57,7 +55,7 @@ impl<'a> FromSerde for Variant<'a> {
             style: serde.style,
             fields: Field::vec_from_serde(errors, serde.fields)?,
             original: serde.original,
-            attrs: Attrs::new(&serde.original.attrs, errors),
+            attrs: VariantAttrs::new(&serde.original.attrs, errors),
         })
     }
 }
@@ -71,8 +69,7 @@ impl<'a> FromSerde for Field<'a> {
             serde_attrs: serde.attrs,
             ty: serde.ty,
             original: serde.original,
-            attrs: Attrs::new(&serde.original.attrs, errors),
-            validation_attrs: ValidationAttrs::new(&serde.original.attrs, errors),
+            attrs: FieldAttrs::new(&serde.original.attrs, errors),
         })
     }
 }

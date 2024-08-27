@@ -4,6 +4,7 @@ use crate::{JsonSchema, Schema, SchemaGenerator};
 use serde::Serialize;
 use serde_json::{json, map::Entry, Map, Value};
 
+mod regex_syntax;
 mod rustdoc;
 
 pub use rustdoc::get_title_and_description;
@@ -141,24 +142,35 @@ pub fn insert_object_property<T: ?Sized + JsonSchema>(
     required: bool,
     sub_schema: Schema,
 ) {
-    let obj = schema.ensure_object();
-    if let Some(properties) = obj
-        .entry("properties")
-        .or_insert(Value::Object(Map::new()))
-        .as_object_mut()
-    {
-        properties.insert(key.to_owned(), sub_schema.into());
-    }
-
-    if !has_default && (required || !T::_schemars_private_is_option()) {
-        if let Some(req) = obj
-            .entry("required")
-            .or_insert(Value::Array(Vec::new()))
-            .as_array_mut()
+    fn insert_object_property_impl(
+        schema: &mut Schema,
+        key: &str,
+        has_default: bool,
+        required: bool,
+        sub_schema: Schema,
+    ) {
+        let obj = schema.ensure_object();
+        if let Some(properties) = obj
+            .entry("properties")
+            .or_insert(Value::Object(Map::new()))
+            .as_object_mut()
         {
-            req.push(key.into());
+            properties.insert(key.to_owned(), sub_schema.into());
+        }
+
+        if !has_default && (required) {
+            if let Some(req) = obj
+                .entry("required")
+                .or_insert(Value::Array(Vec::new()))
+                .as_array_mut()
+            {
+                req.push(key.into());
+            }
         }
     }
+
+    let required = required || !T::_schemars_private_is_option();
+    insert_object_property_impl(schema, key, has_default, required, sub_schema);
 }
 
 pub fn insert_metadata_property(schema: &mut Schema, key: &str, value: impl Into<Value>) {
@@ -187,14 +199,21 @@ pub fn insert_validation_property(
     }
 }
 
-pub fn append_required(schema: &mut Schema, key: &str) {
+pub fn must_contain(schema: &mut Schema, contain: String) {
+    if schema.has_type("string") {
+        let pattern = regex_syntax::escape(&contain);
+        schema
+            .ensure_object()
+            .insert("pattern".to_owned(), pattern.into());
+    }
+
     if schema.has_type("object") {
         if let Value::Array(array) = schema
             .ensure_object()
             .entry("required")
             .or_insert(Value::Array(Vec::new()))
         {
-            let value = Value::from(key);
+            let value = Value::from(contain);
             if !array.contains(&value) {
                 array.push(value);
             }

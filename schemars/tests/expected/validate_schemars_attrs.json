@@ -21,10 +21,6 @@
     },
     "regex_str2": {
       "type": "string",
-      "pattern": "^[Hh]ello\\b"
-    },
-    "regex_str3": {
-      "type": "string",
       "pattern": "^\\d+$"
     },
     "contains_str1": {
@@ -38,10 +34,6 @@
     "email_address": {
       "type": "string",
       "format": "email"
-    },
-    "tel": {
-      "type": "string",
-      "format": "phone"
     },
     "homepage": {
       "type": "string",
@@ -88,11 +80,9 @@
     "min_max2",
     "regex_str1",
     "regex_str2",
-    "regex_str3",
     "contains_str1",
     "contains_str2",
     "email_address",
-    "tel",
     "homepage",
     "non_empty_str",
     "non_empty_str2",

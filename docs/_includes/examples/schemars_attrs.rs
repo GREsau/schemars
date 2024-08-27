@@ -17,7 +17,7 @@ pub struct MyStruct {
 #[derive(Deserialize, Serialize, JsonSchema)]
 #[schemars(untagged)]
 pub enum MyEnum {
-    StringNewType(#[schemars(phone)] String),
+    StringNewType(#[schemars(email)] String),
     StructVariant {
         #[schemars(length(min = 1, max = 100))]
         floats: Vec<f32>,
