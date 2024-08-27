@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0-alpha.12] - _in-dev_
+## [1.0.0-alpha.12] - 2024-08-27
 
 ### Fixed
 
