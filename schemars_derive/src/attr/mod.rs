@@ -54,9 +54,14 @@ pub enum WithAttr {
 }
 
 impl CommonAttrs {
-    fn populate(&mut self, attrs: &[Attribute], schemars_cx: &mut AttrCtxt) {
+    fn populate(
+        &mut self,
+        attrs: &[Attribute],
+        schemars_cx: &mut AttrCtxt,
+        serde_cx: &mut AttrCtxt,
+    ) {
         self.process_attr(schemars_cx);
-        self.process_attr(&mut AttrCtxt::new(schemars_cx.inner, attrs, "serde"));
+        self.process_attr(serde_cx);
 
         self.doc = doc::get_doc(attrs);
         self.deprecated = attrs.iter().any(|a| a.path().is_ident("deprecated"));
@@ -202,12 +207,14 @@ impl FieldAttrs {
     }
 
     fn populate(&mut self, attrs: &[Attribute], cx: &Ctxt) {
-        let mut schemars_cx = AttrCtxt::new(cx, attrs, "schemars");
+        let schemars_cx = &mut AttrCtxt::new(cx, attrs, "schemars");
+        let serde_cx = &mut AttrCtxt::new(cx, attrs, "serde");
+        let validate_cx = &mut AttrCtxt::new(cx, attrs, "validate");
 
-        self.common.populate(attrs, &mut schemars_cx);
-        self.validation.populate(attrs, &mut schemars_cx);
-        self.process_attr(&mut schemars_cx);
-        self.process_attr(&mut AttrCtxt::new(cx, attrs, "serde"));
+        self.common.populate(attrs, schemars_cx, serde_cx);
+        self.validation.populate(schemars_cx, validate_cx);
+        self.process_attr(schemars_cx);
+        self.process_attr(serde_cx);
     }
 
     fn process_attr(&mut self, cx: &mut AttrCtxt) {
@@ -246,11 +253,12 @@ impl ContainerAttrs {
     }
 
     fn populate(&mut self, attrs: &[Attribute], cx: &Ctxt) {
-        let mut schemars_cx = AttrCtxt::new(cx, attrs, "schemars");
+        let schemars_cx = &mut AttrCtxt::new(cx, attrs, "schemars");
+        let serde_cx = &mut AttrCtxt::new(cx, attrs, "serde");
 
-        self.common.populate(attrs, &mut schemars_cx);
-        self.process_attr(&mut schemars_cx);
-        self.process_attr(&mut AttrCtxt::new(cx, attrs, "serde"));
+        self.common.populate(attrs, schemars_cx, serde_cx);
+        self.process_attr(schemars_cx);
+        self.process_attr(serde_cx);
 
         self.repr = attrs
             .iter()
@@ -286,11 +294,12 @@ impl VariantAttrs {
     }
 
     fn populate(&mut self, attrs: &[Attribute], cx: &Ctxt) {
-        let mut schemars_cx = AttrCtxt::new(cx, attrs, "schemars");
+        let schemars_cx = &mut AttrCtxt::new(cx, attrs, "schemars");
+        let serde_cx = &mut AttrCtxt::new(cx, attrs, "serde");
 
-        self.common.populate(attrs, &mut schemars_cx);
-        self.process_attr(&mut schemars_cx);
-        self.process_attr(&mut AttrCtxt::new(cx, attrs, "serde"));
+        self.common.populate(attrs, schemars_cx, serde_cx);
+        self.process_attr(schemars_cx);
+        self.process_attr(serde_cx);
     }
 
     fn process_attr(&mut self, cx: &mut AttrCtxt) {

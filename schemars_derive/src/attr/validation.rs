@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use syn::{Attribute, Expr, Meta};
+use syn::{Expr, Meta};
 
 use crate::idents::SCHEMA;
 
@@ -120,9 +120,9 @@ impl ValidationAttrs {
         }
     }
 
-    pub(super) fn populate(&mut self, attrs: &[Attribute], schemars_cx: &mut AttrCtxt) {
+    pub(super) fn populate(&mut self, schemars_cx: &mut AttrCtxt, validate_cx: &mut AttrCtxt) {
         self.process_attr(schemars_cx);
-        self.process_attr(&mut AttrCtxt::new(schemars_cx.inner, attrs, "validate"));
+        self.process_attr(validate_cx);
     }
 
     fn process_attr(&mut self, cx: &mut AttrCtxt) {
