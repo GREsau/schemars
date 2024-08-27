@@ -3,8 +3,16 @@ use schemars::JsonSchema;
 use std::collections::BTreeMap;
 use util::*;
 
+struct FakeRegex(&'static str);
+
+impl std::fmt::Display for FakeRegex {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
 // In real code, this would typically be a Regex, potentially created in a `lazy_static!`.
-static STARTS_WITH_HELLO: &str = r"^[Hh]ello\b";
+static STARTS_WITH_HELLO: &FakeRegex = &FakeRegex(r"^[Hh]ello\b");
 
 const MIN: u32 = 1;
 const MAX: u32 = 1000;
@@ -16,7 +24,7 @@ pub struct Struct {
     min_max: f32,
     #[validate(range(min = "MIN", max = "MAX"))]
     min_max2: f32,
-    #[validate(regex(path = &*STARTS_WITH_HELLO))]
+    #[validate(regex(path = *STARTS_WITH_HELLO))]
     regex_str1: String,
     #[validate(regex(path = "STARTS_WITH_HELLO", code = "foo"))]
     regex_str2: String,
@@ -63,7 +71,7 @@ pub struct Struct2 {
     #[schemars(range(min = "MIN", max = "MAX"))]
     min_max2: f32,
     #[validate(regex(path = overridden))]
-    #[schemars(regex(pattern = &*STARTS_WITH_HELLO))]
+    #[schemars(regex(pattern = *STARTS_WITH_HELLO))]
     regex_str1: String,
     #[schemars(regex(pattern = r"^\d+$"))]
     regex_str2: String,

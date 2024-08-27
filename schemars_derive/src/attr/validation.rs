@@ -69,7 +69,7 @@ impl ValidationAttrs {
 
         if let Some(regex) = &self.regex {
             mutators.push(quote! {
-                schemars::_private::insert_validation_property(#mut_ref_schema, "string", "pattern", #regex.to_string());
+                schemars::_private::insert_validation_property(#mut_ref_schema, "string", "pattern", (#regex).to_string());
             });
         }
 
