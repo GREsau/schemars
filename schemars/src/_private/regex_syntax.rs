@@ -45,7 +45,7 @@ fn escape_into(text: &str, buf: &mut String) {
     }
 }
 
-pub fn is_meta_character(c: char) -> bool {
+fn is_meta_character(c: char) -> bool {
     match c {
         '\\' | '.' | '+' | '*' | '?' | '(' | ')' | '|' | '[' | ']' | '{' | '}' | '^' | '$'
         | '#' | '&' | '-' | '~' => true,
