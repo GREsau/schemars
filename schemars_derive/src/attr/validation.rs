@@ -183,6 +183,7 @@ impl ValidationAttrs {
             Some(f) if f.attr_str() == meta_name => cx.duplicate_error(&meta),
             Some(f) => cx.mutual_exclusive_error(&meta, f.attr_str()),
             None => {
+                // FIXME this is too strict - it may be a MetaList in validator attr (e.g. with message/code items)
                 if require_path_only(meta, cx).is_ok() {
                     self.format = Some(Format::from_attr_str(meta_name))
                 }

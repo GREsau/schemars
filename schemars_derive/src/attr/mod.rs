@@ -38,6 +38,7 @@ pub struct ContainerAttrs {
     pub common: CommonAttrs,
     pub repr: Option<Type>,
     pub crate_name: Option<Path>,
+    pub is_renamed: bool,
 }
 
 #[derive(Debug, Default)]
@@ -55,6 +56,7 @@ pub enum WithAttr {
 impl CommonAttrs {
     fn populate(&mut self, attrs: &[Attribute], schemars_cx: &mut AttrCtxt) {
         self.process_attr(schemars_cx);
+        self.process_attr(&mut AttrCtxt::new(schemars_cx.inner, attrs, "serde"));
 
         self.doc = doc::get_doc(attrs);
         self.deprecated = attrs.iter().any(|a| a.path().is_ident("deprecated"));
@@ -248,6 +250,7 @@ impl ContainerAttrs {
 
         self.common.populate(attrs, &mut schemars_cx);
         self.process_attr(&mut schemars_cx);
+        self.process_attr(&mut AttrCtxt::new(cx, attrs, "serde"));
 
         self.repr = attrs
             .iter()
@@ -265,6 +268,8 @@ impl ContainerAttrs {
                 Some(_) => cx.duplicate_error(&meta),
                 None => self.crate_name = parse_name_value_lit_str(meta, cx).ok(),
             },
+
+            "rename" => self.is_renamed = true,
 
             _ => return Some(meta),
         };
@@ -284,33 +289,35 @@ impl VariantAttrs {
         let mut schemars_cx = AttrCtxt::new(cx, attrs, "schemars");
 
         self.common.populate(attrs, &mut schemars_cx);
-        self.populate_from_schemars_or_serde(&mut schemars_cx);
-        self.populate_from_schemars_or_serde(&mut AttrCtxt::new(cx, attrs, "serde"));
+        self.process_attr(&mut schemars_cx);
+        self.process_attr(&mut AttrCtxt::new(cx, attrs, "serde"));
     }
 
-    fn populate_from_schemars_or_serde(&mut self, cx: &mut AttrCtxt) {
-        cx.parse_meta(|meta, meta_name, cx| {
-            match meta_name {
-                "with" => match self.with {
-                    Some(WithAttr::Type(_)) => cx.duplicate_error(&meta),
-                    Some(WithAttr::Function(_)) => cx.mutual_exclusive_error(&meta, "schema_with"),
-                    None => self.with = parse_name_value_lit_str(meta, cx).ok().map(WithAttr::Type),
-                },
-                "schema_with" if cx.attr_type == "schemars" => match self.with {
-                    Some(WithAttr::Function(_)) => cx.duplicate_error(&meta),
-                    Some(WithAttr::Type(_)) => cx.mutual_exclusive_error(&meta, "with"),
-                    None => {
-                        self.with = parse_name_value_lit_str(meta, cx)
-                            .ok()
-                            .map(WithAttr::Function)
-                    }
-                },
+    fn process_attr(&mut self, cx: &mut AttrCtxt) {
+        cx.parse_meta(|m, n, c| self.process_meta(m, n, c));
+    }
 
-                _ => return Some(meta),
-            }
+    fn process_meta(&mut self, meta: Meta, meta_name: &str, cx: &AttrCtxt) -> Option<Meta> {
+        match meta_name {
+            "with" => match self.with {
+                Some(WithAttr::Type(_)) => cx.duplicate_error(&meta),
+                Some(WithAttr::Function(_)) => cx.mutual_exclusive_error(&meta, "schema_with"),
+                None => self.with = parse_name_value_lit_str(meta, cx).ok().map(WithAttr::Type),
+            },
+            "schema_with" if cx.attr_type == "schemars" => match self.with {
+                Some(WithAttr::Function(_)) => cx.duplicate_error(&meta),
+                Some(WithAttr::Type(_)) => cx.mutual_exclusive_error(&meta, "with"),
+                None => {
+                    self.with = parse_name_value_lit_str(meta, cx)
+                        .ok()
+                        .map(WithAttr::Function)
+                }
+            },
 
-            None
-        });
+            _ => return Some(meta),
+        }
+
+        None
     }
 
     pub fn is_default(&self) -> bool {

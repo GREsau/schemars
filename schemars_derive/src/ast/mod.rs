@@ -62,12 +62,6 @@ impl<'a> Container<'a> {
         None
     }
 
-    pub fn is_renamed(&self) -> bool {
-        let name = self.serde_attrs.name();
-        let orig_name = self.ident.to_string();
-        name.serialize_name() != orig_name || name.deserialize_name() != orig_name
-    }
-
     pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
         self.attrs.common.add_mutators(mutators);
     }

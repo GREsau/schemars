@@ -5,7 +5,8 @@
   "prefixItems": [
     {
       "type": "number",
-      "format": "float"
+      "format": "float",
+      "writeOnly": true
     },
     {
       "type": "null"

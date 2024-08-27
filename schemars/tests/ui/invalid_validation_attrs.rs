@@ -1,7 +1,5 @@
 use schemars::JsonSchema;
 
-// FIXME validation attrs like `email` should be disallowed non structs/enums/variants
-
 #[derive(JsonSchema)]
 #[validate(email)]
 pub struct Struct1(#[validate(regex, foo, length(min = 1, equal = 2, bar))] String);

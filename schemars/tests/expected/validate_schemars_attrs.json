@@ -39,10 +39,6 @@
       "type": "string",
       "format": "email"
     },
-    "tel": {
-      "type": "string",
-      "format": "phone"
-    },
     "homepage": {
       "type": "string",
       "format": "uri"
@@ -92,7 +88,6 @@
     "contains_str1",
     "contains_str2",
     "email_address",
-    "tel",
     "homepage",
     "non_empty_str",
     "non_empty_str2",

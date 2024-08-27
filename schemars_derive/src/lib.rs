@@ -88,7 +88,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
 
     let mut schema_base_name = cont.name().to_string();
 
-    if !cont.is_renamed() {
+    if !cont.attrs.is_renamed {
         if let Some(path) = cont.serde_attrs.remote() {
             if let Some(segment) = path.segments.last() {
                 schema_base_name = segment.ident.to_string();
@@ -102,7 +102,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
     let params: Vec<_> = type_params.iter().chain(const_params.iter()).collect();
 
     let (schema_name, schema_id) = if params.is_empty()
-        || (cont.is_renamed() && !schema_base_name.contains('{'))
+        || (cont.attrs.is_renamed && !schema_base_name.contains('{'))
     {
         (
             quote! {
@@ -116,7 +116,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                 ))
             },
         )
-    } else if cont.is_renamed() {
+    } else if cont.attrs.is_renamed {
         let mut schema_name_fmt = schema_base_name;
         for tp in &params {
             schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
