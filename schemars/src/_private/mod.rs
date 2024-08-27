@@ -135,8 +135,6 @@ pub fn apply_internal_enum_variant_tag(
     }
 }
 
-// TODO this shouldn't need to take a type param - just alter the callers
-// to adjust `required` according to T::_schemars_private_is_option()
 pub fn insert_object_property<T: ?Sized + JsonSchema>(
     schema: &mut Schema,
     key: &str,
@@ -144,24 +142,35 @@ pub fn insert_object_property<T: ?Sized + JsonSchema>(
     required: bool,
     sub_schema: Schema,
 ) {
-    let obj = schema.ensure_object();
-    if let Some(properties) = obj
-        .entry("properties")
-        .or_insert(Value::Object(Map::new()))
-        .as_object_mut()
-    {
-        properties.insert(key.to_owned(), sub_schema.into());
-    }
-
-    if !has_default && (required || !T::_schemars_private_is_option()) {
-        if let Some(req) = obj
-            .entry("required")
-            .or_insert(Value::Array(Vec::new()))
-            .as_array_mut()
+    fn insert_object_property_impl(
+        schema: &mut Schema,
+        key: &str,
+        has_default: bool,
+        required: bool,
+        sub_schema: Schema,
+    ) {
+        let obj = schema.ensure_object();
+        if let Some(properties) = obj
+            .entry("properties")
+            .or_insert(Value::Object(Map::new()))
+            .as_object_mut()
         {
-            req.push(key.into());
+            properties.insert(key.to_owned(), sub_schema.into());
+        }
+
+        if !has_default && (required) {
+            if let Some(req) = obj
+                .entry("required")
+                .or_insert(Value::Array(Vec::new()))
+                .as_array_mut()
+            {
+                req.push(key.into());
+            }
         }
     }
+
+    let required = required || !T::_schemars_private_is_option();
+    insert_object_property_impl(schema, key, has_default, required, sub_schema);
 }
 
 pub fn insert_metadata_property(schema: &mut Schema, key: &str, value: impl Into<Value>) {
