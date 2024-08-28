@@ -36,7 +36,9 @@ impl Format {
         match s {
             "email" => Format::Email,
             "url" => Format::Uri,
-            _ => panic!("Invalid format attr string `{s}`. This is a bug in schemars, please raise an issue!"),
+            _ => {
+                panic!("Invalid format attr string `{s}`. This is a bug in schemars, please raise an issue!")
+            }
         }
     }
 }
@@ -82,7 +84,7 @@ impl ValidationAttrs {
         if let Some(format) = &self.format {
             let f = format.schema_str();
             mutators.push(quote! {
-                (#mut_ref_schema).ensure_object().insert("format".into(), #f.into());
+                    (#mut_ref_schema).ensure_object().insert("format".into(), #f.into());
             })
         };
 
@@ -156,7 +158,9 @@ impl ValidationAttrs {
                 (_, Some(_), _) => cx.mutual_exclusive_error(&meta, "contains"),
                 (None, None, "schemars") => self.regex = parse_schemars_regex(meta, cx).ok(),
                 (None, None, "validate") => self.regex = parse_validate_regex(meta, cx).ok(),
-                (None, None, wat) => panic!("Unexpected attr type `{wat}` for regex item. This is a bug in schemars, please raise an issue!"),
+                (None, None, wat) => {
+                    panic!("Unexpected attr type `{wat}` for regex item. This is a bug in schemars, please raise an issue!")
+                }
             },
             "contains" => match (&self.regex, &self.contains) {
                 (Some(_), _) => cx.mutual_exclusive_error(&meta, "regex"),
