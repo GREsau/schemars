@@ -34,7 +34,7 @@ pub struct Struct {
     contains_str2: String,
     #[validate(email)]
     email_address: String,
-    #[validate(url)]
+    #[validate(url(code = "code_str", message = "message"))]
     homepage: String,
     #[validate(length(min = 1, max = 100))]
     non_empty_str: String,

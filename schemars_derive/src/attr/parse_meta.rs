@@ -2,7 +2,7 @@ use proc_macro2::{TokenStream, TokenTree};
 use syn::{
     parse::{Parse, ParseStream, Parser},
     punctuated::Punctuated,
-    Expr, ExprLit, Lit, LitStr, Meta, MetaNameValue,
+    Expr, ExprLit, Lit, LitStr, Meta, MetaList, MetaNameValue,
 };
 
 use super::{path_str, AttrCtxt};
@@ -10,10 +10,27 @@ use super::{path_str, AttrCtxt};
 pub fn require_path_only(meta: Meta, cx: &AttrCtxt) -> Result<(), ()> {
     match meta {
         Meta::Path(_) => Ok(()),
-        _ => {
-            let name = path_str(meta.path());
+        Meta::List(MetaList {
+            path, delimiter, ..
+        }) => {
+            let name = path_str(&path);
+            cx.syn_error(syn::Error::new(
+                delimiter.span().join(),
+                format_args!(
+                    "unexpected value of {} {} attribute item",
+                    cx.attr_type, name
+                ),
+            ));
+            Err(())
+        }
+        Meta::NameValue(MetaNameValue {
+            path,
+            eq_token,
+            value,
+        }) => {
+            let name = path_str(&path);
             cx.error_spanned_by(
-                meta,
+                quote!(#eq_token #value),
                 format_args!(
                     "unexpected value of {} {} attribute item",
                     cx.attr_type, name

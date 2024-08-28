@@ -32,14 +32,12 @@ impl Format {
         }
     }
 
-    fn from_attr_str(s: &str) -> Self {
-        match s {
+    fn from_attr_str(s: &str) -> Option<Self> {
+        Some(match s {
             "email" => Format::Email,
             "url" => Format::Uri,
-            _ => {
-                panic!("Invalid format attr string `{s}`. This is a bug in schemars, please raise an issue!")
-            }
-        }
+            _ => return None,
+        })
     }
 }
 
@@ -132,6 +130,10 @@ impl ValidationAttrs {
     }
 
     fn process_meta(&mut self, meta: Meta, meta_name: &str, cx: &AttrCtxt) -> Option<Meta> {
+        if let Some(format) = Format::from_attr_str(meta_name) {
+            self.handle_format(meta, format, cx);
+            return None;
+        }
         match meta_name {
             "length" => match self.length {
                 Some(_) => cx.duplicate_error(&meta),
@@ -142,8 +144,6 @@ impl ValidationAttrs {
                 Some(_) => cx.duplicate_error(&meta),
                 None => self.range = parse_length_or_range(meta, cx).ok(),
             },
-
-            "email" | "url" => self.handle_format(meta, meta_name, cx),
 
             "required" => {
                 if self.required {
@@ -159,7 +159,7 @@ impl ValidationAttrs {
                 (None, None, "schemars") => self.regex = parse_schemars_regex(meta, cx).ok(),
                 (None, None, "validate") => self.regex = parse_validate_regex(meta, cx).ok(),
                 (None, None, wat) => {
-                    panic!("Unexpected attr type `{wat}` for regex item. This is a bug in schemars, please raise an issue!")
+                    unreachable!("Unexpected attr type `{wat}` for regex item. This is a bug in schemars, please raise an issue!")
                 }
             },
             "contains" => match (&self.regex, &self.contains) {
@@ -184,14 +184,15 @@ impl ValidationAttrs {
         None
     }
 
-    fn handle_format(&mut self, meta: Meta, meta_name: &str, cx: &AttrCtxt) {
-        match &self.format {
-            Some(f) if f.attr_str() == meta_name => cx.duplicate_error(&meta),
-            Some(f) => cx.mutual_exclusive_error(&meta, f.attr_str()),
+    fn handle_format(&mut self, meta: Meta, format: Format, cx: &AttrCtxt) {
+        match self.format {
+            Some(current) if current == format => cx.duplicate_error(&meta),
+            Some(current) => cx.mutual_exclusive_error(&meta, current.attr_str()),
             None => {
-                // FIXME this is too strict - it may be a MetaList in validator attr (e.g. with message/code items)
-                if require_path_only(meta, cx).is_ok() {
-                    self.format = Some(Format::from_attr_str(meta_name))
+                // Allow a MetaList in validator attr (e.g. with message/code items),
+                // but restrict it to path only in schemars attr.
+                if cx.attr_type == "validate" || require_path_only(meta, cx).is_ok() {
+                    self.format = Some(format);
                 }
             }
         }

@@ -30,6 +30,9 @@ pub struct Struct4(
         regex(path = "baz"),
         regex(pattern = "baz"),
         phone,
+        email(code = "code_str", message = "message"),
+        email = "foo",
+        email,
         email,
         url
     )]
