@@ -99,7 +99,7 @@ macro_rules! json_schema {
     (
         {$($json_object:tt)*}
     ) => {
-        $crate::Schema::try_from($crate::_serde_json::json!({$($json_object)*})).unwrap()
+        $crate::Schema::try_from($crate::_private::serde_json::json!({$($json_object)*})).unwrap()
     };
     (true) => {
         $crate::Schema::from(true)

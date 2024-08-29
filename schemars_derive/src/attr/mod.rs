@@ -177,17 +177,17 @@ impl CommonAttrs {
         if !self.examples.is_empty() {
             let examples = self.examples.iter().map(|eg| {
                 quote! {
-                    schemars::_serde_json::value::to_value(#eg())
+                    schemars::_private::serde_json::value::to_value(#eg())
                 }
             });
             mutators.push(quote! {
-                schemars::_private::insert_metadata_property(&mut #SCHEMA, "examples", schemars::_serde_json::Value::Array([#(#examples),*].into_iter().flatten().collect()));
+                schemars::_private::insert_metadata_property(&mut #SCHEMA, "examples", schemars::_private::serde_json::Value::Array([#(#examples),*].into_iter().flatten().collect()));
             });
         }
 
         for (k, v) in &self.extensions {
             mutators.push(quote! {
-                schemars::_private::insert_metadata_property(&mut #SCHEMA, #k, schemars::_serde_json::json!(#v));
+                schemars::_private::insert_metadata_property(&mut #SCHEMA, #k, schemars::_private::serde_json::json!(#v));
             });
         }
 

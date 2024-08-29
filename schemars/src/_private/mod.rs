@@ -7,6 +7,9 @@ use serde_json::{json, map::Entry, Map, Value};
 mod regex_syntax;
 mod rustdoc;
 
+pub extern crate alloc;
+pub extern crate serde_json;
+
 pub use rustdoc::get_title_and_description;
 
 // Helper for generating schemas for flattened `Option` fields.

@@ -34,12 +34,6 @@ use alloc::borrow::Cow;
 #[cfg(feature = "schemars_derive")]
 pub use schemars_derive::*;
 
-// Export crates so schemars_derive can use them
-#[doc(hidden)]
-pub extern crate alloc as _alloc;
-#[doc(hidden)]
-pub extern crate serde_json as _serde_json;
-
 #[doc(inline)]
 pub use generate::SchemaGenerator;
 pub use schema::Schema;
