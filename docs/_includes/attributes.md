@@ -30,6 +30,7 @@ TABLE OF CONTENTS
    - [`regex` / `pattern`](#regex)
    - [`contains`](#contains)
    - [`required`](#required)
+   - [`inner`](#inner)
 1. [Other Attributes](#other-attributes)
    - [`schema_with`](#schema_with)
    - [`title` / `description`](#title-description)
@@ -260,6 +261,23 @@ Validator docs: [required](https://github.com/Keats/validator#required)
 
 </div>
 
+<h3 id="inner">
+
+`#[garde(inner(...))]` / `#[schemars(inner(...))]`
+
+</h3>
+
+Sets properties specified by [validation attributes](#supported-validatorgarde-attributes) on items of an array schema. For example:
+
+```rust
+struct Struct {
+    #[schemars(inner(url, pattern("^https://")))]
+    urls: Vec<String>,
+}
+```
+
+Garde docs: [Inner type validation](https://github.com/jprochazk/garde?tab=readme-ov-file#inner-type-validation)
+
 ## Other Attributes
 
 <h3 id="schema_with">
@@ -303,21 +321,6 @@ Set the Rust built-in [`deprecated`](https://doc.rust-lang.org/edition-guide/rus
 </h3>
 
 Set the path to the schemars crate instance the generated code should depend on. This is mostly useful for other crates that depend on schemars in their macros.
-
-<h3 id="inner">
-
-`#[schemars(inner(...))]`
-
-</h3>
-
-Sets properties specified by [validator attributes](#supported-validatorgarde-attributes) on items of an array schema. For example:
-
-```rust
-struct Struct {
-    #[schemars(inner(url, regex(pattern = "^https://")))]
-    urls: Vec<String>,
-}
-```
 
 <h3 id="extend">
 
