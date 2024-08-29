@@ -310,7 +310,7 @@ Set the path to the schemars crate instance the generated code should depend on.
 
 </h3>
 
-Sets properties specified by [validator attributes](#supported-validator-attributes) on items of an array schema. For example:
+Sets properties specified by [validator attributes](#supported-validatorgarde-attributes) on items of an array schema. For example:
 
 ```rust
 struct Struct {

@@ -173,3 +173,23 @@ fn my_transform2(schema: &mut Schema) {
 let mut schema = schemars::schema_for!(str);
 RecursiveTransform(my_transform2).transform(&mut schema);
 ```
+
+## Changes to `#[validate(...)]` attributes
+
+Since [adding support for `#[validate(...)]` attributes](https://graham.cool/schemars/v0/deriving/attributes/#supported-validator-attributes), the [Validator](https://github.com/Keats/validator) crate has made several changes to its supported attributes. Accordingly, Schemars 1.0 has updated its handling of `#[validate(...)]` attributes to match the latest version (currently 0.18.1) of the Validator crate - this removes some attributes, and changes the syntax of others:
+
+- The `#[validate(phone)]`/`#[schemars(phone)]` attribute is removed. If you want the old behaviour of setting the "format" property on the generated schema, you can use `#[schemars(extend("format = "phone"))]` instead.
+- The `#[validate(required_nested)]`/`#[schemars(required_nested)]` attribute is removed. If you want the old behaviour, you can use `#[schemars(required)]` instead.
+- The `#[validate(regex = "...")]`/`#[schemars(regex = "...")]` attribute can no longer use `name = "value"` syntax. Instead, you can use:
+
+  - `#[validate(regex(path = ...)]`
+  - `#[schemars(regex(pattern = ...)]`
+  - `#[schemars(pattern(...)]` (Garde-style)
+
+- Similarly, the `#[validate(contains = "...")]`/`#[schemars(contains = "...")]` attribute can no longer use `name = "value"` syntax. Instead, you can use:
+
+  - `#[validate(contains(pattern = ...))]`
+  - `#[schemars(contains(pattern = ...))]`
+  - `#[schemars(contains(...))]` (Garde-style)
+
+As an alternative option, Schemars 1.0 also adds support for `#[garde(...)]` attributes used with the [Garde](https://github.com/jprochazk/garde) crate, along with equivalent `#[schemars(...)]` attributes. See [the documentation](https://graham.cool/schemars/deriving/attributes/#supported-validatorgarde-attributes) for a list of all supported attributes.
