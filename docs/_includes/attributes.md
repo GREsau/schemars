@@ -234,7 +234,7 @@ Validator docs: [range](https://github.com/Keats/validator#range)
 
 Sets the `pattern` property for string schemas. The `static_regex` will typically refer to a [`Regex`](https://docs.rs/regex/*/regex/struct.Regex.html) instance, but Schemars allows it to be any value with a `to_string()` method.
 
-`regex(pattern = ...)` is a Schemars extension, and not currently supported by the Validator crate. When using this form (or the Garde-style `pattern` attribute), you may want to use a `r"raw string literal"` so that `\\` characters in the regex pattern are not interpreted as escape sequences in the string. Using the `path` form is not allowed in a `#[schemars(...)]` attribute.
+`regex(pattern = ...)` is a Schemars extension, and not currently supported by the Validator crate. When using this form (or the Garde-style `pattern` attribute), you may want to use a `r"raw string literal"` so that `\\` characters in the regex pattern are not interpreted as escape sequences in the string. Using the `path = ...` form is not allowed in a `#[schemars(...)]` attribute.
 
 Validator docs: [regex](https://github.com/Keats/validator#regex)
 

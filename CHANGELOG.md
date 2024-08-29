@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.14] - 2024-08-29
+
+### Added
+
+- Read `#[garde(...)]` attributes as an alternative to `#[validate(...)]` (https://github.com/GREsau/schemars/issues/233 / https://github.com/GREsau/schemars/pull/331). See [the documentation](https://graham.cool/schemars/deriving/attributes/#supported-validatorgarde-attributes) for a full list of supported attributes.
+
 ## [1.0.0-alpha.13] - 2024-08-27
 
 ### Fixed
