@@ -1,6 +1,5 @@
 mod util;
 use schemars::JsonSchema;
-use std::collections::BTreeMap;
 use util::*;
 
 struct FakeRegex(&'static str);
@@ -42,8 +41,6 @@ pub struct Struct {
     non_empty_str2: String,
     #[validate(length(equal = 2))]
     pair: Vec<i32>,
-    #[validate(contains(pattern = "map_key"))]
-    map_contains: BTreeMap<String, ()>,
     #[validate(required)]
     required_option: Option<bool>,
     #[validate(required)]
@@ -90,8 +87,6 @@ pub struct Struct2 {
     non_empty_str2: String,
     #[schemars(length(equal = 2))]
     pair: Vec<i32>,
-    #[schemars(contains(pattern = "map_key"))]
-    map_contains: BTreeMap<String, ()>,
     #[schemars(required)]
     required_option: Option<bool>,
     #[schemars(required)]

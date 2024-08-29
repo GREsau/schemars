@@ -246,8 +246,6 @@ Validator docs: [regex](https://github.com/Keats/validator#regex)
 
 For string schemas, sets the `pattern` property to the given value, with any regex special characters escaped.
 
-For object schemas (e.g. when the attribute is set on a HashMap field), includes the value in the `required` property, indicating that the map must contain it as a key. _N.B. this current object/map behaviour is present due to the previous behaviour of the Validator crate which has since been removed, so **may** also be removed from Schemars before the final 1.0 release._
-
 Validator docs: [contains](https://github.com/Keats/validator#contains)
 
 <h3 id="required">

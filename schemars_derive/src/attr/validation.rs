@@ -88,7 +88,7 @@ impl ValidationAttrs {
 
         if let Some(contains) = &self.contains {
             mutators.push(quote! {
-                schemars::_private::must_contain(#mut_ref_schema, #contains.to_string());
+                schemars::_private::must_contain(#mut_ref_schema, &#contains.to_string());
             });
         }
 

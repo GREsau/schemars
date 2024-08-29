@@ -278,6 +278,7 @@ impl ContainerAttrs {
                 None => self.crate_name = parse_name_value_lit_str(meta, cx).ok(),
             },
 
+            // The actual parsing of `rename` is done by serde
             "rename" => self.is_renamed = true,
 
             _ => return Some(meta),

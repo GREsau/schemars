@@ -58,15 +58,6 @@
       "minItems": 2,
       "maxItems": 2
     },
-    "map_contains": {
-      "type": "object",
-      "additionalProperties": {
-        "type": "null"
-      },
-      "required": [
-        "map_key"
-      ]
-    },
     "required_option": {
       "type": "boolean"
     },
@@ -87,7 +78,6 @@
     "non_empty_str",
     "non_empty_str2",
     "pair",
-    "map_contains",
     "required_option",
     "x"
   ]

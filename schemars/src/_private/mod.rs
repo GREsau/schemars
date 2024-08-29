@@ -199,28 +199,9 @@ pub fn insert_validation_property(
     }
 }
 
-pub fn must_contain(schema: &mut Schema, contain: String) {
-    if schema.has_type("string") {
-        let pattern = regex_syntax::escape(&contain);
-        schema
-            .ensure_object()
-            .insert("pattern".to_owned(), pattern.into());
-    }
-
-    // `#[validate(contains(...))]` working on map keys was removed from validator.
-    // Should we also remove this behaviour from schemars? Or keep it for back-compat?
-    if schema.has_type("object") {
-        if let Value::Array(array) = schema
-            .ensure_object()
-            .entry("required")
-            .or_insert(Value::Array(Vec::new()))
-        {
-            let value = Value::from(contain);
-            if !array.contains(&value) {
-                array.push(value);
-            }
-        }
-    }
+pub fn must_contain(schema: &mut Schema, substring: &str) {
+    let escaped = regex_syntax::escape(substring);
+    insert_validation_property(schema, "string", "pattern", escaped);
 }
 
 pub fn apply_inner_validation(schema: &mut Schema, f: fn(&mut Schema) -> ()) {
