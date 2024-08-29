@@ -4,7 +4,7 @@ You can add attributes to your types to customize Schemars's derived `JsonSchema
 
 [Serde](https://serde.rs/) allows setting `#[serde(...)]` attributes which change how types are serialized, and Schemars will generally respect these attributes to ensure that generated schemas will match how the type is serialized by serde_json. `#[serde(...)]` attributes can be overriden using `#[schemars(...)]` attributes, which behave identically (e.g. `#[schemars(rename_all = "camelCase")]`). You may find this useful if you want to change the generated schema without affecting Serde's behaviour, or if you're just not using Serde.
 
-[Validator](https://github.com/Keats/validator) allows setting `#[validate(...)]` attributes to restrict valid values of particular fields, many of which will be used by Schemars to generate more accurate schemas. These can also be overridden by `#[schemars(...)]` attributes.
+[Validator](https://github.com/Keats/validator) and [Garde](https://github.com/jprochazk/garde) allow setting `#[validate(...)]`/`#[garde(...)]` attributes to restrict valid values of particular fields, many of which will be used by Schemars to generate more accurate schemas. These can also be overridden by `#[schemars(...)]` attributes.
 
 <details open>
 <summary style="font-weight: bold">
@@ -23,11 +23,11 @@ TABLE OF CONTENTS
    - [`flatten`](#flatten)
    - [`with`](#with)
    - [`bound`](#bound)
-1. [Supported Validator Attributes](#supported-validator-attributes)
-   - [`email` / `url`](#email-url)
+1. [Supported Validator/Garde Attributes](#supported-validatorgarde-attributes)
+   - [`email` / `url` / `ip` / `ipv4` / `ipv6`](#formats)
    - [`length`](#length)
    - [`range`](#range)
-   - [`regex`](#regex)
+   - [`regex` / `pattern`](#regex)
    - [`contains`](#contains)
    - [`required`](#required)
 1. [Other Attributes](#other-attributes)
@@ -184,25 +184,28 @@ Serde docs: [container](https://serde.rs/container-attrs.html#bound)
 
 </div>
 
-## Supported Validator Attributes
+## Supported Validator/Garde Attributes
 
 <div class="indented">
 
-<h3 id="email-url">
+<h3 id="formats">
 
-`#[validate(email)]` / `#[schemars(email)]`<br />
-`#[validate(url)]` / `#[schemars(url)]`
+`#[validate(email)]` / `#[garde(email)]` / `#[schemars(email)]`<br />
+`#[validate(url)]` / `#[garde(url)]`/ `#[schemars(url)]`<br />
+`#[garde(ip)]`/ `#[schemars(ip)]`<br />
+`#[garde(ipv4)]`/ `#[schemars(ipv4)]`<br />
+`#[garde(ipv6)]`/ `#[schemars(ip)v6]`<br />
 
 </h3>
 
-Sets the schema's `format` to `email`/`uri`, as appropriate. Only one of these attributes may be present on a single field.
+Sets the schema's `format` to `email`/`uri`/`ip`/`ipv4`/`ipv6`, as appropriate. Only one of these attributes may be present on a single field.
 
 Validator docs: [email](https://github.com/Keats/validator#email) / [url](https://github.com/Keats/validator#url)
 
 <h3 id="length">
 
-`#[validate(length(min = 1, max = 10))]` / `#[schemars(length(min = 1, max = 10))]`<br />
-`#[validate(length(equal = 10))]` / `#[schemars(length(equal = 10))]`
+`#[validate(length(min = 1, max = 10))]` / `#[garde(length(min = 1, max = 10))]` / `#[schemars(length(min = 1, max = 10))]`<br />
+`#[validate(length(equal = 10))]` / `#[garde(length(equal = 10))]` / `#[schemars(length(equal = 10))]`
 
 </h3>
 
@@ -212,7 +215,7 @@ Validator docs: [length](https://github.com/Keats/validator#length)
 
 <h3 id="range">
 
-`#[validate(range(min = 1, max = 10))]` / `#[schemars(range(min = 1, max = 10))]`
+`#[validate(range(min = 1, max = 10))]` / `#[garde(range(min = 1, max = 10))]` / `#[schemars(range(min = 1, max = 10))]`
 
 </h3>
 
@@ -223,29 +226,33 @@ Validator docs: [range](https://github.com/Keats/validator#range)
 <h3 id="regex">
 
 `#[validate(regex(path = *static_regex)]`<br />
-`#[schemars(regex(pattern = r"^\d+$"))]` / `#[schemars(regex(pattern = *static_regex))]`
+`#[schemars(regex(pattern = r"^\d+$"))]` / `#[schemars(regex(pattern = *static_regex))]`<br />
+`#[garde(pattern(r"^\d+$")]` / `#[schemars(pattern(r"^\d+$")]`/ `#[schemars(pattern(*static_regex)]`
 
 </h3>
 
 Sets the `pattern` property for string schemas. The `static_regex` will typically refer to a [`Regex`](https://docs.rs/regex/*/regex/struct.Regex.html) instance, but Schemars allows it to be any value with a `to_string()` method.
 
-`regex(pattern = ...)` is a Schemars extension, and not currently supported by the Validator crate. When using this form, you may want to use a `r"raw string literal"` so that `\\` characters in the regex pattern are not interpreted as escape sequences in the string. Using the `path` form is not allowed in a `#[schemars(...)]` attribute.
+`regex(pattern = ...)` is a Schemars extension, and not currently supported by the Validator crate. When using this form (or the Garde-style `pattern` attribute), you may want to use a `r"raw string literal"` so that `\\` characters in the regex pattern are not interpreted as escape sequences in the string. Using the `path` form is not allowed in a `#[schemars(...)]` attribute.
 
 Validator docs: [regex](https://github.com/Keats/validator#regex)
 
 <h3 id="contains">
 
-`#[validate(contains(pattern = "string"))]` / `#[schemars(contains(pattern = "string"))]`
+`#[validate(contains(pattern = "string"))]` / `#[schemars(contains(pattern = "string"))]`<br />
+`#[garde(contains("string"))]` / `#[schemars(contains("string"))]`
 
 </h3>
 
-For string schemas, sets the `pattern` property to the given value, with any regex special characters escaped. For object schemas (e.g. when the attribute is set on a HashMap field), includes the value in the `required` property, indicating that the map must contain it as a key.
+For string schemas, sets the `pattern` property to the given value, with any regex special characters escaped.
+
+For object schemas (e.g. when the attribute is set on a HashMap field), includes the value in the `required` property, indicating that the map must contain it as a key. _N.B. this current object/map behaviour is present due to the previous behaviour of the Validator crate which has since been removed, so **may** also be removed from Schemars before the final 1.0 release._
 
 Validator docs: [contains](https://github.com/Keats/validator#contains)
 
 <h3 id="required">
 
-`#[validate(required)]` / `#[schemars(required)]`<br />
+`#[validate(required)]` / `#[garde(required)]` / `#[schemars(required)]`<br />
 
 </h3>
 
