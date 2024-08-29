@@ -5,8 +5,8 @@ use crate::idents::SCHEMA;
 
 use super::{
     parse_meta::{
-        parse_contains, parse_length_or_range, parse_nested_meta, parse_schemars_regex,
-        parse_validate_regex, require_path_only, LengthOrRange,
+        parse_contains, parse_length_or_range, parse_nested_meta, parse_pattern,
+        parse_schemars_regex, parse_validate_regex, require_path_only, LengthOrRange,
     },
     AttrCtxt,
 };
@@ -15,6 +15,9 @@ use super::{
 pub enum Format {
     Email,
     Uri,
+    Ip,
+    Ipv4,
+    Ipv6,
 }
 
 impl Format {
@@ -22,6 +25,9 @@ impl Format {
         match self {
             Format::Email => "email",
             Format::Uri => "url",
+            Format::Ip => "ip",
+            Format::Ipv4 => "ipv4",
+            Format::Ipv6 => "ipv6",
         }
     }
 
@@ -29,6 +35,9 @@ impl Format {
         match self {
             Format::Email => "email",
             Format::Uri => "uri",
+            Format::Ip => "ip",
+            Format::Ipv4 => "ipv4",
+            Format::Ipv6 => "ipv6",
         }
     }
 
@@ -36,6 +45,9 @@ impl Format {
         Some(match s {
             "email" => Format::Email,
             "url" => Format::Uri,
+            "ip" => Format::Ip,
+            "ipv4" => Format::Ipv4,
+            "ipv6" => Format::Ipv6,
             _ => return None,
         })
     }
@@ -45,6 +57,7 @@ impl Format {
 pub struct ValidationAttrs {
     pub length: Option<LengthOrRange>,
     pub range: Option<LengthOrRange>,
+    pub pattern: Option<Expr>,
     pub regex: Option<Expr>,
     pub contains: Option<Expr>,
     pub required: bool,
@@ -67,7 +80,7 @@ impl ValidationAttrs {
             Self::add_length_or_range(range, mutators, "number", "imum", mut_ref_schema);
         }
 
-        if let Some(regex) = &self.regex {
+        if let Some(regex) = self.regex.as_ref().or(self.pattern.as_ref()) {
             mutators.push(quote! {
                 schemars::_private::insert_validation_property(#mut_ref_schema, "string", "pattern", (#regex).to_string());
             });
@@ -120,9 +133,15 @@ impl ValidationAttrs {
         }
     }
 
-    pub(super) fn populate(&mut self, schemars_cx: &mut AttrCtxt, validate_cx: &mut AttrCtxt) {
+    pub(super) fn populate(
+        &mut self,
+        schemars_cx: &mut AttrCtxt,
+        validate_cx: &mut AttrCtxt,
+        garde_cx: &mut AttrCtxt,
+    ) {
         self.process_attr(schemars_cx);
         self.process_attr(validate_cx);
+        self.process_attr(garde_cx);
     }
 
     fn process_attr(&mut self, cx: &mut AttrCtxt) {
@@ -153,22 +172,36 @@ impl ValidationAttrs {
                 }
             }
 
-            "regex" => match (&self.regex, &self.contains, cx.attr_type) {
-                (Some(_), _, _) => cx.duplicate_error(&meta),
-                (_, Some(_), _) => cx.mutual_exclusive_error(&meta, "contains"),
-                (None, None, "schemars") => self.regex = parse_schemars_regex(meta, cx).ok(),
-                (None, None, "validate") => self.regex = parse_validate_regex(meta, cx).ok(),
-                (None, None, wat) => {
-                    unreachable!("Unexpected attr type `{wat}` for regex item. This is a bug in schemars, please raise an issue!")
+            "pattern" if cx.attr_type != "validate" => {
+                match (&self.pattern, &self.regex, &self.contains) {
+                    (Some(_p), _, _) => cx.duplicate_error(&meta),
+                    (_, Some(_r), _) => cx.mutual_exclusive_error(&meta, "regex"),
+                    (_, _, Some(_c)) => cx.mutual_exclusive_error(&meta, "contains"),
+                    (None, None, None) => self.pattern = parse_pattern(meta, cx).ok(),
                 }
-            },
-            "contains" => match (&self.regex, &self.contains) {
-                (Some(_), _) => cx.mutual_exclusive_error(&meta, "regex"),
-                (_, Some(_)) => cx.duplicate_error(&meta),
-                (None, None) => self.contains = parse_contains(meta, cx).ok(),
+            }
+            "regex" if cx.attr_type != "garde" => {
+                match (&self.pattern, &self.regex, &self.contains) {
+                    (Some(_p), _, _) => cx.mutual_exclusive_error(&meta, "pattern"),
+                    (_, Some(_r), _) => cx.duplicate_error(&meta),
+                    (_, _, Some(_c)) => cx.mutual_exclusive_error(&meta, "contains"),
+                    (None, None, None) => {
+                        if cx.attr_type == "validate" {
+                            self.regex = parse_validate_regex(meta, cx).ok()
+                        } else {
+                            self.regex = parse_schemars_regex(meta, cx).ok()
+                        }
+                    }
+                }
+            }
+            "contains" => match (&self.pattern, &self.regex, &self.contains) {
+                (Some(_p), _, _) => cx.mutual_exclusive_error(&meta, "pattern"),
+                (_, Some(_r), _) => cx.mutual_exclusive_error(&meta, "regex"),
+                (_, _, Some(_c)) => cx.duplicate_error(&meta),
+                (None, None, None) => self.contains = parse_contains(meta, cx).ok(),
             },
 
-            "inner" => {
+            "inner" if cx.attr_type != "validate" => {
                 if let Ok(nested_meta) = parse_nested_meta(meta, cx) {
                     let inner = self
                         .inner

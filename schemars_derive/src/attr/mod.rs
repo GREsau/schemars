@@ -210,9 +210,10 @@ impl FieldAttrs {
         let schemars_cx = &mut AttrCtxt::new(cx, attrs, "schemars");
         let serde_cx = &mut AttrCtxt::new(cx, attrs, "serde");
         let validate_cx = &mut AttrCtxt::new(cx, attrs, "validate");
+        let garde_cx = &mut AttrCtxt::new(cx, attrs, "garde");
 
         self.common.populate(attrs, schemars_cx, serde_cx);
-        self.validation.populate(schemars_cx, validate_cx);
+        self.validation.populate(schemars_cx, validate_cx, garde_cx);
         self.process_attr(schemars_cx);
         self.process_attr(serde_cx);
     }

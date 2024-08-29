@@ -207,6 +207,8 @@ pub fn must_contain(schema: &mut Schema, contain: String) {
             .insert("pattern".to_owned(), pattern.into());
     }
 
+    // `#[validate(contains(...))]` working on map keys was removed from validator.
+    // Should we also remove this behaviour from schemars? Or keep it for back-compat?
     if schema.has_type("object") {
         if let Value::Array(array) = schema
             .ensure_object()
