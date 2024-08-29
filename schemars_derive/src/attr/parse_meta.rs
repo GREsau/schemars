@@ -103,7 +103,7 @@ pub fn parse_extensions(
     cx: &AttrCtxt,
 ) -> Result<impl IntoIterator<Item = Extension>, ()> {
     let parser = Punctuated::<Extension, Token![,]>::parse_terminated;
-    parse_meta_list(meta, cx, parser)
+    parse_meta_list_with(&meta, cx, parser)
 }
 
 pub fn parse_length_or_range(outer_meta: Meta, cx: &AttrCtxt) -> Result<LengthOrRange, ()> {
@@ -142,6 +142,10 @@ pub fn parse_length_or_range(outer_meta: Meta, cx: &AttrCtxt) -> Result<LengthOr
     }
 
     Ok(result)
+}
+
+pub fn parse_pattern(meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+    parse_meta_list_with(&meta, cx, Expr::parse)
 }
 
 pub fn parse_schemars_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
@@ -200,9 +204,47 @@ pub fn parse_validate_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()>
 }
 
 pub fn parse_contains(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+    #[derive(Debug)]
+    enum ContainsFormat {
+        Metas(Punctuated<Meta, Token![,]>),
+        Expr(Expr),
+    }
+
+    impl Parse for ContainsFormat {
+        fn parse(input: ParseStream) -> syn::Result<Self> {
+            // An imperfect but good-enough heuristic for determining whether it looks more like a
+            // comma-separated meta list (validator-style), or a single expression (garde-style).
+            // This heuristic may not generalise well-enough for attributes other than `contains`!
+            // `foo = bar` => Metas (not Expr::Assign)
+            // `foo, bar`  => Metas
+            // `foo`       => Expr (not Meta::Path)
+            // `foo(bar)`  => Expr (not Meta::List)
+            if input.peek2(Token![,]) || input.peek2(Token![=]) {
+                Punctuated::parse_terminated(input).map(Self::Metas)
+            } else {
+                input.parse().map(Self::Expr)
+            }
+        }
+    }
+
+    let nested_meta_or_expr = match cx.attr_type {
+        "validate" => parse_meta_list_with(&outer_meta, cx, Punctuated::parse_terminated)
+            .map(ContainsFormat::Metas),
+        "garde" => parse_meta_list_with(&outer_meta, cx, Expr::parse).map(ContainsFormat::Expr),
+        "schemars" => parse_meta_list_with(&outer_meta, cx, ContainsFormat::parse),
+        wat => {
+            unreachable!("Unexpected attr type `{wat}` for `contains` item. This is a bug in schemars, please raise an issue!")
+        }
+    }?;
+
+    let nested_metas = match nested_meta_or_expr {
+        ContainsFormat::Expr(expr) => return Ok(expr),
+        ContainsFormat::Metas(m) => m,
+    };
+
     let mut pattern = None;
 
-    for nested_meta in parse_nested_meta(outer_meta.clone(), cx)? {
+    for nested_meta in nested_metas {
         match path_str(nested_meta.path()).as_str() {
             "pattern" => match &pattern {
                 Some(_) => cx.duplicate_error(&nested_meta),
@@ -229,10 +271,10 @@ pub fn parse_contains(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
 
 pub fn parse_nested_meta(meta: Meta, cx: &AttrCtxt) -> Result<impl IntoIterator<Item = Meta>, ()> {
     let parser = Punctuated::<Meta, Token![,]>::parse_terminated;
-    parse_meta_list(meta, cx, parser)
+    parse_meta_list_with(&meta, cx, parser)
 }
 
-fn parse_meta_list<F: Parser>(meta: Meta, cx: &AttrCtxt, parser: F) -> Result<F::Output, ()> {
+fn parse_meta_list_with<F: Parser>(meta: &Meta, cx: &AttrCtxt, parser: F) -> Result<F::Output, ()> {
     let Meta::List(meta_list) = meta else {
         let name = path_str(meta.path());
         cx.error_spanned_by(
