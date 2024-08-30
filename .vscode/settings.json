@@ -1,4 +1,5 @@
 {
   "rust-analyzer.check.command": "clippy",
-  "rust-analyzer.cargo.features": "all"
+  "rust-analyzer.cargo.features": "all",
+  "rust-analyzer.testExplorer": true
 }

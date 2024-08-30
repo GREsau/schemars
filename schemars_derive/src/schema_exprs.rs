@@ -81,8 +81,8 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
 
     if let Some(non_unit_error) = variants.iter().find_map(|v| match v.style {
         Style::Unit => None,
-        _ => Some(syn::Error::new(
-            v.original.span(),
+        _ => Some(syn::Error::new_spanned(
+            v.original,
             "JsonSchema_repr: must be a unit variant",
         )),
     }) {
