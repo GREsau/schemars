@@ -138,8 +138,78 @@ impl Schema {
             self.0 = Value::Object(map);
         }
 
-        self.as_object_mut()
+        self.0
+            .as_object_mut()
             .expect("Schema value should be of type Object.")
+    }
+
+    /// Inserts a property into the schema, replacing any previous value.
+    ///
+    /// If the schema wraps a bool value, it will first be converted into an equivalent object schema.
+    ///
+    /// If the schema did not have this key present, `None` is returned.
+    ///
+    /// If the schema did have this key present, the value is updated, and the old value is returned.
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::json_schema;
+    /// use serde_json::json;
+    ///
+    /// let mut schema = json_schema!(true);
+    /// assert_eq!(schema.insert("type".to_owned(), "array".into()), None);
+    /// assert_eq!(schema.insert("type".to_owned(), "object".into()), Some(json!("array")));
+    ///
+    /// assert_eq!(schema, json_schema!({"type": "object"}));
+    /// ```
+    pub fn insert(&mut self, k: String, v: Value) -> Option<Value> {
+        self.ensure_object().insert(k, v)
+    }
+
+    /// If the `Schema`'s underlying JSON value is an object, gets a reference to that object's value for the given key.
+    ///
+    /// This always returns `None` for bool schemas.
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::json_schema;
+    /// use serde_json::json;
+    ///
+    /// let obj_schema = json_schema!({"type": "array"});
+    /// assert_eq!(obj_schema.get("type"), Some(&json!("array")));
+    /// assert_eq!(obj_schema.get("format"), None);
+    ///
+    /// let bool_schema = json_schema!(true);
+    /// assert_eq!(bool_schema.get("type"), None);
+    /// ```
+    pub fn get<Q>(&self, key: &Q) -> Option<&Value>
+    where
+        String: core::borrow::Borrow<Q>,
+        Q: ?Sized + Ord + Eq + core::hash::Hash,
+    {
+        self.0.as_object().and_then(|o| o.get(key))
+    }
+
+    /// If the `Schema`'s underlying JSON value is an object, removes and returns its value for the given key.
+    ///
+    /// This always returns `None` for bool schemas, without modifying them.
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::json_schema;
+    /// use serde_json::json;
+    ///
+    /// let mut schema = json_schema!({"type": "array"});
+    /// assert_eq!(schema.remove("type"), Some(json!("array")));
+    /// assert_eq!(schema, json_schema!({}));
+    ///
+    /// ```
+    pub fn remove<Q>(&mut self, key: &Q) -> Option<Value>
+    where
+        String: core::borrow::Borrow<Q>,
+        Q: ?Sized + Ord + Eq + core::hash::Hash,
+    {
+        self.0.as_object_mut().and_then(|o| o.remove(key))
     }
 
     pub(crate) fn has_type(&self, ty: &str) -> bool {

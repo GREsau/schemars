@@ -21,9 +21,7 @@ pub struct MyTransform;
 impl Transform for MyTransform {
     fn transform(&mut self, schema: &mut Schema) {
         // First, make our change to this schema
-        if let Some(obj) = schema.as_object_mut() {
-            obj.insert("my_property".to_string(), serde_json::json!("hello world"));
-        }
+        schema.insert("my_property".to_string(), "hello world".into());
 
         // Then apply the transform to any subschemas
         transform_subschemas(self, schema);
@@ -55,9 +53,7 @@ The same example with a `fn` transform:
 use schemars::transform::transform_subschemas;
 
 fn add_property(schema: &mut Schema) {
-    if let Some(obj) = schema.as_object_mut() {
-        obj.insert("my_property".to_string(), serde_json::json!("hello world"));
-    }
+    schema.insert("my_property".to_string(), "hello world".into());
 
     transform_subschemas(&mut add_property, schema)
 }
@@ -87,9 +83,7 @@ And the same example using a closure wrapped in a `RecursiveTransform`:
 use schemars::transform::{Transform, RecursiveTransform};
 
 let mut transform = RecursiveTransform(|schema: &mut Schema| {
-    if let Some(obj) = schema.as_object_mut() {
-        obj.insert("my_property".to_string(), serde_json::json!("hello world"));
-    }
+    schema.insert("my_property".to_string(), "hello world".into());
 });
 
 let mut schema = json_schema!({
@@ -236,9 +230,7 @@ pub(crate) fn transform_immediate_subschemas<T: Transform + ?Sized>(
 /// use schemars::transform::{Transform, RecursiveTransform};
 ///
 /// let mut transform = RecursiveTransform(|schema: &mut Schema| {
-///     if let Some(obj) = schema.as_object_mut() {
-///         obj.insert("my_property".to_string(), serde_json::json!("hello world"));
-///     }
+///     schema.insert("my_property".to_string(), "hello world".into());
 /// });
 ///
 /// let mut schema = json_schema!({
@@ -289,9 +281,7 @@ impl Transform for ReplaceBoolSchemas {
                 if let Some((ap_key, ap_value)) = obj.remove_entry("additionalProperties") {
                     transform_subschemas(self, schema);
 
-                    if let Some(obj) = schema.as_object_mut() {
-                        obj.insert(ap_key, ap_value);
-                    }
+                    schema.insert(ap_key, ap_value);
 
                     return;
                 }
@@ -339,11 +329,9 @@ impl Transform for SetSingleExample {
     fn transform(&mut self, schema: &mut Schema) {
         transform_subschemas(self, schema);
 
-        if let Some(obj) = schema.as_object_mut() {
-            if let Some(Value::Array(examples)) = obj.remove("examples") {
-                if let Some(first_example) = examples.into_iter().next() {
-                    obj.insert("example".into(), first_example);
-                }
+        if let Some(Value::Array(examples)) = schema.remove("examples") {
+            if let Some(first_example) = examples.into_iter().next() {
+                schema.insert("example".into(), first_example);
             }
         }
     }
@@ -360,10 +348,8 @@ impl Transform for ReplaceConstValue {
     fn transform(&mut self, schema: &mut Schema) {
         transform_subschemas(self, schema);
 
-        if let Some(obj) = schema.as_object_mut() {
-            if let Some(value) = obj.remove("const") {
-                obj.insert("enum".into(), Value::Array(vec![value]));
-            }
+        if let Some(value) = schema.remove("const") {
+            schema.insert("enum".into(), Value::Array(vec![value]));
         }
     }
 }
@@ -381,13 +367,11 @@ impl Transform for ReplacePrefixItems {
     fn transform(&mut self, schema: &mut Schema) {
         transform_subschemas(self, schema);
 
-        if let Some(obj) = schema.as_object_mut() {
-            if let Some(prefix_items) = obj.remove("prefixItems") {
-                let previous_items = obj.insert("items".to_owned(), prefix_items);
+        if let Some(prefix_items) = schema.remove("prefixItems") {
+            let previous_items = schema.insert("items".to_owned(), prefix_items);
 
-                if let Some(previous_items) = previous_items {
-                    obj.insert("additionalItems".to_owned(), previous_items);
-                }
+            if let Some(previous_items) = previous_items {
+                schema.insert("additionalItems".to_owned(), previous_items);
             }
         }
     }
@@ -400,14 +384,11 @@ impl Transform for ReplaceUnevaluatedProperties {
     fn transform(&mut self, schema: &mut Schema) {
         transform_subschemas(self, schema);
 
-        let Some(obj) = schema.as_object_mut() else {
-            return;
-        };
-        let Some(up) = obj.remove("unevaluatedProperties") else {
+        let Some(up) = schema.remove("unevaluatedProperties") else {
             return;
         };
 
-        obj.insert("additionalProperties".to_owned(), up);
+        schema.insert("additionalProperties".to_owned(), up);
 
         let mut gather_property_names = GatherPropertyNames::default();
         gather_property_names.transform(schema);

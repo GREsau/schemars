@@ -25,9 +25,7 @@ pub enum MyEnum {
 }
 
 fn remove_format(schema: &mut Schema) {
-    if let Some(obj) = schema.as_object_mut() {
-        obj.remove("format");
-    }
+    schema.remove("format");
 }
 
 fn main() {

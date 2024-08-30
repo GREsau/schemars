@@ -20,9 +20,7 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
     let mut schema = T::_schemars_private_non_optional_json_schema(generator);
 
     if T::_schemars_private_is_option() && !required {
-        if let Some(object) = schema.as_object_mut() {
-            object.remove("required");
-        }
+        schema.remove("required");
     }
 
     // Always allow aditional/unevaluated properties, because the outer struct determines
@@ -33,16 +31,14 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
 }
 
 fn allow_unknown_properties(schema: &mut Schema) {
-    if let Some(obj) = schema.as_object_mut() {
-        if obj.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
-            obj.remove("additionalProperties");
-        }
-        if obj.get("unevaluatedProperties").and_then(Value::as_bool) == Some(false) {
-            obj.remove("unevaluatedProperties");
-        }
-
-        transform_immediate_subschemas(&mut allow_unknown_properties, schema);
+    if schema.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
+        schema.remove("additionalProperties");
     }
+    if schema.get("unevaluatedProperties").and_then(Value::as_bool) == Some(false) {
+        schema.remove("unevaluatedProperties");
+    }
+
+    transform_immediate_subschemas(&mut allow_unknown_properties, schema);
 }
 
 /// Hack to simulate specialization:
@@ -211,7 +207,7 @@ pub fn apply_inner_validation(schema: &mut Schema, f: fn(&mut Schema) -> ()) {
     if let Some(inner_schema) = schema
         .as_object_mut()
         .and_then(|o| o.get_mut("items"))
-        .and_then(|i| <&mut Schema>::try_from(i).ok())
+        .and_then(|i| i.try_into().ok())
     {
         f(inner_schema);
     }

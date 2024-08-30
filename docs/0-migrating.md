@@ -129,9 +129,7 @@ pub struct MyTransform;
 impl Transform for MyTransform {
     fn transform(&mut self, schema: &mut Schema) {
         // First, make our change to this schema
-        if let Some(obj) = schema.as_object_mut() {
-            obj.insert("my_property".to_string(), serde_json::json!("hello world"));
-        }
+        schema.insert("my_property".to_string(), serde_json::json!("hello world"));
 
         // Then apply the transform to any subschemas
         transform_subschemas(self, schema);
@@ -147,9 +145,7 @@ Also, since `Transform` is now implemented for functions that take a single `&mu
 ```rust
 fn my_transform(schema: &mut Schema) {
     // First, make our change to this schema
-    if let Some(obj) = schema.as_object_mut() {
-        obj.insert("my_property".to_string(), serde_json::json!("hello world"));
-    }
+    schema.insert("my_property".to_string(), serde_json::json!("hello world"));
 
     // Then apply the transform to any subschemas
     transform_subschemas(&mut my_transform, schema);
@@ -165,9 +161,7 @@ Finally, you can also use the `RecursiveTransform` newtype to convert a non-recu
 
 ```rust
 fn my_transform2(schema: &mut Schema) {
-    if let Some(obj) = schema.as_object_mut() {
-        obj.insert("my_property".to_string(), serde_json::json!("hello world"));
-    }
+    schema.insert("my_property".to_string(), serde_json::json!("hello world"));
 }
 
 let mut schema = schemars::schema_for!(str);
