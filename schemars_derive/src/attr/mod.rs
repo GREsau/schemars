@@ -89,8 +89,9 @@ impl CommonAttrs {
 
             "extend" => {
                 for ex in parse_extensions(meta, cx).into_iter().flatten() {
-                    // This is O(n^2) but should be fine with the typically small number of extensions.
-                    // If this does become a problem, it can be changed to use IndexMap, or a separate Map with cloned keys.
+                    // This is O(n^2) but should be fine with the typically small number of
+                    // extensions. If this does become a problem, it can be changed to use
+                    // IndexMap, or a separate Map with cloned keys.
                     if self.extensions.iter().any(|e| e.0 == ex.key_str) {
                         cx.error_spanned_by(
                             ex.key_lit,

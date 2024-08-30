@@ -21,7 +21,8 @@ type CowStr = alloc::borrow::Cow<'static, str>;
 /// Settings to customize how Schemas are generated.
 ///
 /// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
-/// If you rely on generated schemas conforming to draft 2020-12, consider using the [`SchemaSettings::draft2020_12()`] method.
+/// If you rely on generated schemas conforming to draft 2020-12, consider using the
+/// [`SchemaSettings::draft2020_12()`] method.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct SchemaSettings {
@@ -35,7 +36,8 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `true`.
     pub option_add_null_type: bool,
-    /// A JSON pointer to the expected location of referenceable subschemas within the resulting root schema.
+    /// A JSON pointer to the expected location of referenceable subschemas within the resulting
+    /// root schema.
     ///
     /// A single leading `#` and/or single trailing `/` are ignored.
     ///
@@ -57,7 +59,8 @@ pub struct SchemaSettings {
 
 impl Default for SchemaSettings {
     /// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
-    /// If you rely on generated schemas conforming to draft 2020-12, consider using the [`SchemaSettings::draft2020_12()`] method.
+    /// If you rely on generated schemas conforming to draft 2020-12, consider using the
+    /// [`SchemaSettings::draft2020_12()`] method.
     fn default() -> SchemaSettings {
         SchemaSettings::draft2020_12()
     }
@@ -145,7 +148,8 @@ impl SchemaSettings {
         self
     }
 
-    /// Appends the given transform to the list of [transforms](SchemaSettings::transforms) for these `SchemaSettings`.
+    /// Appends the given transform to the list of [transforms](SchemaSettings::transforms) for
+    /// these `SchemaSettings`.
     pub fn with_transform(mut self, transform: impl Transform + Clone + 'static + Send) -> Self {
         self.transforms.push(Box::new(transform));
         self
@@ -222,13 +226,15 @@ impl SchemaGenerator {
         &self.settings
     }
 
-    /// Generates a JSON Schema for the type `T`, and returns either the schema itself or a `$ref` schema referencing `T`'s schema.
+    /// Generates a JSON Schema for the type `T`, and returns either the schema itself or a `$ref`
+    /// schema referencing `T`'s schema.
     ///
-    /// If `T` is not [inlined](JsonSchema::always_inline_schema), this will add `T`'s schema to this generator's definitions, and
-    /// return a `$ref` schema referencing that schema. Otherwise, this method behaves identically to [`JsonSchema::json_schema`].
+    /// If `T` is not [inlined](JsonSchema::always_inline_schema), this will add `T`'s schema to
+    /// this generator's definitions, and return a `$ref` schema referencing that schema.
+    /// Otherwise, this method behaves identically to [`JsonSchema::json_schema`].
     ///
-    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
-    /// add them to the `SchemaGenerator`'s schema definitions.
+    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then
+    /// this method will add them to the `SchemaGenerator`'s schema definitions.
     pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
         let id = T::schema_id();
         let return_ref = !T::always_inline_schema()
@@ -278,40 +284,44 @@ impl SchemaGenerator {
         self.definitions.insert(name.into(), schema.to_value());
     }
 
-    /// Borrows the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that have been generated.
+    /// Borrows the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that
+    /// have been generated.
     ///
-    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
-    /// themselves.
+    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
+    /// values are the schemas themselves.
     pub fn definitions(&self) -> &JsonMap<String, Value> {
         &self.definitions
     }
 
-    /// Mutably borrows the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that have been generated.
+    /// Mutably borrows the collection of all [non-inlined](JsonSchema::always_inline_schema)
+    /// schemas that have been generated.
     ///
-    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
-    /// themselves.
+    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
+    /// values are the schemas themselves.
     pub fn definitions_mut(&mut self) -> &mut JsonMap<String, Value> {
         &mut self.definitions
     }
 
-    /// Returns the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that have been generated,
-    /// leaving an empty `Map` in its place.
+    /// Returns the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that
+    /// have been generated, leaving an empty `Map` in its place.
     ///
-    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the values are the schemas
-    /// themselves.
+    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
+    /// values are the schemas themselves.
     pub fn take_definitions(&mut self) -> JsonMap<String, Value> {
         core::mem::take(&mut self.definitions)
     }
 
-    /// Returns an iterator over the [transforms](SchemaSettings::transforms) being used by this `SchemaGenerator`.
+    /// Returns an iterator over the [transforms](SchemaSettings::transforms) being used by this
+    /// `SchemaGenerator`.
     pub fn transforms_mut(&mut self) -> impl Iterator<Item = &mut dyn GenTransform> {
         self.settings.transforms.iter_mut().map(Box::as_mut)
     }
 
     /// Generates a JSON Schema for the type `T`.
     ///
-    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
-    /// include them in the returned `Schema` at the [definitions path](SchemaSettings::definitions_path) (by default `"$defs"`).
+    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then
+    /// this method will include them in the returned `Schema` at the [definitions
+    /// path](SchemaSettings::definitions_path) (by default `"$defs"`).
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
         let mut schema = self.json_schema_internal::<T>(T::schema_id());
 
@@ -333,8 +343,9 @@ impl SchemaGenerator {
 
     /// Consumes `self` and generates a JSON Schema for the type `T`.
     ///
-    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
-    /// include them in the returned `Schema` at the [definitions path](SchemaSettings::definitions_path) (by default `"$defs"`).
+    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then
+    /// this method will include them in the returned `Schema` at the [definitions
+    /// path](SchemaSettings::definitions_path) (by default `"$defs"`).
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Schema {
         let mut schema = self.json_schema_internal::<T>(T::schema_id());
 
@@ -357,8 +368,9 @@ impl SchemaGenerator {
 
     /// Generates a JSON Schema for the given example value.
     ///
-    /// If the value implements [`JsonSchema`], then prefer using the [`root_schema_for()`](Self::root_schema_for())
-    /// function which will generally produce a more precise schema, particularly when the value contains any enums.
+    /// If the value implements [`JsonSchema`], then prefer using the
+    /// [`root_schema_for()`](Self::root_schema_for()) function which will generally produce a
+    /// more precise schema, particularly when the value contains any enums.
     ///
     /// If the `Serialize` implementation of the value decides to fail, this will return an [`Err`].
     pub fn root_schema_for_value<T: ?Sized + Serialize>(
@@ -388,8 +400,9 @@ impl SchemaGenerator {
 
     /// Consumes `self` and generates a JSON Schema for the given example value.
     ///
-    /// If the value  implements [`JsonSchema`], then prefer using the [`into_root_schema_for()!`](Self::into_root_schema_for())
-    /// function which will generally produce a more precise schema, particularly when the value contains any enums.
+    /// If the value  implements [`JsonSchema`], then prefer using the
+    /// [`into_root_schema_for()!`](Self::into_root_schema_for()) function which will generally
+    /// produce a more precise schema, particularly when the value contains any enums.
     ///
     /// If the `Serialize` implementation of the value decides to fail, this will return an [`Err`].
     pub fn into_root_schema_for_value<T: ?Sized + Serialize>(
@@ -511,9 +524,11 @@ fn json_pointer_mut<'a>(
     Some(object)
 }
 
-/// A [`Transform`] which implements additional traits required to be included in a [`SchemaSettings`].
+/// A [`Transform`] which implements additional traits required to be included in a
+/// [`SchemaSettings`].
 ///
-/// You will rarely need to use this trait directly as it is automatically implemented for any type which implements all of:
+/// You will rarely need to use this trait directly as it is automatically implemented for any type
+/// which implements all of:
 /// - [`Transform`]
 /// - [`std::any::Any`] (implemented for all `'static` types)
 /// - [`std::clone::Clone`]
@@ -537,7 +552,8 @@ fn json_pointer_mut<'a>(
 /// assert!(v.as_any().is::<MyTransform>());
 /// ```
 pub trait GenTransform: Transform + DynClone + Any + Send {
-    /// Upcasts this transform into an [`Any`], which can be used to inspect and manipulate it as its concrete type.
+    /// Upcasts this transform into an [`Any`], which can be used to inspect and manipulate it as
+    /// its concrete type.
     ///
     /// # Example
     /// To remove a specific transform from an instance of `SchemaSettings`:
@@ -556,7 +572,8 @@ pub trait GenTransform: Transform + DynClone + Any + Send {
     /// ```
     fn as_any(&self) -> &dyn Any;
 
-    /// Mutably upcasts this transform into an [`Any`], which can be used to inspect and manipulate it as its concrete type.
+    /// Mutably upcasts this transform into an [`Any`], which can be used to inspect and manipulate
+    /// it as its concrete type.
     ///
     /// # Example
     /// To modify a specific transform in an instance of `SchemaSettings`:

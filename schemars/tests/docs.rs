@@ -21,7 +21,6 @@ struct MyStruct {
 }
 
 /// # A Unit
-///
 #[derive(JsonSchema)]
 struct MyUnitStruct;
 

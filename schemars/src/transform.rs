@@ -117,11 +117,13 @@ use serde_json::{json, Map, Value};
 pub trait Transform {
     /// Applies the transform to the given [`Schema`].
     ///
-    /// When overriding this method, you may want to call the [`transform_subschemas`] function to also transform any subschemas.
+    /// When overriding this method, you may want to call the [`transform_subschemas`] function to
+    /// also transform any subschemas.
     fn transform(&mut self, schema: &mut Schema);
 
     // Not public API
-    // Hack to enable implementing Debug on Box<dyn GenTransform> even though closures don't implement Debug
+    // Hack to enable implementing Debug on Box<dyn GenTransform> even though closures don't
+    // implement Debug
     #[doc(hidden)]
     fn _debug_type_name(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str(core::any::type_name::<Self>())
@@ -167,7 +169,8 @@ pub fn transform_subschemas<T: Transform + ?Sized>(t: &mut T, schema: &mut Schem
                     }
                 }
             }
-            // Support `items` array even though this is not allowed in draft 2020-12 (see above comment)
+            // Support `items` array even though this is not allowed in draft 2020-12 (see above
+            // comment)
             "items" => {
                 if let Some(array) = value.as_array_mut() {
                     for value in array {
@@ -220,9 +223,11 @@ pub(crate) fn transform_immediate_subschemas<T: Transform + ?Sized>(
     }
 }
 
-/// A helper struct that can wrap a non-recursive [`Transform`] (i.e. one that does not apply to subschemas) into a recursive one.
+/// A helper struct that can wrap a non-recursive [`Transform`] (i.e. one that does not apply to
+/// subschemas) into a recursive one.
 ///
-/// Its implementation of `Transform` will first apply the inner transform to the "parent" schema, and then its subschemas (and their subschemas, and so on).
+/// Its implementation of `Transform` will first apply the inner transform to the "parent" schema,
+/// and then its subschemas (and their subschemas, and so on).
 ///
 /// # Example
 /// ```
@@ -267,10 +272,12 @@ where
 /// Replaces boolean JSON Schemas with equivalent object schemas.
 /// This also applies to subschemas.
 ///
-/// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support booleans as schemas.
+/// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support booleans as
+/// schemas.
 #[derive(Debug, Clone)]
 pub struct ReplaceBoolSchemas {
-    /// When set to `true`, a schema's `additionalProperties` property will not be changed from a boolean.
+    /// When set to `true`, a schema's `additionalProperties` property will not be changed from a
+    /// boolean.
     pub skip_additional_properties: bool,
 }
 
@@ -294,10 +301,11 @@ impl Transform for ReplaceBoolSchemas {
     }
 }
 
-/// Restructures JSON Schema objects so that the `$ref` property will never appear alongside any other properties.
-/// This also applies to subschemas.
+/// Restructures JSON Schema objects so that the `$ref` property will never appear alongside any
+/// other properties. This also applies to subschemas.
 ///
-/// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support other properties alongside `$ref`.
+/// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support other properties
+/// alongside `$ref`.
 #[derive(Debug, Clone)]
 pub struct RemoveRefSiblings;
 
@@ -318,10 +326,11 @@ impl Transform for RemoveRefSiblings {
     }
 }
 
-/// Removes the `examples` schema property and (if present) set its first value as the `example` property.
-/// This also applies to subschemas.
+/// Removes the `examples` schema property and (if present) set its first value as the `example`
+/// property. This also applies to subschemas.
 ///
-/// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support the `examples` property.
+/// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support the `examples`
+/// property.
 #[derive(Debug, Clone)]
 pub struct SetSingleExample;
 
@@ -340,7 +349,8 @@ impl Transform for SetSingleExample {
 /// Replaces the `const` schema property with a single-valued `enum` property.
 /// This also applies to subschemas.
 ///
-/// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support the `const` property.
+/// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support the `const`
+/// property.
 #[derive(Debug, Clone)]
 pub struct ReplaceConstValue;
 
@@ -357,9 +367,11 @@ impl Transform for ReplaceConstValue {
 /// Rename the `prefixItems` schema property to `items`.
 /// This also applies to subschemas.
 ///
-/// If the schema contains both `prefixItems` and `items`, then this additionally renames `items` to `additionalItems`.
+/// If the schema contains both `prefixItems` and `items`, then this additionally renames `items` to
+/// `additionalItems`.
 ///
-/// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support the `prefixItems` property.
+/// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support the `prefixItems`
+/// property.
 #[derive(Debug, Clone)]
 pub struct ReplacePrefixItems;
 

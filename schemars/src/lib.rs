@@ -109,7 +109,8 @@ pub mod r#gen {
 /// assert_eq!(NonGenericType::schema_id(), <&mut NonGenericType>::schema_id());
 /// ```
 ///
-/// But generic type parameters which may affect the generated schema should typically be included in the name/ID:
+/// But generic type parameters which may affect the generated schema should typically be included
+/// in the name/ID:
 /// ```
 /// use schemars::{SchemaGenerator, Schema, JsonSchema, json_schema};
 /// use std::{borrow::Cow, marker::PhantomData};
@@ -138,14 +139,14 @@ pub mod r#gen {
 ///
 /// assert_eq!(<GenericType<i32>>::schema_id(), <&mut GenericType<&i32>>::schema_id());
 /// ```
-///
 
 pub trait JsonSchema {
-    /// Whether JSON Schemas generated for this type should be included directly in parent schemas, rather than being
-    /// re-used where possible using the `$ref` keyword.
+    /// Whether JSON Schemas generated for this type should be included directly in parent schemas,
+    /// rather than being re-used where possible using the `$ref` keyword.
     ///
-    /// For trivial types (such as primitives), this should return `true`. For more complex types, it should return `false`.
-    /// For recursive types, this **must** return `false` to prevent infinite cycles when generating schemas.
+    /// For trivial types (such as primitives), this should return `true`. For more complex types,
+    /// it should return `false`. For recursive types, this **must** return `false` to prevent
+    /// infinite cycles when generating schemas.
     ///
     /// By default, this returns `false`.
     fn always_inline_schema() -> bool {
@@ -154,24 +155,27 @@ pub trait JsonSchema {
 
     /// The name of the generated JSON Schema.
     ///
-    /// This is used as the title for root schemas, and the key within the root's `definitions` property for subschemas.
+    /// This is used as the title for root schemas, and the key within the root's `definitions`
+    /// property for subschemas.
     fn schema_name() -> Cow<'static, str>;
 
     /// Returns a string that uniquely identifies the schema produced by this type.
     ///
-    /// This does not have to be a human-readable string, and the value will not itself be included in generated schemas.
-    /// If two types produce different schemas, then they **must** have different `schema_id()`s,
-    /// but two types that produce identical schemas should *ideally* have the same `schema_id()`.
+    /// This does not have to be a human-readable string, and the value will not itself be included
+    /// in generated schemas. If two types produce different schemas, then they **must** have
+    /// different `schema_id()`s, but two types that produce identical schemas should *ideally*
+    /// have the same `schema_id()`.
     ///
-    /// The default implementation returns the same value as [`schema_name()`](JsonSchema::schema_name).
+    /// The default implementation returns the same value as
+    /// [`schema_name()`](JsonSchema::schema_name).
     fn schema_id() -> Cow<'static, str> {
         Self::schema_name()
     }
 
     /// Generates a JSON Schema for this type.
     ///
-    /// If the returned schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then this method will
-    /// add them to the [`SchemaGenerator`]'s schema definitions.
+    /// If the returned schema depends on any [non-inlined](JsonSchema::always_inline_schema)
+    /// schemas, then this method will add them to the [`SchemaGenerator`]'s schema definitions.
     ///
     /// This should not return a `$ref` schema.
     fn json_schema(generator: &mut SchemaGenerator) -> Schema;

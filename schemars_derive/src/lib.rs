@@ -201,8 +201,11 @@ fn add_trait_bounds(cont: &mut Container) {
         let where_clause = cont.generics.make_where_clause();
         where_clause.predicates.extend(bounds.iter().cloned());
     } else {
-        // No explicit trait bounds specified, assume the Rust convention of adding the trait to each type parameter
-        // TODO consider also adding trait bound to associated types when used as fields - I think Serde does this?
+        // No explicit trait bounds specified, assume the Rust convention of adding the trait to
+        // each type parameter
+        //
+        // TODO consider also adding trait bound to associated types
+        // when used as fields - I think Serde does this?
         for param in &mut cont.generics.params {
             if let syn::GenericParam::Type(ref mut type_param) = *param {
                 type_param.bounds.push(parse_quote!(schemars::JsonSchema));

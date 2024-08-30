@@ -9,7 +9,8 @@ use serde_json::{Map, Value};
 
 /// A JSON Schema.
 ///
-/// This wraps a JSON [`Value`] that must be either an [object](Value::Object) or a [bool](Value::Bool).
+/// This wraps a JSON [`Value`] that must be either an [object](Value::Object) or a
+/// [bool](Value::Bool).
 ///
 /// A custom JSON schema can be created using the [`json_schema!`](crate::json_schema) macro:
 /// ```
@@ -20,8 +21,11 @@ use serde_json::{Map, Value};
 /// });
 /// ```
 ///
-/// Because a `Schema` is a thin wrapper around a `Value`, you can also use [`TryFrom::try_from`]/[`TryInto::try_into`] to create a `Schema` from an existing `Value`.
-/// This operation is fallible, because only [objects](Value::Object) and [bools](Value::Bool) can be converted in this way.
+/// Because a `Schema` is a thin wrapper around a `Value`, you can also use
+/// [`TryFrom::try_from`]/[`TryInto::try_into`] to create a `Schema` from an existing `Value`.
+/// This operation is fallible, because only [objects](Value::Object) and [bools](Value::Bool) can
+/// be converted in this way.
+///
 /// ```
 /// use schemars::{Schema, json_schema};
 /// use serde_json::json;
@@ -42,10 +46,11 @@ use serde_json::{Map, Value};
 ///
 /// let mut json_object = json!({"type": ["object", "null"]});
 /// let object_schema_mut: &mut Schema = (&mut json_object).try_into().unwrap();
-///
 /// ```
 ///
-/// Similarly, you can use [`From`]/[`Into`] to (infallibly) create a `Schema` from an existing [`Map<String, Value>`] or [`bool`].
+/// Similarly, you can use [`From`]/[`Into`] to (infallibly) create a `Schema` from an existing
+/// [`Map<String, Value>`] or [`bool`].
+///
 /// ```
 /// use schemars::{Schema, json_schema};
 /// use serde_json::{Map, json};
@@ -101,12 +106,14 @@ impl Schema {
         self.0.as_bool()
     }
 
-    /// If the `Schema`'s underlying JSON value is an object, borrows the object as a `Map` of properties.
+    /// If the `Schema`'s underlying JSON value is an object, borrows the object as a `Map` of
+    /// properties.
     pub fn as_object(&self) -> Option<&Map<String, Value>> {
         self.0.as_object()
     }
 
-    /// If the `Schema`'s underlying JSON value is an object, mutably borrows the object as a `Map` of properties.
+    /// If the `Schema`'s underlying JSON value is an object, mutably borrows the object as a `Map`
+    /// of properties.
     pub fn as_object_mut(&mut self) -> Option<&mut Map<String, Value>> {
         self.0.as_object_mut()
     }
@@ -124,10 +131,12 @@ impl Schema {
         self.0
     }
 
-    /// Converts the `Schema` (if it wraps a bool value) into an equivalent object schema. Then mutably borrows the object as a `Map` of properties.
+    /// Converts the `Schema` (if it wraps a bool value) into an equivalent object schema. Then
+    /// mutably borrows the object as a `Map` of properties.
     ///
-    /// `true` is transformed into an empty schema `{}`, which successfully validates against all possible values.
-    /// `false` is transformed into the schema `{"not": {}}`, which does not successfully validate against any value.
+    /// `true` is transformed into an empty schema `{}`, which successfully validates against all
+    /// possible values. `false` is transformed into the schema `{"not": {}}`, which does not
+    /// successfully validate against any value.
     #[allow(clippy::missing_panics_doc)]
     pub fn ensure_object(&mut self) -> &mut Map<String, Value> {
         if let Some(b) = self.as_bool() {
@@ -145,11 +154,13 @@ impl Schema {
 
     /// Inserts a property into the schema, replacing any previous value.
     ///
-    /// If the schema wraps a bool value, it will first be converted into an equivalent object schema.
+    /// If the schema wraps a bool value, it will first be converted into an equivalent object
+    /// schema.
     ///
     /// If the schema did not have this key present, `None` is returned.
     ///
-    /// If the schema did have this key present, the value is updated, and the old value is returned.
+    /// If the schema did have this key present, the value is updated, and the old value is
+    /// returned.
     ///
     /// # Example
     /// ```
@@ -166,7 +177,8 @@ impl Schema {
         self.ensure_object().insert(k, v)
     }
 
-    /// If the `Schema`'s underlying JSON value is an object, gets a reference to that object's value for the given key.
+    /// If the `Schema`'s underlying JSON value is an object, gets a reference to that object's
+    /// value for the given key.
     ///
     /// This always returns `None` for bool schemas.
     ///
@@ -190,7 +202,8 @@ impl Schema {
         self.0.as_object().and_then(|o| o.get(key))
     }
 
-    /// If the `Schema`'s underlying JSON value is an object, removes and returns its value for the given key.
+    /// If the `Schema`'s underlying JSON value is an object, removes and returns its value for the
+    /// given key.
     ///
     /// This always returns `None` for bool schemas, without modifying them.
     ///
@@ -202,7 +215,6 @@ impl Schema {
     /// let mut schema = json_schema!({"type": "array"});
     /// assert_eq!(schema.remove("type"), Some(json!("array")));
     /// assert_eq!(schema, json_schema!({}));
-    ///
     /// ```
     pub fn remove<Q>(&mut self, key: &Q) -> Option<Value>
     where

@@ -52,9 +52,10 @@ macro_rules! schema_for {
 /// Generates a [`Schema`](crate::Schema) for the given example value using default settings.
 /// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
 ///
-/// The value must implement [`Serialize`](serde::Serialize). If the value also implements [`JsonSchema`](crate::JsonSchema),
-/// then prefer using the [`schema_for!(Type)`](schema_for) macro which will generally produce a more precise schema,
-/// particularly when the value contains any enums.
+/// The value must implement [`Serialize`](serde::Serialize). If the value also implements
+/// [`JsonSchema`](crate::JsonSchema), then prefer using the [`schema_for!(Type)`](schema_for) macro
+/// which will generally produce a more precise schema, particularly when the value contains any
+/// enums.
 ///
 /// If the `Serialize` implementation of the value decides to fail, this macro will panic.
 /// For a non-panicking alternative, create a [`SchemaGenerator`](crate::SchemaGenerator) and use
@@ -80,9 +81,11 @@ macro_rules! schema_for_value {
     };
 }
 
-/// Construct a [`Schema`](crate::Schema) from a JSON literal. This can either be a JSON object, or a boolean (`true` or `false`).
+/// Construct a [`Schema`](crate::Schema) from a JSON literal. This can either be a JSON object, or
+/// a boolean (`true` or `false`).
 ///
-/// You can interpolate variables or expressions into a JSON object using the same rules as the [`serde_json::json`] macro.
+/// You can interpolate variables or expressions into a JSON object using the same rules as the
+/// [`serde_json::json`] macro.
 ///
 /// # Example
 /// ```

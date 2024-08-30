@@ -6,7 +6,8 @@ use syn::{Attribute, Data, Field, Meta, Variant};
 
 use super::get_meta_items;
 
-// List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes which we want serde_derive_internals to parse for us.
+// List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes which we want
+// serde_derive_internals to parse for us.
 pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     "rename",
     "rename_all",
@@ -23,12 +24,15 @@ pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     "flatten",
     "remote",
     "transparent",
-    // Special case - `bound` is removed from serde attrs, so is only respected when present in schemars attr.
+    // Special case - `bound` is removed from serde attrs, so is only respected when present in
+    // schemars attr.
     "bound",
-    // Special cases - `with`/`serialize_with` are passed to serde but not copied from schemars attrs to serde attrs.
-    // This is because we want to preserve any serde attribute's `serialize_with` value to determine whether the field's
-    // default value should be serialized. We also check the `with` value on schemars/serde attrs e.g. to support deriving
-    // JsonSchema on remote types, but we parse that ourselves rather than using serde_derive_internals.
+    // Special cases - `with`/`serialize_with` are passed to serde but not copied from schemars
+    // attrs to serde attrs. This is because we want to preserve any serde attribute's
+    // `serialize_with` value to determine whether the field's default value should be
+    // serialized. We also check the `with` value on schemars/serde attrs e.g. to support deriving
+    // JsonSchema on remote types, but we parse that ourselves rather than using
+    // serde_derive_internals.
     "serialize_with",
     "with",
 ];
