@@ -3,7 +3,6 @@ use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use serde_derive_internals::ast::Style;
 use serde_derive_internals::attr::{self as serde_attr, Default as SerdeDefault, TagType};
-use std::collections::HashSet;
 use syn::spanned::Spanned;
 
 pub struct SchemaExpr {
@@ -208,14 +207,8 @@ fn expr_for_external_tagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
-    let mut unique_names = HashSet::<&str>::new();
-    let mut count = 0;
-    let (unit_variants, complex_variants): (Vec<_>, Vec<_>) = variants
-        .inspect(|v| {
-            unique_names.insert(v.name());
-            count += 1;
-        })
-        .partition(|v| v.is_unit() && v.attrs.is_default());
+    let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
+        variants.partition(|v| v.is_unit() && v.attrs.is_default());
     let unit_names = unit_variants.iter().map(|v| v.name());
     let unit_schema = SchemaExpr::from(quote!({
         let mut map = schemars::_private::serde_json::Map::new();
@@ -260,7 +253,7 @@ fn expr_for_external_tagged_enum<'a>(
         schema_expr
     }));
 
-    variant_subschemas(unique_names.len() == count, schemas)
+    variant_subschemas(true, schemas)
 }
 
 fn expr_for_internal_tagged_enum<'a>(
@@ -268,12 +261,8 @@ fn expr_for_internal_tagged_enum<'a>(
     tag_name: &str,
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
-    let mut unique_names = HashSet::new();
-    let mut count = 0;
     let variant_schemas = variants
         .map(|variant| {
-            unique_names.insert(variant.name());
-            count += 1;
 
             let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
 
@@ -288,7 +277,7 @@ fn expr_for_internal_tagged_enum<'a>(
         })
         .collect();
 
-    variant_subschemas(unique_names.len() == count, variant_schemas)
+    variant_subschemas(true, variant_schemas)
 }
 
 fn expr_for_untagged_enum<'a>(
@@ -316,13 +305,8 @@ fn expr_for_adjacent_tagged_enum<'a>(
     content_name: &str,
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
-    let mut unique_names = HashSet::new();
-    let mut count = 0;
     let schemas = variants
         .map(|variant| {
-            unique_names.insert(variant.name());
-            count += 1;
-
             let content_schema = if variant.is_unit() && variant.attrs.with.is_none() {
                 None
             } else {
@@ -375,11 +359,11 @@ fn expr_for_adjacent_tagged_enum<'a>(
         })
         .collect();
 
-    variant_subschemas(unique_names.len() == count, schemas)
+    variant_subschemas(true, schemas)
 }
 
-/// Callers must determine if all subschemas are mutually exclusive. This can
-/// be done for most tagging regimes by checking that all tag names are unique.
+/// Callers must determine if all subschemas are mutually exclusive. The current behaviour is to
+/// assume that variants are mutually exclusive except for untagged enums.
 fn variant_subschemas(unique: bool, schemas: Vec<SchemaExpr>) -> SchemaExpr {
     let keyword = if unique { "oneOf" } else { "anyOf" };
     quote!({

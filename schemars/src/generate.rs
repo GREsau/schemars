@@ -184,12 +184,12 @@ pub enum Contract {
 }
 
 impl Contract {
-    pub fn is_deserialize(self) -> bool {
-        self == Contract::Deserialize
+    pub fn is_deserialize(&self) -> bool {
+        self == &Contract::Deserialize
     }
 
-    pub fn is_serialize(self) -> bool {
-        self == Contract::Serialize
+    pub fn is_serialize(&self) -> bool {
+        self == &Contract::Serialize
     }
 }
 
