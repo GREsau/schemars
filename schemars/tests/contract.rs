@@ -15,12 +15,6 @@ struct MyStruct {
     skip_serializing_if: bool,
     #[schemars(rename(serialize = "ser_renamed", deserialize = "de_renamed"))]
     renamed: bool,
-    // TODO
-    #[schemars(deserialize_with = "i8")]
-    deserialize_with_i8: bool,
-    // TODO
-    #[schemars(serialize_with = "u8")]
-    serialize_with_u8: bool,
 }
 
 #[test]

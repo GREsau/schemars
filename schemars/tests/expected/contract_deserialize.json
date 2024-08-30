@@ -16,19 +16,11 @@
     },
     "de_renamed": {
       "type": "boolean"
-    },
-    "deserialize_with_i8": {
-      "type": "boolean"
-    },
-    "serialize_with_u8": {
-      "type": "boolean"
     }
   },
   "required": [
     "write_only",
     "skip_serializing_if",
-    "de_renamed",
-    "deserialize_with_i8",
-    "serialize_with_u8"
+    "de_renamed"
   ]
 }
