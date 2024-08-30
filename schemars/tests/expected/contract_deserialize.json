@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MyStruct",
+  "type": "object",
+  "properties": {
+    "read_only": {
+      "type": "boolean",
+      "readOnly": true,
+      "default": false
+    },
+    "write_only": {
+      "type": "boolean",
+      "writeOnly": true
+    },
+    "default": {
+      "type": "boolean",
+      "default": false
+    },
+    "skip_serializing_if": {
+      "type": "boolean"
+    },
+    "de_renamed": {
+      "type": "boolean"
+    },
+    "deserialize_with_i8": {
+      "type": "boolean"
+    },
+    "serialize_with_u8": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "write_only",
+    "skip_serializing_if",
+    "de_renamed",
+    "deserialize_with_i8",
+    "serialize_with_u8"
+  ]
+}
