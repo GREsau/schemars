@@ -5,16 +5,12 @@ use util::*;
 #[allow(dead_code)]
 #[derive(Default, JsonSchema)]
 struct MyStruct {
-    // TODO
     #[schemars(skip_deserializing)]
     read_only: bool,
-    // TODO
     #[schemars(skip_serializing)]
     write_only: bool,
-    // TODO add to required for serialize but not deserialize
     #[schemars(default)]
     default: bool,
-    // TODO add to required for deserialize but not serialize
     #[schemars(skip_serializing_if = "anything")]
     skip_serializing_if: bool,
     #[schemars(rename(serialize = "ser_renamed", deserialize = "de_renamed"))]
@@ -42,3 +38,5 @@ fn contract_serialize() -> TestResult {
         SchemaSettings::default().for_serialize(),
     )
 }
+
+// TODO enums

@@ -3,11 +3,6 @@
   "title": "MyStruct",
   "type": "object",
   "properties": {
-    "read_only": {
-      "type": "boolean",
-      "readOnly": true,
-      "default": false
-    },
     "write_only": {
       "type": "boolean",
       "writeOnly": true

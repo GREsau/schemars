@@ -137,14 +137,13 @@ pub fn apply_internal_enum_variant_tag(
 pub fn insert_object_property<T: ?Sized + JsonSchema>(
     schema: &mut Schema,
     key: &str,
-    has_default: bool,
-    required: bool,
+    may_be_omitted: bool,
+    required_attr: bool,
     sub_schema: Schema,
 ) {
     fn insert_object_property_impl(
         schema: &mut Schema,
         key: &str,
-        has_default: bool,
         required: bool,
         sub_schema: Schema,
     ) {
@@ -157,7 +156,7 @@ pub fn insert_object_property<T: ?Sized + JsonSchema>(
             properties.insert(key.to_owned(), sub_schema.into());
         }
 
-        if !has_default && (required) {
+        if required {
             if let Some(req) = obj
                 .entry("required")
                 .or_insert(Value::Array(Vec::new()))
@@ -168,8 +167,8 @@ pub fn insert_object_property<T: ?Sized + JsonSchema>(
         }
     }
 
-    let required = required || !T::_schemars_private_is_option();
-    insert_object_property_impl(schema, key, has_default, required, sub_schema);
+    let required = !may_be_omitted && (required_attr || !T::_schemars_private_is_option());
+    insert_object_property_impl(schema, key, required, sub_schema);
 }
 
 pub fn insert_metadata_property(schema: &mut Schema, key: &str, value: impl Into<Value>) {

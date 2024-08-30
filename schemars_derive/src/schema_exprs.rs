@@ -480,15 +480,25 @@ fn expr_for_struct(
 
                 schema_expr.definitions.extend(type_def);
 
-                quote! {
+                field.with_contract_check(quote! {
                     schemars::_private::flatten(&mut #SCHEMA, #schema_expr);
-                }
+                })
             } else {
                 let name = field.name();
                 let (ty, type_def) = type_for_field_schema(field);
 
                 let has_default = set_container_default.is_some() || !field.serde_attrs.default().is_none();
-                let required = field.attrs.validation.required;
+                let has_skip_serialize_if = field.serde_attrs.skip_serializing_if().is_some();
+                let may_be_omitted = if has_default == has_skip_serialize_if {
+                    has_default.into_token_stream()
+                } else {
+                    quote!(if #GENERATOR.contract().is_serialize() {
+                        #has_skip_serialize_if
+                    } else {
+                        #has_default
+                    })
+                };
+                let required_attr = field.attrs.validation.required;
 
                 let mut schema_expr = SchemaExpr::from(if field.attrs.validation.required {
                     quote_spanned! {ty.span()=>
@@ -510,10 +520,10 @@ fn expr_for_struct(
 
                 // embed `#type_def` outside of `#schema_expr`, because it's used as the type param
                 // (i.e. `#type_def` is the definition of `#ty`)
-                quote!({
+                field.with_contract_check(quote!({
                     #type_def
-                    schemars::_private::insert_object_property::<#ty>(&mut #SCHEMA, #name, #has_default, #required, #schema_expr);
-                })
+                    schemars::_private::insert_object_property::<#ty>(&mut #SCHEMA, #name, #may_be_omitted, #required_attr, #schema_expr);
+                }))
             }
             })
         .collect();

@@ -8,10 +8,6 @@
       "readOnly": true,
       "default": false
     },
-    "write_only": {
-      "type": "boolean",
-      "writeOnly": true
-    },
     "default": {
       "type": "boolean",
       "default": false
@@ -30,8 +26,8 @@
     }
   },
   "required": [
-    "write_only",
-    "skip_serializing_if",
+    "read_only",
+    "default",
     "ser_renamed",
     "deserialize_with_i8",
     "serialize_with_u8"

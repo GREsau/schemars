@@ -75,6 +75,14 @@ impl<'a> Variant<'a> {
     pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
         self.attrs.common.add_mutators(mutators);
     }
+
+    pub fn with_contract_check(&self, action: TokenStream) -> TokenStream {
+        with_contract_check(
+            self.serde_attrs.skip_deserializing(),
+            self.serde_attrs.skip_serializing(),
+            action,
+        )
+    }
 }
 
 impl<'a> Field<'a> {
@@ -97,6 +105,14 @@ impl<'a> Field<'a> {
             });
         }
     }
+
+    pub fn with_contract_check(&self, action: TokenStream) -> TokenStream {
+        with_contract_check(
+            self.serde_attrs.skip_deserializing(),
+            self.serde_attrs.skip_serializing(),
+            action,
+        )
+    }
 }
 
 pub struct Name<'a>(&'a serde_derive_internals::attr::Name);
@@ -117,5 +133,26 @@ impl quote::ToTokens for Name<'_> {
             }
             .to_tokens(tokens)
         }
+    }
+}
+
+fn with_contract_check(
+    skip_deserializing: bool,
+    skip_serializing: bool,
+    action: TokenStream,
+) -> TokenStream {
+    match (skip_deserializing, skip_serializing) {
+        (true, true) => TokenStream::new(),
+        (true, false) => quote! {
+            if #GENERATOR.contract().is_serialize() {
+                #action
+            }
+        },
+        (false, true) => quote! {
+            if #GENERATOR.contract().is_deserialize() {
+                #action
+            }
+        },
+        (false, false) => action,
     }
 }
