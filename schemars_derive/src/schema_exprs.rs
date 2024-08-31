@@ -438,19 +438,27 @@ fn expr_for_newtype_struct(field: &Field) -> SchemaExpr {
 fn expr_for_tuple_struct(fields: &[Field]) -> SchemaExpr {
     let fields: Vec<_> = fields
         .iter()
-        .filter(|f| !f.serde_attrs.skip_deserializing())
-        .map(|f| expr_for_field(f, true))
-        .collect();
-    let len = fields.len() as u32;
-
-    quote! {
-        schemars::json_schema!({
-            "type": "array",
-            "prefixItems": [#((#fields)),*],
-            "minItems": #len,
-            "maxItems": #len,
+        .map(|f| {
+            let field_expr = expr_for_field(f, true);
+            f.with_contract_check(quote! {
+                prefix_items.push((#field_expr).to_value());
+            })
         })
-    }
+        .collect();
+
+    quote!({
+        let mut prefix_items = schemars::_private::alloc::vec::Vec::new();
+        #(#fields)*
+        let len = schemars::_private::serde_json::Value::from(prefix_items.len());
+
+        let mut map = schemars::_private::serde_json::Map::new();
+        map.insert("type".into(), "array".into());
+        map.insert("prefixItems".into(), prefix_items.into());
+        map.insert("minItems".into(), len.clone());
+        map.insert("maxItems".into(), len);
+
+        schemars::Schema::from(map)
+    })
     .into()
 }
 

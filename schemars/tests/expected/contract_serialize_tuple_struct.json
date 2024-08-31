@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TupleStruct",
+  "type": "array",
+  "prefixItems": [
+    {
+      "type": "integer",
+      "format": "uint8",
+      "minimum": 0
+    },
+    {
+      "type": "integer",
+      "format": "uint8",
+      "minimum": 0
+    },
+    {
+      "type": "boolean",
+      "readOnly": true
+    },
+    {
+      "type": "integer",
+      "format": "uint8",
+      "minimum": 0
+    }
+  ],
+  "minItems": 4,
+  "maxItems": 4
+}

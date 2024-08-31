@@ -3,7 +3,7 @@ use schemars::{generate::SchemaSettings, JsonSchema};
 use util::*;
 
 #[allow(dead_code)]
-#[derive(Default, JsonSchema)]
+#[derive(JsonSchema)]
 struct MyStruct {
     #[schemars(skip_deserializing)]
     read_only: bool,
@@ -29,6 +29,32 @@ fn contract_deserialize() -> TestResult {
 fn contract_serialize() -> TestResult {
     test_generated_schema::<MyStruct>(
         "contract_serialize",
+        SchemaSettings::default().for_serialize(),
+    )
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema)]
+struct TupleStruct(
+    u8,
+    #[schemars(skip_serializing)] bool,
+    u8,
+    #[schemars(skip_deserializing)] bool,
+    u8,
+);
+
+#[test]
+fn contract_deserialize_tuple_struct() -> TestResult {
+    test_generated_schema::<TupleStruct>(
+        "contract_deserialize_tuple_struct",
+        SchemaSettings::default().for_deserialize(),
+    )
+}
+
+#[test]
+fn contract_serialize_tuple_struct() -> TestResult {
+    test_generated_schema::<TupleStruct>(
+        "contract_serialize_tuple_struct",
         SchemaSettings::default().for_serialize(),
     )
 }
