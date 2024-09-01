@@ -3,16 +3,16 @@
   "title": "MyStruct",
   "type": "object",
   "properties": {
-    "read_only": {
+    "READ-ONLY": {
       "type": "boolean",
       "readOnly": true,
       "default": false
     },
-    "default": {
+    "DEFAULT": {
       "type": "boolean",
       "default": false
     },
-    "skip_serializing_if": {
+    "SKIP-SERIALIZING-IF": {
       "type": "boolean"
     },
     "ser_renamed": {
@@ -20,8 +20,8 @@
     }
   },
   "required": [
-    "read_only",
-    "default",
+    "READ-ONLY",
+    "DEFAULT",
     "ser_renamed"
   ]
 }

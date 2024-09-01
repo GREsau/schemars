@@ -186,10 +186,11 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
 }
 
 fn expr_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> SchemaExpr {
+    if variants.is_empty() {
+        return quote!(schemars::Schema::from(false)).into();
+    }
     let deny_unknown_fields = cattrs.deny_unknown_fields();
-    let variants = variants
-        .iter()
-        .filter(|v| !v.serde_attrs.skip_deserializing());
+    let variants = variants.iter();
 
     match cattrs.tag() {
         TagType::External => expr_for_external_tagged_enum(variants, deny_unknown_fields),
@@ -209,7 +210,12 @@ fn expr_for_external_tagged_enum<'a>(
 ) -> SchemaExpr {
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
         variants.partition(|v| v.is_unit() && v.attrs.is_default());
-    let unit_names = unit_variants.iter().map(|v| v.name());
+    let add_unit_names = unit_variants.iter().map(|v| {
+        let name = v.name();
+        v.with_contract_check(quote! {
+            enum_values.push((#name).into());
+        })
+    });
     let unit_schema = SchemaExpr::from(quote!({
         let mut map = schemars::_private::serde_json::Map::new();
         map.insert("type".into(), "string".into());
@@ -217,7 +223,7 @@ fn expr_for_external_tagged_enum<'a>(
             "enum".into(),
             schemars::_private::serde_json::Value::Array({
                 let mut enum_values = schemars::_private::alloc::vec::Vec::new();
-                #(enum_values.push((#unit_names).into());)*
+                #(#add_unit_names)*
                 enum_values
             }),
         );
@@ -230,7 +236,7 @@ fn expr_for_external_tagged_enum<'a>(
 
     let mut schemas = Vec::new();
     if !unit_variants.is_empty() {
-        schemas.push(unit_schema);
+        schemas.push((None, unit_schema));
     }
 
     schemas.extend(complex_variants.into_iter().map(|variant| {
@@ -250,7 +256,7 @@ fn expr_for_external_tagged_enum<'a>(
 
         variant.add_mutators(&mut schema_expr.mutators);
 
-        schema_expr
+        (Some(variant), schema_expr)
     }));
 
     variant_subschemas(true, schemas)
@@ -273,7 +279,7 @@ fn expr_for_internal_tagged_enum<'a>(
 
             variant.add_mutators(&mut schema_expr.mutators);
 
-            schema_expr
+            (Some(variant), schema_expr)
         })
         .collect();
 
@@ -290,7 +296,7 @@ fn expr_for_untagged_enum<'a>(
 
             variant.add_mutators(&mut schema_expr.mutators);
 
-            schema_expr
+            (Some(variant), schema_expr)
         })
         .collect();
 
@@ -355,7 +361,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
 
             variant.add_mutators(&mut outer_schema.mutators);
 
-            outer_schema
+            (Some(variant), outer_schema)
         })
         .collect();
 
@@ -364,15 +370,24 @@ fn expr_for_adjacent_tagged_enum<'a>(
 
 /// Callers must determine if all subschemas are mutually exclusive. The current behaviour is to
 /// assume that variants are mutually exclusive except for untagged enums.
-fn variant_subschemas(unique: bool, schemas: Vec<SchemaExpr>) -> SchemaExpr {
+fn variant_subschemas(unique: bool, schemas: Vec<(Option<&Variant>, SchemaExpr)>) -> SchemaExpr {
     let keyword = if unique { "oneOf" } else { "anyOf" };
+    let add_schemas = schemas.into_iter().map(|(v, s)| {
+        let add = quote! {
+            enum_values.push(#s.to_value());
+        };
+        match v {
+            Some(v) => v.with_contract_check(add),
+            None => add,
+        }
+    });
     quote!({
         let mut map = schemars::_private::serde_json::Map::new();
         map.insert(
             #keyword.into(),
             schemars::_private::serde_json::Value::Array({
                 let mut enum_values = schemars::_private::alloc::vec::Vec::new();
-                #(enum_values.push(#schemas.to_value());)*
+                #(#add_schemas)*
                 enum_values
             }),
         );

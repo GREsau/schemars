@@ -4,23 +4,17 @@
   "type": "array",
   "prefixItems": [
     {
-      "type": "integer",
-      "format": "uint8",
-      "minimum": 0
+      "type": "string"
     },
     {
-      "type": "integer",
-      "format": "uint8",
-      "minimum": 0
+      "type": "string"
     },
     {
       "type": "boolean",
       "readOnly": true
     },
     {
-      "type": "integer",
-      "format": "uint8",
-      "minimum": 0
+      "type": "string"
     }
   ],
   "minItems": 4,
