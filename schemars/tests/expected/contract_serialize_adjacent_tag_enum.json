@@ -7,9 +7,7 @@
       "properties": {
         "tag": {
           "type": "string",
-          "enum": [
-            "READ-ONLY-UNIT"
-          ]
+          "const": "READ-ONLY-UNIT"
         }
       },
       "required": [
@@ -21,9 +19,7 @@
       "properties": {
         "tag": {
           "type": "string",
-          "enum": [
-            "READ-ONLY-STRUCT"
-          ]
+          "const": "READ-ONLY-STRUCT"
         },
         "content": {
           "type": "object",
@@ -47,9 +43,7 @@
       "properties": {
         "tag": {
           "type": "string",
-          "enum": [
-            "ser_renamed_unit"
-          ]
+          "const": "ser_renamed_unit"
         }
       },
       "required": [
@@ -61,9 +55,7 @@
       "properties": {
         "tag": {
           "type": "string",
-          "enum": [
-            "ser_renamed_struct"
-          ]
+          "const": "ser_renamed_struct"
         },
         "content": {
           "type": "object",

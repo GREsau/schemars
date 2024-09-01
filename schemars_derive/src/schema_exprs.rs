@@ -332,7 +332,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
             let tag_schema = quote! {
                 schemars::json_schema!({
                     "type": "string",
-                    "enum": [#name],
+                    "const": #name,
                 })
             };
 

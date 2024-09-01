@@ -7,9 +7,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "Unit"
-          ]
+          "const": "Unit"
         }
       },
       "required": [
@@ -22,9 +20,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "NewType"
-          ]
+          "const": "NewType"
         },
         "c": true
       },
@@ -39,9 +35,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "Tuple"
-          ]
+          "const": "Tuple"
         },
         "c": {
           "type": "array",
@@ -69,9 +63,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "Struct"
-          ]
+          "const": "Struct"
         },
         "c": {
           "type": "object",

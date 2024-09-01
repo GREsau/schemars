@@ -7,9 +7,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "Struct"
-          ]
+          "const": "Struct"
         },
         "c": {
           "type": "object",
@@ -33,9 +31,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "NewType"
-          ]
+          "const": "NewType"
         },
         "c": {
           "type": "boolean"
@@ -51,9 +47,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "Tuple"
-          ]
+          "const": "Tuple"
         },
         "c": {
           "type": "array",
@@ -80,9 +74,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "Unit"
-          ]
+          "const": "Unit"
         },
         "c": {
           "type": "boolean"
