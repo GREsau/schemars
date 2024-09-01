@@ -73,14 +73,11 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
         )
     })?;
 
-    let variants = match &cont.data {
-        Data::Enum(variants) => variants,
-        _ => {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "JsonSchema_repr can only be used on enums",
-            ))
-        }
+    let Data::Enum(variants) = &cont.data else {
+        return Err(syn::Error::new(
+            Span::call_site(),
+            "JsonSchema_repr can only be used on enums",
+        ));
     };
 
     if let Some(non_unit_error) = variants.iter().find_map(|v| match v.style {
