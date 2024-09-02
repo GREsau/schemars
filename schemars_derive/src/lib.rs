@@ -8,19 +8,21 @@ extern crate proc_macro;
 
 mod ast;
 mod attr;
-mod metadata;
-mod regex_syntax;
+mod idents;
 mod schema_exprs;
 
 use ast::*;
+use idents::GENERATOR;
 use proc_macro2::TokenStream;
 use syn::spanned::Spanned;
 
-#[proc_macro_derive(JsonSchema, attributes(schemars, serde, validate))]
+#[doc = "Derive macro for `JsonSchema` trait."]
+#[cfg_attr(not(doctest), doc = include_str!("../deriving.md"), doc = include_str!("../attributes.md"))]
+#[proc_macro_derive(JsonSchema, attributes(schemars, serde, validate, garde))]
 pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     derive_json_schema(input, false)
-        .unwrap_or_else(compile_error)
+        .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
 
@@ -28,14 +30,11 @@ pub fn derive_json_schema_wrapper(input: proc_macro::TokenStream) -> proc_macro:
 pub fn derive_json_schema_repr_wrapper(input: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let input = parse_macro_input!(input as syn::DeriveInput);
     derive_json_schema(input, true)
-        .unwrap_or_else(compile_error)
+        .unwrap_or_else(syn::Error::into_compile_error)
         .into()
 }
 
-fn derive_json_schema(
-    mut input: syn::DeriveInput,
-    repr: bool,
-) -> Result<TokenStream, Vec<syn::Error>> {
+fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<TokenStream> {
     attr::process_serde_attrs(&mut input)?;
 
     let mut cont = Container::from_ast(&input)?;
@@ -59,20 +58,24 @@ fn derive_json_schema(
 
                 #[automatically_derived]
                 impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
-                    fn is_referenceable() -> bool {
-                        <#ty as schemars::JsonSchema>::is_referenceable()
+                    fn always_inline_schema() -> bool {
+                        <#ty as schemars::JsonSchema>::always_inline_schema()
                     }
 
-                    fn schema_name() -> std::string::String {
+                    fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
                         <#ty as schemars::JsonSchema>::schema_name()
                     }
 
-                    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-                        <#ty as schemars::JsonSchema>::json_schema(gen)
+                    fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
+                        <#ty as schemars::JsonSchema>::schema_id()
                     }
 
-                    fn _schemars_private_non_optional_json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(gen)
+                    fn json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                        <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
+                    }
+
+                    fn _schemars_private_non_optional_json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#GENERATOR)
                     }
 
                     fn _schemars_private_is_option() -> bool {
@@ -83,7 +86,7 @@ fn derive_json_schema(
         });
     }
 
-    let mut schema_base_name = cont.name();
+    let mut schema_base_name = cont.name().to_string();
 
     if !cont.attrs.is_renamed {
         if let Some(path) = cont.serde_attrs.remote() {
@@ -95,30 +98,77 @@ fn derive_json_schema(
 
     // FIXME improve handling of generic type params which may not implement JsonSchema
     let type_params: Vec<_> = cont.generics.type_params().map(|ty| &ty.ident).collect();
-    let schema_name =
-        if type_params.is_empty() || (cont.attrs.is_renamed && !schema_base_name.contains('{')) {
+    let const_params: Vec<_> = cont.generics.const_params().map(|c| &c.ident).collect();
+    let params: Vec<_> = type_params.iter().chain(const_params.iter()).collect();
+
+    let (schema_name, schema_id) = if params.is_empty()
+        || (cont.attrs.is_renamed && !schema_base_name.contains('{'))
+    {
+        (
             quote! {
-                #schema_base_name.to_owned()
-            }
-        } else if cont.attrs.is_renamed {
-            let mut schema_name_fmt = schema_base_name;
-            for tp in &type_params {
-                schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
-            }
+                schemars::_private::alloc::borrow::Cow::Borrowed(#schema_base_name)
+            },
             quote! {
-                format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())*)
-            }
-        } else {
-            let mut schema_name_fmt = schema_base_name;
-            schema_name_fmt.push_str("_for_{}");
-            schema_name_fmt.push_str(&"_and_{}".repeat(type_params.len() - 1));
+                schemars::_private::alloc::borrow::Cow::Borrowed(::core::concat!(
+                    ::core::module_path!(),
+                    "::",
+                    #schema_base_name
+                ))
+            },
+        )
+    } else if cont.attrs.is_renamed {
+        let mut schema_name_fmt = schema_base_name;
+        for tp in &params {
+            schema_name_fmt.push_str(&format!("{{{}:.0}}", tp));
+        }
+        (
             quote! {
-                format!(#schema_name_fmt #(,#type_params::schema_name())*)
-            }
-        };
+                schemars::_private::alloc::borrow::Cow::Owned(
+                    schemars::_private::alloc::format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())* #(,#const_params=#const_params)*)
+                )
+            },
+            quote! {
+                schemars::_private::alloc::borrow::Cow::Owned(
+                    schemars::_private::alloc::format!(
+                        ::core::concat!(
+                            ::core::module_path!(),
+                            "::",
+                            #schema_name_fmt
+                        )
+                        #(,#type_params=#type_params::schema_id())*
+                        #(,#const_params=#const_params)*
+                    )
+                )
+            },
+        )
+    } else {
+        let mut schema_name_fmt = schema_base_name;
+        schema_name_fmt.push_str("_for_{}");
+        schema_name_fmt.push_str(&"_and_{}".repeat(params.len() - 1));
+        (
+            quote! {
+                schemars::_private::alloc::borrow::Cow::Owned(
+                    schemars::_private::alloc::format!(#schema_name_fmt #(,#type_params::schema_name())* #(,#const_params)*)
+                )
+            },
+            quote! {
+                schemars::_private::alloc::borrow::Cow::Owned(
+                    schemars::_private::alloc::format!(
+                        ::core::concat!(
+                            ::core::module_path!(),
+                            "::",
+                            #schema_name_fmt
+                        )
+                        #(,#type_params::schema_id())*
+                        #(,#const_params)*
+                    )
+                )
+            },
+        )
+    };
 
     let schema_expr = if repr {
-        schema_exprs::expr_for_repr(&cont).map_err(|e| vec![e])?
+        schema_exprs::expr_for_repr(&cont)?
     } else {
         schema_exprs::expr_for_container(&cont)
     };
@@ -130,11 +180,15 @@ fn derive_json_schema(
             #[automatically_derived]
             #[allow(unused_braces)]
             impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
-                fn schema_name() -> std::string::String {
+                fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
                     #schema_name
                 }
 
-                fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
+                    #schema_id
+                }
+
+                fn json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
                     #schema_expr
                 }
             };
@@ -147,19 +201,15 @@ fn add_trait_bounds(cont: &mut Container) {
         let where_clause = cont.generics.make_where_clause();
         where_clause.predicates.extend(bounds.iter().cloned());
     } else {
-        // No explicit trait bounds specified, assume the Rust convention of adding the trait to each type parameter
-        // TODO consider also adding trait bound to associated types when used as fields - I think Serde does this?
+        // No explicit trait bounds specified, assume the Rust convention of adding the trait to
+        // each type parameter
+        //
+        // TODO consider also adding trait bound to associated types
+        // when used as fields - I think Serde does this?
         for param in &mut cont.generics.params {
             if let syn::GenericParam::Type(ref mut type_param) = *param {
                 type_param.bounds.push(parse_quote!(schemars::JsonSchema));
             }
         }
-    }
-}
-
-fn compile_error(errors: Vec<syn::Error>) -> TokenStream {
-    let compile_errors = errors.iter().map(syn::Error::to_compile_error);
-    quote! {
-        #(#compile_errors)*
     }
 }

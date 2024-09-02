@@ -1,134 +1,116 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Internal",
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "UnitOne"
-          ]
+          "const": "UnitOne"
         }
       },
+      "required": [
+        "typeProperty"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "StringMap"
-          ]
+          "const": "StringMap"
         }
       },
       "additionalProperties": {
         "type": "string"
-      }
+      },
+      "required": [
+        "typeProperty"
+      ]
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "UnitStructNewType"
-          ]
+          "const": "UnitStructNewType"
         }
       },
+      "required": [
+        "typeProperty"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
-      "required": [
-        "bar",
-        "foo",
-        "typeProperty"
-      ],
       "properties": {
-        "bar": {
-          "type": "boolean"
-        },
         "foo": {
           "type": "integer",
           "format": "int32"
         },
-        "typeProperty": {
-          "type": "string",
-          "enum": [
-            "StructNewType"
-          ]
-        }
-      }
-    },
-    {
-      "type": "object",
-      "required": [
-        "bar",
-        "foo",
-        "typeProperty"
-      ],
-      "properties": {
         "bar": {
           "type": "boolean"
         },
+        "typeProperty": {
+          "type": "string",
+          "const": "StructNewType"
+        }
+      },
+      "required": [
+        "typeProperty",
+        "foo",
+        "bar"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
         "foo": {
           "type": "integer",
           "format": "int32"
         },
+        "bar": {
+          "type": "boolean"
+        },
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "Struct"
-          ]
+          "const": "Struct"
         }
       },
+      "additionalProperties": false,
+      "required": [
+        "typeProperty",
+        "foo",
+        "bar"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "typeProperty": {
+          "type": "string",
+          "const": "UnitTwo"
+        }
+      },
+      "required": [
+        "typeProperty"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
-      "required": [
-        "typeProperty"
-      ],
-      "properties": {
-        "typeProperty": {
-          "type": "string",
-          "enum": [
-            "UnitTwo"
-          ]
-        }
-      },
-      "additionalProperties": false
-    },
-    {
-      "type": [
-        "object",
-        "integer"
-      ],
       "format": "int32",
-      "required": [
-        "typeProperty"
-      ],
       "properties": {
         "typeProperty": {
           "type": "string",
-          "enum": [
-            "WithInt"
-          ]
+          "const": "WithInt"
         }
       },
-      "additionalProperties": false
+      "required": [
+        "typeProperty"
+      ]
     }
   ]
 }

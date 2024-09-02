@@ -1,48 +1,45 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "External",
   "oneOf": [
     {
       "type": "object",
-      "required": [
-        "struct"
-      ],
       "properties": {
         "struct": {
           "type": "object",
-          "required": [
-            "foo"
-          ],
           "properties": {
             "foo": {
               "type": "boolean"
             }
-          }
+          },
+          "required": [
+            "foo"
+          ]
         }
       },
+      "required": [
+        "struct"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
-      "required": [
-        "newType"
-      ],
       "properties": {
         "newType": {
           "type": "boolean"
         }
       },
+      "required": [
+        "newType"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
-      "required": [
-        "tuple"
-      ],
       "properties": {
         "tuple": {
           "type": "array",
-          "items": [
+          "prefixItems": [
             {
               "type": "boolean"
             },
@@ -51,22 +48,25 @@
               "format": "int32"
             }
           ],
-          "maxItems": 2,
-          "minItems": 2
+          "minItems": 2,
+          "maxItems": 2
         }
       },
+      "required": [
+        "tuple"
+      ],
       "additionalProperties": false
     },
     {
       "type": "object",
-      "required": [
-        "unit"
-      ],
       "properties": {
         "unit": {
           "type": "boolean"
         }
       },
+      "required": [
+        "unit"
+      ],
       "additionalProperties": false
     }
   ]

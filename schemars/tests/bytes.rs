@@ -1,5 +1,5 @@
 mod util;
-use bytes::{Bytes, BytesMut};
+use bytes1::{Bytes, BytesMut};
 use util::*;
 
 #[test]

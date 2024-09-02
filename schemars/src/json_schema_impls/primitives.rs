@@ -1,106 +1,116 @@
-use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
-use std::path::{Path, PathBuf};
+use crate::SchemaGenerator;
+use crate::_alloc_prelude::*;
+use crate::{json_schema, JsonSchema, Schema};
+use alloc::borrow::Cow;
 
 macro_rules! simple_impl {
-    ($type:ty => $instance_type:ident) => {
-        simple_impl!($type => $instance_type, stringify!($instance_type), None);
-    };
-    ($type:ty => $instance_type:ident, $format:literal) => {
-        simple_impl!($type => $instance_type, $format, Some($format.to_owned()));
-    };
-    ($type:ty => $instance_type:ident, $name:expr, $format:expr) => {
+    ($type:ty => $instance_type:literal) => {
         impl JsonSchema for $type {
-            no_ref_schema!();
+            always_inline!();
 
-            fn schema_name() -> String {
-                $name.to_owned()
+            fn schema_name() -> Cow<'static, str> {
+                $instance_type.into()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
-                SchemaObject {
-                    instance_type: Some(InstanceType::$instance_type.into()),
-                    format: $format,
-                    ..Default::default()
-                }
-                .into()
+                json_schema!({
+                    "type": $instance_type
+                })
+            }
+        }
+    };
+    ($type:ty => $instance_type:literal, $format:literal) => {
+        impl JsonSchema for $type {
+            always_inline!();
+
+            fn schema_name() -> Cow<'static, str> {
+                $format.into()
+            }
+
+            fn json_schema(_: &mut SchemaGenerator) -> Schema {
+                json_schema!({
+                    "type": $instance_type,
+                    "format": $format
+                })
             }
         }
     };
 }
 
-simple_impl!(str => String);
-simple_impl!(String => String);
-simple_impl!(bool => Boolean);
-simple_impl!(f32 => Number, "float");
-simple_impl!(f64 => Number, "double");
-simple_impl!(i8 => Integer, "int8");
-simple_impl!(i16 => Integer, "int16");
-simple_impl!(i32 => Integer, "int32");
-simple_impl!(i64 => Integer, "int64");
-simple_impl!(i128 => Integer, "int128");
-simple_impl!(isize => Integer, "int");
-simple_impl!(() => Null);
+simple_impl!(str => "string");
+simple_impl!(String => "string");
+simple_impl!(bool => "boolean");
+simple_impl!(f32 => "number", "float");
+simple_impl!(f64 => "number", "double");
+simple_impl!(i8 => "integer", "int8");
+simple_impl!(i16 => "integer", "int16");
+simple_impl!(i32 => "integer", "int32");
+simple_impl!(i64 => "integer", "int64");
+simple_impl!(i128 => "integer", "int128");
+simple_impl!(isize => "integer", "int");
+simple_impl!(() => "null");
 
-simple_impl!(Path => String);
-simple_impl!(PathBuf => String);
+#[cfg(feature = "std")]
+mod std_types {
+    use super::*;
+    use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
+    use std::path::{Path, PathBuf};
 
-simple_impl!(Ipv4Addr => String, "ipv4");
-simple_impl!(Ipv6Addr => String, "ipv6");
-simple_impl!(IpAddr => String, "ip");
+    simple_impl!(Path => "string");
+    simple_impl!(PathBuf => "string");
 
-simple_impl!(SocketAddr => String);
-simple_impl!(SocketAddrV4 => String);
-simple_impl!(SocketAddrV6 => String);
+    simple_impl!(Ipv4Addr => "string", "ipv4");
+    simple_impl!(Ipv6Addr => "string", "ipv6");
+    simple_impl!(IpAddr => "string", "ip");
+
+    simple_impl!(SocketAddr => "string");
+    simple_impl!(SocketAddrV4 => "string");
+    simple_impl!(SocketAddrV6 => "string");
+}
 
 macro_rules! unsigned_impl {
-    ($type:ty => $instance_type:ident, $format:expr) => {
+    ($type:ty => $instance_type:literal, $format:literal) => {
         impl JsonSchema for $type {
-            no_ref_schema!();
+            always_inline!();
 
-            fn schema_name() -> String {
-                $format.to_owned()
+            fn schema_name() -> Cow<'static, str> {
+                $format.into()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
-                let mut schema = SchemaObject {
-                    instance_type: Some(InstanceType::$instance_type.into()),
-                    format: Some($format.to_owned()),
-                    ..Default::default()
-                };
-                schema.number().minimum = Some(0.0);
-                schema.into()
+                json_schema!({
+                    "type": $instance_type,
+                    "format": $format,
+                    "minimum": 0
+                })
             }
         }
     };
 }
 
-unsigned_impl!(u8 => Integer, "uint8");
-unsigned_impl!(u16 => Integer, "uint16");
-unsigned_impl!(u32 => Integer, "uint32");
-unsigned_impl!(u64 => Integer, "uint64");
-unsigned_impl!(u128 => Integer, "uint128");
-unsigned_impl!(usize => Integer, "uint");
+unsigned_impl!(u8 => "integer", "uint8");
+unsigned_impl!(u16 => "integer", "uint16");
+unsigned_impl!(u32 => "integer", "uint32");
+unsigned_impl!(u64 => "integer", "uint64");
+unsigned_impl!(u128 => "integer", "uint128");
+unsigned_impl!(usize => "integer", "uint");
 
 impl JsonSchema for char {
-    no_ref_schema!();
+    always_inline!();
 
-    fn schema_name() -> String {
-        "Character".to_owned()
+    fn schema_name() -> Cow<'static, str> {
+        "Character".into()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        "char".into()
     }
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
-        SchemaObject {
-            instance_type: Some(InstanceType::String.into()),
-            string: Some(Box::new(StringValidation {
-                min_length: Some(1),
-                max_length: Some(1),
-                ..Default::default()
-            })),
-            ..Default::default()
-        }
-        .into()
+        json_schema!({
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1,
+        })
     }
 }

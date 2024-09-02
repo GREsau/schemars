@@ -2,8 +2,8 @@ mod util;
 use schemars::JsonSchema;
 use util::*;
 
-fn schema_fn(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-    <bool>::json_schema(gen)
+fn schema_fn(generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    <bool>::json_schema(generator)
 }
 
 struct DoesntImplementJsonSchema;
@@ -23,6 +23,7 @@ fn struct_normal() -> TestResult {
     test_default_generated_schema::<Struct>("schema_with-struct")
 }
 
+#[allow(dead_code)]
 #[derive(JsonSchema)]
 pub struct Tuple(
     #[schemars(schema_with = "schema_fn")] DoesntImplementJsonSchema,

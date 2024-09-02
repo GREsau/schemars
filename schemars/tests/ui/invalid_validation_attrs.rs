@@ -1,16 +1,19 @@
 use schemars::JsonSchema;
 
 #[derive(JsonSchema)]
-pub struct Struct1(#[validate(regex = 0, foo, length(min = 1, equal = 2, bar))] String);
+#[validate(email)]
+pub struct Struct1(#[validate(regex, foo, length(min = 1, equal = 2, bar))] String);
 
 #[derive(JsonSchema)]
-pub struct Struct2(#[schemars(regex = 0, foo, length(min = 1, equal = 2, bar))] String);
+#[schemars(email)]
+pub struct Struct2(#[schemars(regex, foo, length(min = 1, equal = 2, bar))] String);
 
 #[derive(JsonSchema)]
 pub struct Struct3(
     #[validate(
         regex = "foo",
         contains = "bar",
+        regex(pattern = "baz"),
         regex(path = "baz"),
         phone,
         email,
@@ -25,7 +28,11 @@ pub struct Struct4(
         regex = "foo",
         contains = "bar",
         regex(path = "baz"),
+        regex(pattern = "baz"),
         phone,
+        email(code = "code_str", message = "message"),
+        email = "foo",
+        email,
         email,
         url
     )]

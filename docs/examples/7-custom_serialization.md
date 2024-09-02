@@ -1,5 +1,4 @@
 ---
-layout: default
 title: Custom Serialization
 parent: Examples
 nav_order: 7
@@ -13,7 +12,7 @@ summary: >-
 
 Serde allows you to change how a field is (de)serialized by setting a [`#[serde(with = "path")]`](https://serde.rs/field-attrs.html#with) attribute, where `$path::serialize` and `$path::deserialize` must be functions with the correct signature. Schemars supports the same attribute, but `path` must be a type implementing `JsonSchema`.
 
-In order to derive `JsonSchema` on a type which includes a `#[serde(with = "path")]` attribute where `path` is not  a type implementing `JsonSchema`, you'll need to override it with a suitable `#[schemars(with = "Type")]` or `#[schemars(schema_with = "path")]` attribute.
+In order to derive `JsonSchema` on a type which includes a `#[serde(with = "path")]` attribute where `path` is not a type implementing `JsonSchema`, you'll need to override it with a suitable `#[schemars(with = "Type")]` or `#[schemars(schema_with = "path")]` attribute.
 
 {% include example.md name="custom_serialization" %}
 

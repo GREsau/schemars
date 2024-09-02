@@ -1,7 +1,11 @@
 use pretty_assertions::assert_eq;
-use schemars::{gen::SchemaSettings, schema::RootSchema, schema_for, JsonSchema};
+use schemars::{generate::SchemaSettings, schema_for, JsonSchema, Schema};
 use std::error::Error;
+use std::format;
 use std::fs;
+use std::prelude::rust_2021::*;
+
+extern crate std;
 
 pub type TestResult = Result<(), Box<dyn Error>>;
 
@@ -17,7 +21,7 @@ pub fn test_default_generated_schema<T: JsonSchema>(file: &str) -> TestResult {
     test_schema(&actual, file)
 }
 
-pub fn test_schema(actual: &RootSchema, file: &str) -> TestResult {
+pub fn test_schema(actual: &Schema, file: &str) -> TestResult {
     let expected_json = match fs::read_to_string(format!("tests/expected/{}.json", file)) {
         Ok(j) => j,
         Err(e) => {
@@ -35,7 +39,7 @@ pub fn test_schema(actual: &RootSchema, file: &str) -> TestResult {
     Ok(())
 }
 
-fn write_actual_to_file(schema: &RootSchema, file: &str) -> TestResult {
+fn write_actual_to_file(schema: &Schema, file: &str) -> TestResult {
     let actual_json = serde_json::to_string_pretty(&schema)?;
     fs::write(format!("tests/actual/{}.json", file), actual_json)?;
     Ok(())

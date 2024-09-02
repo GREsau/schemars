@@ -30,6 +30,7 @@ where
 struct MyStruct {
     my_int: i32,
     my_bool: bool,
+    my_optional_string: Option<String>,
     #[serde(serialize_with = "custom_serialize")]
     my_struct2: MyStruct2,
     #[serde(

@@ -1,6 +1,6 @@
-use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::_alloc_prelude::*;
+use crate::{json_schema, JsonSchema, Schema, SchemaGenerator};
+use alloc::borrow::Cow;
 
 macro_rules! map_impl {
     ($($desc:tt)+) => {
@@ -8,27 +8,27 @@ macro_rules! map_impl {
         where
             V: JsonSchema,
         {
-            no_ref_schema!();
+            always_inline!();
 
-            fn schema_name() -> String {
-                format!("Map_of_{}", V::schema_name())
+            fn schema_name() -> Cow<'static, str> {
+                format!("Map_of_{}", V::schema_name()).into()
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                let subschema = gen.subschema_for::<V>();
-                SchemaObject {
-                    instance_type: Some(InstanceType::Object.into()),
-                    object: Some(Box::new(ObjectValidation {
-                        additional_properties: Some(Box::new(subschema)),
-                        ..Default::default()
-                    })),
-                    ..Default::default()
-                }
-                .into()
+            fn schema_id() -> Cow<'static, str> {
+                format!("Map<{}>", V::schema_id()).into()
+            }
+
+            fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+                json_schema!({
+                    "type": "object",
+                    "additionalProperties": generator.subschema_for::<V>(),
+                })
             }
         }
     };
 }
 
-map_impl!(<K, V> JsonSchema for std::collections::BTreeMap<K, V>);
+map_impl!(<K, V> JsonSchema for alloc::collections::BTreeMap<K, V>);
+
+#[cfg(feature = "std")]
 map_impl!(<K, V, H> JsonSchema for std::collections::HashMap<K, V, H>);

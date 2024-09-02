@@ -1,25 +1,25 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyStruct",
   "type": "object",
   "properties": {
     "bool_as_string": {
-      "default": "false",
       "type": "string",
-      "format": "boolean"
+      "format": "boolean",
+      "default": "false"
     },
     "bool_normal": {
-      "default": false,
-      "type": "boolean"
+      "type": "boolean",
+      "default": false
     },
     "int_as_string": {
-      "default": "8",
-      "type": "string"
+      "type": "string",
+      "default": "8"
     },
     "int_normal": {
-      "default": 8,
       "type": "integer",
-      "format": "int32"
+      "format": "int32",
+      "default": 8
     }
   }
 }

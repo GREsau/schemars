@@ -1,31 +1,27 @@
-use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
+use crate::SchemaGenerator;
+use crate::{json_schema, JsonSchema, Schema};
+use alloc::borrow::Cow;
 
 macro_rules! decimal_impl {
     ($type:ty) => {
-        decimal_impl!($type => Number, "Number");
-    };
-    ($type:ty => $instance_type:ident, $name:expr) => {
         impl JsonSchema for $type {
-            no_ref_schema!();
+            always_inline!();
 
-            fn schema_name() -> String {
-                $name.to_owned()
+            fn schema_name() -> Cow<'static, str> {
+                "Decimal".into()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
-                SchemaObject {
-                    instance_type: Some(InstanceType::$instance_type.into()),
-                    ..Default::default()
-                }
-                .into()
+                json_schema!({
+                    "type": "string",
+                    "pattern": r"^-?[0-9]+(\.[0-9]+)?$",
+                })
             }
         }
     };
 }
 
-#[cfg(feature = "rust_decimal")]
-decimal_impl!(rust_decimal::Decimal);
-#[cfg(feature = "bigdecimal")]
-decimal_impl!(bigdecimal::BigDecimal);
+#[cfg(feature = "rust_decimal1")]
+decimal_impl!(rust_decimal1::Decimal);
+#[cfg(feature = "bigdecimal04")]
+decimal_impl!(bigdecimal04::BigDecimal);

@@ -1,5 +1,5 @@
 mod util;
-use schemars::gen::SchemaSettings;
+use schemars::generate::SchemaSettings;
 use schemars::JsonSchema;
 use util::*;
 

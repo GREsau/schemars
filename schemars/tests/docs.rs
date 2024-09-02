@@ -1,26 +1,26 @@
 mod util;
-use schemars::{gen::SchemaSettings, JsonSchema};
+use schemars::JsonSchema;
 use util::*;
 
 #[allow(dead_code)]
 #[derive(JsonSchema)]
 /**
- *
- * # This is the struct's title
- *
- * This is the struct's description.
- *
- */
+# This is the struct's title
+
+This is the struct's description.
+*/
 struct MyStruct {
     /// # An integer
     my_int: i32,
     my_undocumented_bool: bool,
     /// A unit struct instance
     my_unit: MyUnitStruct,
+    #[doc = concat!("# Documented ", "bool")]
+    #[doc = concat!("This bool is documented")]
+    my_documented_bool: bool,
 }
 
 /// # A Unit
-///
 #[derive(JsonSchema)]
 struct MyUnitStruct;
 
@@ -60,12 +60,6 @@ fn doc_comments_struct() -> TestResult {
 }
 
 #[test]
-fn doc_comments_struct_ref_siblings() -> TestResult {
-    let settings = SchemaSettings::draft2019_09();
-    test_generated_schema::<MyStruct>("doc_comments_struct_ref_siblings", settings)
-}
-
-#[test]
 fn doc_comments_enum() -> TestResult {
     test_default_generated_schema::<MyEnum>("doc_comments_enum")
 }
@@ -83,6 +77,8 @@ struct OverrideDocs {
     /// Also overridden
     #[schemars(title = "", description = "")]
     my_undocumented_bool: bool,
+    #[schemars(title = concat!("Documented ", "bool"), description = "Capitalized".to_uppercase())]
+    my_documented_bool: bool,
 }
 
 #[test]

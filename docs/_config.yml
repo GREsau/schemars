@@ -27,20 +27,47 @@ url: "https://graham.cool" # the base hostname & protocol for your site, e.g. ht
 permalink: pretty
 
 # Build settings
-remote_theme: pmarsceill/just-the-docs@v0.3.2
+remote_theme: pmarsceill/just-the-docs@v0.9.0
 markdown: CommonMarkGhPages
 commonmark:
   options: ["UNSAFE", "FOOTNOTES"]
 
 color_scheme: default
 aux_links:
-    '<img src="https://img.shields.io/badge/GitHub--lightgrey?style=social&amp;logo=github" alt="Schemars on GitHub" title="Schemars on GitHub">':
-        - "https://github.com/GREsau/schemars"
-    '<img src="https://img.shields.io/badge/API%20documentation--lightgrey?style=social" alt="Schemars API docs" title="Schemars API docs">':
-        - "https://docs.rs/schemars"
-    '<img src="https://img.shields.io/crates/v/schemars?style=social" alt="Schemars on crates.io" title="Schemars on crates.io">':
-        - "https://crates.io/crates/schemars"
+  '<img src="https://img.shields.io/badge/GitHub--lightgrey?style=social&amp;logo=github" alt="Schemars on GitHub" title="Schemars on GitHub">':
+    - "https://github.com/GREsau/schemars"
+  '<img src="https://img.shields.io/badge/API%20documentation--lightgrey?style=social" alt="Schemars API docs" title="Schemars API docs">':
+    - "https://docs.rs/schemars"
+  '<img src="https://img.shields.io/crates/v/schemars?style=social" alt="Schemars on crates.io" title="Schemars on crates.io">':
+    - "https://crates.io/crates/schemars"
 
+collections:
+  v0:
+    permalink: "/:collection/:path/"
+    output: true
+
+just_the_docs:
+  collections:
+    v0:
+      name: v0.8
+      nav_fold: true
+
+defaults:
+  - scope:
+      path: ""
+      type: v0
+    values:
+      layout: v0
+  - scope:
+      path: ""
+    values:
+      layout: v1
+
+callouts_level: quiet
+callouts:
+  info:
+    color: blue
+    opacity: 0.1
 # Exclude from processing.
 # The following items will not be processed, by default.
 # Any item listed under the `exclude:` key here will be automatically added to

@@ -1,7 +1,7 @@
-macro_rules! no_ref_schema {
+macro_rules! always_inline {
     () => {
-        fn is_referenceable() -> bool {
-            false
+        fn always_inline_schema() -> bool {
+            true
         }
     };
 }
@@ -9,20 +9,24 @@ macro_rules! no_ref_schema {
 macro_rules! forward_impl {
     (($($impl:tt)+) => $target:ty) => {
         impl $($impl)+ {
-            fn is_referenceable() -> bool {
-                <$target>::is_referenceable()
+            fn always_inline_schema() -> bool {
+                <$target>::always_inline_schema()
             }
 
-            fn schema_name() -> String {
+            fn schema_name() -> alloc::borrow::Cow<'static, str> {
                 <$target>::schema_name()
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                <$target>::json_schema(gen)
+            fn schema_id() -> alloc::borrow::Cow<'static, str> {
+                <$target>::schema_id()
             }
 
-            fn _schemars_private_non_optional_json_schema(gen: &mut SchemaGenerator) -> Schema {
-                <$target>::_schemars_private_non_optional_json_schema(gen)
+            fn json_schema(generator: &mut $crate::SchemaGenerator) -> $crate::Schema {
+                <$target>::json_schema(generator)
+            }
+
+            fn _schemars_private_non_optional_json_schema(generator: &mut $crate::SchemaGenerator) -> $crate::Schema {
+                <$target>::_schemars_private_non_optional_json_schema(generator)
             }
 
             fn _schemars_private_is_option() -> bool {
@@ -31,49 +35,66 @@ macro_rules! forward_impl {
         }
     };
     ($ty:ty => $target:ty) => {
-        forward_impl!((JsonSchema for $ty) => $target);
+        forward_impl!(($crate::JsonSchema for $ty) => $target);
     };
 }
 
 mod array;
-#[cfg(feature = "arrayvec05")]
-mod arrayvec05;
-#[cfg(feature = "arrayvec07")]
-mod arrayvec07;
-#[cfg(std_atomic)]
-mod atomic;
-#[cfg(feature = "bytes")]
-mod bytes;
-#[cfg(feature = "chrono")]
-mod chrono;
 mod core;
-#[cfg(any(feature = "rust_decimal", feature = "bigdecimal"))]
-mod decimal;
-#[cfg(feature = "either")]
-mod either;
-#[cfg(feature = "enumset")]
-mod enumset;
-mod ffi;
-#[cfg(feature = "indexmap")]
-mod indexmap;
 mod maps;
 mod nonzero_signed;
 mod nonzero_unsigned;
 mod primitives;
 mod sequences;
 mod serdejson;
-#[cfg(feature = "smallvec")]
-mod smallvec;
-#[cfg(feature = "smol_str")]
-mod smol_str;
-mod time;
+mod std_time;
+mod tuple;
+mod wrapper;
+
+#[cfg(target_has_atomic)]
+mod atomic;
+
+#[cfg(feature = "std")]
+mod ffi;
+
+#[cfg(feature = "arrayvec07")]
+mod arrayvec07;
+
+#[cfg(feature = "bytes1")]
+mod bytes1 {
+    forward_impl!(bytes1::Bytes => alloc::vec::Vec<u8>);
+    forward_impl!(bytes1::BytesMut => alloc::vec::Vec<u8>);
+}
+
+#[cfg(feature = "chrono04")]
+mod chrono04;
+
+#[cfg(any(feature = "rust_decimal1", feature = "bigdecimal04"))]
+mod decimal;
+
+#[cfg(feature = "either1")]
+mod either1;
+
+#[cfg(feature = "enumset1")]
+forward_impl!((<T: enumset1::EnumSetType + crate::JsonSchema> crate::JsonSchema for enumset1::EnumSet<T>) => alloc::collections::BTreeSet<T>);
+
+#[cfg(feature = "indexmap2")]
+mod indexmap2;
+
+#[cfg(feature = "semver1")]
+mod semver1;
+
 #[cfg(feature = "triomphe")]
 mod triomphe;
-mod tuple;
-#[cfg(feature = "url")]
-mod url;
-#[cfg(feature = "uuid08")]
-mod uuid08;
+
+#[cfg(feature = "smallvec1")]
+forward_impl!((<A: smallvec1::Array> crate::JsonSchema for smallvec1::SmallVec<A> where A::Item: crate::JsonSchema) => alloc::vec::Vec<A::Item>);
+
+#[cfg(feature = "smol_str02")]
+forward_impl!(smol_str02::SmolStr => alloc::string::String);
+
+#[cfg(feature = "url2")]
+mod url2;
+
 #[cfg(feature = "uuid1")]
 mod uuid1;
-mod wrapper;

@@ -1,5 +1,7 @@
 mod util;
-use schemars::{JsonSchema, Map};
+use std::collections::BTreeMap;
+
+use schemars::JsonSchema;
 use util::*;
 
 // Ensure that schemars_derive uses the full path to std::string::String
@@ -20,7 +22,7 @@ struct Struct {
 #[schemars(rename_all = "camelCase")]
 enum External {
     UnitOne,
-    StringMap(Map<&'static str, &'static str>),
+    StringMap(BTreeMap<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
     Struct {
@@ -43,7 +45,7 @@ fn enum_external_tag() -> TestResult {
 #[schemars(tag = "typeProperty")]
 enum Internal {
     UnitOne,
-    StringMap(Map<&'static str, &'static str>),
+    StringMap(BTreeMap<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
     Struct {
@@ -65,7 +67,7 @@ fn enum_internal_tag() -> TestResult {
 #[schemars(untagged)]
 enum Untagged {
     UnitOne,
-    StringMap(Map<&'static str, &'static str>),
+    StringMap(BTreeMap<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
     Struct {
@@ -87,7 +89,7 @@ fn enum_untagged() -> TestResult {
 #[schemars(tag = "t", content = "c")]
 enum Adjacent {
     UnitOne,
-    StringMap(Map<&'static str, &'static str>),
+    StringMap(BTreeMap<&'static str, &'static str>),
     UnitStructNewType(UnitStruct),
     StructNewType(Struct),
     Struct {
@@ -135,4 +137,49 @@ enum SoundOfMusic {
 #[test]
 fn enum_unit_with_doc_comments() -> TestResult {
     test_default_generated_schema::<SoundOfMusic>("enum-unit-doc")
+}
+
+#[derive(JsonSchema)]
+enum NoVariants {}
+
+#[test]
+fn enum_no_variants() -> TestResult {
+    test_default_generated_schema::<NoVariants>("no-variants")
+}
+
+#[derive(JsonSchema)]
+#[serde(rename_all_fields = "PascalCase")]
+pub enum RenameAllFields {
+    First {
+        nested_attribute: std::string::String,
+    },
+}
+
+#[derive(JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum RenameAll {
+    First { nested_attribute: bool },
+}
+
+#[derive(JsonSchema)]
+pub enum RenameAttribute {
+    First {
+        #[serde(rename = "RenamedAttribute")]
+        nested_attribute: std::string::String,
+    },
+}
+
+#[test]
+fn enum_unit_rename_attribute() -> TestResult {
+    test_default_generated_schema::<RenameAttribute>("enum-rename-attr")
+}
+
+#[test]
+fn enum_unit_rename_all_fields() -> TestResult {
+    test_default_generated_schema::<RenameAllFields>("enum-rename-all-fields")
+}
+
+#[test]
+fn enum_unit_rename_all() -> TestResult {
+    test_default_generated_schema::<RenameAll>("enum-rename-all")
 }

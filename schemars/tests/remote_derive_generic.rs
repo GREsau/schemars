@@ -2,7 +2,7 @@ mod util;
 
 use schemars::JsonSchema;
 use serde::Serialize;
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, BTreeSet};
 use util::*;
 
 #[allow(dead_code)]
@@ -20,6 +20,7 @@ enum OrDef<A, B> {
 
 struct Str<'a>(&'a str);
 
+#[allow(dead_code)]
 #[derive(JsonSchema, Serialize)]
 #[serde(remote = "Str")]
 struct StrDef<'a>(&'a str);
@@ -38,7 +39,7 @@ struct MyStruct<'a, T: Serialize> {
     s: Str<'a>,
     // #[schemars(with = "HashMap::<_, HashSet<_>>")]
     // map: BTreeMap<String, BTreeSet<String>>,
-    #[schemars(with = "HashMap::<String, HashSet<String>>")]
+    #[schemars(with = "BTreeMap::<String, BTreeSet<String>>")]
     fake_map: (),
 }
 

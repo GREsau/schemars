@@ -5,28 +5,21 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   ci:
     runs-on: ubuntu-latest
-    env:
-      # work-around https://github.com/rust-lang/cargo/issues/10303
-      CARGO_NET_GIT_FETCH_WITH_CLI: ${{ matrix.rust == '1.45.0' }}
     strategy:
       matrix:
         rust:
-          - 1.45.0
+          - 1.65.0
           - stable
           - beta
           - nightly
         include:
-          - rust: 1.45.0
-            test_features: "--features impl_json_schema"
+          - rust: 1.65.0
             allow_failure: false
           - rust: stable
-            test_features: "--all-features"
             allow_failure: false
           - rust: beta
-            test_features: "--all-features"
             allow_failure: false
           - rust: nightly
-            test_features: "--all-features"
             allow_failure: true
       fail-fast: false
     steps:
@@ -36,15 +29,12 @@ jobs:
           profile: minimal
           toolchain: ${{ matrix.rust }}
           override: true
-      - if: matrix.rust == '1.45.0'
-        # work-around https://github.com/serde-rs/serde/issues/2255 and similar crate/rustc compatibility issues
-        run: cargo update -p serde --precise 1.0.142 && cargo update -p once_cell --precise 1.10.0 && cargo update -p pretty_assertions --precise 1.2.1 && cargo update -p trybuild --precise 1.0.64
       - name: Check with no feature flags
         run: cargo check --verbose --no-default-features
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars
       - name: Run tests
-        run: cargo test --verbose ${{ matrix.test_features }} --no-fail-fast
+        run: cargo test --verbose --all-features --no-fail-fast
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars
       - name: Run derive tests

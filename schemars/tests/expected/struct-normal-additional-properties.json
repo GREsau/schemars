@@ -1,11 +1,7 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Struct",
   "type": "object",
-  "required": [
-    "bar",
-    "foo"
-  ],
   "properties": {
     "foo": {
       "type": "integer",
@@ -21,5 +17,9 @@
       ]
     }
   },
-  "additionalProperties": false
+  "additionalProperties": false,
+  "required": [
+    "foo",
+    "bar"
+  ]
 }

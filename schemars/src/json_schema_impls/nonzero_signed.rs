@@ -1,26 +1,29 @@
-use crate::gen::SchemaGenerator;
-use crate::schema::*;
-use crate::JsonSchema;
-use std::num::*;
+use crate::SchemaGenerator;
+use crate::_alloc_prelude::*;
+use crate::{JsonSchema, Schema};
+use alloc::borrow::Cow;
+use core::num::*;
 
 macro_rules! nonzero_unsigned_impl {
     ($type:ty => $primitive:ty) => {
         impl JsonSchema for $type {
-            no_ref_schema!();
+            always_inline!();
 
-            fn schema_name() -> String {
-                stringify!($type).to_owned()
+            fn schema_name() -> Cow<'static, str> {
+                stringify!($type).into()
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                let zero_schema: Schema = SchemaObject {
-                    const_value: Some(0.into()),
-                    ..Default::default()
-                }
-                .into();
-                let mut schema: SchemaObject = <$primitive>::json_schema(gen).into();
-                schema.subschemas().not = Some(Box::from(zero_schema));
-                schema.into()
+            fn schema_id() -> Cow<'static, str> {
+                stringify!(std::num::$type).into()
+            }
+
+            fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+                let mut schema = <$primitive>::json_schema(generator);
+                let object = schema.ensure_object();
+                object.insert("not".to_owned(), serde_json::json!({
+                    "const": 0
+                }));
+                schema
             }
         }
     };

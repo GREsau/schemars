@@ -1,5 +1,5 @@
 mod util;
-use smol_str::SmolStr;
+use smol_str02::SmolStr;
 use util::*;
 
 #[test]
