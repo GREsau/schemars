@@ -17,11 +17,18 @@
     },
     "ser_renamed": {
       "type": "boolean"
+    },
+    "OPTION": {
+      "type": [
+        "boolean",
+        "null"
+      ]
     }
   },
   "required": [
     "READ-ONLY",
     "DEFAULT",
-    "ser_renamed"
+    "ser_renamed",
+    "OPTION"
   ]
 }

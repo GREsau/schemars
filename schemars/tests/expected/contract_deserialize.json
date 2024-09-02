@@ -16,6 +16,12 @@
     },
     "de_renamed": {
       "type": "boolean"
+    },
+    "option": {
+      "type": [
+        "boolean",
+        "null"
+      ]
     }
   },
   "required": [

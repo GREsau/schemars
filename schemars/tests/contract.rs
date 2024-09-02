@@ -16,6 +16,7 @@ struct MyStruct {
     skip_serializing_if: bool,
     #[schemars(rename(serialize = "ser_renamed", deserialize = "de_renamed"))]
     renamed: bool,
+    option: Option<bool>,
 }
 
 #[test]

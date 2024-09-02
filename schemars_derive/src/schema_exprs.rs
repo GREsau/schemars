@@ -509,16 +509,17 @@ fn expr_for_struct(
 
                 let has_default = set_container_default.is_some() || !field.serde_attrs.default().is_none();
                 let has_skip_serialize_if = field.serde_attrs.skip_serializing_if().is_some();
-                let may_be_omitted = if has_default == has_skip_serialize_if {
-                    has_default.into_token_stream()
+                let required_attr = field.attrs.validation.required;
+
+                let is_optional = if has_skip_serialize_if && has_default {
+                    quote!(true)
                 } else {
                     quote!(if #GENERATOR.contract().is_serialize() {
                         #has_skip_serialize_if
                     } else {
-                        #has_default
+                        #has_default || (!#required_attr && <#ty as schemars::JsonSchema>::_schemars_private_is_option())
                     })
                 };
-                let required_attr = field.attrs.validation.required;
 
                 let mut schema_expr = SchemaExpr::from(if field.attrs.validation.required {
                     quote_spanned! {ty.span()=>
@@ -538,11 +539,11 @@ fn expr_for_struct(
                     })
                 }
 
-                // embed `#type_def` outside of `#schema_expr`, because it's used as the type param
-                // (i.e. `#type_def` is the definition of `#ty`)
+                // embed `#type_def` outside of `#schema_expr`, because it's used as a type param
+                // in `#is_optional` (`#type_def` is the definition of `#ty`)
                 field.with_contract_check(quote!({
                     #type_def
-                    schemars::_private::insert_object_property::<#ty>(&mut #SCHEMA, #name, #may_be_omitted, #required_attr, #schema_expr);
+                    schemars::_private::insert_object_property(&mut #SCHEMA, #name, #is_optional, #schema_expr);
                 }))
             }
             })
