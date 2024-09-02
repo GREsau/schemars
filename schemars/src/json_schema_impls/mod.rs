@@ -48,6 +48,8 @@ mod primitives;
 mod sequences;
 mod serdejson;
 mod std_time;
+#[cfg(feature = "time")]
+mod time;
 mod tuple;
 mod wrapper;
 

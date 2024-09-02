@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "TimeTypes",
+  "type": "object",
+  "properties": {
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "offset_date_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "primitive_date_time": {
+      "type": "string",
+      "format": "partial-date-time"
+    },
+    "time": {
+      "type": "string",
+      "format": "time"
+    }
+  },
+  "required": [
+    "date",
+    "offset_date_time",
+    "primitive_date_time",
+    "time"
+  ]
+}
