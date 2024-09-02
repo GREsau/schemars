@@ -85,7 +85,7 @@ mod indexmap2;
 mod semver1;
 
 #[cfg(feature = "triomphe")]
-mod triomphe;
+forward_impl!((<T: ?Sized> crate::JsonSchema for triomphe::Arc<T> where T: crate::JsonSchema) => T);
 
 #[cfg(feature = "smallvec1")]
 forward_impl!((<A: smallvec1::Array> crate::JsonSchema for smallvec1::SmallVec<A> where A::Item: crate::JsonSchema) => alloc::vec::Vec<A::Item>);
