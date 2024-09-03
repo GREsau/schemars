@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0-alpha.15] - **in-dev**
+
+### Added
+
+- `SchemaSettings` now has a `contract` field which determines whether the generated schemas describe how types are serialized or *de*serialized. By default, this is set to `Deserialize`, as this more closely matches the behaviour of previous versions - you can change this to `Serialize` to instead generate schemas describing the type's serialization behaviour (https://github.com/GREsau/schemars/issues/48 / https://github.com/GREsau/schemars/pull/335)
+
+### Changed
+
+- Schemas generated for enums with no variants will now generate `false` (or equivalently `{"not":{}}`), instead of `{"enum":[]}`. This is so generated schemas no longer violate the JSON Schema spec's recommendation that a schema's `enum` array "SHOULD have at least one element".
+
 ## [1.0.0-alpha.14] - 2024-08-29
 
 ### Added
