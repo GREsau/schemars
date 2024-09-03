@@ -55,6 +55,9 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `false`.
     pub inline_subschemas: bool,
+    /// Whether the generated schemas should describe how types are serialized or *de*serialized.
+    ///
+    /// Defaults to `Contract::Deserialize`.
     pub contract: Contract,
 }
 
@@ -165,18 +168,26 @@ impl SchemaSettings {
         SchemaGenerator::new(self)
     }
 
+    /// Updates the settings to generate schemas describing how types are **deserialized**.
     pub fn for_deserialize(mut self) -> Self {
         self.contract = Contract::Deserialize;
         self
     }
 
+    /// Updates the settings to generate schemas describing how types are **serialized**.
     pub fn for_serialize(mut self) -> Self {
         self.contract = Contract::Serialize;
         self
     }
 }
 
+/// A setting to specify whether generated schemas should describe how types are serialized or
+/// *de*serialized.
+///
+/// This enum is marked as `#[non_exhaustive]` to reserve space to introduce further variants
+/// in future.
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[allow(missing_docs)]
 #[non_exhaustive]
 pub enum Contract {
     Deserialize,
@@ -184,10 +195,12 @@ pub enum Contract {
 }
 
 impl Contract {
+    /// Returns true if `self` is the `Deserialize` contract.
     pub fn is_deserialize(&self) -> bool {
         self == &Contract::Deserialize
     }
 
+    /// Returns true if `self` is the `Serialize` contract.
     pub fn is_serialize(&self) -> bool {
         self == &Contract::Serialize
     }
@@ -469,6 +482,10 @@ impl SchemaGenerator {
         Ok(schema)
     }
 
+    /// Returns a reference to the [contract](SchemaSettings::contract) for the settings on this
+    /// `SchemaGenerator`.
+    ///
+    /// This specifies whether generated schemas describe serialize or *de*serialize behaviour.
     pub fn contract(&self) -> &Contract {
         &self.settings.contract
     }

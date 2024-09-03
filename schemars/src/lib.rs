@@ -1,4 +1,10 @@
-#![deny(unsafe_code, clippy::cargo, clippy::pedantic)]
+#![deny(
+    unsafe_code,
+    missing_docs,
+    unused_imports,
+    clippy::cargo,
+    clippy::pedantic
+)]
 #![allow(
     clippy::must_use_candidate,
     clippy::return_self_not_must_use,

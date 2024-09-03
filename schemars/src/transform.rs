@@ -389,6 +389,12 @@ impl Transform for ReplacePrefixItems {
     }
 }
 
+/// Replaces the `unevaluatedProperties` schema property with the `additionalProperties` property,
+/// adding properties from a schema's subschemas to its `properties` where necessary.
+/// This also applies to subschemas.
+///
+/// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support the
+/// `unevaluatedProperties` property.
 #[derive(Debug, Clone)]
 pub struct ReplaceUnevaluatedProperties;
 
