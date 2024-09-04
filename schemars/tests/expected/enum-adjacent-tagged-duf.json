@@ -7,9 +7,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "UnitOne"
-          ]
+          "const": "UnitOne"
         }
       },
       "required": [
@@ -22,9 +20,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "StringMap"
-          ]
+          "const": "StringMap"
         },
         "c": {
           "type": "object",
@@ -44,9 +40,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "UnitStructNewType"
-          ]
+          "const": "UnitStructNewType"
         },
         "c": {
           "$ref": "#/$defs/UnitStruct"
@@ -63,9 +57,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "StructNewType"
-          ]
+          "const": "StructNewType"
         },
         "c": {
           "$ref": "#/$defs/Struct"
@@ -82,9 +74,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "Struct"
-          ]
+          "const": "Struct"
         },
         "c": {
           "type": "object",
@@ -115,9 +105,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "Tuple"
-          ]
+          "const": "Tuple"
         },
         "c": {
           "type": "array",
@@ -145,9 +133,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "UnitTwo"
-          ]
+          "const": "UnitTwo"
         }
       },
       "required": [
@@ -160,9 +146,7 @@
       "properties": {
         "t": {
           "type": "string",
-          "enum": [
-            "WithInt"
-          ]
+          "const": "WithInt"
         },
         "c": {
           "type": "integer",

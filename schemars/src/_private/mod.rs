@@ -134,42 +134,30 @@ pub fn apply_internal_enum_variant_tag(
     }
 }
 
-pub fn insert_object_property<T: ?Sized + JsonSchema>(
+pub fn insert_object_property(
     schema: &mut Schema,
     key: &str,
-    has_default: bool,
-    required: bool,
+    is_optional: bool,
     sub_schema: Schema,
 ) {
-    fn insert_object_property_impl(
-        schema: &mut Schema,
-        key: &str,
-        has_default: bool,
-        required: bool,
-        sub_schema: Schema,
-    ) {
-        let obj = schema.ensure_object();
-        if let Some(properties) = obj
-            .entry("properties")
-            .or_insert(Value::Object(Map::new()))
-            .as_object_mut()
-        {
-            properties.insert(key.to_owned(), sub_schema.into());
-        }
-
-        if !has_default && (required) {
-            if let Some(req) = obj
-                .entry("required")
-                .or_insert(Value::Array(Vec::new()))
-                .as_array_mut()
-            {
-                req.push(key.into());
-            }
-        }
+    let obj = schema.ensure_object();
+    if let Some(properties) = obj
+        .entry("properties")
+        .or_insert(Value::Object(Map::new()))
+        .as_object_mut()
+    {
+        properties.insert(key.to_owned(), sub_schema.into());
     }
 
-    let required = required || !T::_schemars_private_is_option();
-    insert_object_property_impl(schema, key, has_default, required, sub_schema);
+    if !is_optional {
+        if let Some(req) = obj
+            .entry("required")
+            .or_insert(Value::Array(Vec::new()))
+            .as_array_mut()
+        {
+            req.push(key.into());
+        }
+    }
 }
 
 pub fn insert_metadata_property(schema: &mut Schema, key: &str, value: impl Into<Value>) {

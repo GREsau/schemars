@@ -86,7 +86,9 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
         });
     }
 
-    let mut schema_base_name = cont.name().to_string();
+    // We don't know which contract is set on the schema generator here, so we
+    // arbitrarily use the deserialize name rather than the serialize name.
+    let mut schema_base_name = cont.serde_attrs.name().deserialize_name().to_string();
 
     if !cont.attrs.is_renamed {
         if let Some(path) = cont.serde_attrs.remote() {

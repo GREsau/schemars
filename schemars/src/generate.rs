@@ -55,6 +55,10 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `false`.
     pub inline_subschemas: bool,
+    /// Whether the generated schemas should describe how types are serialized or *de*serialized.
+    ///
+    /// Defaults to `Contract::Deserialize`.
+    pub contract: Contract,
 }
 
 impl Default for SchemaSettings {
@@ -80,6 +84,7 @@ impl SchemaSettings {
                 Box::new(ReplacePrefixItems),
             ],
             inline_subschemas: false,
+            contract: Contract::Deserialize,
         }
     }
 
@@ -92,6 +97,7 @@ impl SchemaSettings {
             meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
             transforms: vec![Box::new(ReplacePrefixItems)],
             inline_subschemas: false,
+            contract: Contract::Deserialize,
         }
     }
 
@@ -104,6 +110,7 @@ impl SchemaSettings {
             meta_schema: Some("https://json-schema.org/draft/2020-12/schema".to_owned()),
             transforms: Vec::new(),
             inline_subschemas: false,
+            contract: Contract::Deserialize,
         }
     }
 
@@ -128,6 +135,7 @@ impl SchemaSettings {
                 Box::new(ReplacePrefixItems),
             ],
             inline_subschemas: false,
+            contract: Contract::Deserialize,
         }
     }
 
@@ -159,7 +167,47 @@ impl SchemaSettings {
     pub fn into_generator(self) -> SchemaGenerator {
         SchemaGenerator::new(self)
     }
+
+    /// Updates the settings to generate schemas describing how types are **deserialized**.
+    pub fn for_deserialize(mut self) -> Self {
+        self.contract = Contract::Deserialize;
+        self
+    }
+
+    /// Updates the settings to generate schemas describing how types are **serialized**.
+    pub fn for_serialize(mut self) -> Self {
+        self.contract = Contract::Serialize;
+        self
+    }
 }
+
+/// A setting to specify whether generated schemas should describe how types are serialized or
+/// *de*serialized.
+///
+/// This enum is marked as `#[non_exhaustive]` to reserve space to introduce further variants
+/// in future.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[allow(missing_docs)]
+#[non_exhaustive]
+pub enum Contract {
+    Deserialize,
+    Serialize,
+}
+
+impl Contract {
+    /// Returns true if `self` is the `Deserialize` contract.
+    pub fn is_deserialize(&self) -> bool {
+        self == &Contract::Deserialize
+    }
+
+    /// Returns true if `self` is the `Serialize` contract.
+    pub fn is_serialize(&self) -> bool {
+        self == &Contract::Serialize
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+struct SchemaUid(CowStr, Contract);
 
 /// The main type used to generate JSON Schemas.
 ///
@@ -179,8 +227,8 @@ impl SchemaSettings {
 pub struct SchemaGenerator {
     settings: SchemaSettings,
     definitions: JsonMap<String, Value>,
-    pending_schema_ids: BTreeSet<CowStr>,
-    schema_id_to_name: BTreeMap<CowStr, CowStr>,
+    pending_schema_ids: BTreeSet<SchemaUid>,
+    schema_id_to_name: BTreeMap<SchemaUid, CowStr>,
     used_schema_names: BTreeSet<CowStr>,
 }
 
@@ -236,12 +284,12 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then
     /// this method will add them to the `SchemaGenerator`'s schema definitions.
     pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
-        let id = T::schema_id();
+        let uid = self.schema_uid::<T>();
         let return_ref = !T::always_inline_schema()
-            && (!self.settings.inline_subschemas || self.pending_schema_ids.contains(&id));
+            && (!self.settings.inline_subschemas || self.pending_schema_ids.contains(&uid));
 
         if return_ref {
-            let name = match self.schema_id_to_name.get(&id).cloned() {
+            let name = match self.schema_id_to_name.get(&uid).cloned() {
                 Some(n) => n,
                 None => {
                     let base_name = T::schema_name();
@@ -259,27 +307,30 @@ impl SchemaGenerator {
                     }
 
                     self.used_schema_names.insert(name.clone());
-                    self.schema_id_to_name.insert(id.clone(), name.clone());
+                    self.schema_id_to_name.insert(uid.clone(), name.clone());
                     name
                 }
             };
 
             let reference = format!("#{}/{}", self.definitions_path_stripped(), name);
             if !self.definitions.contains_key(name.as_ref()) {
-                self.insert_new_subschema_for::<T>(name, id);
+                self.insert_new_subschema_for::<T>(name, uid);
             }
             Schema::new_ref(reference)
         } else {
-            self.json_schema_internal::<T>(id)
+            self.json_schema_internal::<T>(uid)
         }
     }
 
-    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: CowStr, id: CowStr) {
+    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: CowStr, uid: SchemaUid) {
+        // TODO: If we've already added a schema for T with the "opposite" contract, then check
+        // whether the new schema is identical. If so, re-use the original for both contracts.
+
         let dummy = false.into();
         // insert into definitions BEFORE calling json_schema to avoid infinite recursion
         self.definitions.insert(name.clone().into(), dummy);
 
-        let schema = self.json_schema_internal::<T>(id);
+        let schema = self.json_schema_internal::<T>(uid);
 
         self.definitions.insert(name.into(), schema.to_value());
     }
@@ -323,7 +374,7 @@ impl SchemaGenerator {
     /// this method will include them in the returned `Schema` at the [definitions
     /// path](SchemaSettings::definitions_path) (by default `"$defs"`).
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
-        let mut schema = self.json_schema_internal::<T>(T::schema_id());
+        let mut schema = self.json_schema_internal::<T>(self.schema_uid::<T>());
 
         let object = schema.ensure_object();
 
@@ -347,7 +398,7 @@ impl SchemaGenerator {
     /// this method will include them in the returned `Schema` at the [definitions
     /// path](SchemaSettings::definitions_path) (by default `"$defs"`).
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Schema {
-        let mut schema = self.json_schema_internal::<T>(T::schema_id());
+        let mut schema = self.json_schema_internal::<T>(self.schema_uid::<T>());
 
         let object = schema.ensure_object();
 
@@ -431,19 +482,27 @@ impl SchemaGenerator {
         Ok(schema)
     }
 
-    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, id: CowStr) -> Schema {
+    /// Returns a reference to the [contract](SchemaSettings::contract) for the settings on this
+    /// `SchemaGenerator`.
+    ///
+    /// This specifies whether generated schemas describe serialize or *de*serialize behaviour.
+    pub fn contract(&self) -> &Contract {
+        &self.settings.contract
+    }
+
+    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, uid: SchemaUid) -> Schema {
         struct PendingSchemaState<'a> {
             generator: &'a mut SchemaGenerator,
-            id: CowStr,
+            uid: SchemaUid,
             did_add: bool,
         }
 
         impl<'a> PendingSchemaState<'a> {
-            fn new(generator: &'a mut SchemaGenerator, id: CowStr) -> Self {
-                let did_add = generator.pending_schema_ids.insert(id.clone());
+            fn new(generator: &'a mut SchemaGenerator, uid: SchemaUid) -> Self {
+                let did_add = generator.pending_schema_ids.insert(uid.clone());
                 Self {
                     generator,
-                    id,
+                    uid,
                     did_add,
                 }
             }
@@ -452,12 +511,12 @@ impl SchemaGenerator {
         impl Drop for PendingSchemaState<'_> {
             fn drop(&mut self) {
                 if self.did_add {
-                    self.generator.pending_schema_ids.remove(&self.id);
+                    self.generator.pending_schema_ids.remove(&self.uid);
                 }
             }
         }
 
-        let pss = PendingSchemaState::new(self, id);
+        let pss = PendingSchemaState::new(self, uid);
         T::json_schema(pss.generator)
     }
 
@@ -490,6 +549,10 @@ impl SchemaGenerator {
         let path = &self.settings.definitions_path;
         let path = path.strip_prefix('#').unwrap_or(path);
         path.strip_suffix('/').unwrap_or(path)
+    }
+
+    fn schema_uid<T: ?Sized + JsonSchema>(&self) -> SchemaUid {
+        SchemaUid(T::schema_id(), self.settings.contract.clone())
     }
 }
 

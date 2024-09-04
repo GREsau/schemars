@@ -3,7 +3,6 @@ use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use serde_derive_internals::ast::Style;
 use serde_derive_internals::attr::{self as serde_attr, Default as SerdeDefault, TagType};
-use std::collections::HashSet;
 use syn::spanned::Spanned;
 
 pub struct SchemaExpr {
@@ -74,14 +73,11 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
         )
     })?;
 
-    let variants = match &cont.data {
-        Data::Enum(variants) => variants,
-        _ => {
-            return Err(syn::Error::new(
-                Span::call_site(),
-                "JsonSchema_repr can only be used on enums",
-            ))
-        }
+    let Data::Enum(variants) = &cont.data else {
+        return Err(syn::Error::new(
+            Span::call_site(),
+            "JsonSchema_repr can only be used on enums",
+        ));
     };
 
     if let Some(non_unit_error) = variants.iter().find_map(|v| match v.style {
@@ -187,10 +183,11 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
 }
 
 fn expr_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> SchemaExpr {
+    if variants.is_empty() {
+        return quote!(schemars::Schema::from(false)).into();
+    }
     let deny_unknown_fields = cattrs.deny_unknown_fields();
-    let variants = variants
-        .iter()
-        .filter(|v| !v.serde_attrs.skip_deserializing());
+    let variants = variants.iter();
 
     match cattrs.tag() {
         TagType::External => expr_for_external_tagged_enum(variants, deny_unknown_fields),
@@ -208,15 +205,14 @@ fn expr_for_external_tagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
-    let mut unique_names = HashSet::<&str>::new();
-    let mut count = 0;
-    let (unit_variants, complex_variants): (Vec<_>, Vec<_>) = variants
-        .inspect(|v| {
-            unique_names.insert(v.name());
-            count += 1;
+    let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
+        variants.partition(|v| v.is_unit() && v.attrs.is_default());
+    let add_unit_names = unit_variants.iter().map(|v| {
+        let name = v.name();
+        v.with_contract_check(quote! {
+            enum_values.push((#name).into());
         })
-        .partition(|v| v.is_unit() && v.attrs.is_default());
-    let unit_names = unit_variants.iter().map(|v| v.name());
+    });
     let unit_schema = SchemaExpr::from(quote!({
         let mut map = schemars::_private::serde_json::Map::new();
         map.insert("type".into(), "string".into());
@@ -224,7 +220,7 @@ fn expr_for_external_tagged_enum<'a>(
             "enum".into(),
             schemars::_private::serde_json::Value::Array({
                 let mut enum_values = schemars::_private::alloc::vec::Vec::new();
-                #(enum_values.push((#unit_names).into());)*
+                #(#add_unit_names)*
                 enum_values
             }),
         );
@@ -237,7 +233,7 @@ fn expr_for_external_tagged_enum<'a>(
 
     let mut schemas = Vec::new();
     if !unit_variants.is_empty() {
-        schemas.push(unit_schema);
+        schemas.push((None, unit_schema));
     }
 
     schemas.extend(complex_variants.into_iter().map(|variant| {
@@ -257,10 +253,10 @@ fn expr_for_external_tagged_enum<'a>(
 
         variant.add_mutators(&mut schema_expr.mutators);
 
-        schema_expr
+        (Some(variant), schema_expr)
     }));
 
-    variant_subschemas(unique_names.len() == count, schemas)
+    variant_subschemas(true, schemas)
 }
 
 fn expr_for_internal_tagged_enum<'a>(
@@ -268,12 +264,8 @@ fn expr_for_internal_tagged_enum<'a>(
     tag_name: &str,
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
-    let mut unique_names = HashSet::new();
-    let mut count = 0;
     let variant_schemas = variants
         .map(|variant| {
-            unique_names.insert(variant.name());
-            count += 1;
 
             let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
 
@@ -284,11 +276,11 @@ fn expr_for_internal_tagged_enum<'a>(
 
             variant.add_mutators(&mut schema_expr.mutators);
 
-            schema_expr
+            (Some(variant), schema_expr)
         })
         .collect();
 
-    variant_subschemas(unique_names.len() == count, variant_schemas)
+    variant_subschemas(true, variant_schemas)
 }
 
 fn expr_for_untagged_enum<'a>(
@@ -301,7 +293,7 @@ fn expr_for_untagged_enum<'a>(
 
             variant.add_mutators(&mut schema_expr.mutators);
 
-            schema_expr
+            (Some(variant), schema_expr)
         })
         .collect();
 
@@ -316,13 +308,8 @@ fn expr_for_adjacent_tagged_enum<'a>(
     content_name: &str,
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
-    let mut unique_names = HashSet::new();
-    let mut count = 0;
     let schemas = variants
         .map(|variant| {
-            unique_names.insert(variant.name());
-            count += 1;
-
             let content_schema = if variant.is_unit() && variant.attrs.with.is_none() {
                 None
             } else {
@@ -342,7 +329,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
             let tag_schema = quote! {
                 schemars::json_schema!({
                     "type": "string",
-                    "enum": [#name],
+                    "const": #name,
                 })
             };
 
@@ -371,24 +358,33 @@ fn expr_for_adjacent_tagged_enum<'a>(
 
             variant.add_mutators(&mut outer_schema.mutators);
 
-            outer_schema
+            (Some(variant), outer_schema)
         })
         .collect();
 
-    variant_subschemas(unique_names.len() == count, schemas)
+    variant_subschemas(true, schemas)
 }
 
-/// Callers must determine if all subschemas are mutually exclusive. This can
-/// be done for most tagging regimes by checking that all tag names are unique.
-fn variant_subschemas(unique: bool, schemas: Vec<SchemaExpr>) -> SchemaExpr {
+/// Callers must determine if all subschemas are mutually exclusive. The current behaviour is to
+/// assume that variants are mutually exclusive except for untagged enums.
+fn variant_subschemas(unique: bool, schemas: Vec<(Option<&Variant>, SchemaExpr)>) -> SchemaExpr {
     let keyword = if unique { "oneOf" } else { "anyOf" };
+    let add_schemas = schemas.into_iter().map(|(v, s)| {
+        let add = quote! {
+            enum_values.push(#s.to_value());
+        };
+        match v {
+            Some(v) => v.with_contract_check(add),
+            None => add,
+        }
+    });
     quote!({
         let mut map = schemars::_private::serde_json::Map::new();
         map.insert(
             #keyword.into(),
             schemars::_private::serde_json::Value::Array({
                 let mut enum_values = schemars::_private::alloc::vec::Vec::new();
-                #(enum_values.push(#schemas.to_value());)*
+                #(#add_schemas)*
                 enum_values
             }),
         );
@@ -454,19 +450,27 @@ fn expr_for_newtype_struct(field: &Field) -> SchemaExpr {
 fn expr_for_tuple_struct(fields: &[Field]) -> SchemaExpr {
     let fields: Vec<_> = fields
         .iter()
-        .filter(|f| !f.serde_attrs.skip_deserializing())
-        .map(|f| expr_for_field(f, true))
-        .collect();
-    let len = fields.len() as u32;
-
-    quote! {
-        schemars::json_schema!({
-            "type": "array",
-            "prefixItems": [#((#fields)),*],
-            "minItems": #len,
-            "maxItems": #len,
+        .map(|f| {
+            let field_expr = expr_for_field(f, true);
+            f.with_contract_check(quote! {
+                prefix_items.push((#field_expr).to_value());
+            })
         })
-    }
+        .collect();
+
+    quote!({
+        let mut prefix_items = schemars::_private::alloc::vec::Vec::new();
+        #(#fields)*
+        let len = schemars::_private::serde_json::Value::from(prefix_items.len());
+
+        let mut map = schemars::_private::serde_json::Map::new();
+        map.insert("type".into(), "array".into());
+        map.insert("prefixItems".into(), prefix_items.into());
+        map.insert("minItems".into(), len.clone());
+        map.insert("maxItems".into(), len);
+
+        schemars::Schema::from(map)
+    })
     .into()
 }
 
@@ -496,15 +500,26 @@ fn expr_for_struct(
 
                 schema_expr.definitions.extend(type_def);
 
-                quote! {
+                field.with_contract_check(quote! {
                     schemars::_private::flatten(&mut #SCHEMA, #schema_expr);
-                }
+                })
             } else {
                 let name = field.name();
                 let (ty, type_def) = type_for_field_schema(field);
 
                 let has_default = set_container_default.is_some() || !field.serde_attrs.default().is_none();
-                let required = field.attrs.validation.required;
+                let has_skip_serialize_if = field.serde_attrs.skip_serializing_if().is_some();
+                let required_attr = field.attrs.validation.required;
+
+                let is_optional = if has_skip_serialize_if && has_default {
+                    quote!(true)
+                } else {
+                    quote!(if #GENERATOR.contract().is_serialize() {
+                        #has_skip_serialize_if
+                    } else {
+                        #has_default || (!#required_attr && <#ty as schemars::JsonSchema>::_schemars_private_is_option())
+                    })
+                };
 
                 let mut schema_expr = SchemaExpr::from(if field.attrs.validation.required {
                     quote_spanned! {ty.span()=>
@@ -524,12 +539,12 @@ fn expr_for_struct(
                     })
                 }
 
-                // embed `#type_def` outside of `#schema_expr`, because it's used as the type param
-                // (i.e. `#type_def` is the definition of `#ty`)
-                quote!({
+                // embed `#type_def` outside of `#schema_expr`, because it's used as a type param
+                // in `#is_optional` (`#type_def` is the definition of `#ty`)
+                field.with_contract_check(quote!({
                     #type_def
-                    schemars::_private::insert_object_property::<#ty>(&mut #SCHEMA, #name, #has_default, #required, #schema_expr);
-                })
+                    schemars::_private::insert_object_property(&mut #SCHEMA, #name, #is_optional, #schema_expr);
+                }))
             }
             })
         .collect();

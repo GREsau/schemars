@@ -1,7 +1,7 @@
 mod from_serde;
 
 use crate::attr::{ContainerAttrs, FieldAttrs, VariantAttrs};
-use crate::idents::SCHEMA;
+use crate::idents::{GENERATOR, SCHEMA};
 use from_serde::FromSerde;
 use proc_macro2::TokenStream;
 use serde_derive_internals::ast as serde_ast;
@@ -48,10 +48,6 @@ impl<'a> Container<'a> {
             .map(|_| result.expect("from_ast set no errors on Ctxt, so should have returned Ok"))
     }
 
-    pub fn name(&self) -> &str {
-        self.serde_attrs.name().deserialize_name()
-    }
-
     pub fn transparent_field(&'a self) -> Option<&'a Field> {
         if self.serde_attrs.transparent() {
             if let Data::Struct(_, fields) = &self.data {
@@ -68,8 +64,8 @@ impl<'a> Container<'a> {
 }
 
 impl<'a> Variant<'a> {
-    pub fn name(&self) -> &str {
-        self.serde_attrs.name().deserialize_name()
+    pub fn name(&self) -> Name {
+        Name(self.serde_attrs.name())
     }
 
     pub fn is_unit(&self) -> bool {
@@ -79,11 +75,19 @@ impl<'a> Variant<'a> {
     pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
         self.attrs.common.add_mutators(mutators);
     }
+
+    pub fn with_contract_check(&self, action: TokenStream) -> TokenStream {
+        with_contract_check(
+            self.serde_attrs.skip_deserializing(),
+            self.serde_attrs.skip_serializing(),
+            action,
+        )
+    }
 }
 
 impl<'a> Field<'a> {
-    pub fn name(&self) -> &str {
-        self.serde_attrs.name().deserialize_name()
+    pub fn name(&self) -> Name {
+        Name(self.serde_attrs.name())
     }
 
     pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
@@ -100,5 +104,55 @@ impl<'a> Field<'a> {
                 schemars::_private::insert_metadata_property(&mut #SCHEMA, "writeOnly", true);
             });
         }
+    }
+
+    pub fn with_contract_check(&self, action: TokenStream) -> TokenStream {
+        with_contract_check(
+            self.serde_attrs.skip_deserializing(),
+            self.serde_attrs.skip_serializing(),
+            action,
+        )
+    }
+}
+
+pub struct Name<'a>(&'a serde_derive_internals::attr::Name);
+
+impl quote::ToTokens for Name<'_> {
+    fn to_tokens(&self, tokens: &mut TokenStream) {
+        let ser_name = self.0.serialize_name();
+        let de_name = self.0.deserialize_name();
+        if ser_name == de_name {
+            ser_name.to_tokens(tokens);
+        } else {
+            quote! {
+                if #GENERATOR.contract().is_serialize() {
+                    #ser_name
+                } else {
+                    #de_name
+                }
+            }
+            .to_tokens(tokens)
+        }
+    }
+}
+
+fn with_contract_check(
+    skip_deserializing: bool,
+    skip_serializing: bool,
+    action: TokenStream,
+) -> TokenStream {
+    match (skip_deserializing, skip_serializing) {
+        (true, true) => TokenStream::new(),
+        (true, false) => quote! {
+            if #GENERATOR.contract().is_serialize() {
+                #action
+            }
+        },
+        (false, true) => quote! {
+            if #GENERATOR.contract().is_deserialize() {
+                #action
+            }
+        },
+        (false, false) => action,
     }
 }

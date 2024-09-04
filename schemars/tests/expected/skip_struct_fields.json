@@ -3,11 +3,6 @@
   "title": "MyStruct",
   "type": "object",
   "properties": {
-    "readable": {
-      "type": "string",
-      "readOnly": true,
-      "default": ""
-    },
     "writable": {
       "type": "number",
       "format": "float",
