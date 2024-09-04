@@ -389,6 +389,25 @@ mod ser {
 
                     map.end()
                 }
+                // #[cfg(feature = "arbitrary_precision_fix")]
+                Value::Number(n) if !core::any::type_name::<S>().contains("serde_json::") => {
+                    if let Some(n) = n.as_u64() {
+                        return serializer.serialize_u64(n);
+                    }
+
+                    if let Some(n) = n.as_i64() {
+                        return serializer.serialize_i64(n);
+                    }
+
+                    if let Some(n) = n.as_f64() {
+                        return serializer.serialize_f64(n);
+                    }
+
+                    // This should never happen, but just in case...
+                    Err(<S::Error as serde::ser::Error>::custom(format_args!(
+                        "Invalid number '{n}'"
+                    )))
+                }
                 _ => self.0.serialize(serializer),
             }
         }
