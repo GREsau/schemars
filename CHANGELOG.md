@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0-alpha.15] - **in-dev**
+## [1.0.0-alpha.15] - 2024-09-05
 
 ### Added
 
