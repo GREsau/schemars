@@ -39,6 +39,7 @@ trybuild = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 jsonschema = { version = "0.18.1", default-features = false }
 snapbox = { version = "0.6.17", features = ["json"] }
+bytes1 = { version = "1.0", features = ["serde"], package = "bytes" }
 
 [features]
 default = ["derive", "std"]
@@ -92,10 +93,6 @@ required-features = ["uuid1"]
 [[test]]
 name = "smallvec"
 required-features = ["smallvec1"]
-
-[[test]]
-name = "bytes"
-required-features = ["bytes1"]
 
 [[test]]
 name = "arrayvec"

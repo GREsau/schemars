@@ -1,3 +1,6 @@
+#[cfg(feature = "bytes1")]
+mod bytes;
+
 mod prelude {
     pub use crate::test;
     pub use crate::test_helper::{arbitrary_values, arbitrary_values_except};

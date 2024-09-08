@@ -77,6 +77,11 @@ impl<T: JsonSchema> TestHelper<T> {
             T2::schema_id(),
             "`{t}` and `{t2}` have identical schemas, so should have the same schema_id"
         );
+        assert_eq!(
+            T::always_inline_schema(),
+            T2::always_inline_schema(),
+            "`{t}` and `{t2}` have identical schemas, so should have the same always_inline_schema"
+        );
         self
     }
 
@@ -182,7 +187,8 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
     /// Checks that the "deserialize" schema allows only the given sample values that successfully
     /// deserialize.
     ///
-    /// This is intended to be given an arbitrary range of values to allow limited fuzzing.
+    /// This is intended to be given a range of values (see `arbitrary_values`), allowing limited
+    /// fuzzing.
     pub fn assert_matches_de_roundtrip(
         &self,
         samples: impl IntoIterator<Item = impl Borrow<Value>>,

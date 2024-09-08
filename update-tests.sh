@@ -5,7 +5,7 @@ cd schemars
 
 rm -f tests/actual/*.json
 
-TRYBUILD=overwrite cargo test --all-features --no-fail-fast --tests || :
+TRYBUILD=overwrite SNAPSHOTS=overwrite cargo test --all-features --no-fail-fast --tests || :
 
 if ls tests/actual/*.json 1> /dev/null 2>&1; then
   mv -f tests/actual/*.json tests/expected/
