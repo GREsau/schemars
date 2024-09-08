@@ -1,3 +1,5 @@
+#[cfg(feature = "arrayvec07")]
+mod arrayvec;
 #[cfg(feature = "bytes1")]
 mod bytes;
 
