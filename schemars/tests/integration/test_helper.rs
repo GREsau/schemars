@@ -117,11 +117,8 @@ impl<T: JsonSchema> TestHelper<T> {
 }
 
 impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
-    /// Checks that both the "serialize" and "deserialize" schema allow the given sample values
-    /// when serialized to JSON.
-    ///
-    /// This assumes that the serialize is the same as (or effectively a "superset" of) the
-    /// deserialize schema, which is the case for most types in practice.
+    /// Checks that the "serialize" schema allows the given sample values when serialized to JSON
+    /// and, if the value can then be deserialized, that the "deserialize" schema also allows it.
     pub fn assert_allows_ser_roundtrip(&self, samples: impl IntoIterator<Item = T>) -> &Self {
         let ser_schema = self.ser_schema_compiled();
         let de_schema = self.de_schema_compiled();
@@ -133,23 +130,25 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
                 "serialize schema should allow serialized value: {json}"
             );
 
-            assert!(
-                T::deserialize(&json).is_ok(),
-                "sanity check - ser/de roundtrip for {}: {json}",
-                type_name::<T>()
-            );
-
-            assert!(
-                de_schema.is_valid(&json),
-                "deserialize schema should allow value accepted by deserialization: {json}"
-            );
+            if T::deserialize(&json).is_ok() {
+                assert!(
+                    de_schema.is_valid(&json),
+                    "deserialize schema should allow value accepted by deserialization: {json}"
+                );
+            } else {
+                assert!(
+                    !de_schema.is_valid(&json),
+                    "deserialize schema should reject undeserializable value: {json}"
+                );
+            }
         }
 
         self
     }
 
     /// Checks that the "deserialize" schema allow the given sample values, and the "serialize"
-    /// schema allows the value obtained from deserializing then re-serializing the sample values.
+    /// schema allows the value obtained from deserializing then re-serializing the sample values
+    /// (only for values that can actually be serialized).
     ///
     /// This is intended for types that have different serialize/deserialize schemas, or when you
     /// want to test specific values that are valid for deserialization but not for serialization.
@@ -174,11 +173,12 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
                 "deserialize schema should allow value accepted by deserialization: {sample}"
             );
 
-            let serialized = serde_json::to_value(&deserialized).unwrap();
-            assert!(
-                ser_schema.is_valid(&serialized),
-                "serialize schema should allow serialized value: {serialized}"
-            );
+            if let Ok(serialized) = serde_json::to_value(&deserialized) {
+                assert!(
+                    ser_schema.is_valid(&serialized),
+                    "serialize schema should allow serialized value: {serialized}"
+                );
+            }
         }
 
         self
@@ -206,11 +206,12 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
                         "deserialize schema should allow value accepted by deserialization: {value}"
                     );
 
-                    let serialized = serde_json::to_value(&deserialized).unwrap();
-                    assert!(
-                        ser_schema.is_valid(&serialized),
-                        "serialize schema should allow serialized value: {serialized}"
-                    );
+                    if let Ok(serialized) = serde_json::to_value(&deserialized) {
+                        assert!(
+                            ser_schema.is_valid(&serialized),
+                            "serialize schema should allow serialized value: {serialized}"
+                        );
+                    }
                 }
                 Err(_) => {
                     assert!(
@@ -218,9 +219,9 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
                         "deserialize schema should reject invalid value: {value}"
                     );
 
-                    // This isn't necessarily true all of the time, but it would be odd (though not
-                    // necessarily wrong) for this assertion to fail. If this does ever fail for a
-                    // case that should be legitimate, then this assertion can be removed/weakened.
+                    // This assertion isn't necessarily valid in the general case but it would be
+                    // odd (though not necessarily wrong) for it to fail. If this does ever fail
+                    // a case that should be legitimate, then this assert can be removed/weakened.
                     assert!(
                         !ser_schema.is_valid(value),
                         "serialize schema should reject invalid value: {value}"
@@ -245,7 +246,7 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
 
             assert!(
                 T::deserialize(value).is_err(),
-                "expected deserialize to succeed for {}: {value}",
+                "invalid test case - expected deserialize to succeed for {}: {value}",
                 type_name::<T>()
             );
 

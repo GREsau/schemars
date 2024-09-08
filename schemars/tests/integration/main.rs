@@ -5,6 +5,7 @@ mod bound;
 mod bytes;
 #[cfg(feature = "chrono04")]
 mod chrono;
+mod contract;
 
 mod prelude {
     pub use crate::test;
