@@ -7,6 +7,8 @@ mod bytes;
 mod chrono;
 mod contract;
 mod crate_alias;
+#[cfg(any(feature = "rust_decimal1", feature = "bigdecimal04"))]
+mod decimal;
 
 mod prelude {
     pub use crate::test;

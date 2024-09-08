@@ -43,13 +43,13 @@ impl<T: JsonSchema> TestHelper<T> {
         let de_path = format!("tests/integration/snapshots/{}.de.json", self.name);
         snapbox::assert_data_eq!(
             self.de_schema().into_json(),
-            snapbox::Data::read_from(Path::new(&de_path), None)
+            snapbox::Data::read_from(Path::new(&de_path), None).raw()
         );
 
         let ser_path = format!("tests/integration/snapshots/{}.ser.json", self.name);
         snapbox::assert_data_eq!(
             self.ser_schema().into_json(),
-            snapbox::Data::read_from(Path::new(&ser_path), None)
+            snapbox::Data::read_from(Path::new(&ser_path), None).raw()
         );
 
         self
@@ -59,11 +59,13 @@ impl<T: JsonSchema> TestHelper<T> {
     pub fn assert_identical<T2: JsonSchema>(&self) -> &Self {
         snapbox::assert_data_eq!(
             self.de_schema().into_json(),
-            self.schema_for::<T2>(Contract::Deserialize).into_json()
+            self.schema_for::<T2>(Contract::Deserialize)
+                .into_json()
+                .raw()
         );
         snapbox::assert_data_eq!(
             self.ser_schema().into_json(),
-            self.schema_for::<T2>(Contract::Serialize).into_json()
+            self.schema_for::<T2>(Contract::Serialize).into_json().raw()
         );
         let t = type_name::<T>();
         let t2 = type_name::<T2>();
