@@ -37,6 +37,8 @@ uuid1 = { version = "1.0", default-features = false, optional = true, package = 
 pretty_assertions = "1.2.1"
 trybuild = "1.0"
 serde = { version = "1.0", features = ["derive"] }
+jsonschema = { version = "0.18.1", default-features = false }
+snapbox = { version = "0.6.17", features = ["json"] }
 
 [features]
 default = ["derive", "std"]
