@@ -6,6 +6,10 @@
 
 - the `enumset1`/`enumset` optional dependency has been removed, as its `JsonSchema` impl did not actually match the default serialization format of `EnumSet` (https://github.com/GREsau/schemars/pull/339)
 
+### Changed
+
+- ⚠️ MSRV is now 1.70 ⚠️
+
 ## [1.0.0-alpha.15] - 2024-09-05
 
 ### Added
