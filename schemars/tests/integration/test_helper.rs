@@ -246,7 +246,7 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
 
             assert!(
                 T::deserialize(value).is_err(),
-                "invalid test case - expected deserialize to succeed for {}: {value}",
+                "invalid test case - expected deserialize to fail for {}: {value}",
                 type_name::<T>()
             );
 
