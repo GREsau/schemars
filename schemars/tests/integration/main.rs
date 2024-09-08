@@ -3,6 +3,8 @@ mod arrayvec;
 mod bound;
 #[cfg(feature = "bytes1")]
 mod bytes;
+#[cfg(feature = "chrono04")]
+mod chrono;
 
 mod prelude {
     pub use crate::test;
