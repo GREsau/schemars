@@ -1,8 +1,5 @@
-mod util;
+use crate::prelude::*;
 use std::marker::PhantomData;
-
-use schemars::JsonSchema;
-use util::*;
 
 struct MyIterator;
 
@@ -16,7 +13,7 @@ impl Iterator for MyIterator {
 
 // The default trait bounds would require T to implement JsonSchema,
 // which MyIterator does not.
-#[derive(JsonSchema)]
+#[derive(JsonSchema, Serialize, Deserialize)]
 #[schemars(bound = "T::Item: JsonSchema", rename = "MyContainer")]
 pub struct MyContainer<T>
 where
@@ -27,6 +24,12 @@ where
 }
 
 #[test]
-fn manual_bound_set() -> TestResult {
-    test_default_generated_schema::<MyContainer<MyIterator>>("bound")
+fn manual_bound_set() {
+    test!(MyContainer<MyIterator>)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip([MyContainer {
+            associated: "test".to_owned(),
+            generic: PhantomData,
+        }])
+        .assert_matches_de_roundtrip(arbitrary_values());
 }
