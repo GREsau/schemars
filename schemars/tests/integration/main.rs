@@ -1,3 +1,5 @@
+#![allow(clippy::disallowed_names)]
+
 #[cfg(feature = "arrayvec07")]
 mod arrayvec;
 mod bound;
@@ -9,6 +11,7 @@ mod contract;
 mod crate_alias;
 #[cfg(any(feature = "rust_decimal1", feature = "bigdecimal04"))]
 mod decimal;
+mod deprecated;
 
 mod prelude {
     pub use crate::test;

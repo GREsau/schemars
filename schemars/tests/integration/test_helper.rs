@@ -87,6 +87,11 @@ impl<T: JsonSchema> TestHelper<T> {
         self
     }
 
+    pub fn custom(&self, assertion: impl Fn(&Schema, Contract)) {
+        assertion(self.de_schema(), Contract::Deserialize);
+        assertion(self.ser_schema(), Contract::Serialize);
+    }
+
     fn schema_for<T2: JsonSchema>(&self, contract: Contract) -> Schema {
         self.settings
             .clone()

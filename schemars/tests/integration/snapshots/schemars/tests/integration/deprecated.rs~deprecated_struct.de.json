@@ -7,14 +7,14 @@
       "type": "integer",
       "format": "int32"
     },
-    "deprecated_field": {
+    "bar": {
       "type": "boolean",
       "deprecated": true
     }
   },
   "required": [
     "foo",
-    "deprecated_field"
+    "bar"
   ],
   "deprecated": true
 }
