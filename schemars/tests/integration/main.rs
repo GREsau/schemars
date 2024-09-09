@@ -16,6 +16,7 @@ mod deprecated;
 mod docs;
 #[cfg(feature = "either1")]
 mod either;
+mod enum_repr;
 
 mod prelude {
     pub use crate::test;
