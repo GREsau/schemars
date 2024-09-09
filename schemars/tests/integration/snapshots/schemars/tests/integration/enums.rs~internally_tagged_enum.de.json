@@ -5,19 +5,19 @@
     {
       "type": "object",
       "properties": {
-        "typeProperty": {
+        "tag": {
           "type": "string",
           "const": "UnitOne"
         }
       },
       "required": [
-        "typeProperty"
+        "tag"
       ]
     },
     {
       "type": "object",
       "properties": {
-        "typeProperty": {
+        "tag": {
           "type": "string",
           "const": "StringMap"
         }
@@ -26,19 +26,19 @@
         "type": "string"
       },
       "required": [
-        "typeProperty"
+        "tag"
       ]
     },
     {
       "type": "object",
       "properties": {
-        "typeProperty": {
+        "tag": {
           "type": "string",
           "const": "UnitStructNewType"
         }
       },
       "required": [
-        "typeProperty"
+        "tag"
       ]
     },
     {
@@ -51,13 +51,13 @@
         "bar": {
           "type": "boolean"
         },
-        "typeProperty": {
+        "tag": {
           "type": "string",
           "const": "StructNewType"
         }
       },
       "required": [
-        "typeProperty",
+        "tag",
         "foo",
         "bar"
       ]
@@ -72,13 +72,13 @@
         "bar": {
           "type": "boolean"
         },
-        "typeProperty": {
+        "tag": {
           "type": "string",
           "const": "Struct"
         }
       },
       "required": [
-        "typeProperty",
+        "tag",
         "foo",
         "bar"
       ]
@@ -86,26 +86,13 @@
     {
       "type": "object",
       "properties": {
-        "typeProperty": {
+        "tag": {
           "type": "string",
           "const": "UnitTwo"
         }
       },
       "required": [
-        "typeProperty"
-      ]
-    },
-    {
-      "type": "object",
-      "format": "int32",
-      "properties": {
-        "typeProperty": {
-          "type": "string",
-          "const": "WithInt"
-        }
-      },
-      "required": [
-        "typeProperty"
+        "tag"
       ]
     }
   ]

@@ -5,23 +5,23 @@
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
           "const": "UnitOne"
         }
       },
       "required": [
-        "t"
+        "tag"
       ]
     },
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
           "const": "StringMap"
         },
-        "c": {
+        "content": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
@@ -29,50 +29,50 @@
         }
       },
       "required": [
-        "t",
-        "c"
+        "tag",
+        "content"
       ]
     },
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
           "const": "UnitStructNewType"
         },
-        "c": {
+        "content": {
           "$ref": "#/$defs/UnitStruct"
         }
       },
       "required": [
-        "t",
-        "c"
+        "tag",
+        "content"
       ]
     },
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
           "const": "StructNewType"
         },
-        "c": {
+        "content": {
           "$ref": "#/$defs/Struct"
         }
       },
       "required": [
-        "t",
-        "c"
+        "tag",
+        "content"
       ]
     },
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
           "const": "Struct"
         },
-        "c": {
+        "content": {
           "type": "object",
           "properties": {
             "foo": {
@@ -90,18 +90,18 @@
         }
       },
       "required": [
-        "t",
-        "c"
+        "tag",
+        "content"
       ]
     },
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
           "const": "Tuple"
         },
-        "c": {
+        "content": {
           "type": "array",
           "prefixItems": [
             {
@@ -117,37 +117,54 @@
         }
       },
       "required": [
-        "t",
-        "c"
+        "tag",
+        "content"
       ]
     },
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
           "const": "UnitTwo"
         }
       },
       "required": [
-        "t"
+        "tag"
       ]
     },
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
-          "const": "WithInt"
+          "const": "UnitAsInt"
         },
-        "c": {
+        "content": {
           "type": "integer",
-          "format": "int32"
+          "format": "uint64",
+          "minimum": 0
         }
       },
       "required": [
-        "t",
-        "c"
+        "tag",
+        "content"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "const": "TupleAsStr"
+        },
+        "content": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag",
+        "content"
       ]
     }
   ],

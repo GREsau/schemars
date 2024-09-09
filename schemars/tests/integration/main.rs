@@ -17,6 +17,7 @@ mod docs;
 #[cfg(feature = "either1")]
 mod either;
 mod enum_repr;
+mod enums;
 
 mod prelude {
     pub use crate::test;

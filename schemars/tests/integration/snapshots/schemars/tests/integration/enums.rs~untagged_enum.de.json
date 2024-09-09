@@ -48,8 +48,16 @@
       "maxItems": 2
     },
     {
+      "type": "null"
+    },
+    {
       "type": "integer",
-      "format": "int32"
+      "format": "uint64",
+      "minimum": 0
+    },
+    {
+      "type": "string",
+      "pattern": "^\\d+ (true|false)$"
     }
   ],
   "$defs": {
