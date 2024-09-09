@@ -13,6 +13,7 @@ mod crate_alias;
 mod decimal;
 mod default;
 mod deprecated;
+mod docs;
 
 mod prelude {
     pub use crate::test;

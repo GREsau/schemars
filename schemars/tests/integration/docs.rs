@@ -1,6 +1,4 @@
-mod util;
-use schemars::JsonSchema;
-use util::*;
+use crate::prelude::*;
 
 #[allow(dead_code)]
 #[derive(JsonSchema)]
@@ -23,6 +21,11 @@ struct MyStruct {
 /// # A Unit
 #[derive(JsonSchema)]
 struct MyUnitStruct;
+
+#[test]
+fn doc_comments_struct() {
+    test!(MyStruct).assert_snapshot();
+}
 
 #[allow(dead_code)]
 #[doc = " # This is the enum's title "]
@@ -55,13 +58,8 @@ enum MyEnum {
 }
 
 #[test]
-fn doc_comments_struct() -> TestResult {
-    test_default_generated_schema::<MyStruct>("doc_comments_struct")
-}
-
-#[test]
-fn doc_comments_enum() -> TestResult {
-    test_default_generated_schema::<MyEnum>("doc_comments_enum")
+fn doc_comments_enum() {
+    test!(MyEnum).assert_snapshot();
 }
 
 /// # OverrideDocs struct
@@ -82,6 +80,6 @@ struct OverrideDocs {
 }
 
 #[test]
-fn doc_comments_override() -> TestResult {
-    test_default_generated_schema::<OverrideDocs>("doc_comments_override")
+fn doc_comments_override() {
+    test!(OverrideDocs).assert_snapshot();
 }
