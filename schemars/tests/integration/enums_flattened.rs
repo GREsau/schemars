@@ -1,6 +1,5 @@
-use schemars::generate::SchemaSettings;
-
 use crate::prelude::*;
+use schemars::generate::SchemaSettings;
 
 macro_rules! fn_values {
     () => {

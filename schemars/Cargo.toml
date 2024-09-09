@@ -70,14 +70,6 @@ raw_value = ["serde_json/raw_value"]
 _ui_test = []
 
 [[test]]
-name = "std_time"
-required-features = ["std"]
-
-[[test]]
-name = "ffi"
-required-features = ["std"]
-
-[[test]]
 name = "ui"
 required-features = ["_ui_test"]
 
