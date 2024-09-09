@@ -30,14 +30,14 @@ struct NotSerialize(i8);
 mod struct_2_as_str {
     use super::MyStruct2;
 
-    pub fn serialize<S>(value: &MyStruct2, ser: S) -> Result<S::Ok, S::Error>
+    pub(super) fn serialize<S>(value: &MyStruct2, ser: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
         ser.collect_str(&format_args!("{} {}", value.integer, value.boolean))
     }
 
-    pub fn deserialize<'de, D>(deser: D) -> Result<MyStruct2, D::Error>
+    pub(super) fn deserialize<'de, D>(deser: D) -> Result<MyStruct2, D::Error>
     where
         D: serde::Deserializer<'de>,
     {
