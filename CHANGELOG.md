@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.16] - **in-dev**
+
+### Removed (_⚠️ breaking changes ⚠️_)
+
+- the `enumset1`/`enumset` optional dependency has been removed, as its `JsonSchema` impl did not actually match the default serialization format of `EnumSet` (https://github.com/GREsau/schemars/pull/339)
+
 ## [1.0.0-alpha.15] - 2024-09-05
 
 ### Added
