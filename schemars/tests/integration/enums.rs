@@ -42,6 +42,10 @@ impl External {
                     .collect(),
             ),
             Self::UnitStructNewType(UnitStruct),
+            Self::StructNewType(Struct {
+                foo: 123,
+                bar: true,
+            }),
             Self::Struct {
                 foo: 123,
                 bar: true,
@@ -85,6 +89,10 @@ impl Internal {
                     .collect(),
             ),
             Self::UnitStructNewType(UnitStruct),
+            Self::StructNewType(Struct {
+                foo: 123,
+                bar: true,
+            }),
             Self::Struct {
                 foo: 123,
                 bar: true,
@@ -128,6 +136,10 @@ impl Adjacent {
                     .collect(),
             ),
             Self::UnitStructNewType(UnitStruct),
+            Self::StructNewType(Struct {
+                foo: 123,
+                bar: true,
+            }),
             Self::Struct {
                 foo: 123,
                 bar: true,
@@ -171,6 +183,10 @@ impl Untagged {
                     .collect(),
             ),
             Self::UnitStructNewType(UnitStruct),
+            Self::StructNewType(Struct {
+                foo: 123,
+                bar: true,
+            }),
             Self::Struct {
                 foo: 123,
                 bar: true,

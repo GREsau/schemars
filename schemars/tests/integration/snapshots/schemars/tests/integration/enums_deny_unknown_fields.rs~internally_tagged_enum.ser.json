@@ -5,20 +5,20 @@
     {
       "type": "object",
       "properties": {
-        "typeProperty": {
+        "tag": {
           "type": "string",
-          "const": "UnitOne"
+          "const": "Unit"
         }
       },
       "required": [
-        "typeProperty"
+        "tag"
       ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "typeProperty": {
+        "tag": {
           "type": "string",
           "const": "StringMap"
         }
@@ -27,21 +27,8 @@
         "type": "string"
       },
       "required": [
-        "typeProperty"
+        "tag"
       ]
-    },
-    {
-      "type": "object",
-      "properties": {
-        "typeProperty": {
-          "type": "string",
-          "const": "UnitStructNewType"
-        }
-      },
-      "required": [
-        "typeProperty"
-      ],
-      "additionalProperties": false
     },
     {
       "type": "object",
@@ -53,13 +40,13 @@
         "bar": {
           "type": "boolean"
         },
-        "typeProperty": {
+        "tag": {
           "type": "string",
           "const": "StructNewType"
         }
       },
       "required": [
-        "typeProperty",
+        "tag",
         "foo",
         "bar"
       ]
@@ -74,42 +61,16 @@
         "bar": {
           "type": "boolean"
         },
-        "typeProperty": {
+        "tag": {
           "type": "string",
           "const": "Struct"
         }
       },
       "additionalProperties": false,
       "required": [
-        "typeProperty",
+        "tag",
         "foo",
         "bar"
-      ]
-    },
-    {
-      "type": "object",
-      "properties": {
-        "typeProperty": {
-          "type": "string",
-          "const": "UnitTwo"
-        }
-      },
-      "required": [
-        "typeProperty"
-      ],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "format": "int32",
-      "properties": {
-        "typeProperty": {
-          "type": "string",
-          "const": "WithInt"
-        }
-      },
-      "required": [
-        "typeProperty"
       ]
     }
   ]

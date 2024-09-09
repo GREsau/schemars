@@ -18,6 +18,7 @@ mod docs;
 mod either;
 mod enum_repr;
 mod enums;
+mod enums_deny_unknown_fields;
 
 mod prelude {
     pub use crate::test;

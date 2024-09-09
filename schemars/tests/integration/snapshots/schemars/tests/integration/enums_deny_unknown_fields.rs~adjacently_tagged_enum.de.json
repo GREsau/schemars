@@ -1,18 +1,28 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "External",
+  "title": "Adjacent",
   "oneOf": [
     {
-      "type": "string",
-      "enum": [
-        "unitOne",
-        "unitTwo"
-      ]
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "const": "Unit"
+        }
+      },
+      "required": [
+        "tag"
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "stringMap": {
+        "tag": {
+          "type": "string",
+          "const": "StringMap"
+        },
+        "content": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
@@ -20,38 +30,36 @@
         }
       },
       "required": [
-        "stringMap"
+        "tag",
+        "content"
       ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "unitStructNewType": {
-          "$ref": "#/$defs/UnitStruct"
-        }
-      },
-      "required": [
-        "unitStructNewType"
-      ],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "properties": {
-        "structNewType": {
+        "tag": {
+          "type": "string",
+          "const": "StructNewType"
+        },
+        "content": {
           "$ref": "#/$defs/Struct"
         }
       },
       "required": [
-        "structNewType"
+        "tag",
+        "content"
       ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "struct": {
+        "tag": {
+          "type": "string",
+          "const": "Struct"
+        },
+        "content": {
           "type": "object",
           "properties": {
             "foo": {
@@ -70,51 +78,13 @@
         }
       },
       "required": [
-        "struct"
-      ],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "properties": {
-        "tuple": {
-          "type": "array",
-          "prefixItems": [
-            {
-              "type": "integer",
-              "format": "int32"
-            },
-            {
-              "type": "boolean"
-            }
-          ],
-          "minItems": 2,
-          "maxItems": 2
-        }
-      },
-      "required": [
-        "tuple"
-      ],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "properties": {
-        "withInt": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "required": [
-        "withInt"
+        "tag",
+        "content"
       ],
       "additionalProperties": false
     }
   ],
   "$defs": {
-    "UnitStruct": {
-      "type": "null"
-    },
     "Struct": {
       "type": "object",
       "properties": {

@@ -5,24 +5,24 @@
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
-          "const": "UnitOne"
+          "const": "Unit"
         }
       },
       "required": [
-        "t"
+        "tag"
       ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
           "const": "StringMap"
         },
-        "c": {
+        "content": {
           "type": "object",
           "additionalProperties": {
             "type": "string"
@@ -30,53 +30,36 @@
         }
       },
       "required": [
-        "t",
-        "c"
+        "tag",
+        "content"
       ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "t": {
-          "type": "string",
-          "const": "UnitStructNewType"
-        },
-        "c": {
-          "$ref": "#/$defs/UnitStruct"
-        }
-      },
-      "required": [
-        "t",
-        "c"
-      ],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "properties": {
-        "t": {
+        "tag": {
           "type": "string",
           "const": "StructNewType"
         },
-        "c": {
+        "content": {
           "$ref": "#/$defs/Struct"
         }
       },
       "required": [
-        "t",
-        "c"
+        "tag",
+        "content"
       ],
       "additionalProperties": false
     },
     {
       "type": "object",
       "properties": {
-        "t": {
+        "tag": {
           "type": "string",
           "const": "Struct"
         },
-        "c": {
+        "content": {
           "type": "object",
           "properties": {
             "foo": {
@@ -95,75 +78,13 @@
         }
       },
       "required": [
-        "t",
-        "c"
-      ],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "const": "Tuple"
-        },
-        "c": {
-          "type": "array",
-          "prefixItems": [
-            {
-              "type": "integer",
-              "format": "int32"
-            },
-            {
-              "type": "boolean"
-            }
-          ],
-          "minItems": 2,
-          "maxItems": 2
-        }
-      },
-      "required": [
-        "t",
-        "c"
-      ],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "const": "UnitTwo"
-        }
-      },
-      "required": [
-        "t"
-      ],
-      "additionalProperties": false
-    },
-    {
-      "type": "object",
-      "properties": {
-        "t": {
-          "type": "string",
-          "const": "WithInt"
-        },
-        "c": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "required": [
-        "t",
-        "c"
+        "tag",
+        "content"
       ],
       "additionalProperties": false
     }
   ],
   "$defs": {
-    "UnitStruct": {
-      "type": "null"
-    },
     "Struct": {
       "type": "object",
       "properties": {

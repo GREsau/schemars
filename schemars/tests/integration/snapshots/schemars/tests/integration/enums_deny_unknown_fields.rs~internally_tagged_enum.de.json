@@ -1,21 +1,34 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Untagged",
-  "anyOf": [
+  "title": "Internal",
+  "oneOf": [
     {
-      "type": "null"
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "const": "Unit"
+        }
+      },
+      "required": [
+        "tag"
+      ],
+      "additionalProperties": false
     },
     {
       "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
+          "const": "StringMap"
+        }
+      },
       "additionalProperties": {
         "type": "string"
-      }
-    },
-    {
-      "$ref": "#/$defs/UnitStruct"
-    },
-    {
-      "$ref": "#/$defs/Struct"
+      },
+      "required": [
+        "tag"
+      ]
     },
     {
       "type": "object",
@@ -26,52 +39,39 @@
         },
         "bar": {
           "type": "boolean"
+        },
+        "tag": {
+          "type": "string",
+          "const": "StructNewType"
+        }
+      },
+      "required": [
+        "tag",
+        "foo",
+        "bar"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
+        },
+        "tag": {
+          "type": "string",
+          "const": "Struct"
         }
       },
       "additionalProperties": false,
       "required": [
-        "foo",
-        "bar"
-      ]
-    },
-    {
-      "type": "array",
-      "prefixItems": [
-        {
-          "type": "integer",
-          "format": "int32"
-        },
-        {
-          "type": "boolean"
-        }
-      ],
-      "minItems": 2,
-      "maxItems": 2
-    },
-    {
-      "type": "integer",
-      "format": "int32"
-    }
-  ],
-  "$defs": {
-    "UnitStruct": {
-      "type": "null"
-    },
-    "Struct": {
-      "type": "object",
-      "properties": {
-        "foo": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "bar": {
-          "type": "boolean"
-        }
-      },
-      "required": [
+        "tag",
         "foo",
         "bar"
       ]
     }
-  }
+  ]
 }
