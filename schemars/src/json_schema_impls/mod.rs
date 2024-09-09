@@ -75,9 +75,6 @@ mod decimal;
 #[cfg(feature = "either1")]
 mod either1;
 
-#[cfg(feature = "enumset1")]
-forward_impl!((<T: enumset1::EnumSetType + crate::JsonSchema> crate::JsonSchema for enumset1::EnumSet<T>) => alloc::collections::BTreeSet<T>);
-
 #[cfg(feature = "indexmap2")]
 mod indexmap2;
 

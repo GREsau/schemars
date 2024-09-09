@@ -25,7 +25,6 @@ bigdecimal04 = { version = "0.4", default-features = false, optional = true, pac
 bytes1 = { version = "1.0", default-features = false, optional = true, package = "bytes" }
 chrono04 = { version = "0.4", default-features = false, optional = true, package = "chrono" }
 either1 = { version = "1.3", default-features = false, optional = true,  package = "either" }
-enumset1 = { version = "1.0", default-features = false, optional = true, package = "enumset" }
 indexmap2 = { version = "2.0", default-features = false, optional = true, package = "indexmap" }
 rust_decimal1 = { version = "1", default-features = false, optional = true, package = "rust_decimal"}
 semver1 = { version = "1.0.9", default-features = false, optional = true, package = "semver" }
@@ -103,10 +102,6 @@ required-features = ["arrayvec07"]
 [[test]]
 name = "url"
 required-features = ["url2"]
-
-[[test]]
-name = "enumset"
-required-features = ["enumset1"]
 
 [[test]]
 name = "smol_str"
