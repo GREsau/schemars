@@ -14,6 +14,8 @@ mod decimal;
 mod default;
 mod deprecated;
 mod docs;
+#[cfg(feature = "either1")]
+mod either;
 
 mod prelude {
     pub use crate::test;

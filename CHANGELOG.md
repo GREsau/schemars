@@ -13,6 +13,7 @@
 ### Fixed
 
 - The "deserialize" schema for `bytes::Bytes`/`BytesMut` now allows strings, matching the actual deserialize behaviour of the types.
+- The schema for `either::Either` now matches the actual serialize/deserialize behaviour of that type.
 
 ## [1.0.0-alpha.15] - 2024-09-05
 

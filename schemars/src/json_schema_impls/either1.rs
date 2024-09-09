@@ -17,7 +17,28 @@ impl<L: JsonSchema, R: JsonSchema> JsonSchema for Either<L, R> {
 
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         json_schema!({
-            "anyOf": [generator.subschema_for::<L>(), generator.subschema_for::<R>()],
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "Left": generator.subschema_for::<L>()
+              },
+              "additionalProperties": false,
+              "required": [
+                "Left"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "Right": generator.subschema_for::<R>()
+              },
+              "additionalProperties": false,
+              "required": [
+                "Right"
+              ]
+            }
+          ]
         })
     }
 }
