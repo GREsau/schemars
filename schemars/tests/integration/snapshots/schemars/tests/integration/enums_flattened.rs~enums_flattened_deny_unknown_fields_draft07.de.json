@@ -1,12 +1,22 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Flat",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ContainerDenyUnknownFields",
   "type": "object",
   "properties": {
     "f": {
       "type": "number",
       "format": "float"
-    }
+    },
+    "B": true,
+    "B2": true,
+    "B3": true,
+    "F": true,
+    "F2": true,
+    "S": true,
+    "S2": true,
+    "S3": true,
+    "U": true,
+    "U2": true
   },
   "required": [
     "f"
@@ -146,5 +156,6 @@
         "S3"
       ]
     }
-  ]
+  ],
+  "additionalProperties": false
 }

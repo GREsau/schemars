@@ -1,6 +1,28 @@
+use crate::prelude::*;
 use std::collections::BTreeMap;
 
-use crate::prelude::*;
+macro_rules! fn_values {
+    () => {
+        fn values() -> impl IntoIterator<Item = Self> {
+            [
+                Self::Unit,
+                Self::StringMap(
+                    [("hello".to_owned(), "world".to_owned())]
+                        .into_iter()
+                        .collect(),
+                ),
+                Self::StructNewType(Struct {
+                    foo: 123,
+                    bar: true,
+                }),
+                Self::Struct {
+                    foo: 123,
+                    bar: true,
+                },
+            ]
+        }
+    };
+}
 
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
 struct Struct {
@@ -18,24 +40,7 @@ enum External {
 }
 
 impl External {
-    fn values() -> impl IntoIterator<Item = Self> {
-        [
-            Self::Unit,
-            Self::StringMap(
-                [("hello".to_owned(), "world".to_owned())]
-                    .into_iter()
-                    .collect(),
-            ),
-            Self::StructNewType(Struct {
-                foo: 123,
-                bar: true,
-            }),
-            Self::Struct {
-                foo: 123,
-                bar: true,
-            },
-        ]
-    }
+    fn_values!();
 }
 
 #[derive(JsonSchema, Deserialize, Serialize)]
@@ -48,24 +53,7 @@ enum Internal {
 }
 
 impl Internal {
-    fn values() -> impl IntoIterator<Item = Self> {
-        [
-            Self::Unit,
-            Self::StringMap(
-                [("hello".to_owned(), "world".to_owned())]
-                    .into_iter()
-                    .collect(),
-            ),
-            Self::StructNewType(Struct {
-                foo: 123,
-                bar: true,
-            }),
-            Self::Struct {
-                foo: 123,
-                bar: true,
-            },
-        ]
-    }
+    fn_values!();
 }
 
 #[derive(JsonSchema, Deserialize, Serialize)]
@@ -78,24 +66,7 @@ enum Adjacent {
 }
 
 impl Adjacent {
-    fn values() -> impl IntoIterator<Item = Self> {
-        [
-            Self::Unit,
-            Self::StringMap(
-                [("hello".to_owned(), "world".to_owned())]
-                    .into_iter()
-                    .collect(),
-            ),
-            Self::StructNewType(Struct {
-                foo: 123,
-                bar: true,
-            }),
-            Self::Struct {
-                foo: 123,
-                bar: true,
-            },
-        ]
-    }
+    fn_values!();
 }
 
 #[derive(JsonSchema, Deserialize, Serialize)]
@@ -108,24 +79,7 @@ enum Untagged {
 }
 
 impl Untagged {
-    fn values() -> impl IntoIterator<Item = Self> {
-        [
-            Self::Unit,
-            Self::StringMap(
-                [("hello".to_owned(), "world".to_owned())]
-                    .into_iter()
-                    .collect(),
-            ),
-            Self::StructNewType(Struct {
-                foo: 123,
-                bar: true,
-            }),
-            Self::Struct {
-                foo: 123,
-                bar: true,
-            },
-        ]
-    }
+    fn_values!();
 }
 
 #[test]

@@ -19,6 +19,7 @@ mod either;
 mod enum_repr;
 mod enums;
 mod enums_deny_unknown_fields;
+mod enums_flattened;
 
 mod prelude {
     pub use crate::test;
@@ -32,7 +33,7 @@ mod test_helper;
 
 #[macro_export]
 macro_rules! test {
-    ($type:ty) => {
+    ($type:ty, $settings:expr) => {
         $crate::test_helper::TestHelper::<$type>::new(
             {
                 fn f() {}
@@ -47,7 +48,10 @@ macro_rules! test {
 
                 format!("{}~{}", core::file!(), test_name)
             },
-            schemars::generate::SchemaSettings::default(),
+            $settings,
         )
+    };
+    ($type:ty) => {
+        test!($type, schemars::generate::SchemaSettings::default())
     };
 }

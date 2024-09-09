@@ -110,41 +110,60 @@ impl<T: JsonSchema> TestHelper<T> {
             .get_or_init(|| self.schema_for::<T>(Contract::Serialize))
     }
 
-    fn de_schema_compiled(&self) -> &CompiledSchema {
-        self.de_schema_compiled.get_or_init(|| {
-            CompiledSchema::compile(self.de_schema().as_value()).expect("valid deserialize schema")
-        })
+    fn de_schema_validate(&self, instance: &Value) -> bool {
+        self.de_schema_compiled
+            .get_or_init(|| compile_schema(self.de_schema()))
+            // Can't use `.validate(instance)` due to https://github.com/Stranger6667/jsonschema-rs/issues/496
+            .validate(instance)
+            .is_ok()
     }
 
-    fn ser_schema_compiled(&self) -> &CompiledSchema {
-        self.ser_schema_compiled.get_or_init(|| {
-            CompiledSchema::compile(self.ser_schema().as_value()).expect("valid serialize schema")
-        })
+    fn ser_schema_validate(&self, instance: &Value) -> bool {
+        self.ser_schema_compiled
+            .get_or_init(|| compile_schema(self.ser_schema()))
+            // Can't use `.validate(instance)` due to https://github.com/Stranger6667/jsonschema-rs/issues/496
+            .validate(instance)
+            .is_ok()
     }
+}
+
+fn compile_schema(schema: &Schema) -> CompiledSchema {
+    use jsonschema::Draft;
+
+    let meta_schema = schema.get("$schema").and_then(Value::as_str).unwrap_or("");
+    let mut options = CompiledSchema::options();
+    options.should_validate_formats(true);
+
+    if meta_schema.contains("draft-07") {
+        options.with_draft(Draft::Draft7);
+    } else if meta_schema.contains("2019-09") {
+        options.with_draft(Draft::Draft201909);
+    } else if meta_schema.contains("2020-12") {
+        options.with_draft(Draft::Draft202012);
+    };
+
+    options.compile(schema.as_value()).expect("valid schema")
 }
 
 impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
     /// Checks that the "serialize" schema allows the given sample values when serialized to JSON
     /// and, if the value can then be deserialized, that the "deserialize" schema also allows it.
     pub fn assert_allows_ser_roundtrip(&self, samples: impl IntoIterator<Item = T>) -> &Self {
-        let ser_schema = self.ser_schema_compiled();
-        let de_schema = self.de_schema_compiled();
-
         for sample in samples {
             let json = serde_json::to_value(sample).unwrap();
             assert!(
-                ser_schema.is_valid(&json),
+                self.ser_schema_validate(&json),
                 "serialize schema should allow serialized value: {json}"
             );
 
             if T::deserialize(&json).is_ok() {
                 assert!(
-                    de_schema.is_valid(&json),
+                    self.de_schema_validate(&json),
                     "deserialize schema should allow value accepted by deserialization: {json}"
                 );
             } else {
                 assert!(
-                    !de_schema.is_valid(&json),
+                    !self.de_schema_validate(&json),
                     "deserialize schema should reject undeserializable value: {json}"
                 );
             }
@@ -163,9 +182,6 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
         &self,
         samples: impl IntoIterator<Item = impl Borrow<Value>>,
     ) -> &Self {
-        let ser_schema = self.ser_schema_compiled();
-        let de_schema = self.de_schema_compiled();
-
         for sample in samples {
             let sample = sample.borrow();
             let Ok(deserialized) = T::deserialize(sample) else {
@@ -176,13 +192,13 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
             };
 
             assert!(
-                de_schema.is_valid(sample),
+                self.de_schema_validate(sample),
                 "deserialize schema should allow value accepted by deserialization: {sample}"
             );
 
             if let Ok(serialized) = serde_json::to_value(&deserialized) {
                 assert!(
-                    ser_schema.is_valid(&serialized),
+                    self.ser_schema_validate(&serialized),
                     "serialize schema should allow serialized value: {serialized}"
                 );
             }
@@ -200,29 +216,26 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
         &self,
         samples: impl IntoIterator<Item = impl Borrow<Value>>,
     ) -> &Self {
-        let ser_schema = self.ser_schema_compiled();
-        let de_schema = self.de_schema_compiled();
-
         for value in samples {
             let value = value.borrow();
 
             match T::deserialize(value) {
                 Ok(deserialized) => {
                     assert!(
-                        de_schema.is_valid(value),
+                        self.de_schema_validate(value),
                         "deserialize schema should allow value accepted by deserialization: {value}"
                     );
 
                     if let Ok(serialized) = serde_json::to_value(&deserialized) {
                         assert!(
-                            ser_schema.is_valid(&serialized),
+                            self.ser_schema_validate(&serialized),
                             "serialize schema should allow serialized value: {serialized}"
                         );
                     }
                 }
                 Err(_) => {
                     assert!(
-                        !de_schema.is_valid(value),
+                        !self.de_schema_validate(value),
                         "deserialize schema should reject invalid value: {value}"
                     );
 
@@ -230,7 +243,7 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
                     // odd (though not necessarily wrong) for it to fail. If this does ever fail
                     // a case that should be legitimate, then this assert can be removed/weakened.
                     assert!(
-                        !ser_schema.is_valid(value),
+                        !self.ser_schema_validate(value),
                         "serialize schema should reject invalid value: {value}"
                     );
                 }
@@ -246,8 +259,6 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
     /// has the advantage that it also verifies that the test case itself is actually covering the
     /// failure case as intended.
     pub fn assert_rejects_de(&self, values: impl IntoIterator<Item = impl Borrow<Value>>) -> &Self {
-        let de_schema = self.de_schema_compiled();
-
         for value in values {
             let value = value.borrow();
 
@@ -258,7 +269,7 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
             );
 
             assert!(
-                !de_schema.is_valid(value),
+                !self.de_schema_validate(value),
                 "deserialize schema should reject invalid value: {value}"
             );
         }
