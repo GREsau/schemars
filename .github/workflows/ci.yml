@@ -23,12 +23,10 @@ jobs:
             allow_failure: true
       fail-fast: false
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@master
         with:
-          profile: minimal
           toolchain: ${{ matrix.rust }}
-          override: true
       - name: Check with no feature flags
         run: cargo check --verbose --no-default-features
         continue-on-error: ${{ matrix.allow_failure }}
