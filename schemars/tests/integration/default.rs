@@ -90,6 +90,6 @@ fn default_fields() {
         ])
         .assert_matches_de_roundtrip(arbitrary_values_except(
             Value::is_array,
-            "structs with `#derive(Deserialize)` can technically be deserialized from sequences, but I don't think many people know (or want!) this, and handling that would make schemas messier",
+            "structs with `#derive(Deserialize)` can technically be deserialized from sequences, but that's not intended to be used via JSON, so schemars ignores it'",
         ));
 }
