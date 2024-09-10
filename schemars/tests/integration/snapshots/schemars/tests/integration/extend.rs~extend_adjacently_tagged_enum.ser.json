@@ -1,27 +1,43 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "External",
+  "title": "AdjacentEnum",
   "oneOf": [
     {
-      "type": "string",
-      "const": "Unit",
-      "foo": "bar"
-    },
-    {
       "type": "object",
       "properties": {
-        "NewType": true
+        "t": {
+          "type": "string",
+          "const": "Unit"
+        }
       },
       "required": [
-        "NewType"
+        "t"
       ],
-      "additionalProperties": false,
       "foo": "bar"
     },
     {
       "type": "object",
       "properties": {
-        "Tuple": {
+        "t": {
+          "type": "string",
+          "const": "NewType"
+        },
+        "c": true
+      },
+      "required": [
+        "t",
+        "c"
+      ],
+      "foo": "bar"
+    },
+    {
+      "type": "object",
+      "properties": {
+        "t": {
+          "type": "string",
+          "const": "Tuple"
+        },
+        "c": {
           "type": "array",
           "prefixItems": [
             {
@@ -37,15 +53,19 @@
         }
       },
       "required": [
-        "Tuple"
+        "t",
+        "c"
       ],
-      "additionalProperties": false,
       "foo": "bar"
     },
     {
       "type": "object",
       "properties": {
-        "Struct": {
+        "t": {
+          "type": "string",
+          "const": "Struct"
+        },
+        "c": {
           "type": "object",
           "properties": {
             "i": {
@@ -63,9 +83,9 @@
         }
       },
       "required": [
-        "Struct"
+        "t",
+        "c"
       ],
-      "additionalProperties": false,
       "foo": "bar"
     }
   ],

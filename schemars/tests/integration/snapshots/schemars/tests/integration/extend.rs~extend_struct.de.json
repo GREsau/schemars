@@ -7,7 +7,10 @@
       "foo": "bar"
     },
     "int": {
-      "type": "overridden",
+      "type": [
+        "number",
+        "string"
+      ],
       "format": "int32"
     }
   },
@@ -15,7 +18,6 @@
     "value",
     "int"
   ],
-  "msg": "hello world",
   "obj": {
     "array": [
       null,
