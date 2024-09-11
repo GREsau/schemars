@@ -13,10 +13,6 @@
     "s": {
       "type": "string"
     },
-    "os": {
-      "type": "string",
-      "default": ""
-    },
     "v": {
       "type": "array",
       "items": {
@@ -28,7 +24,6 @@
   "required": [
     "f",
     "b",
-    "s",
     "v"
   ]
 }

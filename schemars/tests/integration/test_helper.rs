@@ -67,6 +67,7 @@ impl<T: JsonSchema> TestHelper<T> {
             self.ser_schema().into_json(),
             self.schema_for::<T2>(Contract::Serialize).into_json().raw()
         );
+
         let t = type_name::<T>();
         let t2 = type_name::<T2>();
         assert_eq!(
@@ -74,16 +75,19 @@ impl<T: JsonSchema> TestHelper<T> {
             T2::schema_name(),
             "`{t}` and `{t2}` have identical schemas, so should have the same schema_name"
         );
+
         assert_eq!(
             T::schema_id(),
             T2::schema_id(),
             "`{t}` and `{t2}` have identical schemas, so should have the same schema_id"
         );
+
         assert_eq!(
             T::always_inline_schema(),
             T2::always_inline_schema(),
             "`{t}` and `{t2}` have identical schemas, so should have the same always_inline_schema"
         );
+
         self
     }
 
