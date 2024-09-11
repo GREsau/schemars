@@ -4,10 +4,8 @@ use alloc::borrow::Cow;
 use semver1::Version;
 
 impl JsonSchema for Version {
-    always_inline!();
-
     fn schema_name() -> Cow<'static, str> {
-        "Version".into()
+        "SemVer".into()
     }
 
     fn schema_id() -> Cow<'static, str> {
