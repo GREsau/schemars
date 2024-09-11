@@ -31,6 +31,8 @@ mod macros;
 mod same_name;
 #[cfg(feature = "semver1")]
 mod semver;
+#[cfg(feature = "smallvec1")]
+mod smallvec;
 mod std_types;
 mod validator;
 
