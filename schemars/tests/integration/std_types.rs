@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use std::ffi::{CStr, CString, OsStr, OsString};
 use std::marker::PhantomData;
+use std::num::{NonZeroI64, NonZeroU64};
 use std::ops::{Bound, Range, RangeInclusive};
 use std::time::{Duration, SystemTime};
 
@@ -16,6 +17,17 @@ fn result() {
     test!(Result<bool, String>)
         .assert_allows_ser_roundtrip([Ok(true), Err("oh no!".to_owned())])
         .assert_matches_de_roundtrip(arbitrary_values());
+}
+
+#[test]
+fn nonzero() {
+    test!(NonZeroI64)
+        .assert_allows_ser_roundtrip([NonZeroI64::MIN, NonZeroI64::MAX])
+        .assert_rejects_de([Value::from(0)]);
+
+    test!(NonZeroU64)
+        .assert_allows_ser_roundtrip([NonZeroU64::MIN, NonZeroU64::MAX])
+        .assert_rejects_de([Value::from(0)]);
 }
 
 #[test]

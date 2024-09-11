@@ -42,8 +42,7 @@ macro_rules! forward_impl {
 mod array;
 mod core;
 mod maps;
-mod nonzero_signed;
-mod nonzero_unsigned;
+mod nonzero;
 mod primitives;
 mod sequences;
 mod serdejson;
