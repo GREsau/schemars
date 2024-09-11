@@ -49,6 +49,7 @@ chrono04 = { version = "0.4", default-features = false, features = ["serde"], pa
 bigdecimal04 = { version = "0.4", default-features = false, features = ["serde"], package = "bigdecimal" }
 rust_decimal1 = { version = "1", default-features = false, features = ["serde"], package = "rust_decimal" }
 either1 = { version = "1.3", default-features = false, features = ["serde"], package = "either" }
+indexmap2 = { version = "2.0", default-features = false, features = ["serde"], package = "indexmap" }
 
 [features]
 default = ["derive", "std"]
@@ -74,10 +75,6 @@ _ui_test = []
 [[test]]
 name = "ui"
 required-features = ["_ui_test"]
-
-[[test]]
-name = "indexmap"
-required-features = ["indexmap2"]
 
 [[test]]
 name = "uuid"

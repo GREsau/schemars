@@ -24,6 +24,8 @@ mod extend;
 mod flatten;
 mod from_value;
 mod garde;
+#[cfg(feature = "indexmap2")]
+mod indexmap;
 mod std_types;
 
 mod prelude {
@@ -36,6 +38,7 @@ mod prelude {
 
 mod test_helper;
 
+#[macro_export]
 macro_rules! test_name {
     () => {{
         fn f() {}
@@ -51,20 +54,18 @@ macro_rules! test_name {
     }};
 }
 
+#[macro_export]
 macro_rules! test {
     ($type:ty, $settings:expr) => {
-        $crate::test_helper::TestHelper::<$type>::new(crate::test_name!(), $settings)
+        $crate::test_helper::TestHelper::<$type>::new($crate::test_name!(), $settings)
     };
     ($type:ty) => {
         test!($type, schemars::generate::SchemaSettings::default())
     };
     (value: $value:expr, $settings:expr) => {
-        $crate::test_helper::TestHelper::new_for_value(crate::test_name!(), $settings, $value)
+        $crate::test_helper::TestHelper::new_for_value($crate::test_name!(), $settings, $value)
     };
     (value: $value:expr) => {
         test!(value: $value, schemars::generate::SchemaSettings::default())
     };
 }
-
-use test;
-use test_name;
