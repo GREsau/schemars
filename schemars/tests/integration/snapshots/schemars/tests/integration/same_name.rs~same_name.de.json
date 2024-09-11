@@ -8,11 +8,15 @@
     },
     "b_cfg": {
       "$ref": "#/$defs/Config2"
+    },
+    "c_cfg": {
+      "$ref": "#/$defs/Config3"
     }
   },
   "required": [
     "a_cfg",
-    "b_cfg"
+    "b_cfg",
+    "c_cfg"
   ],
   "$defs": {
     "Config": {
@@ -35,6 +39,17 @@
       },
       "required": [
         "test2"
+      ]
+    },
+    "Config3": {
+      "type": "object",
+      "properties": {
+        "test3": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "test3"
       ]
     }
   }

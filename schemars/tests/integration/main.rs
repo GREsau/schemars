@@ -28,6 +28,7 @@ mod garde;
 mod indexmap;
 mod inline_subschemas;
 mod macros;
+mod same_name;
 #[cfg(feature = "semver1")]
 mod semver;
 mod std_types;
