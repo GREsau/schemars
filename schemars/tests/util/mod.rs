@@ -1,11 +1,7 @@
 use pretty_assertions::assert_eq;
 use schemars::{generate::SchemaSettings, schema_for, JsonSchema, Schema};
 use std::error::Error;
-use std::format;
 use std::fs;
-use std::prelude::rust_2021::*;
-
-extern crate std;
 
 pub type TestResult = Result<(), Box<dyn Error>>;
 
