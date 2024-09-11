@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://spec.openapis.org/oas/3.0/schema/2021-09-28#/definitions/Schema",
   "title": "MyStruct",
   "type": "object",
   "properties": {
@@ -9,7 +9,9 @@
     "myBool": {
       "type": "boolean"
     },
-    "myNullableEnum": true,
+    "myNullableEnum": {
+      "nullable": true
+    },
     "myInnerStruct": {
       "type": "object",
       "properties": {
@@ -22,7 +24,7 @@
         "my_vec": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "number"
           }
         },
         "my_empty_map": {
@@ -31,7 +33,7 @@
         },
         "my_empty_vec": {
           "type": "array",
-          "items": true
+          "items": {}
         },
         "my_tuple": {
           "type": "array",
@@ -51,26 +53,25 @@
       }
     }
   },
-  "examples": [
-    {
-      "myInt": 123,
-      "myBool": true,
-      "myNullableEnum": null,
-      "myInnerStruct": {
-        "my_map": {
-          "": 0.0
-        },
-        "my_vec": [
-          "hello",
-          "world"
-        ],
-        "my_empty_map": {},
-        "my_empty_vec": [],
-        "my_tuple": [
-          "💩",
-          42
-        ]
-      }
+  "example": {
+    "myInt": 123,
+    "myBool": true,
+    "myNullableEnum": null,
+    "myInnerStruct": {
+      "my_map": {
+        "k": 1.23
+      },
+      "my_vec": [
+        1.0,
+        2.0,
+        3.0
+      ],
+      "my_empty_map": {},
+      "my_empty_vec": [],
+      "my_tuple": [
+        "💩",
+        42
+      ]
     }
-  ]
+  }
 }

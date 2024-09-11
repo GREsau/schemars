@@ -24,7 +24,7 @@
         "my_vec": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "number"
           }
         },
         "my_empty_map": {
@@ -59,11 +59,12 @@
     "myNullableEnum": null,
     "myInnerStruct": {
       "my_map": {
-        "": 0.0
+        "k": 1.23
       },
       "my_vec": [
-        "hello",
-        "world"
+        1.0,
+        2.0,
+        3.0
       ],
       "my_empty_map": {},
       "my_empty_vec": [],

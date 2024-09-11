@@ -15,9 +15,8 @@ pub struct TestHelper<T: JsonSchema> {
     settings: SchemaSettings,
     name: String,
     phantom: PhantomData<T>,
-    // TODO once MSRV has reached 1.80, replace these with LazyLock
-    de_schema: OnceCell<Schema>,
-    ser_schema: OnceCell<Schema>,
+    de_schema: Schema,
+    ser_schema: Schema,
     de_schema_compiled: OnceCell<CompiledSchema>,
     ser_schema_compiled: OnceCell<CompiledSchema>,
 }
@@ -25,12 +24,32 @@ pub struct TestHelper<T: JsonSchema> {
 impl<T: JsonSchema> TestHelper<T> {
     /// Should be used via the `test!(SomeType)` macro
     pub fn new(name: String, settings: SchemaSettings) -> Self {
+        let de_schema = schema_for::<T>(&settings, Contract::Deserialize);
+        let ser_schema = schema_for::<T>(&settings, Contract::Serialize);
         Self {
             settings,
             name,
             phantom: PhantomData,
-            de_schema: OnceCell::new(),
-            ser_schema: OnceCell::new(),
+            de_schema,
+            ser_schema,
+            de_schema_compiled: OnceCell::new(),
+            ser_schema_compiled: OnceCell::new(),
+        }
+    }
+
+    /// Should be used via the `test!(value: SomeType)` macro
+    pub fn new_for_value(name: String, settings: SchemaSettings, value: T) -> Self
+    where
+        T: Serialize,
+    {
+        let de_schema = schema_for_value(&settings, Contract::Deserialize, &value);
+        let ser_schema = schema_for_value(&settings, Contract::Serialize, &value);
+        Self {
+            settings,
+            name,
+            phantom: PhantomData,
+            de_schema,
+            ser_schema,
             de_schema_compiled: OnceCell::new(),
             ser_schema_compiled: OnceCell::new(),
         }
@@ -42,13 +61,13 @@ impl<T: JsonSchema> TestHelper<T> {
     pub fn assert_snapshot(&self) -> &Self {
         let de_path = format!("tests/integration/snapshots/{}.de.json", self.name);
         snapbox::assert_data_eq!(
-            self.de_schema().into_json(),
+            (&self.de_schema).into_json(),
             snapbox::Data::read_from(Path::new(&de_path), None).raw()
         );
 
         let ser_path = format!("tests/integration/snapshots/{}.ser.json", self.name);
         snapbox::assert_data_eq!(
-            self.ser_schema().into_json(),
+            (&self.ser_schema).into_json(),
             snapbox::Data::read_from(Path::new(&ser_path), None).raw()
         );
 
@@ -58,14 +77,16 @@ impl<T: JsonSchema> TestHelper<T> {
     /// Checks that the schema generated for this type is identical to that of another type.
     pub fn assert_identical<T2: JsonSchema>(&self) -> &Self {
         snapbox::assert_data_eq!(
-            self.de_schema().into_json(),
-            self.schema_for::<T2>(Contract::Deserialize)
+            (&self.de_schema).into_json(),
+            schema_for::<T2>(&self.settings, Contract::Deserialize)
                 .into_json()
                 .raw()
         );
         snapbox::assert_data_eq!(
-            self.ser_schema().into_json(),
-            self.schema_for::<T2>(Contract::Serialize).into_json().raw()
+            (&self.ser_schema).into_json(),
+            schema_for::<T2>(&self.settings, Contract::Serialize)
+                .into_json()
+                .raw()
         );
 
         let t = type_name::<T>();
@@ -92,31 +113,13 @@ impl<T: JsonSchema> TestHelper<T> {
     }
 
     pub fn custom(&self, assertion: impl Fn(&Schema, Contract)) {
-        assertion(self.de_schema(), Contract::Deserialize);
-        assertion(self.ser_schema(), Contract::Serialize);
-    }
-
-    fn schema_for<T2: JsonSchema>(&self, contract: Contract) -> Schema {
-        self.settings
-            .clone()
-            .with(|s| s.contract = contract)
-            .into_generator()
-            .into_root_schema_for::<T2>()
-    }
-
-    fn de_schema(&self) -> &Schema {
-        self.de_schema
-            .get_or_init(|| self.schema_for::<T>(Contract::Deserialize))
-    }
-
-    fn ser_schema(&self) -> &Schema {
-        self.ser_schema
-            .get_or_init(|| self.schema_for::<T>(Contract::Serialize))
+        assertion(&self.de_schema, Contract::Deserialize);
+        assertion(&self.ser_schema, Contract::Serialize);
     }
 
     fn de_schema_validate(&self, instance: &Value) -> bool {
         self.de_schema_compiled
-            .get_or_init(|| compile_schema(self.de_schema()))
+            .get_or_init(|| compile_schema(&self.de_schema))
             // Can't use `.validate(instance)` due to https://github.com/Stranger6667/jsonschema-rs/issues/496
             .validate(instance)
             .is_ok()
@@ -124,7 +127,7 @@ impl<T: JsonSchema> TestHelper<T> {
 
     fn ser_schema_validate(&self, instance: &Value) -> bool {
         self.ser_schema_compiled
-            .get_or_init(|| compile_schema(self.ser_schema()))
+            .get_or_init(|| compile_schema(&self.ser_schema))
             // Can't use `.validate(instance)` due to https://github.com/Stranger6667/jsonschema-rs/issues/496
             .validate(instance)
             .is_ok()
@@ -289,6 +292,27 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
     {
         self.assert_allows_ser_roundtrip([T::default()])
     }
+}
+
+fn schema_for<T: JsonSchema>(base_settings: &SchemaSettings, contract: Contract) -> Schema {
+    base_settings
+        .clone()
+        .with(|s| s.contract = contract)
+        .into_generator()
+        .into_root_schema_for::<T>()
+}
+
+fn schema_for_value(
+    base_settings: &SchemaSettings,
+    contract: Contract,
+    value: impl Serialize,
+) -> Schema {
+    base_settings
+        .clone()
+        .with(|s| s.contract = contract)
+        .into_generator()
+        .into_root_schema_for_value(&value)
+        .unwrap()
 }
 
 /// Returns an iterator over an selection of arbitrary JSON values.

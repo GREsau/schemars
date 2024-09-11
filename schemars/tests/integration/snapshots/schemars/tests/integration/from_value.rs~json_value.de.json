@@ -5,12 +5,6 @@
     "zero": {
       "type": "integer"
     },
-    "one": {
-      "type": "integer"
-    },
-    "minusOne": {
-      "type": "integer"
-    },
     "zeroPointZero": {
       "type": "number"
     },
@@ -21,11 +15,15 @@
     "object": {
       "type": "object",
       "properties": {
-        "array": {
+        "strings": {
           "type": "array",
           "items": {
             "type": "string"
           }
+        },
+        "mixed": {
+          "type": "array",
+          "items": true
         }
       }
     }
@@ -33,15 +31,17 @@
   "examples": [
     {
       "zero": 0,
-      "one": 1,
-      "minusOne": -1,
       "zeroPointZero": 0.0,
       "bool": true,
       "null": null,
       "object": {
-        "array": [
+        "strings": [
           "foo",
           "bar"
+        ],
+        "mixed": [
+          1,
+          true
         ]
       }
     }

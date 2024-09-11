@@ -1,5 +1,5 @@
 {
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "MyStruct",
   "type": "object",
   "properties": {
@@ -22,7 +22,7 @@
         "my_vec": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "number"
           }
         },
         "my_empty_map": {
@@ -35,9 +35,7 @@
         },
         "my_tuple": {
           "type": "array",
-          "minItems": 2,
-          "maxItems": 2,
-          "items": [
+          "prefixItems": [
             {
               "type": "string",
               "minLength": 1,
@@ -46,7 +44,9 @@
             {
               "type": "integer"
             }
-          ]
+          ],
+          "maxItems": 2,
+          "minItems": 2
         }
       }
     }
@@ -58,11 +58,12 @@
       "myNullableEnum": null,
       "myInnerStruct": {
         "my_map": {
-          "": 0.0
+          "k": 1.23
         },
         "my_vec": [
-          "hello",
-          "world"
+          1.0,
+          2.0,
+          3.0
         ],
         "my_empty_map": {},
         "my_empty_vec": [],
