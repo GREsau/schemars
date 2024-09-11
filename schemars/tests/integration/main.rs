@@ -32,6 +32,7 @@ mod same_name;
 #[cfg(feature = "semver1")]
 mod semver;
 mod std_types;
+mod validator;
 
 mod prelude {
     pub(crate) use crate::test;
