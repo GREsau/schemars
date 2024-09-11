@@ -1,13 +1,10 @@
-mod util;
-use schemars::JsonSchema;
-use util::*;
+use crate::prelude::*;
 
 macro_rules! build_struct {
     (
         $id:ident { $($t:tt)* }
     ) => {
-        #[allow(dead_code)]
-        #[derive(JsonSchema)]
+        #[derive(JsonSchema, Deserialize, Serialize, Default)]
         pub struct $id {
             x: u8,
             $($t)*
@@ -18,8 +15,8 @@ macro_rules! build_struct {
 build_struct!(A { v: i32 });
 
 #[test]
-fn macro_built_struct() -> TestResult {
-    test_default_generated_schema::<A>("macro_built_struct")
+fn macro_built_struct() {
+    test!(A).assert_allows_ser_roundtrip_default();
 }
 
 macro_rules! build_enum {
@@ -54,9 +51,9 @@ macro_rules! build_enum {
 }
 
 build_enum!(
-    #[derive(JsonSchema)]
+    #[derive(JsonSchema, Deserialize, Serialize)]
     OuterEnum {
-        #[derive(JsonSchema)]
+        #[derive(JsonSchema, Deserialize, Serialize, Default)]
         InnerStruct {
             x: i32
         }
@@ -65,6 +62,6 @@ build_enum!(
 );
 
 #[test]
-fn macro_built_enum() -> TestResult {
-    test_default_generated_schema::<OuterEnum>("macro_built_enum")
+fn macro_built_enum() {
+    test!(OuterEnum).assert_allows_ser_roundtrip([OuterEnum::InnerStruct(InnerStruct::default())]);
 }

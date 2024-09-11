@@ -27,6 +27,7 @@ mod garde;
 #[cfg(feature = "indexmap2")]
 mod indexmap;
 mod inline_subschemas;
+mod macros;
 mod std_types;
 
 mod prelude {
