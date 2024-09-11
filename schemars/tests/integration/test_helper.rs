@@ -128,7 +128,7 @@ impl<T: JsonSchema> TestHelper<T> {
     fn de_schema_validate(&self, instance: &Value) -> bool {
         self.de_schema_compiled
             .get_or_init(|| compile_schema(&self.de_schema))
-            // Can't use `.validate(instance)` due to https://github.com/Stranger6667/jsonschema-rs/issues/496
+            // Can't use `.is_valid(instance)` due to https://github.com/Stranger6667/jsonschema-rs/issues/496
             .validate(instance)
             .is_ok()
     }
@@ -136,28 +136,17 @@ impl<T: JsonSchema> TestHelper<T> {
     fn ser_schema_validate(&self, instance: &Value) -> bool {
         self.ser_schema_compiled
             .get_or_init(|| compile_schema(&self.ser_schema))
-            // Can't use `.validate(instance)` due to https://github.com/Stranger6667/jsonschema-rs/issues/496
+            // Can't use `.is_valid(instance)` due to https://github.com/Stranger6667/jsonschema-rs/issues/496
             .validate(instance)
             .is_ok()
     }
 }
 
 fn compile_schema(schema: &Schema) -> CompiledSchema {
-    use jsonschema::Draft;
-
-    let meta_schema = schema.get("$schema").and_then(Value::as_str).unwrap_or("");
-    let mut options = CompiledSchema::options();
-    options.should_validate_formats(true);
-
-    if meta_schema.contains("draft-07") {
-        options.with_draft(Draft::Draft7);
-    } else if meta_schema.contains("2019-09") {
-        options.with_draft(Draft::Draft201909);
-    } else if meta_schema.contains("2020-12") {
-        options.with_draft(Draft::Draft202012);
-    };
-
-    options.compile(schema.as_value()).expect("valid schema")
+    CompiledSchema::options()
+        .should_validate_formats(true)
+        .compile(schema.as_value())
+        .expect("valid schema")
 }
 
 impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
