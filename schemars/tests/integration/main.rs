@@ -23,6 +23,7 @@ mod enums_flattened;
 mod extend;
 mod flatten;
 mod from_value;
+mod garde;
 mod std_types;
 
 mod prelude {

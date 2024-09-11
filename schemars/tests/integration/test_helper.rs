@@ -19,6 +19,7 @@ pub struct TestHelper<T: JsonSchema> {
     ser_schema: Schema,
     de_schema_compiled: OnceCell<CompiledSchema>,
     ser_schema_compiled: OnceCell<CompiledSchema>,
+    validator: fn(&T) -> bool,
 }
 
 impl<T: JsonSchema> TestHelper<T> {
@@ -34,6 +35,7 @@ impl<T: JsonSchema> TestHelper<T> {
             ser_schema,
             de_schema_compiled: OnceCell::new(),
             ser_schema_compiled: OnceCell::new(),
+            validator: |_| true,
         }
     }
 
@@ -52,7 +54,13 @@ impl<T: JsonSchema> TestHelper<T> {
             ser_schema,
             de_schema_compiled: OnceCell::new(),
             ser_schema_compiled: OnceCell::new(),
+            validator: |_| true,
         }
+    }
+
+    pub fn with_validator(&mut self, validator: fn(&T) -> bool) -> &mut Self {
+        self.validator = validator;
+        self
     }
 
     /// Checks the generated schema against the saved schema in the snapshots directory, for manual verification of changes.
@@ -157,13 +165,23 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
     /// and, if the value can then be deserialized, that the "deserialize" schema also allows it.
     pub fn assert_allows_ser_roundtrip(&self, samples: impl IntoIterator<Item = T>) -> &Self {
         for sample in samples {
-            let json = serde_json::to_value(sample).unwrap();
+            let json = serde_json::to_value(&sample).unwrap();
+
+            assert!(
+                (self.validator)(&sample),
+                "invalid test case - attempt to serialize value failing validation: {json}"
+            );
+
             assert!(
                 self.ser_schema_validate(&json),
                 "serialize schema should allow serialized value: {json}"
             );
 
             if T::deserialize(&json).is_ok() {
+                assert!(
+                    (self.validator)(&sample),
+                    "invalid test case - roundtripped value fails validation: {json}"
+                );
                 assert!(
                     self.de_schema_validate(&json),
                     "deserialize schema should allow value accepted by deserialization: {json}"
@@ -181,7 +199,7 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
 
     /// Checks that the "deserialize" schema allow the given sample values, and the "serialize"
     /// schema allows the value obtained from deserializing then re-serializing the sample values
-    /// (only for values that can actually be serialized).
+    /// (only for values that can successfully be serialized).
     ///
     /// This is intended for types that have different serialize/deserialize schemas, or when you
     /// want to test specific values that are valid for deserialization but not for serialization.
@@ -197,6 +215,11 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
                     type_name::<T>()
                 )
             };
+
+            assert!(
+                (self.validator)(&deserialized),
+                "invalid test case - deserialized value fails validation: {sample}"
+            );
 
             assert!(
                 self.de_schema_validate(sample),
@@ -215,7 +238,7 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
     }
 
     /// Checks that the "deserialize" schema allows only the given sample values that successfully
-    /// deserialize.
+    /// deserialize and pass validation.
     ///
     /// This is intended to be given a range of values (see `arbitrary_values`), allowing limited
     /// fuzzing.
@@ -227,7 +250,7 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
             let value = value.borrow();
 
             match T::deserialize(value) {
-                Ok(deserialized) => {
+                Ok(deserialized) if (self.validator)(&deserialized) => {
                     assert!(
                         self.de_schema_validate(value),
                         "deserialize schema should allow value accepted by deserialization: {value}"
@@ -240,7 +263,7 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
                         );
                     }
                 }
-                Err(_) => {
+                _ => {
                     assert!(
                         !self.de_schema_validate(value),
                         "deserialize schema should reject invalid value: {value}"
@@ -278,6 +301,30 @@ impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
             assert!(
                 !self.de_schema_validate(value),
                 "deserialize schema should reject invalid value: {value}"
+            );
+        }
+
+        self
+    }
+
+    /// Checks that neither "serialize" nor "deserialize" schemas allow any of the given sample
+    /// values when serialized to JSON due to the values failing validation.
+    pub fn assert_rejects_invalid(&self, samples: impl IntoIterator<Item = T>) -> &Self {
+        for sample in samples {
+            let json = serde_json::to_value(&sample).unwrap();
+
+            assert!(
+                !(self.validator)(&sample),
+                "invalid test case - serialized value passes validation: {json}"
+            );
+
+            assert!(
+                !self.de_schema_validate(&json),
+                "deserialize schema should reject invalid value: {json}"
+            );
+            assert!(
+                !self.ser_schema_validate(&json),
+                "serialize schema should reject invalid value: {json}"
             );
         }
 

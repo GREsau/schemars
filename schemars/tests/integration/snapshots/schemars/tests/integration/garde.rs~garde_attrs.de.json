@@ -1,25 +1,25 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Struct",
+  "title": "GardeAttrStruct",
   "type": "object",
   "properties": {
     "min_max": {
       "type": "number",
       "format": "float",
-      "minimum": 0.01,
-      "maximum": 100
+      "minimum": 1.0,
+      "maximum": 100.0
     },
     "min_max2": {
       "type": "number",
       "format": "float",
-      "minimum": 1,
-      "maximum": 1000
+      "minimum": 1.0,
+      "maximum": 10.0
     },
-    "regex_str1": {
+    "regex_str": {
       "type": "string",
-      "pattern": "^[Hh]ello\\b"
+      "pattern": "^[Hh]ello"
     },
-    "contains_str1": {
+    "contains_str": {
       "type": "string",
       "pattern": "substring\\.\\.\\."
     },
@@ -34,18 +34,13 @@
     "non_empty_str": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 100
-    },
-    "non_empty_str2": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 1000
+      "maxLength": 10
     },
     "pair": {
       "type": "array",
       "items": {
-        "type": "integer",
-        "format": "int32"
+        "type": "string",
+        "minLength": 1
       },
       "minItems": 2,
       "maxItems": 2
@@ -55,18 +50,19 @@
     },
     "x": {
       "type": "integer",
-      "format": "int32"
+      "format": "int32",
+      "minimum": -100,
+      "maximum": 100
     }
   },
   "required": [
     "min_max",
     "min_max2",
-    "regex_str1",
-    "contains_str1",
+    "regex_str",
+    "contains_str",
     "email_address",
     "homepage",
     "non_empty_str",
-    "non_empty_str2",
     "pair",
     "required_option",
     "x"
