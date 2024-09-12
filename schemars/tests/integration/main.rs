@@ -34,6 +34,8 @@ mod semver;
 #[cfg(feature = "smallvec1")]
 mod smallvec;
 mod std_types;
+#[cfg(feature = "url2")]
+mod url;
 #[cfg(feature = "uuid1")]
 mod uuid;
 mod validator;
