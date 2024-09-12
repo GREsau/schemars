@@ -33,6 +33,8 @@ mod same_name;
 mod semver;
 #[cfg(feature = "smallvec1")]
 mod smallvec;
+#[cfg(feature = "smol_str02")]
+mod smol_str;
 mod std_types;
 #[cfg(feature = "url2")]
 mod url;
