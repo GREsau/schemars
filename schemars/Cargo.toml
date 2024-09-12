@@ -54,6 +54,7 @@ indexmap2 = { version = "2.0", default-features = false, features = ["serde"], p
 rust_decimal1 = { version = "1", default-features = false, features = ["serde"], package = "rust_decimal" }
 semver1 = { version = "1.0.9", default-features = false, features = ["serde"], package = "semver" }
 smallvec1 = { version = "1.0", default-features = false, features = ["serde"], package = "smallvec" }
+uuid1 = { version = "1.0", default-features = false, features = ["serde"], package = "uuid" }
 
 [features]
 default = ["derive", "std"]
@@ -79,10 +80,6 @@ _ui_test = []
 [[test]]
 name = "ui"
 required-features = ["_ui_test"]
-
-[[test]]
-name = "uuid"
-required-features = ["uuid1"]
 
 [[test]]
 name = "url"
