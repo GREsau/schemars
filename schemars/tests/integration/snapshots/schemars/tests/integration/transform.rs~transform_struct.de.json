@@ -7,14 +7,14 @@
     "int": {
       "type": "integer",
       "format": "int32",
-      "propertyCount": 0,
-      "upperType": "INTEGER"
+      "x-propertyCount": 0,
+      "x-upperType": "INTEGER"
     }
   },
   "required": [
     "value",
     "int"
   ],
-  "upperType": "OBJECT",
-  "propertyCount": 2
+  "x-upperType": "OBJECT",
+  "x-propertyCount": 2
 }

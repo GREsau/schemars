@@ -5,8 +5,8 @@
     {
       "type": "string",
       "const": "Unit",
-      "propertyCount": 0,
-      "upperType": "STRING"
+      "x-propertyCount": 0,
+      "x-upperType": "STRING"
     },
     {
       "type": "object",
@@ -17,9 +17,9 @@
         "NewType"
       ],
       "additionalProperties": false,
-      "propertyCount": 1,
-      "upperType": "OBJECT"
+      "x-propertyCount": 1,
+      "x-upperType": "OBJECT"
     }
   ],
-  "propertyCount": 0
+  "x-propertyCount": 0
 }
