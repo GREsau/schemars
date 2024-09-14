@@ -36,6 +36,7 @@ mod smallvec;
 #[cfg(feature = "smol_str02")]
 mod smol_str;
 mod std_types;
+mod structs;
 mod transform;
 #[cfg(feature = "url2")]
 mod url;

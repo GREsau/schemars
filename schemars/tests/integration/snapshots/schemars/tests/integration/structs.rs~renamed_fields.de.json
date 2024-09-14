@@ -1,24 +1,19 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "MyStruct",
+  "title": "RenamedFields",
   "type": "object",
   "properties": {
     "camelCase": {
       "type": "integer",
       "format": "int32"
     },
-    "new_name_1": {
-      "type": "integer",
-      "format": "int32"
-    },
-    "new_name_2": {
+    "new_name": {
       "type": "integer",
       "format": "int32"
     }
   },
   "required": [
     "camelCase",
-    "new_name_1",
-    "new_name_2"
+    "new_name"
   ]
 }
