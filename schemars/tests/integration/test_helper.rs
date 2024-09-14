@@ -128,17 +128,13 @@ impl<T: JsonSchema> TestHelper<T> {
     fn de_schema_validate(&self, instance: &Value) -> bool {
         self.de_schema_compiled
             .get_or_init(|| compile_schema(&self.de_schema))
-            // Can't use `.is_valid(instance)` due to https://github.com/Stranger6667/jsonschema-rs/issues/496
-            .validate(instance)
-            .is_ok()
+            .is_valid(instance)
     }
 
     fn ser_schema_validate(&self, instance: &Value) -> bool {
         self.ser_schema_compiled
             .get_or_init(|| compile_schema(&self.ser_schema))
-            // Can't use `.is_valid(instance)` due to https://github.com/Stranger6667/jsonschema-rs/issues/496
-            .validate(instance)
-            .is_ok()
+            .is_valid(instance)
     }
 }
 

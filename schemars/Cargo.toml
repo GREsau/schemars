@@ -37,7 +37,7 @@ uuid1 = { version = "1.0", default-features = false, optional = true, package = 
 pretty_assertions = "1.2.1"
 trybuild = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-jsonschema = { version = "0.18.2", default-features = false, features = ["draft201909", "draft202012"] }
+jsonschema = { version = "0.19.0", default-features = false }
 snapbox = { version = "0.6.17", features = ["json"] }
 serde_repr = "0.1.19"
 # Use github source until published garde version supports `length(equal = ...)` attr
