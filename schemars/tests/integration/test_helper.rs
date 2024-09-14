@@ -3,7 +3,7 @@ use schemars::{
     generate::{Contract, SchemaSettings},
     JsonSchema, Schema,
 };
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{json, Value};
 use snapbox::IntoJson;
 use std::{
@@ -145,7 +145,29 @@ fn compile_schema(schema: &Schema) -> CompiledSchema {
         .expect("valid schema")
 }
 
-impl<T: JsonSchema + Serialize + for<'de> Deserialize<'de>> TestHelper<T> {
+impl<T: JsonSchema + Serialize> TestHelper<T> {
+    /// Checks that the "serialize" schema allows the given sample values when serialized to JSON.
+    /// If `T implements `DeserializeOwned`, prefer using `assert_allows_ser_roundtrip()`
+    pub fn assert_allows_ser_only(&self, samples: impl IntoIterator<Item = T>) -> &Self {
+        for sample in samples {
+            let json = serde_json::to_value(&sample).unwrap();
+
+            assert!(
+                (self.validator)(&sample),
+                "invalid test case - attempt to serialize value failing validation: {json}"
+            );
+
+            assert!(
+                self.ser_schema_validate(&json),
+                "serialize schema should allow serialized value: {json}"
+            );
+        }
+
+        self
+    }
+}
+
+impl<T: JsonSchema + Serialize + DeserializeOwned> TestHelper<T> {
     /// Checks that the "serialize" schema allows the given sample values when serialized to JSON
     /// and, if the value can then be deserialized, that the "deserialize" schema also allows it.
     pub fn assert_allows_ser_roundtrip(&self, samples: impl IntoIterator<Item = T>) -> &Self {

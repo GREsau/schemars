@@ -3,26 +3,11 @@
   "title": "Process",
   "type": "object",
   "properties": {
-    "command_line": {
-      "type": "string"
-    },
     "wall_time": {
       "$ref": "#/$defs/Duration"
-    },
-    "user_cpu_time": {
-      "$ref": "#/$defs/Duration",
-      "default": {
-        "secs": 0,
-        "nanos": 0
-      }
-    },
-    "system_cpu_time": {
-      "$ref": "#/$defs/Duration",
-      "default": "0.000000000s"
     }
   },
   "required": [
-    "command_line",
     "wall_time"
   ],
   "$defs": {

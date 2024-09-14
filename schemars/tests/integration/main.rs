@@ -28,6 +28,7 @@ mod garde;
 mod indexmap;
 mod inline_subschemas;
 mod macros;
+mod remote_derive;
 mod same_name;
 #[cfg(feature = "semver1")]
 mod semver;
