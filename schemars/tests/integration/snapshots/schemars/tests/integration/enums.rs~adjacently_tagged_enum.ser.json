@@ -159,7 +159,8 @@
           "const": "TupleAsStr"
         },
         "content": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^\\d+ (true|false)$"
         }
       },
       "required": [

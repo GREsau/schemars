@@ -114,7 +114,8 @@
       "type": "object",
       "properties": {
         "tupleAsStr": {
-          "type": "string"
+          "type": "string",
+          "pattern": "^\\d+ (true|false)$"
         }
       },
       "required": [

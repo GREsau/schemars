@@ -28,7 +28,7 @@ enum External {
     #[schemars(with = "u64")]
     UnitAsInt,
     #[serde(with = "tuple_variant_as_str")]
-    #[schemars(with = "str")]
+    #[schemars(schema_with = "tuple_variant_as_str::json_schema")]
     TupleAsStr(i32, bool),
 }
 
@@ -75,7 +75,7 @@ enum Internal {
     //  UnitAsInt,
     // Internally-tagged enums don't support tuple variants
     //  #[serde(with = "tuple_variant_as_str")]
-    //  #[schemars(with = "str")]
+    //  #[schemars(schema_with = "tuple_variant_as_str::json_schema")]
     //  TupleAsStr(i32, bool),
 }
 
@@ -122,7 +122,7 @@ enum Adjacent {
     #[schemars(with = "u64")]
     UnitAsInt,
     #[serde(with = "tuple_variant_as_str")]
-    #[schemars(with = "str")]
+    #[schemars(schema_with = "tuple_variant_as_str::json_schema")]
     TupleAsStr(i32, bool),
 }
 
@@ -169,7 +169,7 @@ enum Untagged {
     #[schemars(with = "u64")]
     UnitAsInt,
     #[serde(with = "tuple_variant_as_str")]
-    #[schemars(with = "str", extend("pattern" = r"^\d+ (true|false)$"))]
+    #[schemars(schema_with = "tuple_variant_as_str::json_schema")]
     TupleAsStr(i32, bool),
 }
 
@@ -240,6 +240,13 @@ mod tuple_variant_as_str {
             i.parse().map_err(|_| error())?,
             b.parse().map_err(|_| error())?,
         ))
+    }
+
+    pub(super) fn json_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+        schemars::json_schema!({
+            "type": "string",
+            "pattern": r"^\d+ (true|false)$"
+        })
     }
 }
 
