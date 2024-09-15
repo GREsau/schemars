@@ -39,6 +39,7 @@ mod smol_str;
 mod std_types;
 mod structs;
 mod transform;
+mod transparent;
 #[cfg(feature = "url2")]
 mod url;
 #[cfg(feature = "uuid1")]
