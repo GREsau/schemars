@@ -31,6 +31,7 @@ mod macros;
 mod remote_derive;
 mod same_name;
 mod schema_name;
+mod schema_with;
 #[cfg(feature = "semver1")]
 mod semver;
 #[cfg(feature = "smallvec1")]
