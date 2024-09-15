@@ -34,6 +34,7 @@ mod schema_name;
 mod schema_with;
 #[cfg(feature = "semver1")]
 mod semver;
+mod settings;
 #[cfg(feature = "smallvec1")]
 mod smallvec;
 #[cfg(feature = "smol_str02")]

@@ -1,11 +1,12 @@
 {
   "$schema": "https://spec.openapis.org/oas/3.0/schema/2021-09-28#/definitions/Schema",
-  "title": "Outer",
+  "title": "OuterStruct",
   "type": "object",
   "properties": {
-    "int": {
+    "maybe_int": {
       "type": "integer",
       "format": "int32",
+      "nullable": true,
       "example": 8
     },
     "values": {
@@ -14,10 +15,13 @@
     },
     "value": {},
     "inner": {
+      "$ref": "#/components/schemas/InnerEnum"
+    },
+    "maybe_inner": {
       "nullable": true,
       "allOf": [
         {
-          "$ref": "#/components/schemas/Inner"
+          "$ref": "#/components/schemas/InnerEnum"
         }
       ]
     },
@@ -42,14 +46,16 @@
     }
   },
   "required": [
-    "int",
+    "maybe_int",
     "values",
     "value",
+    "inner",
+    "maybe_inner",
     "tuples"
   ],
   "components": {
     "schemas": {
-      "Inner": {
+      "InnerEnum": {
         "oneOf": [
           {
             "type": "string",

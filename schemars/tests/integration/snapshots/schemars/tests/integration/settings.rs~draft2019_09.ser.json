@@ -1,10 +1,13 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Outer",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "title": "OuterStruct",
   "type": "object",
   "properties": {
-    "int": {
-      "type": "integer",
+    "maybe_int": {
+      "type": [
+        "integer",
+        "null"
+      ],
       "format": "int32",
       "examples": [
         8,
@@ -17,9 +20,12 @@
     },
     "value": true,
     "inner": {
+      "$ref": "#/$defs/InnerEnum"
+    },
+    "maybe_inner": {
       "anyOf": [
         {
-          "$ref": "#/$defs/Inner"
+          "$ref": "#/$defs/InnerEnum"
         },
         {
           "type": "null"
@@ -30,7 +36,9 @@
       "type": "array",
       "items": {
         "type": "array",
-        "prefixItems": [
+        "maxItems": 2,
+        "minItems": 2,
+        "items": [
           {
             "type": "integer",
             "format": "uint8",
@@ -40,20 +48,20 @@
             "type": "integer",
             "format": "int64"
           }
-        ],
-        "minItems": 2,
-        "maxItems": 2
+        ]
       }
     }
   },
   "required": [
-    "int",
+    "maybe_int",
     "values",
     "value",
+    "inner",
+    "maybe_inner",
     "tuples"
   ],
   "$defs": {
-    "Inner": {
+    "InnerEnum": {
       "oneOf": [
         {
           "type": "string",
