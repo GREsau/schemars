@@ -78,6 +78,9 @@ mod either1;
 #[cfg(feature = "indexmap2")]
 mod indexmap2;
 
+#[cfg(feature = "ipnetwork020")]
+mod ipnetwork020;
+
 #[cfg(feature = "semver1")]
 mod semver1;
 
