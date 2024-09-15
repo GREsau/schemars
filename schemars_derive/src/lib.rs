@@ -126,7 +126,10 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
         (
             quote! {
                 schemars::_private::alloc::borrow::Cow::Owned(
-                    schemars::_private::alloc::format!(#schema_name_fmt #(,#type_params=#type_params::schema_name())* #(,#const_params=#const_params)*)
+                    schemars::_private::alloc::format!(
+                        #schema_name_fmt
+                        #(,#type_params=#type_params::schema_name())*
+                        #(,#const_params=schemars::_private::alloc::string::ToString::to_string(&#const_params))*)
                 )
             },
             quote! {

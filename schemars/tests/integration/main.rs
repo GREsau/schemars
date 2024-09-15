@@ -30,6 +30,7 @@ mod inline_subschemas;
 mod macros;
 mod remote_derive;
 mod same_name;
+mod schema_name;
 #[cfg(feature = "semver1")]
 mod semver;
 #[cfg(feature = "smallvec1")]
