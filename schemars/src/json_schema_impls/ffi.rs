@@ -2,6 +2,7 @@ use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
+use serde_json::json;
 use std::ffi::{CStr, CString, OsStr, OsString};
 
 impl JsonSchema for OsString {
@@ -37,5 +38,31 @@ impl JsonSchema for OsString {
 
 forward_impl!(OsStr => OsString);
 
-forward_impl!(CString => Vec<u8>);
-forward_impl!(CStr => Vec<u8>);
+impl JsonSchema for CString {
+    fn schema_name() -> Cow<'static, str> {
+        "CString".into()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        "std::ffi::CString".into()
+    }
+
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+        let ty = if generator.contract().is_deserialize() {
+            json!(["array", "string"])
+        } else {
+            json!("array")
+        };
+
+        json_schema!({
+            "type": ty,
+            "items": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 255
+            },
+        })
+    }
+}
+
+forward_impl!(CStr => CString);

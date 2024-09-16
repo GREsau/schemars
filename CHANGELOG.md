@@ -6,6 +6,15 @@
 
 - the `enumset1`/`enumset` optional dependency has been removed, as its `JsonSchema` impl did not actually match the default serialization format of `EnumSet` (https://github.com/GREsau/schemars/pull/339)
 
+### Changed
+
+- ⚠️ MSRV is now 1.70 ⚠️
+
+### Fixed
+
+- The "deserialize" schema for `bytes::Bytes`/`BytesMut` now allows strings, matching the actual deserialize behaviour of the types.
+- The schema for `either::Either` now matches the actual serialize/deserialize behaviour of that type.
+
 ## [1.0.0-alpha.15] - 2024-09-05
 
 ### Added

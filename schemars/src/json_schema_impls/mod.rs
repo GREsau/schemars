@@ -42,8 +42,7 @@ macro_rules! forward_impl {
 mod array;
 mod core;
 mod maps;
-mod nonzero_signed;
-mod nonzero_unsigned;
+mod nonzero;
 mod primitives;
 mod sequences;
 mod serdejson;
@@ -61,10 +60,7 @@ mod ffi;
 mod arrayvec07;
 
 #[cfg(feature = "bytes1")]
-mod bytes1 {
-    forward_impl!(bytes1::Bytes => alloc::vec::Vec<u8>);
-    forward_impl!(bytes1::BytesMut => alloc::vec::Vec<u8>);
-}
+mod bytes1;
 
 #[cfg(feature = "chrono04")]
 mod chrono04;
