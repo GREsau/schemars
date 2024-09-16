@@ -1,7 +1,4 @@
-mod util;
-use schemars::JsonSchema;
-use serde::Serialize;
-use util::*;
+use crate::prelude::*;
 
 #[derive(Default, JsonSchema, Serialize)]
 #[schemars(example = "Struct::default", example = "null")]
@@ -20,6 +17,6 @@ fn eight() -> i32 {
 fn null() {}
 
 #[test]
-fn examples() -> TestResult {
-    test_default_generated_schema::<Struct>("examples")
+fn examples() {
+    test!(Struct).assert_snapshot();
 }
