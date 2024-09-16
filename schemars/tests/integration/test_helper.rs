@@ -67,17 +67,28 @@ impl<T: JsonSchema> TestHelper<T> {
     ///
     /// Run tests with the SNAPSHOTS env var set to "overwrite" to overwrite any changed snapshots.
     pub fn assert_snapshot(&self) -> &Self {
+        let common_path = format!("tests/integration/snapshots/{}.json", self.name);
         let de_path = format!("tests/integration/snapshots/{}.de.json", self.name);
-        snapbox::assert_data_eq!(
-            (&self.de_schema).into_json(),
-            snapbox::Data::read_from(Path::new(&de_path), None).raw()
-        );
-
         let ser_path = format!("tests/integration/snapshots/{}.ser.json", self.name);
-        snapbox::assert_data_eq!(
-            (&self.ser_schema).into_json(),
-            snapbox::Data::read_from(Path::new(&ser_path), None).raw()
-        );
+
+        if self.de_schema == self.ser_schema {
+            snapbox::assert_data_eq!(
+                (&self.de_schema).into_json(),
+                snapbox::Data::read_from(Path::new(&common_path), None).raw()
+            );
+            _ = std::fs::remove_file(de_path);
+            _ = std::fs::remove_file(ser_path);
+        } else {
+            snapbox::assert_data_eq!(
+                (&self.de_schema).into_json(),
+                snapbox::Data::read_from(Path::new(&de_path), None).raw()
+            );
+            snapbox::assert_data_eq!(
+                (&self.ser_schema).into_json(),
+                snapbox::Data::read_from(Path::new(&ser_path), None).raw()
+            );
+            _ = std::fs::remove_file(common_path);
+        }
 
         self
     }
