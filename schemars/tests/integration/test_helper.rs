@@ -1,4 +1,4 @@
-use jsonschema::JSONSchema as CompiledSchema;
+use jsonschema::Validator;
 use schemars::{
     generate::{Contract, SchemaSettings},
     JsonSchema, Schema,
@@ -17,8 +17,8 @@ pub struct TestHelper<T: JsonSchema> {
     phantom: PhantomData<T>,
     de_schema: Schema,
     ser_schema: Schema,
-    de_schema_compiled: OnceCell<CompiledSchema>,
-    ser_schema_compiled: OnceCell<CompiledSchema>,
+    de_schema_validator: OnceCell<Validator>,
+    ser_schema_validator: OnceCell<Validator>,
     validator: fn(&T) -> bool,
 }
 
@@ -33,8 +33,8 @@ impl<T: JsonSchema> TestHelper<T> {
             phantom: PhantomData,
             de_schema,
             ser_schema,
-            de_schema_compiled: OnceCell::new(),
-            ser_schema_compiled: OnceCell::new(),
+            de_schema_validator: OnceCell::new(),
+            ser_schema_validator: OnceCell::new(),
             validator: |_| true,
         }
     }
@@ -52,8 +52,8 @@ impl<T: JsonSchema> TestHelper<T> {
             phantom: PhantomData,
             de_schema,
             ser_schema,
-            de_schema_compiled: OnceCell::new(),
-            ser_schema_compiled: OnceCell::new(),
+            de_schema_validator: OnceCell::new(),
+            ser_schema_validator: OnceCell::new(),
             validator: |_| true,
         }
     }
@@ -137,22 +137,22 @@ impl<T: JsonSchema> TestHelper<T> {
     }
 
     fn de_schema_validate(&self, instance: &Value) -> bool {
-        self.de_schema_compiled
-            .get_or_init(|| compile_schema(&self.de_schema))
+        self.de_schema_validator
+            .get_or_init(|| build_validator(&self.de_schema))
             .is_valid(instance)
     }
 
     fn ser_schema_validate(&self, instance: &Value) -> bool {
-        self.ser_schema_compiled
-            .get_or_init(|| compile_schema(&self.ser_schema))
+        self.ser_schema_validator
+            .get_or_init(|| build_validator(&self.ser_schema))
             .is_valid(instance)
     }
 }
 
-fn compile_schema(schema: &Schema) -> CompiledSchema {
-    CompiledSchema::options()
+fn build_validator(schema: &Schema) -> Validator {
+    jsonschema::options()
         .should_validate_formats(true)
-        .compile(schema.as_value())
+        .build(schema.as_value())
         .expect("valid schema")
 }
 
