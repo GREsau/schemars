@@ -98,9 +98,6 @@
     }
   ],
   "$defs": {
-    "UnitStruct": {
-      "type": "null"
-    },
     "Struct": {
       "type": "object",
       "properties": {
