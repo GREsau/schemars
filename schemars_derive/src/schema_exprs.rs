@@ -152,9 +152,8 @@ fn expr_for_internally_tagged_newtype_field(field: &Field) -> SchemaExpr {
                     <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
                 } else {
                     let subschema = <#ty as schemars::JsonSchema>::json_schema(#GENERATOR);
-                    dbg!();
                     if let Some(type_val) = subschema.get("type") {
-                        if (type_val.as_str().unwrap() != "None") {
+                        if (type_val.as_str().unwrap() != "null") {
                             let mut map = schemars::_private::serde_json::Map::new();
                             map.insert(
                                 #keyword.into(),
