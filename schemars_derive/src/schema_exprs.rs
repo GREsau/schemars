@@ -136,6 +136,38 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> SchemaExpr {
     schema_expr
 }
 
+fn expr_for_internally_tagged_newtype_field(field: &Field) -> SchemaExpr {
+    let (ty, type_def) = type_for_field_schema(field);
+    let span = field.original.span();
+
+    let mut schema_expr = SchemaExpr::from(if field.attrs.validation.required {
+        quote_spanned! {span=>
+            <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#GENERATOR)
+        }
+    } else {
+        let keyword = "allOf";
+        quote_spanned!(span =>
+            {
+                if (#GENERATOR.settings().inline_subschemas) {
+                    <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
+                } else {
+                    let mut map = schemars::_private::serde_json::Map::new();
+                    map.insert(
+                        #keyword.into(),
+                        #GENERATOR.subschema_for::<#ty>().to_value()
+                    );
+                    schemars::Schema::from(map)
+                }
+            }
+        )
+    });
+
+    schema_expr.definitions.extend(type_def);
+    field.add_mutators(&mut schema_expr.mutators);
+
+    schema_expr
+}
+
 pub fn type_for_field_schema(field: &Field) -> (syn::Type, Option<TokenStream>) {
     match &field.attrs.with {
         None => (field.ty.to_owned(), None),
@@ -266,10 +298,10 @@ fn expr_for_internal_tagged_enum<'a>(
 ) -> SchemaExpr {
     let variant_schemas = variants
         .map(|variant| {
-
             let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
 
             let name = variant.name();
+
             schema_expr.mutators.push(quote!(
                 schemars::_private::apply_internal_enum_variant_tag(&mut #SCHEMA, #tag_name, #name, #deny_unknown_fields);
             ));
@@ -430,7 +462,7 @@ fn expr_for_internal_tagged_enum_variant(
 
     match variant.style {
         Style::Unit => expr_for_unit_struct(),
-        Style::Newtype => expr_for_field(&variant.fields[0], false),
+        Style::Newtype => expr_for_internally_tagged_newtype_field(&variant.fields[0]),
         Style::Tuple => expr_for_tuple_struct(&variant.fields),
         Style::Struct => expr_for_struct(&variant.fields, &SerdeDefault::None, deny_unknown_fields),
     }
