@@ -298,10 +298,10 @@ fn expr_for_internal_tagged_enum<'a>(
 ) -> SchemaExpr {
     let variant_schemas = variants
         .map(|variant| {
+
             let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
 
             let name = variant.name();
-
             schema_expr.mutators.push(quote!(
                 schemars::_private::apply_internal_enum_variant_tag(&mut #SCHEMA, #tag_name, #name, #deny_unknown_fields);
             ));
