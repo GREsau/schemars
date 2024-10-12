@@ -23,7 +23,7 @@
           "const": "NewType"
         }
       },
-      "allOf": "true",
+      "allOf": true,
       "required": [
         "t"
       ],
