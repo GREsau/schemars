@@ -154,7 +154,12 @@ fn expr_for_internally_tagged_newtype_field(field: &Field) -> SchemaExpr {
                     let mut map = schemars::_private::serde_json::Map::new();
                     map.insert(
                         #keyword.into(),
-                        #GENERATOR.subschema_for::<#ty>().to_value()
+                        schemars::_private::serde_json::Value::Array({
+                            let mut enum_values = schemars::_private::alloc::vec::Vec::new();
+                            enum_values.push(#GENERATOR.subschema_for::<#ty>().to_value());
+                            enum_values
+                        }),
+                        
                     );
                     schemars::Schema::from(map)
                 }

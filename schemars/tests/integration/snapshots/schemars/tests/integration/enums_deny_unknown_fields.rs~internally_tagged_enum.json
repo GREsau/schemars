@@ -23,12 +23,12 @@
           "const": "StringMap"
         }
       },
-      "allOf": {
+      "allOf": [{
         "type": "object",
         "additionalProperties": {
           "type": "string"
         }
-      },
+      }],
       "required": [
         "tag"
       ]
@@ -41,9 +41,9 @@
           "const": "StructNewType"
         }
       },
-      "allOf": {
+      "allOf": [{
         "$ref": "#/$defs/Struct"
-      },
+      }],
       "required": [
         "tag"
       ]
