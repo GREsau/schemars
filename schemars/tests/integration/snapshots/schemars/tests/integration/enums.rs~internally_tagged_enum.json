@@ -42,11 +42,6 @@
           "const": "UnitStructNewType"
         }
       },
-      "allOf": [
-        {
-          "$ref": "#/$defs/UnitStruct"
-        }
-      ],
       "required": [
         "tag"
       ]
