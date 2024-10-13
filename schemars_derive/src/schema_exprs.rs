@@ -152,22 +152,20 @@ fn expr_for_internally_tagged_newtype_field(field: &Field) -> SchemaExpr {
                     <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
                 } else {
                     let subschema = <#ty as schemars::JsonSchema>::json_schema(#GENERATOR);
-                    if let Some(type_val) = subschema.get("type") {
-                        if (type_val.as_str().unwrap() != "null") {
-                            let mut map = schemars::_private::serde_json::Map::new();
-                            map.insert(
-                                #keyword.into(),
-                                schemars::_private::serde_json::Value::Array({
-                                    let mut enum_values = schemars::_private::alloc::vec::Vec::new();
-                                    enum_values.push(#GENERATOR.subschema_for::<#ty>().to_value());
-                                    enum_values
-                                }),
-                                
-                            );
-                            schemars::Schema::from(map)
-                        } else {
-                            <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
-                        }
+                    let subschema_type = subschema.get("type");
+                    let is_null_type = subschema_type.is_some() && subschema_type.unwrap().as_str().unwrap() == "null";
+                    if !is_null_type {
+                        let mut map = schemars::_private::serde_json::Map::new();
+                        map.insert(
+                            #keyword.into(),
+                            schemars::_private::serde_json::Value::Array({
+                                let mut enum_values = schemars::_private::alloc::vec::Vec::new();
+                                enum_values.push(#GENERATOR.subschema_for::<#ty>().to_value());
+                                enum_values
+                            }),
+                            
+                        );
+                        schemars::Schema::from(map)
                     } else  {
                         <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
                     }
