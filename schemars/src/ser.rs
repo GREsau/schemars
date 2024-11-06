@@ -2,6 +2,7 @@ use crate::_alloc_prelude::*;
 use crate::_private::allow_null;
 use crate::{json_schema, Schema, SchemaGenerator};
 use core::fmt::Display;
+use hashbrown::HashSet;
 use serde_json::{Error, Map, Value};
 
 pub(crate) struct Serializer<'a> {
@@ -11,7 +12,7 @@ pub(crate) struct Serializer<'a> {
 
 pub(crate) struct SerializeSeq<'a> {
     generator: &'a mut SchemaGenerator,
-    items: Option<Schema>,
+    items: HashSet<Schema>,
 }
 
 pub(crate) struct SerializeTuple<'a> {
@@ -182,7 +183,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
     fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
         Ok(SerializeSeq {
             generator: self.generator,
-            items: None,
+            items: HashSet::new(),
         })
     }
 
@@ -291,31 +292,39 @@ impl serde::ser::SerializeSeq for SerializeSeq<'_> {
     where
         T: serde::Serialize + ?Sized,
     {
-        if self.items != Some(true.into()) {
-            let schema = value.serialize(Serializer {
-                generator: self.generator,
-                include_title: false,
-            })?;
-            match &self.items {
-                None => self.items = Some(schema),
-                Some(items) => {
-                    if items != &schema {
-                        self.items = Some(true.into());
-                    }
-                }
-            }
-        }
+        let schema = value.serialize(Serializer {
+            generator: self.generator,
+            include_title: false,
+        })?;
+
+        self.items.insert(schema);
 
         Ok(())
     }
 
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        let items = self.items.unwrap_or(true.into());
+    fn end(mut self) -> Result<Self::Ok, Self::Error> {
+        if self.items.len() <= 1 {
+            Ok(json_schema!({
+                "type": "array",
+                "items": self.items.drain().next().unwrap_or(true.into())
+            }))
+        } else {
+            let mut subschemas = self.items.drain().collect::<Vec<_>>();
 
-        Ok(json_schema!({
-            "type": "array",
-            "items": items
-        }))
+            // Schema does not implement Ord, so use serde_value to keep oneOf's
+            // list order stable, working under the assumption that this is a
+            // relatively rare operation.
+            subschemas.sort_by_key(|schema| {
+                serde_value::to_value(schema).unwrap_or(serde_value::Value::Unit)
+            });
+
+            Ok(json_schema!({
+                "type": "array",
+                "items": {
+                    "oneOf": subschemas
+                }
+            }))
+        }
     }
 }
 
