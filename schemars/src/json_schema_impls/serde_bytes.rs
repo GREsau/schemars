@@ -1,5 +1,3 @@
-use crate::gen::SchemaGenerator;
-use crate::schema::*;
 use crate::JsonSchema;
 use serde_bytes::ByteBuf;
 
