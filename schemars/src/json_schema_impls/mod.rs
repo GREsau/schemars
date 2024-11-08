@@ -90,4 +90,4 @@ mod url2;
 mod uuid1;
 
 #[cfg(feature = "rocket05")]
-mod rocket;
+mod rocket05;
