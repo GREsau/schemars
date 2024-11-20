@@ -6,9 +6,10 @@
 
 - the `enumset1`/`enumset` optional dependency has been removed, as its `JsonSchema` impl did not actually match the default serialization format of `EnumSet` (https://github.com/GREsau/schemars/pull/339)
 
-### Changed
+### Changed (_⚠️ breaking changes ⚠️_)
 
-- ⚠️ MSRV is now 1.70 ⚠️
+- MSRV is now 1.70
+- [The `example` attribute](https://graham.cool/schemars/deriving/attributes/#example) value is now an arbitrary expression, rather than a string literal identifying a function to call. To avoid silent behaviour changes, the expression must not be a string literal where the value can be parsed as a function path - e.g. `#[schemars(example = "foo")]` is now a compile error, but `#[schemars(example = foo())]` is allowed (as is `#[schemars(example = &"foo")]` if you want the the literal string value `"foo"` to be the example).
 
 ### Fixed
 
