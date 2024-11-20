@@ -21,7 +21,7 @@ pub struct CommonAttrs {
     pub deprecated: bool,
     pub title: Option<Expr>,
     pub description: Option<Expr>,
-    pub examples: Vec<Path>,
+    pub examples: Vec<Expr>,
     pub extensions: Vec<(String, TokenStream)>,
     pub transforms: Vec<Expr>,
 }
@@ -84,7 +84,24 @@ impl CommonAttrs {
             },
 
             "example" => {
-                self.examples.extend(parse_name_value_lit_str(meta, cx));
+                if let Ok(expr) = parse_name_value_expr(meta, cx) {
+                    if let Expr::Lit(ExprLit {
+                        lit: Lit::Str(lit_str),
+                        ..
+                    }) = &expr
+                    {
+                        if lit_str.parse::<Path>().is_ok() {
+                            let lit_str_value = lit_str.value();
+                            cx.error_spanned_by(&expr, format_args!(
+                                "`example` value must be an expression, and string literals that may be interpreted as function paths are currently disallowed to avoid migration errors \
+                                 (this restriction may be relaxed in a future version of schemars).\n\
+                                If you want to use the result of a function, use `#[schemars(example = {lit_str_value}())]`.\n\
+                                Or to use the string literal value, use `#[schemars(example = &\"{lit_str_value}\")]`."));
+                        }
+                    }
+
+                    self.examples.push(expr);
+                }
             }
 
             "extend" => {
@@ -114,7 +131,7 @@ impl CommonAttrs {
                             cx.error_spanned_by(
                                 &expr,
                                 format_args!(
-                                    "Expected a `fn(&mut Schema)` or other value implementing `schemars::transform::Transform`, found `&str`.\nDid you mean `[schemars(transform = {})]`?",
+                                    "Expected a `fn(&mut Schema)` or other value implementing `schemars::transform::Transform`, found `&str`.\nDid you mean `#[schemars(transform = {})]`?",
                                     lit_str.value()
                                 ),
                             )
@@ -178,7 +195,7 @@ impl CommonAttrs {
         if !self.examples.is_empty() {
             let examples = self.examples.iter().map(|eg| {
                 quote! {
-                    schemars::_private::serde_json::value::to_value(#eg())
+                    schemars::_private::serde_json::value::to_value(#eg)
                 }
             });
             mutators.push(quote! {

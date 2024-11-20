@@ -1,20 +1,14 @@
 use crate::prelude::*;
 
 #[derive(Default, JsonSchema, Serialize)]
-#[schemars(example = "Struct::default", example = "null")]
+#[schemars(example = Struct::default(), example = ())]
 struct Struct {
-    #[schemars(example = "eight", example = "null")]
+    #[schemars(example = 4 + 4, example = ())]
     foo: i32,
     bar: bool,
-    #[schemars(example = "null")]
+    #[schemars(example = (), example = &"foo")]
     baz: Option<&'static str>,
 }
-
-fn eight() -> i32 {
-    8
-}
-
-fn null() {}
 
 #[test]
 fn examples() {

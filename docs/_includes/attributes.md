@@ -298,13 +298,15 @@ Set on a container, variant or field to set the generated schema's `title` and/o
 
 <h3 id="example">
 
-`#[schemars(example = "some::function")]`
+`#[schemars(example = value)]`
 
 </h3>
 
-Set on a container, variant or field to include the result of the given function in the generated schema's `examples`. The function should take no parameters and can return any type that implements serde's `Serialize` trait - it does not need to return the same type as the attached struct/field. This attribute can be repeated to specify multiple examples.
+Set on a container, variant or field to include the given value in the generated schema's `examples`. The value can be any type that implements serde's `Serialize` trait - it does not need to be the same type as the attached struct/field. This attribute can be repeated to specify multiple examples.
 
-To use the result of arbitrary expressions as examples, you can instead use the [`extend`](#extend) attribute, e.g. `[schemars(extend("examples" = ["example string"]))]`.
+In previous versions of schemars, the value had to be a string literal identifying a defined function that would be called to return the actual example value (similar to the [`default`](#default) attribute). To avoid the new attribute behaviour from silently breaking old consumers, string literals consisting of a single word (e.g. `#[schemars(example = "my_fn")]`) or a path (e.g. `#[schemars(example = "my_mod::my_fn")]`) are currently disallowed. This restriction may be relaxed in a future version of schemars, but for now if you want to include such a string as the literal example value, this can be done by borrowing the value, e.g. `#[schemars(example = &"my_fn")]`. If you instead want to call a function to get the example value (mirrorring the old behaviour), you must use an explicit function call expression, e.g. `#[schemars(example = my_fn())]`.
+
+Alternatively, to directly set multiple examples without repeating `example = ...` attribute, you can instead use the [`extend`](#extend) attribute, e.g. `#[schemars(extend("examples" = [1, 2, 3]))]`.
 
 <h3 id="deprecated">
 
