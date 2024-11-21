@@ -32,6 +32,7 @@ smallvec1 = { version = "1.0", default-features = false, optional = true, packag
 smol_str02 = { version = "0.2.1", default-features = false, optional = true, package = "smol_str" }
 url2 = { version = "2.0", default-features = false, optional = true, package = "url" }
 uuid1 = { version = "1.0", default-features = false, optional = true, package = "uuid" }
+serde_bytes = { version = "0.11.12", optional = true }
 
 [dev-dependencies]
 pretty_assertions = "1.2.1"
@@ -76,12 +77,18 @@ preserve_order  = ["serde_json/preserve_order"]
 # Implements `JsonSchema` on `serde_json::value::RawValue`
 raw_value = ["serde_json/raw_value"]
 
+serde_bytes = ["dep:serde_bytes"]
+
 # For internal/CI use only
 _ui_test = []
 
 [[test]]
 name = "ui"
 required-features = ["_ui_test"]
+
+[[test]]
+name = "serde_bytes"
+required-features = ["serde_bytes"]
 
 [package.metadata.docs.rs]
 all-features = true
