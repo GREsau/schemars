@@ -22,9 +22,14 @@
           "const": "StringMap"
         }
       },
-      "additionalProperties": {
-        "type": "string"
-      },
+      "allOf": [
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      ],
       "required": [
         "tag"
       ]
@@ -44,22 +49,18 @@
     {
       "type": "object",
       "properties": {
-        "foo": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "bar": {
-          "type": "boolean"
-        },
         "tag": {
           "type": "string",
           "const": "StructNewType"
         }
       },
+      "allOf": [
+        {
+          "$ref": "#/$defs/Struct"
+        }
+      ],
       "required": [
-        "tag",
-        "foo",
-        "bar"
+        "tag"
       ]
     },
     {
@@ -95,5 +96,23 @@
         "tag"
       ]
     }
-  ]
+  ],
+  "$defs": {
+    "Struct": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "foo",
+        "bar"
+      ]
+    }
+  }
 }

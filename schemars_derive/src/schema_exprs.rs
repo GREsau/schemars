@@ -136,6 +136,50 @@ fn expr_for_field(field: &Field, allow_ref: bool) -> SchemaExpr {
     schema_expr
 }
 
+fn expr_for_internally_tagged_newtype_field(field: &Field) -> SchemaExpr {
+    let (ty, type_def) = type_for_field_schema(field);
+    let span = field.original.span();
+
+    let mut schema_expr = SchemaExpr::from(if field.attrs.validation.required {
+        quote_spanned! {span=>
+            <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#GENERATOR)
+        }
+    } else {
+        let keyword = "allOf";
+        quote_spanned!(span =>
+            {
+                if (#GENERATOR.settings().inline_subschemas) {
+                    <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
+                } else {
+                    let subschema = <#ty as schemars::JsonSchema>::json_schema(#GENERATOR);
+                    let subschema_type = subschema.get("type");
+                    let is_null_type = subschema_type.is_some() && subschema_type.unwrap().as_str().unwrap() == "null";
+                    if !is_null_type {
+                        let mut map = schemars::_private::serde_json::Map::new();
+                        map.insert(
+                            #keyword.into(),
+                            schemars::_private::serde_json::Value::Array({
+                                let mut enum_values = schemars::_private::alloc::vec::Vec::new();
+                                enum_values.push(#GENERATOR.subschema_for::<#ty>().to_value());
+                                enum_values
+                            }),
+                            
+                        );
+                        schemars::Schema::from(map)
+                    } else  {
+                        <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
+                    }
+                }
+            }
+        )
+    });
+
+    schema_expr.definitions.extend(type_def);
+    field.add_mutators(&mut schema_expr.mutators);
+
+    schema_expr
+}
+
 pub fn type_for_field_schema(field: &Field) -> (syn::Type, Option<TokenStream>) {
     match &field.attrs.with {
         None => (field.ty.to_owned(), None),
@@ -430,7 +474,7 @@ fn expr_for_internal_tagged_enum_variant(
 
     match variant.style {
         Style::Unit => expr_for_unit_struct(),
-        Style::Newtype => expr_for_field(&variant.fields[0], false),
+        Style::Newtype => expr_for_internally_tagged_newtype_field(&variant.fields[0]),
         Style::Tuple => expr_for_tuple_struct(&variant.fields),
         Style::Struct => expr_for_struct(&variant.fields, &SerdeDefault::None, deny_unknown_fields),
     }
