@@ -57,6 +57,23 @@
       "properties": {
         "tag": {
           "type": "string",
+          "const": "StructDenyUnknownFieldsNewType"
+        },
+        "content": {
+          "$ref": "#/$defs/StructDenyUnknownFields"
+        }
+      },
+      "required": [
+        "tag",
+        "content"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
           "const": "Struct"
         },
         "content": {
@@ -99,6 +116,23 @@
       "required": [
         "foo",
         "bar"
+      ]
+    },
+    "StructDenyUnknownFields": {
+      "type": "object",
+      "properties": {
+        "baz": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "foobar": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "baz",
+        "foobar"
       ]
     }
   }

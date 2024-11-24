@@ -15,6 +15,9 @@
       "$ref": "#/$defs/Struct"
     },
     {
+      "$ref": "#/$defs/StructDenyUnknownFields"
+    },
+    {
       "type": "object",
       "properties": {
         "foo": {
@@ -47,6 +50,23 @@
       "required": [
         "foo",
         "bar"
+      ]
+    },
+    "StructDenyUnknownFields": {
+      "type": "object",
+      "properties": {
+        "baz": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "foobar": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "baz",
+        "foobar"
       ]
     }
   }

@@ -38,6 +38,18 @@
     {
       "type": "object",
       "properties": {
+        "StructDenyUnknownFieldsNewType": {
+          "$ref": "#/$defs/StructDenyUnknownFields"
+        }
+      },
+      "required": [
+        "StructDenyUnknownFieldsNewType"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
         "Struct": {
           "type": "object",
           "properties": {
@@ -77,6 +89,23 @@
       "required": [
         "foo",
         "bar"
+      ]
+    },
+    "StructDenyUnknownFields": {
+      "type": "object",
+      "properties": {
+        "baz": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "foobar": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "baz",
+        "foobar"
       ]
     }
   }
