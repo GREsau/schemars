@@ -112,23 +112,24 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
     Ok(schema_expr)
 }
 
-fn expr_for_field(field: &Field, allow_ref: bool) -> SchemaExpr {
+fn expr_for_field(field: &Field, is_internal_tagged_enum_newtype: bool) -> SchemaExpr {
     let (ty, type_def) = type_for_field_schema(field);
     let span = field.original.span();
 
-    let mut schema_expr = SchemaExpr::from(if field.attrs.validation.required {
+    let schema_expr = if field.attrs.validation.required {
         quote_spanned! {span=>
             <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#GENERATOR)
         }
-    } else if allow_ref {
+    } else if is_internal_tagged_enum_newtype {
         quote_spanned! {span=>
-            #GENERATOR.subschema_for::<#ty>()
+            schemars::_private::json_schema_for_internally_tagged_enum_newtype_variant::<#ty>(#GENERATOR)
         }
     } else {
         quote_spanned! {span=>
-            <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
+            #GENERATOR.subschema_for::<#ty>()
         }
-    });
+    };
+    let mut schema_expr = SchemaExpr::from(schema_expr);
 
     schema_expr.definitions.extend(type_def);
     field.add_mutators(&mut schema_expr.mutators);
@@ -407,7 +408,7 @@ fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) 
 
     match variant.style {
         Style::Unit => expr_for_unit_struct(),
-        Style::Newtype => expr_for_field(&variant.fields[0], true),
+        Style::Newtype => expr_for_field(&variant.fields[0], false),
         Style::Tuple => expr_for_tuple_struct(&variant.fields),
         Style::Struct => expr_for_struct(&variant.fields, &SerdeDefault::None, deny_unknown_fields),
     }
@@ -430,7 +431,7 @@ fn expr_for_internal_tagged_enum_variant(
 
     match variant.style {
         Style::Unit => expr_for_unit_struct(),
-        Style::Newtype => expr_for_field(&variant.fields[0], false),
+        Style::Newtype => expr_for_field(&variant.fields[0], true),
         Style::Tuple => expr_for_tuple_struct(&variant.fields),
         Style::Struct => expr_for_struct(&variant.fields, &SerdeDefault::None, deny_unknown_fields),
     }
@@ -444,14 +445,14 @@ fn expr_for_unit_struct() -> SchemaExpr {
 }
 
 fn expr_for_newtype_struct(field: &Field) -> SchemaExpr {
-    expr_for_field(field, true)
+    expr_for_field(field, false)
 }
 
 fn expr_for_tuple_struct(fields: &[Field]) -> SchemaExpr {
     let fields: Vec<_> = fields
         .iter()
         .map(|f| {
-            let field_expr = expr_for_field(f, true);
+            let field_expr = expr_for_field(f, false);
             f.with_contract_check(quote! {
                 prefix_items.push((#field_expr).to_value());
             })

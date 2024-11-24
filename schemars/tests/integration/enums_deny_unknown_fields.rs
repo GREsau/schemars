@@ -15,6 +15,10 @@ macro_rules! fn_values {
                     foo: 123,
                     bar: true,
                 }),
+                Self::StructDenyUnknownFieldsNewType(StructDenyUnknownFields {
+                    baz: 123,
+                    foobar: true,
+                }),
                 Self::Struct {
                     foo: 123,
                     bar: true,
@@ -30,12 +34,20 @@ struct Struct {
     bar: bool,
 }
 
+#[derive(JsonSchema, Deserialize, Serialize, Default)]
+#[serde(deny_unknown_fields)]
+struct StructDenyUnknownFields {
+    baz: i32,
+    foobar: bool,
+}
+
 #[derive(JsonSchema, Deserialize, Serialize)]
 #[serde(deny_unknown_fields)]
 enum External {
     Unit,
     StringMap(BTreeMap<String, String>),
     StructNewType(Struct),
+    StructDenyUnknownFieldsNewType(StructDenyUnknownFields),
     Struct { foo: i32, bar: bool },
 }
 
@@ -49,6 +61,7 @@ enum Internal {
     Unit,
     StringMap(BTreeMap<String, String>),
     StructNewType(Struct),
+    StructDenyUnknownFieldsNewType(StructDenyUnknownFields),
     Struct { foo: i32, bar: bool },
 }
 
@@ -62,6 +75,7 @@ enum Adjacent {
     Unit,
     StringMap(BTreeMap<String, String>),
     StructNewType(Struct),
+    StructDenyUnknownFieldsNewType(StructDenyUnknownFields),
     Struct { foo: i32, bar: bool },
 }
 
@@ -75,6 +89,7 @@ enum Untagged {
     Unit,
     StringMap(BTreeMap<String, String>),
     StructNewType(Struct),
+    StructDenyUnknownFieldsNewType(StructDenyUnknownFields),
     Struct { foo: i32, bar: bool },
 }
 
@@ -88,13 +103,22 @@ fn externally_tagged_enum() {
         .assert_snapshot()
         .assert_allows_ser_roundtrip(External::values())
         .assert_matches_de_roundtrip(arbitrary_values())
-        .assert_rejects_de([json!({
-            "Struct": {
-                "foo": 123,
-                "bar": true,
-                "extra": null
-            }
-        })])
+        .assert_rejects_de([
+            json!({
+                "Struct": {
+                    "foo": 123,
+                    "bar": true,
+                    "extra": null
+                }
+            }),
+            json!({
+                "StructDenyUnknownFieldsNewType": {
+                    "baz": 123,
+                    "foobar": true,
+                    "extra": null
+                }
+            }),
+        ])
         .assert_allows_de_roundtrip([json!({
             "StructNewType": {
                 "foo": 123,
@@ -110,12 +134,20 @@ fn internally_tagged_enum() {
         .assert_snapshot()
         .assert_allows_ser_roundtrip(Internal::values())
         .assert_matches_de_roundtrip(arbitrary_values())
-        .assert_rejects_de([json!({
-            "tag": "Struct",
-            "foo": 123,
-            "bar": true,
-            "extra": null
-        })])
+        .assert_rejects_de([
+            json!({
+                "tag": "Struct",
+                "foo": 123,
+                "bar": true,
+                "extra": null
+            }),
+            json!({
+                "tag": "StructDenyUnknownFieldsNewType",
+                "baz": 123,
+                "foobar": true,
+                "extra": null
+            }),
+        ])
         .assert_allows_de_roundtrip([json!({
             "tag": "StructNewType",
             "foo": 123,
@@ -130,14 +162,24 @@ fn adjacently_tagged_enum() {
         .assert_snapshot()
         .assert_allows_ser_roundtrip(Adjacent::values())
         .assert_matches_de_roundtrip(arbitrary_values())
-        .assert_rejects_de([json!({
-            "tag": "Struct",
-            "content": {
-                "foo": 123,
-                "bar": true,
-                "extra": null
-            }
-        })])
+        .assert_rejects_de([
+            json!({
+                "tag": "Struct",
+                "content": {
+                    "foo": 123,
+                    "bar": true,
+                    "extra": null
+                }
+            }),
+            json!({
+                "tag": "StructDenyUnknownFieldsNewType",
+                "content": {
+                    "baz": 123,
+                    "foobar": true,
+                    "extra": null
+                }
+            }),
+        ])
         .assert_allows_de_roundtrip([json!({
             "tag": "StructNewType",
             "content": {
@@ -154,6 +196,11 @@ fn untagged_enum() {
         .assert_snapshot()
         .assert_allows_ser_roundtrip(Untagged::values())
         .assert_matches_de_roundtrip(arbitrary_values())
+        .assert_rejects_de([json!({
+            "baz": 123,
+            "foobar": true,
+            "extra": null
+        })])
         .assert_allows_de_roundtrip([json!({
             "foo": 123,
             "bar": true,
