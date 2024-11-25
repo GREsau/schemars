@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0-alpha.16] - **in-dev**
+## [1.0.0-alpha.16] - 2024-11-25
 
 ### Removed (_⚠️ breaking changes ⚠️_)
 
