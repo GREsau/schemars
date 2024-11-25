@@ -10,6 +10,7 @@
 
 - MSRV is now 1.70
 - [The `example` attribute](https://graham.cool/schemars/deriving/attributes/#example) value is now an arbitrary expression, rather than a string literal identifying a function to call. To avoid silent behaviour changes, the expression must not be a string literal where the value can be parsed as a function path - e.g. `#[schemars(example = "foo")]` is now a compile error, but `#[schemars(example = foo())]` is allowed (as is `#[schemars(example = &"foo")]` if you want the the literal string value `"foo"` to be the example).
+- For newtype variants of internally-tagged enums, prefer referencing the inner type's schema via `$ref` instead of always inlining the schema (https://github.com/GREsau/schemars/pull/355)
 
 ### Fixed
 
