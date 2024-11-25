@@ -1,5 +1,5 @@
 use crate::_alloc_prelude::*;
-use crate::transform::transform_immediate_subschemas;
+use crate::transform::{transform_immediate_subschemas, Transform};
 use crate::{JsonSchema, Schema, SchemaGenerator};
 use serde::Serialize;
 use serde_json::{json, map::Entry, Map, Value};
@@ -11,6 +11,39 @@ pub extern crate alloc;
 pub extern crate serde_json;
 
 pub use rustdoc::get_title_and_description;
+
+pub fn json_schema_for_internally_tagged_enum_newtype_variant<T: ?Sized + JsonSchema>(
+    generator: &mut SchemaGenerator,
+) -> Schema {
+    let mut schema = T::json_schema(generator);
+
+    // Inline the newtype's inner schema if any of:
+    // - The type specifies that its schema should always be inlined
+    // - The generator settings specify that all schemas should be inlined
+    // - The inner type is a unit struct, which would cause an unsatisfiable schema due to mismatched `type`.
+    //    In this case, we replace its type with "object" in `apply_internal_enum_variant_tag`
+    // - The inner schema specified `"additionalProperties": false` or `"unevaluatedProperties": false`,
+    //    since that would disallow the variant tag. If additional/unevaluatedProperties is in the top-level
+    //    schema, then we can leave it there, because it will "see" the variant tag property. But if it is
+    //    nested e.g. in an `allOf`, then it must be removed, which is why we run `AllowUnknownProperties`
+    //    but only on immediate subschemas.
+
+    let mut transform = AllowUnknownProperties::default();
+    transform_immediate_subschemas(&mut transform, &mut schema);
+
+    if T::always_inline_schema()
+        || generator.settings().inline_subschemas
+        || schema.get("type").and_then(Value::as_str) == Some("null")
+        || schema.get("additionalProperties").and_then(Value::as_bool) == Some(false)
+        || schema.get("unevaluatedProperties").and_then(Value::as_bool) == Some(false)
+        || transform.did_modify
+    {
+        return schema;
+    }
+
+    // ...otherwise, we can freely refer to the schema via a `$ref`
+    generator.subschema_for::<T>()
+}
 
 // Helper for generating schemas for flattened `Option` fields.
 pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
@@ -25,20 +58,29 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
 
     // Always allow aditional/unevaluated properties, because the outer struct determines
     // whether it denies unknown fields.
-    allow_unknown_properties(&mut schema);
+    AllowUnknownProperties::default().transform(&mut schema);
 
     schema
 }
 
-fn allow_unknown_properties(schema: &mut Schema) {
-    if schema.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
-        schema.remove("additionalProperties");
-    }
-    if schema.get("unevaluatedProperties").and_then(Value::as_bool) == Some(false) {
-        schema.remove("unevaluatedProperties");
-    }
+#[derive(Default)]
+struct AllowUnknownProperties {
+    did_modify: bool,
+}
 
-    transform_immediate_subschemas(&mut allow_unknown_properties, schema);
+impl Transform for AllowUnknownProperties {
+    fn transform(&mut self, schema: &mut Schema) {
+        if schema.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
+            schema.remove("additionalProperties");
+            self.did_modify = true;
+        }
+        if schema.get("unevaluatedProperties").and_then(Value::as_bool) == Some(false) {
+            schema.remove("unevaluatedProperties");
+            self.did_modify = true;
+        }
+
+        transform_immediate_subschemas(self, schema);
+    }
 }
 
 /// Hack to simulate specialization:

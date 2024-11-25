@@ -33,22 +33,36 @@
     {
       "type": "object",
       "properties": {
-        "foo": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "bar": {
-          "type": "boolean"
-        },
         "tag": {
           "type": "string",
           "const": "StructNewType"
         }
       },
+      "$ref": "#/$defs/Struct",
+      "required": [
+        "tag"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "baz": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "foobar": {
+          "type": "boolean"
+        },
+        "tag": {
+          "type": "string",
+          "const": "StructDenyUnknownFieldsNewType"
+        }
+      },
+      "additionalProperties": false,
       "required": [
         "tag",
-        "foo",
-        "bar"
+        "baz",
+        "foobar"
       ]
     },
     {
@@ -73,5 +87,23 @@
         "bar"
       ]
     }
-  ]
+  ],
+  "$defs": {
+    "Struct": {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "foo",
+        "bar"
+      ]
+    }
+  }
 }
