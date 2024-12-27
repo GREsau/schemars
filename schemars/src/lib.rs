@@ -145,7 +145,6 @@ pub mod r#gen {
 ///
 /// assert_eq!(<GenericType<i32>>::schema_id(), <&mut GenericType<&i32>>::schema_id());
 /// ```
-
 pub trait JsonSchema {
     /// Whether JSON Schemas generated for this type should be included directly in parent schemas,
     /// rather than being re-used where possible using the `$ref` keyword.
