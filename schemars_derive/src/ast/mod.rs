@@ -48,7 +48,7 @@ impl<'a> Container<'a> {
             .map(|_| result.expect("from_ast set no errors on Ctxt, so should have returned Ok"))
     }
 
-    pub fn transparent_field(&'a self) -> Option<&'a Field> {
+    pub fn transparent_field(&'a self) -> Option<&'a Field<'a>> {
         if self.serde_attrs.transparent() {
             if let Data::Struct(_, fields) = &self.data {
                 return Some(&fields[0]);
@@ -63,7 +63,7 @@ impl<'a> Container<'a> {
     }
 }
 
-impl<'a> Variant<'a> {
+impl Variant<'_> {
     pub fn name(&self) -> Name {
         Name(self.serde_attrs.name())
     }
@@ -85,7 +85,7 @@ impl<'a> Variant<'a> {
     }
 }
 
-impl<'a> Field<'a> {
+impl Field<'_> {
     pub fn name(&self) -> Name {
         Name(self.serde_attrs.name())
     }

@@ -671,13 +671,14 @@ where
 
 impl Debug for Box<dyn GenTransform> {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        #[allow(clippy::used_underscore_items)]
         self._debug_type_name(f)
     }
 }
 
 fn _assert_send() {
-    fn _assert<T: Send>() {}
+    fn assert<T: Send>() {}
 
-    _assert::<SchemaSettings>();
-    _assert::<SchemaGenerator>();
+    assert::<SchemaSettings>();
+    assert::<SchemaGenerator>();
 }
