@@ -26,6 +26,9 @@
       "additionalProperties": {
         "type": "string"
       },
+      "propertyNames": {
+        "type": "string"
+      },
       "required": [
         "tag"
       ]

@@ -16,7 +16,10 @@
     },
     "values": {
       "type": "object",
-      "additionalProperties": true
+      "additionalProperties": true,
+      "propertyNames": {
+        "type": "string"
+      }
     },
     "value": true,
     "inner": {
