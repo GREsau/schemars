@@ -133,6 +133,7 @@ impl SchemaSettings {
                 Box::new(SetSingleExample),
                 Box::new(ReplaceConstValue),
                 Box::new(ReplacePrefixItems),
+                Box::new(RemovePropertyNames),
             ],
             inline_subschemas: false,
             contract: Contract::Deserialize,
