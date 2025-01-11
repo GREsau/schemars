@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "JiffTypes",
+  "type": "object",
+  "properties": {
+    "date_time_ts": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "date_time_zoned": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "naive_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "naive_date_time": {
+      "type": "string",
+      "format": "partial-date-time"
+    },
+    "naive_time": {
+      "type": "string",
+      "format": "partial-time"
+    }
+  },
+  "required": [
+    "date_time_ts",
+    "date_time_zoned",
+    "naive_date",
+    "naive_date_time",
+    "naive_time"
+  ]
+}
