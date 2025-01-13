@@ -19,9 +19,12 @@ fn jiff() {
         .assert_allows_ser_roundtrip_default()
         .assert_matches_de_roundtrip(arbitrary_values());
 
-    // test!(Zoned)
-    //     .assert_allows_ser_roundtrip_default()
-    //     .assert_matches_de_roundtrip(arbitrary_values());
+    test!(Zoned)
+        .assert_allows_ser_roundtrip_default()
+        .assert_matches_de_roundtrip(arbitrary_values_except(
+            Value::is_string,
+            "Custom format 'zoned-date-time', so arbitrary strings technically allowed by schema",
+        ));
 
     test!(Date)
         .assert_allows_ser_roundtrip_default()

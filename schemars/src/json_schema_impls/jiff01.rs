@@ -31,7 +31,7 @@ macro_rules! formatted_string_impl {
 
 formatted_string_impl!(SignedDuration, "duration");
 formatted_string_impl!(Timestamp, "date-time");
-formatted_string_impl!(Zoned, "date-time");
+formatted_string_impl!(Zoned, "zoned-date-time");
 formatted_string_impl!(Date, "date");
 formatted_string_impl!(Time, "partial-time");
 formatted_string_impl!(DateTime, "partial-date-time");
