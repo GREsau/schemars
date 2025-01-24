@@ -24,9 +24,6 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: ${{ matrix.rust }}
       - name: Downgrade packages for MSRV
         if: matrix.rust == '1.70.0'
         run: |
@@ -35,6 +32,9 @@ jobs:
           cargo add --dev validator@0.18.1
           cargo update url --precise 2.5.2
         working-directory: ./schemars
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ matrix.rust }}
       - name: Check with no feature flags
         run: cargo check --verbose --no-default-features
         continue-on-error: ${{ matrix.allow_failure }}
