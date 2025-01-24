@@ -37,12 +37,11 @@ uuid1 = { version = "1.0", default-features = false, optional = true, package = 
 pretty_assertions = "1.2.1"
 trybuild = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-jsonschema = { version = "0.20", default-features = false }
+jsonschema = { version = "0.28", default-features = false }
 snapbox = { version = "0.6.17", features = ["json"] }
 serde_repr = "0.1.19"
-# Use github source until published garde version supports `length(equal = ...)` attr
-garde = { git = "https://github.com/jprochazk/garde.git", rev = "be00ddddf8de14530ee890ccfdbaf0b13fb32852", features = ["derive", "email", "regex", "url"] }
-validator = { version = "0.18.1", features = ["derive"] }
+garde = { version = "0.22", features = ["derive", "email", "regex", "url"] }
+validator = { version = "0.20", features = ["derive"] }
 regex = { version = "1.10.6", default-features = false }
 
 arrayvec07 = { version = "0.7", default-features = false, features = ["serde"], package = "arrayvec"}
