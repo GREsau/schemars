@@ -448,3 +448,19 @@ impl Transform for GatherPropertyNames {
         transform_immediate_subschemas(self, schema);
     }
 }
+
+/// Removes the `propertyNames` field from JSON Schema objects. This also applies to subschemas.
+///
+/// This is useful for OpenAPI 3.0, which does not support the `propertyNames` field.
+#[derive(Debug, Clone)]
+pub struct RemovePropertyNames;
+
+impl Transform for RemovePropertyNames {
+    fn transform(&mut self, schema: &mut Schema) {
+        transform_subschemas(self, schema);
+
+        if let Some(obj) = schema.as_object_mut() {
+            obj.remove("propertyNames");
+        }
+    }
+}
