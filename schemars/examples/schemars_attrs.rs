@@ -1,4 +1,4 @@
-use schemars::{schema_for, JsonSchema, Schema};
+use schemars::{schema_for, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, JsonSchema)]
@@ -24,7 +24,7 @@ pub enum MyEnum {
     },
 }
 
-fn remove_format(schema: &mut Schema) {
+fn remove_format(schema: &mut Schema, _generator: &mut SchemaGenerator) {
     schema.remove("format");
 }
 

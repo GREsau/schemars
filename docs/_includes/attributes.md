@@ -348,10 +348,10 @@ struct Struct;
 
 Set on a container, variant or field to run a `schemars::transform::Transform` against the generated schema. This can be specified multiple times to run multiple transforms.
 
-The `Transform` trait is implemented on functions with the signature `fn(&mut Schema) -> ()`, allowing you to do this:
+The `Transform` trait is implemented on functions with the signature `fn(&mut Schema, &mut SchemaGenerator) -> ()`, allowing you to do this:
 
 ```rust
-fn my_transform(schema: &mut Schema) {
+fn my_transform(schema: &mut Schema, generator: &mut SchemaGenerator) {
    todo!()
 }
 
@@ -359,6 +359,8 @@ fn my_transform(schema: &mut Schema) {
 #[schemars(transform = my_transform)]
 struct Struct;
 ```
+
+The transform function can use the `SchemaGenerator` to inject schemas in the `$defs` section.
 
 <h3 id="doc">
 

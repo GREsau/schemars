@@ -14,10 +14,10 @@ struct RenamedSimpleStruct {
 #[test]
 fn simple() {
     test!(SimpleStruct)
-        .custom(|schema, _| assert_eq!(schema.get("title"), Some(&"SimpleStruct".into())));
+        .custom(|schema, _, _| assert_eq!(schema.get("title"), Some(&"SimpleStruct".into())));
 
     test!(RenamedSimpleStruct)
-        .custom(|schema, _| assert_eq!(schema.get("title"), Some(&"new-name".into())));
+        .custom(|schema, _, _| assert_eq!(schema.get("title"), Some(&"new-name".into())));
 }
 
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
@@ -39,14 +39,14 @@ struct RenamedTypeParams<T, U, V, W> {
 
 #[test]
 fn type_params() {
-    test!(TypeParams<u8, String, bool, ()>).custom(|schema, _| {
+    test!(TypeParams<u8, String, bool, ()>).custom(|schema, _, _| {
         assert_eq!(
             schema.get("title"),
             Some(&"TypeParams_for_uint8_and_string_and_boolean_and_null".into())
         )
     });
 
-    test!(RenamedTypeParams<u8, String, bool, ()>).custom(|schema, _| {
+    test!(RenamedTypeParams<u8, String, bool, ()>).custom(|schema, _, _| {
         assert_eq!(
             schema.get("title"),
             Some(&"new-name-null-uint8-uint8".into())
@@ -69,7 +69,7 @@ struct RenamedConstGeneric<const INT: usize, const CHAR: char> {
 
 #[test]
 fn const_generics() {
-    test!(ConstGeneric<123, 'X'>).custom(|schema, _| {
+    test!(ConstGeneric<123, 'X'>).custom(|schema, _, _| {
         assert_eq!(
             schema.get("title"),
             Some(&"ConstGeneric_for_123_and_X".into())
@@ -77,5 +77,5 @@ fn const_generics() {
     });
 
     test!(RenamedConstGeneric<123, 'X'>)
-        .custom(|schema, _| assert_eq!(schema.get("title"), Some(&"new-name-123".into())));
+        .custom(|schema, _, _| assert_eq!(schema.get("title"), Some(&"new-name-123".into())));
 }

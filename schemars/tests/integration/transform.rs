@@ -1,17 +1,17 @@
 use crate::prelude::*;
 use schemars::{
     transform::{RecursiveTransform, Transform},
-    Schema,
+    Schema, SchemaGenerator,
 };
 use serde_json::Map;
 
-fn insert_upper_type(schema: &mut Schema) {
+fn insert_upper_type(schema: &mut Schema, _generator: &mut SchemaGenerator) {
     if let Some(Value::String(ty)) = schema.get("type") {
         schema.insert("x-upperType".to_owned(), ty.to_uppercase().into());
     }
 }
 
-fn insert_property_count(schema: &mut Schema) {
+fn insert_property_count(schema: &mut Schema, _: &mut SchemaGenerator) {
     let count = schema
         .get("properties")
         .and_then(Value::as_object)
@@ -53,16 +53,21 @@ fn transform_enum() {
         .custom(assert_upper_type_valid);
 }
 
-fn assert_upper_type_valid(schema: &Schema, _: schemars::generate::Contract) {
+fn assert_upper_type_valid(
+    schema: &Schema,
+    generator: &SchemaGenerator,
+    _: schemars::generate::Contract,
+) {
     let mut schema = schema.clone();
+    let mut generator = generator.clone();
 
-    RecursiveTransform(|s: &mut Schema| {
+    RecursiveTransform(|s: &mut Schema, _: &mut SchemaGenerator| {
         assert_eq!(
             s.remove("x-upperType").map(|v| v.to_string()),
             s.get("type").map(|v| v.to_string().to_uppercase()),
         );
     })
-    .transform(&mut schema);
+    .transform(&mut schema, &mut generator);
 
     assert!(!schema.to_value().to_string().contains("x-upperType"));
 }

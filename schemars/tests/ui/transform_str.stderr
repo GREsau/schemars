@@ -1,4 +1,4 @@
-error: Expected a `fn(&mut Schema)` or other value implementing `schemars::transform::Transform`, found `&str`.
+error: Expected a `fn(&mut Schema, &mut SchemaGenerator)` or other value implementing `schemars::transform::Transform`, found `&str`.
        Did you mean `#[schemars(transform = x)]`?
  --> tests/ui/transform_str.rs:4:24
   |

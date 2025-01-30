@@ -1,7 +1,7 @@
 use jsonschema::Validator;
 use schemars::{
     generate::{Contract, SchemaSettings},
-    JsonSchema, Schema,
+    JsonSchema, Schema, SchemaGenerator,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{json, Value};
@@ -131,9 +131,10 @@ impl<T: JsonSchema> TestHelper<T> {
         self
     }
 
-    pub fn custom(&self, assertion: impl Fn(&Schema, Contract)) {
-        assertion(&self.de_schema, Contract::Deserialize);
-        assertion(&self.ser_schema, Contract::Serialize);
+    pub fn custom(&self, assertion: impl Fn(&Schema, &SchemaGenerator, Contract)) {
+        let generator = SchemaGenerator::default();
+        assertion(&self.de_schema, &generator, Contract::Deserialize);
+        assertion(&self.ser_schema, &generator, Contract::Serialize);
     }
 
     fn de_schema_validate(&self, instance: &Value) -> bool {

@@ -24,7 +24,7 @@ pub enum MyEnum {
     },
 }
 
-fn remove_format(schema: &mut Schema) {
+fn remove_format(schema: &mut Schema, _generator: &mut SchemaGenerator) {
     schema.remove("format");
 }
 

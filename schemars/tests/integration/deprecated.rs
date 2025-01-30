@@ -16,7 +16,7 @@ fn deprecated_struct() {
     test!(DeprecatedStruct)
         .assert_snapshot()
         .assert_allows_ser_roundtrip_default()
-        .custom(|schema, _| {
+        .custom(|schema, _, _| {
             assert_eq!(
                 schema.as_value().pointer("/deprecated"),
                 Some(&Value::Bool(true)),
@@ -48,7 +48,7 @@ fn deprecated_enum() {
     test!(DeprecatedEnum)
         .assert_snapshot()
         .assert_allows_ser_roundtrip_default()
-        .custom(|schema, _| {
+        .custom(|schema, _, _| {
             assert_eq!(
                 schema.as_value().pointer("/deprecated"),
                 Some(&Value::Bool(true)),

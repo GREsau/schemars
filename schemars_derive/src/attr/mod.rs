@@ -11,7 +11,7 @@ use syn::Ident;
 use syn::{punctuated::Punctuated, Attribute, Expr, ExprLit, Lit, Meta, Path, Type};
 use validation::ValidationAttrs;
 
-use crate::idents::SCHEMA;
+use crate::idents::{GENERATOR, SCHEMA};
 
 pub use schemars_to_serde::process_serde_attrs;
 
@@ -131,7 +131,7 @@ impl CommonAttrs {
                             cx.error_spanned_by(
                                 &expr,
                                 format_args!(
-                                    "Expected a `fn(&mut Schema)` or other value implementing `schemars::transform::Transform`, found `&str`.\nDid you mean `#[schemars(transform = {})]`?",
+                                    "Expected a `fn(&mut Schema, &mut SchemaGenerator)` or other value implementing `schemars::transform::Transform`, found `&str`.\nDid you mean `#[schemars(transform = {})]`?",
                                     lit_str.value()
                                 ),
                             )
@@ -211,7 +211,7 @@ impl CommonAttrs {
 
         for transform in &self.transforms {
             mutators.push(quote! {
-                schemars::transform::Transform::transform(&mut #transform, &mut #SCHEMA);
+                schemars::transform::Transform::transform(&mut #transform, &mut #SCHEMA, #GENERATOR);
             });
         }
     }

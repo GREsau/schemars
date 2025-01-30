@@ -29,7 +29,7 @@ pub fn json_schema_for_internally_tagged_enum_newtype_variant<T: ?Sized + JsonSc
     //    but only on immediate subschemas.
 
     let mut transform = AllowUnknownProperties::default();
-    transform_immediate_subschemas(&mut transform, &mut schema);
+    transform_immediate_subschemas(&mut transform, &mut schema, generator);
 
     if T::always_inline_schema()
         || generator.settings().inline_subschemas
@@ -58,7 +58,7 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
 
     // Always allow aditional/unevaluated properties, because the outer struct determines
     // whether it denies unknown fields.
-    AllowUnknownProperties::default().transform(&mut schema);
+    AllowUnknownProperties::default().transform(&mut schema, generator);
 
     schema
 }
@@ -69,7 +69,7 @@ struct AllowUnknownProperties {
 }
 
 impl Transform for AllowUnknownProperties {
-    fn transform(&mut self, schema: &mut Schema) {
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
         if schema.get("additionalProperties").and_then(Value::as_bool) == Some(false) {
             schema.remove("additionalProperties");
             self.did_modify = true;
@@ -79,7 +79,7 @@ impl Transform for AllowUnknownProperties {
             self.did_modify = true;
         }
 
-        transform_immediate_subschemas(self, schema);
+        transform_immediate_subschemas(self, schema, generator);
     }
 }
 
