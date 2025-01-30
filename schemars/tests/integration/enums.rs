@@ -339,7 +339,7 @@ fn unit_variants_with_doc_comments() {
         .assert_snapshot()
         .assert_allows_ser_roundtrip([SoundOfMusic::Do, SoundOfMusic::Re, SoundOfMusic::Mi])
         .assert_rejects_de(arbitrary_values())
-        .custom(|schema, _| {
+        .custom(|schema, _, _| {
             assert_eq!(
                 schema.as_value().pointer("/oneOf/0/title"),
                 Some(&("A deer".into())),

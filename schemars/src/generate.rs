@@ -368,6 +368,21 @@ impl SchemaGenerator {
         self.settings.transforms.iter_mut().map(Box::as_mut)
     }
 
+    /// Returns an iterator over the [transforms](SchemaSettings::transforms) being used by this
+    /// `SchemaGenerator`.
+    fn take_transforms(&mut self) -> Vec<Box<dyn GenTransform>> {
+        core::mem::take(&mut self.settings.transforms)
+    }
+
+    /// Returns an iterator over the [transforms](SchemaSettings::transforms) being used by this
+    /// `SchemaGenerator`.
+    fn set_transforms(
+        &mut self,
+        transforms: Vec<Box<dyn GenTransform>>,
+    ) -> Vec<Box<dyn GenTransform>> {
+        core::mem::replace(&mut self.settings.transforms, transforms)
+    }
+
     /// Generates a JSON Schema for the type `T`.
     ///
     /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then
@@ -538,9 +553,11 @@ impl SchemaGenerator {
     }
 
     fn apply_transforms(&mut self, schema: &mut Schema) {
-        for transform in self.transforms_mut() {
-            transform.transform(schema);
+        let mut transforms = self.take_transforms();
+        for transform in &mut transforms {
+            transform.transform(schema, self);
         }
+        self.set_transforms(transforms);
     }
 
     /// Returns `self.settings.definitions_path` as a plain JSON pointer to the definitions object,
@@ -606,7 +623,7 @@ fn json_pointer_mut<'a>(
 /// struct MyTransform;
 ///
 /// impl Transform for MyTransform {
-///   fn transform(&mut self, schema: &mut schemars::Schema) {
+///   fn transform(&mut self, schema: &mut schemars::Schema, generator: &mut schemars::SchemaGenerator) {
 ///     todo!()
 ///   }
 /// }

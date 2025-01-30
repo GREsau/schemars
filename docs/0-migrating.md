@@ -126,12 +126,12 @@ use schemars::Schema;
 pub struct MyTransform;
 
 impl Transform for MyTransform {
-    fn transform(&mut self, schema: &mut Schema) {
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
         // First, make our change to this schema
         schema.insert("my_property".to_string(), serde_json::json!("hello world"));
 
         // Then apply the transform to any subschemas
-        transform_subschemas(self, schema);
+        transform_subschemas(self, schema, generator);
     }
 }
 
@@ -139,32 +139,34 @@ let mut schema = schemars::schema_for!(str);
 MyTransform.transform(&mut schema);
 ```
 
-Also, since `Transform` is now implemented for functions that take a single `&mut Schema` argument, you could also define it as a function instead of a struct:
+Also, since `Transform` is now implemented for functions that take a `&mut Schema` and `&mut SchemaGenerator` arguments, you could also define it as a function instead of a struct:
 
 ```rust
-fn my_transform(schema: &mut Schema) {
+fn my_transform(schema: &mut Schema, generator: &mut SchemaGenerator) {
     // First, make our change to this schema
     schema.insert("my_property".to_string(), serde_json::json!("hello world"));
 
     // Then apply the transform to any subschemas
-    transform_subschemas(&mut my_transform, schema);
+    transform_subschemas(&mut my_transform, schema, generator);
 }
 
 let mut schema = schemars::schema_for!(str);
-my_transform(&mut schema);
+let mut generator = SchemaGenerator::default();
+my_transform(&mut schema, &mut generator);
 // Or equivalently:
-// my_transform.transform(&mut schema);
+// my_transform.transform(&mut schema, &mut generator);
 ```
 
 Finally, you can also use the `RecursiveTransform` newtype to convert a non-recursive `Transform` (i.e. one that does not transform subschemas) into a recursive one, like so:
 
 ```rust
-fn my_transform2(schema: &mut Schema) {
+fn my_transform2(schema: &mut Schema, _generator: &mut SchemaGenerator) {
     schema.insert("my_property".to_string(), serde_json::json!("hello world"));
 }
 
 let mut schema = schemars::schema_for!(str);
-RecursiveTransform(my_transform2).transform(&mut schema);
+let mut generator = SchemaGenerator::default();
+RecursiveTransform(my_transform2).transform(&mut schema, &mut generator);
 ```
 
 ## Changes to `#[validate(...)]` attributes
