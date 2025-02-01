@@ -51,6 +51,9 @@ mod url;
 mod uuid;
 mod validator;
 
+#[cfg(feature = "std")]
+mod map_with_eum_key;
+
 mod prelude {
     pub(crate) use crate::test;
     pub(crate) use crate::test_helper::{arbitrary_values, arbitrary_values_except};
