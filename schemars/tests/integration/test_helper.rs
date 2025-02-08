@@ -5,7 +5,7 @@ use schemars::{
 };
 use serde::{de::DeserializeOwned, Serialize};
 use serde_json::{json, Value};
-use snapbox::IntoJson;
+use snapbox::{data::DataFormat, IntoJson};
 use std::{
     any::type_name, borrow::Borrow, cell::OnceCell, f64, marker::PhantomData, path::Path,
     sync::OnceLock,
@@ -74,18 +74,18 @@ impl<T: JsonSchema> TestHelper<T> {
         if self.de_schema == self.ser_schema {
             snapbox::assert_data_eq!(
                 (&self.de_schema).into_json(),
-                snapbox::Data::read_from(Path::new(&common_path), None).raw()
+                snapbox::Data::read_from(Path::new(&common_path), Some(DataFormat::Json)).raw()
             );
             _ = std::fs::remove_file(de_path);
             _ = std::fs::remove_file(ser_path);
         } else {
             snapbox::assert_data_eq!(
                 (&self.de_schema).into_json(),
-                snapbox::Data::read_from(Path::new(&de_path), None).raw()
+                snapbox::Data::read_from(Path::new(&de_path), Some(DataFormat::Json)).raw()
             );
             snapbox::assert_data_eq!(
                 (&self.ser_schema).into_json(),
-                snapbox::Data::read_from(Path::new(&ser_path), None).raw()
+                snapbox::Data::read_from(Path::new(&ser_path), Some(DataFormat::Json)).raw()
             );
             _ = std::fs::remove_file(common_path);
         }
