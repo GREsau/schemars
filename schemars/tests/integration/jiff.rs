@@ -1,6 +1,6 @@
 use crate::prelude::*;
-use jiff01::civil::{Date, DateTime, Time};
-use jiff01::{Timestamp, Zoned};
+use jiff02::civil::{Date, DateTime, Time};
+use jiff02::{Timestamp, Zoned};
 
 #[derive(JsonSchema, Serialize, Deserialize)]
 struct JiffTypes {

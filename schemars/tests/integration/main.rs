@@ -28,7 +28,7 @@ mod garde;
 #[cfg(feature = "indexmap2")]
 mod indexmap;
 mod inline_subschemas;
-#[cfg(feature = "jiff01")]
+#[cfg(feature = "jiff02")]
 mod jiff;
 mod macros;
 mod remote_derive;
