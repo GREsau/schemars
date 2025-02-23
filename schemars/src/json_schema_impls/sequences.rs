@@ -1,4 +1,4 @@
-use crate::gen::SchemaGenerator;
+use crate::r#gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use std::borrow::Cow;
@@ -20,11 +20,11 @@ macro_rules! seq_impl {
                     format!("[{}]", T::schema_id()))
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            fn json_schema(generator: &mut SchemaGenerator) -> Schema {
                 SchemaObject {
                     instance_type: Some(InstanceType::Array.into()),
                     array: Some(Box::new(ArrayValidation {
-                        items: Some(gen.subschema_for::<T>().into()),
+                        items: Some(generator.subschema_for::<T>().into()),
                         ..Default::default()
                     })),
                     ..Default::default()
@@ -52,12 +52,12 @@ macro_rules! set_impl {
                     format!("Set<{}>", T::schema_id()))
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            fn json_schema(generator: &mut SchemaGenerator) -> Schema {
                 SchemaObject {
                     instance_type: Some(InstanceType::Array.into()),
                     array: Some(Box::new(ArrayValidation {
                         unique_items: Some(true),
-                        items: Some(gen.subschema_for::<T>().into()),
+                        items: Some(generator.subschema_for::<T>().into()),
                         ..Default::default()
                     })),
                     ..Default::default()

@@ -1,4 +1,4 @@
-use crate::gen::SchemaGenerator;
+use crate::r#gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use arrayvec05::{Array, ArrayString, ArrayVec};
@@ -22,11 +22,11 @@ where
         )
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         SchemaObject {
             instance_type: Some(InstanceType::Array.into()),
             array: Some(Box::new(ArrayValidation {
-                items: Some(gen.subschema_for::<A::Item>().into()),
+                items: Some(generator.subschema_for::<A::Item>().into()),
                 max_items: A::CAPACITY.try_into().ok(),
                 ..Default::default()
             })),

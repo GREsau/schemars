@@ -1,5 +1,5 @@
 mod util;
-use schemars::gen::{SchemaGenerator, SchemaSettings};
+use schemars::r#gen::{SchemaGenerator, SchemaSettings};
 use serde::Serialize;
 use std::collections::HashMap;
 use util::*;
@@ -53,32 +53,32 @@ fn make_value() -> MyStruct {
 
 #[test]
 fn schema_from_value_matches_draft07() -> TestResult {
-    let gen = SchemaSettings::draft07().into_generator();
-    let actual = gen.into_root_schema_for_value(&make_value())?;
+    let generator = SchemaSettings::draft07().into_generator();
+    let actual = generator.into_root_schema_for_value(&make_value())?;
 
     test_schema(&actual, "from_value_draft07")
 }
 
 #[test]
 fn schema_from_value_matches_2019_09() -> TestResult {
-    let gen = SchemaSettings::draft2019_09().into_generator();
-    let actual = gen.into_root_schema_for_value(&make_value())?;
+    let generator = SchemaSettings::draft2019_09().into_generator();
+    let actual = generator.into_root_schema_for_value(&make_value())?;
 
     test_schema(&actual, "from_value_2019_09")
 }
 
 #[test]
 fn schema_from_value_matches_openapi3() -> TestResult {
-    let gen = SchemaSettings::openapi3().into_generator();
-    let actual = gen.into_root_schema_for_value(&make_value())?;
+    let generator = SchemaSettings::openapi3().into_generator();
+    let actual = generator.into_root_schema_for_value(&make_value())?;
 
     test_schema(&actual, "from_value_openapi3")
 }
 
 #[test]
 fn schema_from_json_value() -> TestResult {
-    let gen = SchemaGenerator::default();
-    let actual = gen.into_root_schema_for_value(&serde_json::json!({
+    let generator = SchemaGenerator::default();
+    let actual = generator.into_root_schema_for_value(&serde_json::json!({
         "zero": 0,
         "one": 1,
         "minusOne": -1,

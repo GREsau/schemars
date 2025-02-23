@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use schemars::{gen::SchemaSettings, schema::RootSchema, schema_for, JsonSchema};
+use schemars::{r#gen::SchemaSettings, schema::RootSchema, schema_for, JsonSchema};
 use std::error::Error;
 use std::fs;
 

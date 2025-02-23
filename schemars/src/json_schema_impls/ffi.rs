@@ -1,4 +1,4 @@
-use crate::gen::SchemaGenerator;
+use crate::r#gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use std::borrow::Cow;
@@ -13,7 +13,7 @@ impl JsonSchema for OsString {
         Cow::Borrowed("std::ffi::OsString")
     }
 
-    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         let mut unix_schema = SchemaObject {
             instance_type: Some(InstanceType::Object.into()),
             ..Default::default()
@@ -21,7 +21,7 @@ impl JsonSchema for OsString {
         let obj = unix_schema.object();
         obj.required.insert("Unix".to_owned());
         obj.properties
-            .insert("Unix".to_owned(), <Vec<u8>>::json_schema(gen));
+            .insert("Unix".to_owned(), <Vec<u8>>::json_schema(generator));
 
         let mut win_schema = SchemaObject {
             instance_type: Some(InstanceType::Object.into()),
@@ -30,7 +30,7 @@ impl JsonSchema for OsString {
         let obj = win_schema.object();
         obj.required.insert("Windows".to_owned());
         obj.properties
-            .insert("Windows".to_owned(), <Vec<u16>>::json_schema(gen));
+            .insert("Windows".to_owned(), <Vec<u16>>::json_schema(generator));
 
         let mut schema = SchemaObject::default();
         schema.subschemas().one_of = Some(vec![unix_schema.into(), win_schema.into()]);
