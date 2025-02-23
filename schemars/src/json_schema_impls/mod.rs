@@ -21,12 +21,12 @@ macro_rules! forward_impl {
                 <$target>::schema_id()
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
-                <$target>::json_schema(gen)
+            fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+                <$target>::json_schema(generator)
             }
 
-            fn _schemars_private_non_optional_json_schema(gen: &mut SchemaGenerator) -> Schema {
-                <$target>::_schemars_private_non_optional_json_schema(gen)
+            fn _schemars_private_non_optional_json_schema(generator: &mut SchemaGenerator) -> Schema {
+                <$target>::_schemars_private_non_optional_json_schema(generator)
             }
 
             fn _schemars_private_is_option() -> bool {
