@@ -1,4 +1,4 @@
-use crate::gen::SchemaGenerator;
+use crate::generator::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use indexmap::{IndexMap, IndexSet};

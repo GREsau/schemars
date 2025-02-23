@@ -14,9 +14,9 @@ let my_schema = schema_for!(MyStruct);
 
 This will create a schema that conforms to [JSON Schema Draft 7](https://json-schema.org/specification-links.html#draft-7), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
 
-If you want more control over how the schema is generated, you can use the [`gen` module](https://docs.rs/schemars/latest/schemars/gen/). There are two main types in this module:
-* [`SchemaSettings`](https://docs.rs/schemars/latest/schemars/gen/struct.SchemaSettings.html), which defines what JSON Schema features should be used when generating schemas (for example, how `Option`s should be represented).
-* [`SchemaGenerator`](https://docs.rs/schemars/latest/schemars/gen/struct.SchemaGenerator.html), which manages the generation of a schema document.
+If you want more control over how the schema is generated, you can use the [`generator` module](https://docs.rs/schemars/latest/schemars/generator/). There are two main types in this module:
+* [`SchemaSettings`](https://docs.rs/schemars/latest/schemars/generator/struct.SchemaSettings.html), which defines what JSON Schema features should be used when generating schemas (for example, how `Option`s should be represented).
+* [`SchemaGenerator`](https://docs.rs/schemars/latest/schemars/generator/struct.SchemaGenerator.html), which manages the generation of a schema document.
 
 See the API documentation for more info on how to use those types for custom schema generation.
 
