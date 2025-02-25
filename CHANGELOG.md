@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.8.22] - 2025-02-25
+
+### Fixed:
+
+- Fix compatibility with rust 2024 edition (https://github.com/GREsau/schemars/pull/378)
+
 ## [1.0.0-alpha.2] - 2024-06-05
 
 ### Added
