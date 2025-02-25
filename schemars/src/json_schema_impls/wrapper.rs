@@ -1,4 +1,4 @@
-use crate::gen::SchemaGenerator;
+use crate::r#gen::SchemaGenerator;
 use crate::schema::Schema;
 use crate::JsonSchema;
 

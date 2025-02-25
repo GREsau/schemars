@@ -68,12 +68,12 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                         <#ty as schemars::JsonSchema>::schema_id()
                     }
 
-                    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-                        <#ty as schemars::JsonSchema>::json_schema(gen)
+                    fn json_schema(generator: &mut schemars::r#gen::SchemaGenerator) -> schemars::schema::Schema {
+                        <#ty as schemars::JsonSchema>::json_schema(generator)
                     }
 
-                    fn _schemars_private_non_optional_json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
-                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(gen)
+                    fn _schemars_private_non_optional_json_schema(generator: &mut schemars::r#gen::SchemaGenerator) -> schemars::schema::Schema {
+                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(generator)
                     }
 
                     fn _schemars_private_is_option() -> bool {
@@ -182,7 +182,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                     #schema_id
                 }
 
-                fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+                fn json_schema(generator: &mut schemars::r#gen::SchemaGenerator) -> schemars::schema::Schema {
                     #schema_expr
                 }
             };

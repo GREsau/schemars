@@ -1,4 +1,4 @@
-use crate::gen::SchemaGenerator;
+use crate::r#gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use std::borrow::Cow;
@@ -43,11 +43,11 @@ macro_rules! array_impls {
                         format!("[{}; {}]", $len, T::schema_id()))
                 }
 
-                fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+                fn json_schema(generator: &mut SchemaGenerator) -> Schema {
                     SchemaObject {
                         instance_type: Some(InstanceType::Array.into()),
                         array: Some(Box::new(ArrayValidation {
-                            items: Some(gen.subschema_for::<T>().into()),
+                            items: Some(generator.subschema_for::<T>().into()),
                             max_items: Some($len),
                             min_items: Some($len),
                             ..Default::default()

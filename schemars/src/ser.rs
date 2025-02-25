@@ -1,27 +1,27 @@
 use crate::schema::*;
 use crate::JsonSchema;
-use crate::{gen::SchemaGenerator, Map};
+use crate::{r#gen::SchemaGenerator, Map};
 use serde_json::{Error, Value};
 use std::{convert::TryInto, fmt::Display};
 
 pub(crate) struct Serializer<'a> {
-    pub(crate) gen: &'a mut SchemaGenerator,
+    pub(crate) generator: &'a mut SchemaGenerator,
     pub(crate) include_title: bool,
 }
 
 pub(crate) struct SerializeSeq<'a> {
-    gen: &'a mut SchemaGenerator,
+    generator: &'a mut SchemaGenerator,
     items: Option<Schema>,
 }
 
 pub(crate) struct SerializeTuple<'a> {
-    gen: &'a mut SchemaGenerator,
+    generator: &'a mut SchemaGenerator,
     items: Vec<Schema>,
     title: &'static str,
 }
 
 pub(crate) struct SerializeMap<'a> {
-    gen: &'a mut SchemaGenerator,
+    generator: &'a mut SchemaGenerator,
     properties: Map<String, Schema>,
     current_key: Option<String>,
     title: &'static str,
@@ -30,7 +30,7 @@ pub(crate) struct SerializeMap<'a> {
 macro_rules! forward_to_subschema_for {
     ($fn:ident, $ty:ty) => {
         fn $fn(self, _value: $ty) -> Result<Self::Ok, Self::Error> {
-            Ok(self.gen.subschema_for::<$ty>())
+            Ok(self.generator.subschema_for::<$ty>())
         }
     };
 }
@@ -81,7 +81,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
     where
         T: Display,
     {
-        Ok(self.gen.subschema_for::<&str>())
+        Ok(self.generator.subschema_for::<&str>())
     }
 
     fn collect_map<K, V, I>(self, iter: I) -> Result<Self::Ok, Self::Error>
@@ -98,7 +98,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
                 }
 
                 let schema = v.serialize(Serializer {
-                    gen: self.gen,
+                    generator: self.generator,
                     include_title: false,
                 })?;
                 Ok(match &acc {
@@ -121,7 +121,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
     }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
-        Ok(self.gen.subschema_for::<Option<Value>>())
+        Ok(self.generator.subschema_for::<Option<Value>>())
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
@@ -146,14 +146,14 @@ impl<'a> serde::Serializer for Serializer<'a> {
         }
 
         let mut schema = value.serialize(Serializer {
-            gen: self.gen,
+            generator: self.generator,
             include_title: false,
         })?;
 
-        if self.gen.settings().option_add_null_type {
+        if self.generator.settings().option_add_null_type {
             schema = match schema {
                 Schema::Bool(true) => Schema::Bool(true),
-                Schema::Bool(false) => <()>::json_schema(self.gen),
+                Schema::Bool(false) => <()>::json_schema(self.generator),
                 Schema::Object(SchemaObject {
                     instance_type: Some(ref mut instance_type),
                     ..
@@ -163,7 +163,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
                 }
                 schema => SchemaObject {
                     subschemas: Some(Box::new(SubschemaValidation {
-                        any_of: Some(vec![schema, <()>::json_schema(self.gen)]),
+                        any_of: Some(vec![schema, <()>::json_schema(self.generator)]),
                         ..Default::default()
                     })),
                     ..Default::default()
@@ -172,7 +172,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
             }
         }
 
-        if self.gen.settings().option_nullable {
+        if self.generator.settings().option_nullable {
             let mut schema_obj = schema.into_object();
             schema_obj
                 .extensions
@@ -184,7 +184,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
     }
 
     fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok, Self::Error> {
-        Ok(self.gen.subschema_for::<()>())
+        Ok(self.generator.subschema_for::<()>())
     }
 
     fn serialize_unit_variant(
@@ -231,14 +231,14 @@ impl<'a> serde::Serializer for Serializer<'a> {
 
     fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
         Ok(SerializeSeq {
-            gen: self.gen,
+            generator: self.generator,
             items: None,
         })
     }
 
     fn serialize_tuple(self, len: usize) -> Result<Self::SerializeTuple, Self::Error> {
         Ok(SerializeTuple {
-            gen: self.gen,
+            generator: self.generator,
             items: Vec::with_capacity(len),
             title: "",
         })
@@ -251,7 +251,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
     ) -> Result<Self::SerializeTupleStruct, Self::Error> {
         let title = if self.include_title { name } else { "" };
         Ok(SerializeTuple {
-            gen: self.gen,
+            generator: self.generator,
             items: Vec::with_capacity(len),
             title,
         })
@@ -269,7 +269,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
 
     fn serialize_map(self, _len: Option<usize>) -> Result<Self::SerializeMap, Self::Error> {
         Ok(SerializeMap {
-            gen: self.gen,
+            generator: self.generator,
             properties: Map::new(),
             current_key: None,
             title: "",
@@ -283,7 +283,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
     ) -> Result<Self::SerializeStruct, Self::Error> {
         let title = if self.include_title { name } else { "" };
         Ok(SerializeMap {
-            gen: self.gen,
+            generator: self.generator,
             properties: Map::new(),
             current_key: None,
             title,
@@ -347,7 +347,7 @@ impl serde::ser::SerializeSeq for SerializeSeq<'_> {
     {
         if self.items != Some(Schema::Bool(true)) {
             let schema = value.serialize(Serializer {
-                gen: self.gen,
+                generator: self.generator,
                 include_title: false,
             })?;
             match &self.items {
@@ -386,7 +386,7 @@ impl serde::ser::SerializeTuple for SerializeTuple<'_> {
         T: serde::Serialize,
     {
         let schema = value.serialize(Serializer {
-            gen: self.gen,
+            generator: self.generator,
             include_title: false,
         })?;
         self.items.push(schema);
@@ -456,7 +456,7 @@ impl serde::ser::SerializeMap for SerializeMap<'_> {
     {
         let key = self.current_key.take().unwrap_or_default();
         let schema = value.serialize(Serializer {
-            gen: self.gen,
+            generator: self.generator,
             include_title: false,
         })?;
         self.properties.insert(key, schema);
@@ -495,7 +495,7 @@ impl serde::ser::SerializeStruct for SerializeMap<'_> {
         T: serde::Serialize,
     {
         let prop_schema = value.serialize(Serializer {
-            gen: self.gen,
+            generator: self.generator,
             include_title: false,
         })?;
         self.properties.insert(key.to_string(), prop_schema);

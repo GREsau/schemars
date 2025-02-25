@@ -1,4 +1,4 @@
-use crate::gen::SchemaGenerator;
+use crate::r#gen::SchemaGenerator;
 use crate::schema::*;
 use crate::JsonSchema;
 use std::borrow::Cow;
@@ -17,13 +17,13 @@ macro_rules! nonzero_unsigned_impl {
                 Cow::Borrowed(stringify!(std::num::$type))
             }
 
-            fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            fn json_schema(generator: &mut SchemaGenerator) -> Schema {
                 let zero_schema: Schema = SchemaObject {
                     const_value: Some(0.into()),
                     ..Default::default()
                 }
                 .into();
-                let mut schema: SchemaObject = <$primitive>::json_schema(gen).into();
+                let mut schema: SchemaObject = <$primitive>::json_schema(generator).into();
                 schema.subschemas().not = Some(Box::from(zero_schema));
                 schema.into()
             }

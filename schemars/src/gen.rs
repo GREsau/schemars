@@ -108,13 +108,13 @@ impl SchemaSettings {
     ///
     /// # Example
     /// ```
-    /// use schemars::gen::{SchemaGenerator, SchemaSettings};
+    /// use schemars::r#gen::{SchemaGenerator, SchemaSettings};
     ///
     /// let settings = SchemaSettings::default().with(|s| {
     ///     s.option_nullable = true;
     ///     s.option_add_null_type = false;
     /// });
-    /// let gen = settings.into_generator();
+    /// let generator = settings.into_generator();
     /// ```
     pub fn with(mut self, configure_fn: impl FnOnce(&mut Self)) -> Self {
         configure_fn(&mut self);
@@ -137,15 +137,15 @@ impl SchemaSettings {
 ///
 /// # Example
 /// ```
-/// use schemars::{JsonSchema, gen::SchemaGenerator};
+/// use schemars::{JsonSchema, r#gen::SchemaGenerator};
 ///
 /// #[derive(JsonSchema)]
 /// struct MyStruct {
 ///     foo: i32,
 /// }
 ///
-/// let gen = SchemaGenerator::default();
-/// let schema = gen.into_root_schema_for::<MyStruct>();
+/// let generator = SchemaGenerator::default();
+/// let schema = generator.into_root_schema_for::<MyStruct>();
 /// ```
 #[derive(Debug, Default)]
 pub struct SchemaGenerator {
@@ -187,10 +187,10 @@ impl SchemaGenerator {
     ///
     /// # Example
     /// ```
-    /// use schemars::gen::SchemaGenerator;
+    /// use schemars::r#gen::SchemaGenerator;
     ///
-    /// let gen = SchemaGenerator::default();
-    /// let settings = gen.settings();
+    /// let generator = SchemaGenerator::default();
+    /// let settings = generator.settings();
     ///
     /// assert_eq!(settings.option_add_null_type, true);
     /// ```
@@ -352,7 +352,7 @@ impl SchemaGenerator {
     ) -> Result<RootSchema, serde_json::Error> {
         let mut schema = value
             .serialize(crate::ser::Serializer {
-                gen: self,
+                generator: self,
                 include_title: true,
             })?
             .into_object();
@@ -384,7 +384,7 @@ impl SchemaGenerator {
     ) -> Result<RootSchema, serde_json::Error> {
         let mut schema = value
             .serialize(crate::ser::Serializer {
-                gen: &mut self,
+                generator: &mut self,
                 include_title: true,
             })?
             .into_object();
@@ -413,23 +413,23 @@ impl SchemaGenerator {
     ///
     /// # Example
     /// ```
-    /// use schemars::{JsonSchema, gen::SchemaGenerator};
+    /// use schemars::{JsonSchema, r#gen::SchemaGenerator};
     ///
     /// #[derive(JsonSchema)]
     /// struct MyStruct {
     ///     foo: i32,
     /// }
     ///
-    /// let mut gen = SchemaGenerator::default();
-    /// let ref_schema = gen.subschema_for::<MyStruct>();
+    /// let mut generator = SchemaGenerator::default();
+    /// let ref_schema = generator.subschema_for::<MyStruct>();
     ///
     /// assert!(ref_schema.is_ref());
     ///
-    /// let dereferenced = gen.dereference(&ref_schema);
+    /// let dereferenced = generator.dereference(&ref_schema);
     ///
     /// assert!(dereferenced.is_some());
     /// assert!(!dereferenced.unwrap().is_ref());
-    /// assert_eq!(dereferenced, gen.definitions().get("MyStruct"));
+    /// assert_eq!(dereferenced, generator.definitions().get("MyStruct"));
     /// ```
     pub fn dereference<'a>(&'a self, schema: &Schema) -> Option<&'a Schema> {
         match schema {
@@ -451,28 +451,32 @@ impl SchemaGenerator {
 
     fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, id: Cow<'static, str>) -> Schema {
         struct PendingSchemaState<'a> {
-            gen: &'a mut SchemaGenerator,
+            generator: &'a mut SchemaGenerator,
             id: Cow<'static, str>,
             did_add: bool,
         }
 
         impl<'a> PendingSchemaState<'a> {
-            fn new(gen: &'a mut SchemaGenerator, id: Cow<'static, str>) -> Self {
-                let did_add = gen.pending_schema_ids.insert(id.clone());
-                Self { gen, id, did_add }
+            fn new(generator: &'a mut SchemaGenerator, id: Cow<'static, str>) -> Self {
+                let did_add = generator.pending_schema_ids.insert(id.clone());
+                Self {
+                    generator,
+                    id,
+                    did_add,
+                }
             }
         }
 
         impl Drop for PendingSchemaState<'_> {
             fn drop(&mut self) {
                 if self.did_add {
-                    self.gen.pending_schema_ids.remove(&self.id);
+                    self.generator.pending_schema_ids.remove(&self.id);
                 }
             }
         }
 
         let pss = PendingSchemaState::new(self, id);
-        T::json_schema(pss.gen)
+        T::json_schema(pss.generator)
     }
 }
 
@@ -487,7 +491,7 @@ impl SchemaGenerator {
 /// # Example
 /// ```
 /// use schemars::visit::Visitor;
-/// use schemars::gen::GenVisitor;
+/// use schemars::r#gen::GenVisitor;
 ///
 /// #[derive(Debug, Clone)]
 /// struct MyVisitor;

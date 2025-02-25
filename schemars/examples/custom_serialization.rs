@@ -1,5 +1,5 @@
 use schemars::schema::{Schema, SchemaObject};
-use schemars::{gen::SchemaGenerator, schema_for, JsonSchema};
+use schemars::{r#gen::SchemaGenerator, schema_for, JsonSchema};
 use serde::{Deserialize, Serialize};
 
 // `int_as_string` and `bool_as_string` use the schema for `String`.
@@ -20,8 +20,8 @@ pub struct MyStruct {
     pub bool_normal: bool,
 }
 
-fn make_custom_schema(gen: &mut SchemaGenerator) -> Schema {
-    let mut schema: SchemaObject = <String>::json_schema(gen).into();
+fn make_custom_schema(generator: &mut SchemaGenerator) -> Schema {
+    let mut schema: SchemaObject = <String>::json_schema(generator).into();
     schema.format = Some("boolean".to_owned());
     schema.into()
 }

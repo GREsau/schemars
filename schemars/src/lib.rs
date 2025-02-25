@@ -35,9 +35,12 @@ mod macros;
 /// outside of `schemars`, and should not be considered part of the public API.
 #[doc(hidden)]
 pub mod _private;
-pub mod gen;
+
+pub mod r#gen;
 pub mod schema;
 pub mod visit;
+
+pub use r#gen::SchemaGenerator;
 
 #[cfg(feature = "schemars_derive")]
 extern crate schemars_derive;
@@ -75,7 +78,7 @@ use schema::Schema;
 /// you will need to determine an appropriate name and ID for the type.
 /// For non-generic types, the type name/path are suitable for this:
 /// ```
-/// use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+/// use schemars::{r#gen::SchemaGenerator, schema::Schema, JsonSchema};
 /// use std::borrow::Cow;
 ///
 /// struct NonGenericType;
@@ -91,7 +94,7 @@ use schema::Schema;
 ///         Cow::Borrowed(concat!(module_path!(), "::NonGenericType"))
 ///     }
 ///
-///     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
+///     fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
 ///         todo!()
 ///     }
 /// }
@@ -101,7 +104,7 @@ use schema::Schema;
 ///
 /// But generic type parameters which may affect the generated schema should typically be included in the name/ID:
 /// ```
-/// use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+/// use schemars::{r#gen::SchemaGenerator, schema::Schema, JsonSchema};
 /// use std::{borrow::Cow, marker::PhantomData};
 ///
 /// struct GenericType<T>(PhantomData<T>);
@@ -119,7 +122,7 @@ use schema::Schema;
 ///         ))
 ///     }
 ///
-///     fn json_schema(_gen: &mut SchemaGenerator) -> Schema {
+///     fn json_schema(_generator: &mut SchemaGenerator) -> Schema {
 ///         todo!()
 ///     }
 /// }
@@ -127,7 +130,6 @@ use schema::Schema;
 /// assert_eq!(<GenericType<i32>>::schema_id(), <&mut GenericType<&i32>>::schema_id());
 /// ```
 ///
-
 pub trait JsonSchema {
     /// Whether JSON Schemas generated for this type should be re-used where possible using the `$ref` keyword.
     ///
@@ -158,15 +160,15 @@ pub trait JsonSchema {
     /// Generates a JSON Schema for this type.
     ///
     /// If the returned schema depends on any [referenceable](JsonSchema::is_referenceable) schemas, then this method will
-    /// add them to the [`SchemaGenerator`](gen::SchemaGenerator)'s schema definitions.
+    /// add them to the [`SchemaGenerator`](r#gen::SchemaGenerator)'s schema definitions.
     ///
     /// This should not return a `$ref` schema.
-    fn json_schema(gen: &mut gen::SchemaGenerator) -> Schema;
+    fn json_schema(generator: &mut r#gen::SchemaGenerator) -> Schema;
 
     // TODO document and bring into public API?
     #[doc(hidden)]
-    fn _schemars_private_non_optional_json_schema(gen: &mut gen::SchemaGenerator) -> Schema {
-        Self::json_schema(gen)
+    fn _schemars_private_non_optional_json_schema(generator: &mut r#gen::SchemaGenerator) -> Schema {
+        Self::json_schema(generator)
     }
 
     // TODO document and bring into public API?
@@ -185,8 +187,8 @@ pub mod tests {
     }
 
     pub fn schema_for<T: JsonSchema>() -> schema::Schema {
-        let mut gen = gen::SchemaGenerator::default();
-        T::json_schema(&mut gen)
+        let mut generator = r#gen::SchemaGenerator::default();
+        T::json_schema(&mut generator)
     }
 
     pub fn schema_object(schema: schema::Schema) -> schema::SchemaObject {
