@@ -25,6 +25,9 @@
           "type": "object",
           "additionalProperties": {
             "type": "string"
+          },
+          "propertyNames": {
+            "type": "string"
           }
         }
       },
