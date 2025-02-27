@@ -13,27 +13,29 @@ To make a transform recursive (i.e. apply it to subschemas), you have two option
 To add a custom property to all object schemas:
 
 ```
-# use schemars::{Schema, json_schema};
+# use schemars::{Schema, json_schema, SchemaGenerator};
 use schemars::transform::{Transform, transform_subschemas};
 
 pub struct MyTransform;
 
 impl Transform for MyTransform {
-    fn transform(&mut self, schema: &mut Schema) {
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
         // First, make our change to this schema
         schema.insert("my_property".to_string(), "hello world".into());
 
         // Then apply the transform to any subschemas
-        transform_subschemas(self, schema);
+        transform_subschemas(self, schema, generator);
     }
 }
+
+let mut generator = SchemaGenerator::default();
 
 let mut schema = json_schema!({
     "type": "array",
     "items": {}
 });
 
-MyTransform.transform(&mut schema);
+MyTransform.transform(&mut schema, &mut generator);
 
 assert_eq!(
     schema,
@@ -49,21 +51,23 @@ assert_eq!(
 
 The same example with a `fn` transform:
 ```
-# use schemars::{Schema, json_schema};
+# use schemars::{Schema, json_schema, SchemaGenerator};
 use schemars::transform::transform_subschemas;
 
-fn add_property(schema: &mut Schema) {
+fn add_property(schema: &mut Schema, generator: &mut SchemaGenerator) {
     schema.insert("my_property".to_string(), "hello world".into());
 
-    transform_subschemas(&mut add_property, schema)
+    transform_subschemas(&mut add_property, schema, generator)
 }
+
+let mut generator = SchemaGenerator::default();
 
 let mut schema = json_schema!({
     "type": "array",
     "items": {}
 });
 
-add_property(&mut schema);
+add_property(&mut schema, &mut generator);
 
 assert_eq!(
     schema,
@@ -79,10 +83,10 @@ assert_eq!(
 
 And the same example using a closure wrapped in a `RecursiveTransform`:
 ```
-# use schemars::{Schema, json_schema};
+# use schemars::{Schema, json_schema, SchemaGenerator};
 use schemars::transform::{Transform, RecursiveTransform};
 
-let mut transform = RecursiveTransform(|schema: &mut Schema| {
+let mut transform = RecursiveTransform(|schema: &mut Schema, _: &mut SchemaGenerator| {
     schema.insert("my_property".to_string(), "hello world".into());
 });
 
@@ -91,7 +95,9 @@ let mut schema = json_schema!({
     "items": {}
 });
 
-transform.transform(&mut schema);
+let mut generator = SchemaGenerator::default();
+
+transform.transform(&mut schema, &mut generator);
 
 assert_eq!(
     schema,
@@ -106,8 +112,8 @@ assert_eq!(
 ```
 
 */
-use crate::Schema;
 use crate::_alloc_prelude::*;
+use crate::{Schema, SchemaGenerator};
 use alloc::collections::BTreeSet;
 use serde_json::{json, Map, Value};
 
@@ -119,7 +125,7 @@ pub trait Transform {
     ///
     /// When overriding this method, you may want to call the [`transform_subschemas`] function to
     /// also transform any subschemas.
-    fn transform(&mut self, schema: &mut Schema);
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator);
 
     // Not public API
     // Hack to enable implementing Debug on Box<dyn GenTransform> even though closures don't
@@ -132,15 +138,19 @@ pub trait Transform {
 
 impl<F> Transform for F
 where
-    F: FnMut(&mut Schema),
+    F: FnMut(&mut Schema, &mut SchemaGenerator),
 {
-    fn transform(&mut self, schema: &mut Schema) {
-        self(schema);
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
+        self(schema, generator);
     }
 }
 
 /// Applies the given [`Transform`] to all direct subschemas of the [`Schema`].
-pub fn transform_subschemas<T: Transform + ?Sized>(t: &mut T, schema: &mut Schema) {
+pub fn transform_subschemas<T: Transform + ?Sized>(
+    t: &mut T,
+    schema: &mut Schema,
+    generator: &mut SchemaGenerator,
+) {
     for (key, value) in schema.as_object_mut().into_iter().flatten() {
         // This is intentionally written to work with multiple JSON Schema versions, so that
         // users can add their own transforms on the end of e.g. `SchemaSettings::draft07()` and
@@ -157,14 +167,14 @@ pub fn transform_subschemas<T: Transform + ?Sized>(t: &mut T, schema: &mut Schem
             | "propertyNames"
             | "additionalItems" => {
                 if let Ok(subschema) = value.try_into() {
-                    t.transform(subschema);
+                    t.transform(subschema, generator);
                 }
             }
             "allOf" | "anyOf" | "oneOf" | "prefixItems" => {
                 if let Some(array) = value.as_array_mut() {
                     for value in array {
                         if let Ok(subschema) = value.try_into() {
-                            t.transform(subschema);
+                            t.transform(subschema, generator);
                         }
                     }
                 }
@@ -175,18 +185,18 @@ pub fn transform_subschemas<T: Transform + ?Sized>(t: &mut T, schema: &mut Schem
                 if let Some(array) = value.as_array_mut() {
                     for value in array {
                         if let Ok(subschema) = value.try_into() {
-                            t.transform(subschema);
+                            t.transform(subschema, generator);
                         }
                     }
                 } else if let Ok(subschema) = value.try_into() {
-                    t.transform(subschema);
+                    t.transform(subschema, generator);
                 }
             }
             "properties" | "patternProperties" | "$defs" | "definitions" => {
                 if let Some(obj) = value.as_object_mut() {
                     for value in obj.values_mut() {
                         if let Ok(subschema) = value.try_into() {
-                            t.transform(subschema);
+                            t.transform(subschema, generator);
                         }
                     }
                 }
@@ -201,19 +211,20 @@ pub fn transform_subschemas<T: Transform + ?Sized>(t: &mut T, schema: &mut Schem
 pub(crate) fn transform_immediate_subschemas<T: Transform + ?Sized>(
     t: &mut T,
     schema: &mut Schema,
+    generator: &mut SchemaGenerator,
 ) {
     for (key, value) in schema.as_object_mut().into_iter().flatten() {
         match key.as_str() {
             "if" | "then" | "else" => {
                 if let Ok(subschema) = value.try_into() {
-                    t.transform(subschema);
+                    t.transform(subschema, generator);
                 }
             }
             "allOf" | "anyOf" | "oneOf" => {
                 if let Some(array) = value.as_array_mut() {
                     for value in array {
                         if let Ok(subschema) = value.try_into() {
-                            t.transform(subschema);
+                            t.transform(subschema, generator);
                         }
                     }
                 }
@@ -231,19 +242,21 @@ pub(crate) fn transform_immediate_subschemas<T: Transform + ?Sized>(
 ///
 /// # Example
 /// ```
-/// # use schemars::{Schema, json_schema};
+/// # use schemars::{Schema, json_schema, SchemaGenerator};
 /// use schemars::transform::{Transform, RecursiveTransform};
 ///
-/// let mut transform = RecursiveTransform(|schema: &mut Schema| {
+/// let mut transform = RecursiveTransform(|schema: &mut Schema, _: &mut SchemaGenerator| {
 ///     schema.insert("my_property".to_string(), "hello world".into());
 /// });
+///
+/// let mut generator = SchemaGenerator::default();
 ///
 /// let mut schema = json_schema!({
 ///     "type": "array",
 ///     "items": {}
 /// });
 ///
-/// transform.transform(&mut schema);
+/// transform.transform(&mut schema, &mut generator);
 ///
 /// assert_eq!(
 ///     schema,
@@ -263,9 +276,9 @@ impl<T> Transform for RecursiveTransform<T>
 where
     T: Transform,
 {
-    fn transform(&mut self, schema: &mut Schema) {
-        self.0.transform(schema);
-        transform_subschemas(self, schema);
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
+        self.0.transform(schema, generator);
+        transform_subschemas(self, schema, generator);
     }
 }
 
@@ -282,11 +295,11 @@ pub struct ReplaceBoolSchemas {
 }
 
 impl Transform for ReplaceBoolSchemas {
-    fn transform(&mut self, schema: &mut Schema) {
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
         if let Some(obj) = schema.as_object_mut() {
             if self.skip_additional_properties {
                 if let Some((ap_key, ap_value)) = obj.remove_entry("additionalProperties") {
-                    transform_subschemas(self, schema);
+                    transform_subschemas(self, schema, generator);
 
                     schema.insert(ap_key, ap_value);
 
@@ -294,7 +307,7 @@ impl Transform for ReplaceBoolSchemas {
                 }
             }
 
-            transform_subschemas(self, schema);
+            transform_subschemas(self, schema, generator);
         } else {
             schema.ensure_object();
         }
@@ -310,8 +323,8 @@ impl Transform for ReplaceBoolSchemas {
 pub struct RemoveRefSiblings;
 
 impl Transform for RemoveRefSiblings {
-    fn transform(&mut self, schema: &mut Schema) {
-        transform_subschemas(self, schema);
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
+        transform_subschemas(self, schema, generator);
 
         if let Some(obj) = schema.as_object_mut().filter(|o| o.len() > 1) {
             if let Some(ref_value) = obj.remove("$ref") {
@@ -335,8 +348,8 @@ impl Transform for RemoveRefSiblings {
 pub struct SetSingleExample;
 
 impl Transform for SetSingleExample {
-    fn transform(&mut self, schema: &mut Schema) {
-        transform_subschemas(self, schema);
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
+        transform_subschemas(self, schema, generator);
 
         if let Some(Value::Array(examples)) = schema.remove("examples") {
             if let Some(first_example) = examples.into_iter().next() {
@@ -355,8 +368,8 @@ impl Transform for SetSingleExample {
 pub struct ReplaceConstValue;
 
 impl Transform for ReplaceConstValue {
-    fn transform(&mut self, schema: &mut Schema) {
-        transform_subschemas(self, schema);
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
+        transform_subschemas(self, schema, generator);
 
         if let Some(value) = schema.remove("const") {
             schema.insert("enum".into(), Value::Array(vec![value]));
@@ -376,8 +389,8 @@ impl Transform for ReplaceConstValue {
 pub struct ReplacePrefixItems;
 
 impl Transform for ReplacePrefixItems {
-    fn transform(&mut self, schema: &mut Schema) {
-        transform_subschemas(self, schema);
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
+        transform_subschemas(self, schema, generator);
 
         if let Some(prefix_items) = schema.remove("prefixItems") {
             let previous_items = schema.insert("items".to_owned(), prefix_items);
@@ -399,8 +412,8 @@ impl Transform for ReplacePrefixItems {
 pub struct ReplaceUnevaluatedProperties;
 
 impl Transform for ReplaceUnevaluatedProperties {
-    fn transform(&mut self, schema: &mut Schema) {
-        transform_subschemas(self, schema);
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
+        transform_subschemas(self, schema, generator);
 
         let Some(up) = schema.remove("unevaluatedProperties") else {
             return;
@@ -409,7 +422,7 @@ impl Transform for ReplaceUnevaluatedProperties {
         schema.insert("additionalProperties".to_owned(), up);
 
         let mut gather_property_names = GatherPropertyNames::default();
-        gather_property_names.transform(schema);
+        gather_property_names.transform(schema, generator);
         let property_names = gather_property_names.0;
 
         if property_names.is_empty() {
@@ -434,7 +447,7 @@ impl Transform for ReplaceUnevaluatedProperties {
 struct GatherPropertyNames(BTreeSet<String>);
 
 impl Transform for GatherPropertyNames {
-    fn transform(&mut self, schema: &mut Schema) {
+    fn transform(&mut self, schema: &mut Schema, generator: &mut SchemaGenerator) {
         self.0.extend(
             schema
                 .as_object()
@@ -445,6 +458,6 @@ impl Transform for GatherPropertyNames {
                 .cloned(),
         );
 
-        transform_immediate_subschemas(self, schema);
+        transform_immediate_subschemas(self, schema, generator);
     }
 }

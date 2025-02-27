@@ -17,7 +17,7 @@ struct Struct {
 
 #[test]
 fn extend_struct() {
-    test!(Struct).assert_snapshot().custom(|schema, _| {
+    test!(Struct).assert_snapshot().custom(|schema, _, _| {
         assert_eq!(schema.get("obj"), Some(&json!({ "array": [null, null] })));
         assert_eq!(schema.get("3"), Some(&json!(3.0)));
         assert_eq!(schema.get("pi"), Some(&json!(3.14)));
@@ -43,7 +43,7 @@ struct TupleStruct(
 
 #[test]
 fn extend_tuple_struct() {
-    test!(TupleStruct).assert_snapshot().custom(|schema, _| {
+    test!(TupleStruct).assert_snapshot().custom(|schema, _, _| {
         assert_eq!(schema.get("obj"), Some(&json!({ "array": [null, null] })));
         assert_eq!(schema.get("3"), Some(&json!(3.0)));
         assert_eq!(schema.get("pi"), Some(&json!(3.14)));
@@ -74,16 +74,18 @@ enum ExternalEnum {
 
 #[test]
 fn extend_externally_tagged_enum() {
-    test!(ExternalEnum).assert_snapshot().custom(|schema, _| {
-        assert_eq!(schema.get("foo"), Some(&json!("bar")));
+    test!(ExternalEnum)
+        .assert_snapshot()
+        .custom(|schema, _, _| {
+            assert_eq!(schema.get("foo"), Some(&json!("bar")));
 
-        for i in 0..4 {
-            assert_eq!(
-                schema.as_value().pointer(&format!("/oneOf/{i}/foo")),
-                Some(&json!("bar"))
-            );
-        }
-    });
+            for i in 0..4 {
+                assert_eq!(
+                    schema.as_value().pointer(&format!("/oneOf/{i}/foo")),
+                    Some(&json!("bar"))
+                );
+            }
+        });
 }
 
 #[allow(dead_code)]
@@ -100,16 +102,18 @@ enum InternalEnum {
 
 #[test]
 fn extend_internally_tagged_enum() {
-    test!(InternalEnum).assert_snapshot().custom(|schema, _| {
-        assert_eq!(schema.get("foo"), Some(&json!("bar")));
+    test!(InternalEnum)
+        .assert_snapshot()
+        .custom(|schema, _, _| {
+            assert_eq!(schema.get("foo"), Some(&json!("bar")));
 
-        for i in 0..3 {
-            assert_eq!(
-                schema.as_value().pointer(&format!("/oneOf/{i}/foo")),
-                Some(&json!("bar"))
-            );
-        }
-    });
+            for i in 0..3 {
+                assert_eq!(
+                    schema.as_value().pointer(&format!("/oneOf/{i}/foo")),
+                    Some(&json!("bar"))
+                );
+            }
+        });
 }
 
 #[allow(dead_code)]
@@ -128,16 +132,18 @@ enum AdjacentEnum {
 
 #[test]
 fn extend_adjacently_tagged_enum() {
-    test!(AdjacentEnum).assert_snapshot().custom(|schema, _| {
-        assert_eq!(schema.get("foo"), Some(&json!("bar")));
+    test!(AdjacentEnum)
+        .assert_snapshot()
+        .custom(|schema, _, _| {
+            assert_eq!(schema.get("foo"), Some(&json!("bar")));
 
-        for i in 0..4 {
-            assert_eq!(
-                schema.as_value().pointer(&format!("/oneOf/{i}/foo")),
-                Some(&json!("bar"))
-            );
-        }
-    });
+            for i in 0..4 {
+                assert_eq!(
+                    schema.as_value().pointer(&format!("/oneOf/{i}/foo")),
+                    Some(&json!("bar"))
+                );
+            }
+        });
 }
 
 #[allow(dead_code)]
@@ -156,14 +162,16 @@ enum UntaggedEnum {
 
 #[test]
 fn extend_untagged_enum() {
-    test!(UntaggedEnum).assert_snapshot().custom(|schema, _| {
-        assert_eq!(schema.get("foo"), Some(&json!("bar")));
+    test!(UntaggedEnum)
+        .assert_snapshot()
+        .custom(|schema, _, _| {
+            assert_eq!(schema.get("foo"), Some(&json!("bar")));
 
-        for i in 0..4 {
-            assert_eq!(
-                schema.as_value().pointer(&format!("/anyOf/{i}/foo")),
-                Some(&json!("bar"))
-            );
-        }
-    });
+            for i in 0..4 {
+                assert_eq!(
+                    schema.as_value().pointer(&format!("/anyOf/{i}/foo")),
+                    Some(&json!("bar"))
+                );
+            }
+        });
 }

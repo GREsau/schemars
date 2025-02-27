@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use schemars::{generate::SchemaSettings, Schema};
+use schemars::{generate::SchemaSettings, Schema, SchemaGenerator};
 
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
 pub struct OuterStruct {
@@ -53,16 +53,18 @@ fn openapi3() {
     // First, move them to $defs, then run the transforms, then move them back again.
     settings.transforms.insert(
         0,
-        Box::new(|s: &mut Schema| {
+        Box::new(|s: &mut Schema, _: &mut SchemaGenerator| {
             let obj = s.ensure_object();
             let defs = obj["components"]["schemas"].take();
             obj.insert("$defs".to_owned(), defs);
         }),
     );
-    settings.transforms.push(Box::new(|s: &mut Schema| {
-        let obj = s.ensure_object();
-        obj["components"]["schemas"] = obj.remove("$defs").unwrap();
-    }));
+    settings
+        .transforms
+        .push(Box::new(|s: &mut Schema, _: &mut SchemaGenerator| {
+            let obj = s.ensure_object();
+            obj["components"]["schemas"] = obj.remove("$defs").unwrap();
+        }));
 
     test!(OuterStruct, settings).assert_snapshot();
 }
