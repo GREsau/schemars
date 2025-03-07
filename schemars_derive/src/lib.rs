@@ -178,6 +178,8 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
         schema_exprs::expr_for_container(&cont)
     };
 
+    let always_inline = cont.attrs.always_inline;
+
     Ok(quote! {
         const _: () = {
             #crate_alias
@@ -195,6 +197,10 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
 
                 fn json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
                     #schema_expr
+                }
+
+                fn always_inline_schema() -> bool {
+                    #always_inline
                 }
             };
         };

@@ -39,6 +39,7 @@ pub struct ContainerAttrs {
     pub repr: Option<Type>,
     pub crate_name: Option<Path>,
     pub is_renamed: bool,
+    pub always_inline: bool,
 }
 
 #[derive(Debug, Default)]
@@ -298,6 +299,8 @@ impl ContainerAttrs {
 
             // The actual parsing of `rename` is done by serde
             "rename" => self.is_renamed = true,
+
+            "always_inline" => self.always_inline = true,
 
             _ => return Some(meta),
         };
