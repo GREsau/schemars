@@ -69,6 +69,8 @@ enum Internal {
     // Internally-tagged enums don't support tuple variants
     //  Tuple(i32, bool),
     UnitTwo,
+    #[serde(untagged)]
+    Inner(InnerInternal),
     // Internally-tagged enum variants don't support non-object "payloads"
     //  #[serde(with = "unit_variant_as_u64")]
     //  #[schemars(with = "u64")]
@@ -77,6 +79,13 @@ enum Internal {
     //  #[serde(with = "tuple_variant_as_str")]
     //  #[schemars(schema_with = "tuple_variant_as_str::json_schema")]
     //  TupleAsStr(i32, bool),
+}
+
+#[derive(JsonSchema, Deserialize, Serialize)]
+#[serde(tag = "tag")]
+enum InnerInternal {
+    UnitInnerOne,
+    UnitInnerTwo,
 }
 
 impl Internal {
@@ -99,6 +108,7 @@ impl Internal {
             },
             // Self::Tuple(456, false),
             Self::UnitTwo,
+            Self::Inner(InnerInternal::UnitInnerOne),
             // Self::UnitAsInt,
             // Self::TupleAsStr(789, true),
         ]

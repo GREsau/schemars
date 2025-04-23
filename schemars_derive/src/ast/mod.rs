@@ -83,6 +83,10 @@ impl Variant<'_> {
             action,
         )
     }
+    
+    pub fn is_untagged(&self) -> bool {
+        self.serde_attrs.untagged()
+    }
 }
 
 impl Field<'_> {
