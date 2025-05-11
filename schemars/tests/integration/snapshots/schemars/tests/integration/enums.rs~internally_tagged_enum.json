@@ -86,6 +86,9 @@
       "required": [
         "tag"
       ]
+    },
+    {
+      "$ref": "#/$defs/InnerInternal"
     }
   ],
   "$defs": {
@@ -103,6 +106,34 @@
       "required": [
         "foo",
         "bar"
+      ]
+    },
+    "InnerInternal": {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "const": "UnitInnerOne"
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tag": {
+              "type": "string",
+              "const": "UnitInnerTwo"
+            }
+          },
+          "required": [
+            "tag"
+          ]
+        }
       ]
     }
   }

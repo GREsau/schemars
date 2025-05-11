@@ -268,12 +268,17 @@ fn expr_for_internal_tagged_enum<'a>(
     let variant_schemas = variants
         .map(|variant| {
 
-            let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
+            let mut schema_expr = if variant.is_untagged() {
+                expr_for_untagged_enum_variant(variant, deny_unknown_fields)
+            } else {
+                let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
 
-            let name = variant.name();
-            schema_expr.mutators.push(quote!(
-                schemars::_private::apply_internal_enum_variant_tag(&mut #SCHEMA, #tag_name, #name, #deny_unknown_fields);
-            ));
+                let name = variant.name();
+                schema_expr.mutators.push(quote!(
+                    schemars::_private::apply_internal_enum_variant_tag(&mut #SCHEMA, #tag_name, #name, #deny_unknown_fields);
+                ));
+                schema_expr
+            };
 
             variant.add_mutators(&mut schema_expr.mutators);
 
