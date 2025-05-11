@@ -6,6 +6,7 @@ macro_rules! map_impl {
     ($($desc:tt)+) => {
         impl $($desc)+
         where
+            K: JsonSchema,
             V: JsonSchema,
         {
             always_inline!();
@@ -22,6 +23,7 @@ macro_rules! map_impl {
                 json_schema!({
                     "type": "object",
                     "additionalProperties": generator.subschema_for::<V>(),
+                    "propertyNames": generator.subschema_for::<K>(),
                 })
             }
         }
