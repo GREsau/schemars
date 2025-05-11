@@ -1,5 +1,5 @@
-{% capture input %}examples/{{ include.name }}.rs{% endcapture %}
-{% capture output %}examples/{{ include.name }}.schema.json{% endcapture %}
+{% capture input %}examples_v0/{{ include.name }}.rs{% endcapture %}
+{% capture output %}examples_v0/{{ include.name }}.schema.json{% endcapture %}
 
 ```rust
 {% include {{ input }} %}
@@ -11,4 +11,5 @@
 ```json
 {% include {{ output }} -%}
 ```
+
 </details>
