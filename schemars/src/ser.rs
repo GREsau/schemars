@@ -167,7 +167,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
             schema
                 .ensure_object()
                 .insert("nullable".into(), true.into());
-        };
+        }
 
         Ok(schema)
     }

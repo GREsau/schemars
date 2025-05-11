@@ -57,7 +57,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
             schema
                 .ensure_object()
                 .insert("nullable".into(), true.into());
-        };
+        }
 
         schema
     }

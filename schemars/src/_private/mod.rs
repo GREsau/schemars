@@ -279,7 +279,7 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
                     _ => {
                         // leave the original value as it is (don't modify `schema`)
                     }
-                };
+                }
             }
         }
     }
