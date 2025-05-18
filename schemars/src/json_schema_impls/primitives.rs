@@ -37,13 +37,34 @@ macro_rules! simple_impl {
     };
 }
 
+macro_rules! ranged_impl {
+    ($type:ty => $instance_type:literal, $format:literal) => {
+        impl JsonSchema for $type {
+            always_inline!();
+
+            fn schema_name() -> Cow<'static, str> {
+                $format.into()
+            }
+
+            fn json_schema(_: &mut SchemaGenerator) -> Schema {
+                json_schema!({
+                    "type": $instance_type,
+                    "format": $format,
+                    "minimum": <$type>::MIN,
+                    "maximum": <$type>::MAX
+                })
+            }
+        }
+    };
+}
+
 simple_impl!(str => "string");
 simple_impl!(String => "string");
 simple_impl!(bool => "boolean");
 simple_impl!(f32 => "number", "float");
 simple_impl!(f64 => "number", "double");
-simple_impl!(i8 => "integer", "int8");
-simple_impl!(i16 => "integer", "int16");
+ranged_impl!(i8 => "integer", "int8");
+ranged_impl!(i16 => "integer", "int16");
 simple_impl!(i32 => "integer", "int32");
 simple_impl!(i64 => "integer", "int64");
 simple_impl!(i128 => "integer", "int128");
@@ -88,8 +109,8 @@ macro_rules! unsigned_impl {
     };
 }
 
-unsigned_impl!(u8 => "integer", "uint8");
-unsigned_impl!(u16 => "integer", "uint16");
+ranged_impl!(u8 => "integer", "uint8");
+ranged_impl!(u16 => "integer", "uint16");
 unsigned_impl!(u32 => "integer", "uint32");
 unsigned_impl!(u64 => "integer", "uint64");
 unsigned_impl!(u128 => "integer", "uint128");
