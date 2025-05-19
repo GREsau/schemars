@@ -1,4 +1,5 @@
 use crate::_alloc_prelude::*;
+use crate::_private::contains_immediate_subschema;
 use crate::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use core::fmt::Display;
 use serde_json::{Error, Map, Value};
@@ -113,7 +114,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
     }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
-        Ok(self.generator.subschema_for::<Option<Value>>())
+        Ok(self.generator.subschema_for::<Value>())
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
@@ -124,52 +125,48 @@ impl<'a> serde::Serializer for Serializer<'a> {
     where
         T: serde::Serialize + ?Sized,
     {
-        let mut schema = value.serialize(Serializer {
+        let inner_schema = value.serialize(Serializer {
             generator: self.generator,
             include_title: false,
         })?;
 
-        if self.generator.settings().option_add_null_type {
-            schema = match schema.try_to_object() {
-                Ok(mut obj) => {
-                    let value = obj.get_mut("type");
-                    match value {
-                        Some(Value::Array(array)) => {
-                            let null = Value::from("null");
-                            if !array.contains(&null) {
-                                array.push(null);
-                            }
+        // TODO remove duplication with core.rs
+
+        Ok(match inner_schema.try_to_object() {
+            Ok(mut obj) => {
+                let value = obj.get_mut("type");
+                match value {
+                    Some(Value::Array(array)) => {
+                        let null = Value::from("null");
+                        if !array.contains(&null) {
+                            array.push(null);
+                        }
+                        obj.into()
+                    }
+                    Some(Value::String(string)) => {
+                        if string != "null" {
+                            *value.unwrap() =
+                                Value::Array(vec![core::mem::take(string).into(), "null".into()]);
+                        }
+                        obj.into()
+                    }
+                    _ => {
+                        if contains_immediate_subschema(&obj) {
+                            json_schema!({
+                                "anyOf": [
+                                    obj,
+                                    <()>::json_schema(self.generator)
+                                ]
+                            })
+                        } else {
                             obj.into()
                         }
-                        Some(Value::String(string)) => {
-                            if string != "null" {
-                                *value.unwrap() = Value::Array(vec![
-                                    core::mem::take(string).into(),
-                                    "null".into(),
-                                ]);
-                            }
-                            obj.into()
-                        }
-                        _ => json_schema!({
-                            "anyOf": [
-                                obj,
-                                <()>::json_schema(self.generator)
-                            ]
-                        }),
                     }
                 }
-                Err(true) => true.into(),
-                Err(false) => <()>::json_schema(self.generator),
             }
-        }
-
-        if self.generator.settings().option_nullable {
-            schema
-                .ensure_object()
-                .insert("nullable".into(), true.into());
-        }
-
-        Ok(schema)
+            Err(true) => true.into(),
+            Err(false) => <()>::json_schema(self.generator),
+        })
     }
 
     fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok, Self::Error> {

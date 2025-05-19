@@ -1,5 +1,6 @@
 use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
+use crate::_private::contains_immediate_subschema;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 use core::ops::{Bound, Range, RangeInclusive};
@@ -17,49 +18,47 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
     }
 
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {
-        let mut schema = generator.subschema_for::<T>();
+        let inner_schema = generator.subschema_for::<T>();
 
-        if generator.settings().option_add_null_type {
-            schema = match schema.try_to_object() {
-                Ok(mut obj) => {
-                    let instance_type = obj.get_mut("type");
-                    match instance_type {
-                        Some(Value::Array(array)) => {
-                            let null = Value::from("null");
-                            if !array.contains(&null) {
-                                array.push(null);
-                            }
+        match inner_schema.try_to_object() {
+            Ok(mut obj) => {
+                let instance_type = obj.get_mut("type");
+
+                match instance_type {
+                    Some(Value::Array(array)) => {
+                        let null = Value::from("null");
+                        if !array.contains(&null) {
+                            array.push(null);
+                        }
+                        obj.into()
+                    }
+                    Some(Value::String(string)) => {
+                        if string != "null" {
+                            let current_type = core::mem::take(string).into();
+                            *instance_type.unwrap() =
+                                Value::Array(vec![current_type, "null".into()]);
+                        }
+                        obj.into()
+                    }
+                    _ => {
+                        if contains_immediate_subschema(&obj) {
+                            json_schema!({
+                                "anyOf": [
+                                    obj,
+                                    <()>::json_schema(generator)
+                                ]
+                            })
+                        } else {
                             obj.into()
                         }
-                        Some(Value::String(string)) => {
-                            if string != "null" {
-                                *instance_type.unwrap() = Value::Array(vec![
-                                    core::mem::take(string).into(),
-                                    "null".into(),
-                                ]);
-                            }
-                            obj.into()
-                        }
-                        _ => json_schema!({
-                            "anyOf": [
-                                obj,
-                                <()>::json_schema(generator)
-                            ]
-                        }),
                     }
                 }
-                Err(true) => true.into(),
-                Err(false) => <()>::json_schema(generator),
             }
+            Err(true) => true.into(),
+            Err(false) => <()>::json_schema(generator),
         }
 
-        if generator.settings().option_nullable {
-            schema
-                .ensure_object()
-                .insert("nullable".into(), true.into());
-        }
-
-        schema
+        // TODO update other keywords (e.g. `enum`/`const`) to allow null
     }
 
     fn _schemars_private_non_optional_json_schema(generator: &mut SchemaGenerator) -> Schema {

@@ -274,7 +274,8 @@ where
 ///
 /// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support booleans as
 /// schemas.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
+#[non_exhaustive]
 pub struct ReplaceBoolSchemas {
     /// When set to `true`, a schema's `additionalProperties` property will not be changed from a
     /// boolean.
@@ -306,7 +307,8 @@ impl Transform for ReplaceBoolSchemas {
 ///
 /// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support other properties
 /// alongside `$ref`.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
+#[non_exhaustive]
 pub struct RemoveRefSiblings;
 
 impl Transform for RemoveRefSiblings {
@@ -331,7 +333,8 @@ impl Transform for RemoveRefSiblings {
 ///
 /// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support the `examples`
 /// property.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
+#[non_exhaustive]
 pub struct SetSingleExample;
 
 impl Transform for SetSingleExample {
@@ -351,7 +354,8 @@ impl Transform for SetSingleExample {
 ///
 /// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support the `const`
 /// property.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
+#[non_exhaustive]
 pub struct ReplaceConstValue;
 
 impl Transform for ReplaceConstValue {
@@ -372,7 +376,8 @@ impl Transform for ReplaceConstValue {
 ///
 /// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support the `prefixItems`
 /// property.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
+#[non_exhaustive]
 pub struct ReplacePrefixItems;
 
 impl Transform for ReplacePrefixItems {
@@ -389,13 +394,77 @@ impl Transform for ReplacePrefixItems {
     }
 }
 
+/// Adds a `"nullable": true` property to schemas that allow `null` types.
+/// This also applies to subschemas.
+///
+/// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that use `nullable` instead of
+/// explicit null types.
+#[derive(Debug, Clone)]
+#[non_exhaustive]
+pub struct AddNullable {
+    /// When set to `true`, `"null"` will also be removed from the schemas `type`.
+    pub remove_null_type: bool,
+    /// When set to `true`, a schema that has a type only allowing `null` will also have the
+    /// equivalent `"const": null` inserted.
+    pub add_const_null: bool,
+}
+
+impl Default for AddNullable {
+    fn default() -> Self {
+        Self {
+            remove_null_type: true,
+            add_const_null: true,
+        }
+    }
+}
+
+impl Transform for AddNullable {
+    fn transform(&mut self, schema: &mut Schema) {
+        if schema.has_type("null") {
+            let Some(obj) = schema.as_object_mut() else {
+                unreachable!();
+            };
+
+            obj.insert("nullable".into(), true.into());
+
+            // has_type returned true so we know "type" exists and is a string or array
+            let ty = obj.get_mut("type").unwrap();
+            let only_allows_null =
+                ty.is_string() || ty.as_array().unwrap().iter().all(|v| v == "null");
+
+            if only_allows_null {
+                if self.add_const_null {
+                    obj.insert("const".to_string(), Value::Null);
+
+                    if self.remove_null_type {
+                        obj.remove("type");
+                    }
+                } else if self.remove_null_type {
+                    *ty = Value::Array(Vec::new());
+                }
+            } else if self.remove_null_type {
+                // We know `type` is an array containing at least one non-null type
+                let array = ty.as_array_mut().unwrap();
+                array.retain(|t| t != "null");
+
+                if array.len() == 1 {
+                    *ty = array.remove(0);
+                }
+            }
+        }
+
+        transform_subschemas(self, schema);
+    }
+}
+
 /// Replaces the `unevaluatedProperties` schema property with the `additionalProperties` property,
 /// adding properties from a schema's subschemas to its `properties` where necessary.
 /// This also applies to subschemas.
 ///
 /// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support the
 /// `unevaluatedProperties` property.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
+#[non_exhaustive]
 pub struct ReplaceUnevaluatedProperties;
 
 impl Transform for ReplaceUnevaluatedProperties {

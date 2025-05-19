@@ -9,9 +9,7 @@
     "myBool": {
       "type": "boolean"
     },
-    "myNullableEnum": {
-      "nullable": true
-    },
+    "myNullableEnum": {},
     "myInnerStruct": {
       "type": "object",
       "properties": {
