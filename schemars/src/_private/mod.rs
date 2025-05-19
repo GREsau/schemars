@@ -329,7 +329,7 @@ fn normalise_additional_unevaluated_properties(
 }
 
 fn contains_immediate_subschema(schema_obj: &Map<String, Value>) -> bool {
-    ["if", "then", "else", "allOf", "anyOf", "oneOf", "$ref"]
+    ["if", "allOf", "anyOf", "oneOf", "$ref"]
         .into_iter()
         .any(|k| schema_obj.contains_key(k))
 }
