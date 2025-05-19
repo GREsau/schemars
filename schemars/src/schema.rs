@@ -162,6 +162,14 @@ impl Schema {
         }
     }
 
+    pub(crate) fn try_as_object_mut(&mut self) -> Result<&mut Map<String, Value>, bool> {
+        match &mut self.0 {
+            Value::Object(m) => Ok(m),
+            Value::Bool(b) => Err(*b),
+            _ => unreachable!(),
+        }
+    }
+
     /// Returns the `Schema`'s underlying JSON value.
     pub fn to_value(self) -> Value {
         self.0

@@ -1,6 +1,6 @@
 use crate::_alloc_prelude::*;
-use crate::_private::contains_immediate_subschema;
-use crate::{json_schema, JsonSchema, Schema, SchemaGenerator};
+use crate::_private::allow_null;
+use crate::{json_schema, Schema, SchemaGenerator};
 use core::fmt::Display;
 use serde_json::{Error, Map, Value};
 
@@ -125,48 +125,14 @@ impl<'a> serde::Serializer for Serializer<'a> {
     where
         T: serde::Serialize + ?Sized,
     {
-        let inner_schema = value.serialize(Serializer {
+        let mut schema = value.serialize(Serializer {
             generator: self.generator,
             include_title: false,
         })?;
 
-        // TODO remove duplication with core.rs
+        allow_null(self.generator, &mut schema);
 
-        Ok(match inner_schema.try_to_object() {
-            Ok(mut obj) => {
-                let value = obj.get_mut("type");
-                match value {
-                    Some(Value::Array(array)) => {
-                        let null = Value::from("null");
-                        if !array.contains(&null) {
-                            array.push(null);
-                        }
-                        obj.into()
-                    }
-                    Some(Value::String(string)) => {
-                        if string != "null" {
-                            *value.unwrap() =
-                                Value::Array(vec![core::mem::take(string).into(), "null".into()]);
-                        }
-                        obj.into()
-                    }
-                    _ => {
-                        if contains_immediate_subschema(&obj) {
-                            json_schema!({
-                                "anyOf": [
-                                    obj,
-                                    <()>::json_schema(self.generator)
-                                ]
-                            })
-                        } else {
-                            obj.into()
-                        }
-                    }
-                }
-            }
-            Err(true) => true.into(),
-            Err(false) => <()>::json_schema(self.generator),
-        })
+        Ok(schema)
     }
 
     fn serialize_unit_struct(self, _name: &'static str) -> Result<Self::Ok, Self::Error> {

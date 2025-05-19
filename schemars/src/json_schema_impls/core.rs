@@ -1,10 +1,9 @@
 use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
-use crate::_private::contains_immediate_subschema;
+use crate::_private::allow_null;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 use core::ops::{Bound, Range, RangeInclusive};
-use serde_json::Value;
 
 impl<T: JsonSchema> JsonSchema for Option<T> {
     inline_schema!();
@@ -18,47 +17,11 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
     }
 
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {
-        let inner_schema = generator.subschema_for::<T>();
+        let mut schema = generator.subschema_for::<T>();
 
-        match inner_schema.try_to_object() {
-            Ok(mut obj) => {
-                let instance_type = obj.get_mut("type");
+        allow_null(generator, &mut schema);
 
-                match instance_type {
-                    Some(Value::Array(array)) => {
-                        let null = Value::from("null");
-                        if !array.contains(&null) {
-                            array.push(null);
-                        }
-                        obj.into()
-                    }
-                    Some(Value::String(string)) => {
-                        if string != "null" {
-                            let current_type = core::mem::take(string).into();
-                            *instance_type.unwrap() =
-                                Value::Array(vec![current_type, "null".into()]);
-                        }
-                        obj.into()
-                    }
-                    _ => {
-                        if contains_immediate_subschema(&obj) {
-                            json_schema!({
-                                "anyOf": [
-                                    obj,
-                                    <()>::json_schema(generator)
-                                ]
-                            })
-                        } else {
-                            obj.into()
-                        }
-                    }
-                }
-            }
-            Err(true) => true.into(),
-            Err(false) => <()>::json_schema(generator),
-        }
-
-        // TODO update other keywords (e.g. `enum`/`const`) to allow null
+        schema
     }
 
     fn _schemars_private_non_optional_json_schema(generator: &mut SchemaGenerator) -> Schema {
