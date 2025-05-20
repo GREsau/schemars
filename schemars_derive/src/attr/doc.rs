@@ -22,12 +22,7 @@ pub fn get_title_and_desc_from_doc(attrs: &[Attribute]) -> (Option<String>, Opti
 }
 
 fn merge_description_lines(doc: &str) -> Option<String> {
-    let desc = doc
-        .trim()
-        .split("\n\n")
-        .filter_map(|line| none_if_empty(line.trim().replace('\n', " ")))
-        .collect::<Vec<_>>()
-        .join("\n\n");
+    let desc = doc.trim().to_string();
     none_if_empty(desc)
 }
 
