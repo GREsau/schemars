@@ -1,5 +1,5 @@
 [package]
-name = "schemars_derive"
+name = "oxc_schemars_derive"
 description = "Macros for #[derive(JsonSchema)], for use with schemars"
 homepage = "https://graham.cool/schemars/"
 repository = "https://github.com/GREsau/schemars"

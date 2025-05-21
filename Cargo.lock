@@ -267,6 +267,46 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
 
 [[package]]
+name = "oxc-schemars"
+version = "0.8.24"
+dependencies = [
+ "arrayvec 0.5.2",
+ "arrayvec 0.7.4",
+ "bigdecimal 0.3.1",
+ "bigdecimal 0.4.2",
+ "bytes",
+ "chrono",
+ "dyn-clone",
+ "either",
+ "enumset",
+ "indexmap 1.9.3",
+ "indexmap 2.0.2",
+ "oxc_schemars_derive",
+ "pretty_assertions",
+ "rust_decimal",
+ "semver",
+ "serde",
+ "serde_json",
+ "smallvec",
+ "smol_str",
+ "trybuild",
+ "url",
+ "uuid 0.8.2",
+ "uuid 1.5.0",
+]
+
+[[package]]
+name = "oxc_schemars_derive"
+version = "0.8.22"
+dependencies = [
+ "pretty_assertions",
+ "proc-macro2",
+ "quote",
+ "serde_derive_internals",
+ "syn",
+]
+
+[[package]]
 name = "percent-encoding"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -315,46 +355,6 @@ name = "ryu"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1ad4cc8da4ef723ed60bced201181d83791ad433213d8c24efffda1eec85d741"
-
-[[package]]
-name = "schemars"
-version = "0.8.22"
-dependencies = [
- "arrayvec 0.5.2",
- "arrayvec 0.7.4",
- "bigdecimal 0.3.1",
- "bigdecimal 0.4.2",
- "bytes",
- "chrono",
- "dyn-clone",
- "either",
- "enumset",
- "indexmap 1.9.3",
- "indexmap 2.0.2",
- "pretty_assertions",
- "rust_decimal",
- "schemars_derive",
- "semver",
- "serde",
- "serde_json",
- "smallvec",
- "smol_str",
- "trybuild",
- "url",
- "uuid 0.8.2",
- "uuid 1.5.0",
-]
-
-[[package]]
-name = "schemars_derive"
-version = "0.8.22"
-dependencies = [
- "pretty_assertions",
- "proc-macro2",
- "quote",
- "serde_derive_internals",
- "syn",
-]
 
 [[package]]
 name = "semver"
