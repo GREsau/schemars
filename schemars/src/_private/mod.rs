@@ -335,8 +335,21 @@ fn contains_immediate_subschema(schema_obj: &Map<String, Value>) -> bool {
 }
 
 pub(crate) fn allow_null(generator: &mut SchemaGenerator, schema: &mut Schema) {
+    fn is_null_schema(value: &Value) -> bool {
+        <&Schema>::try_from(value).is_ok_and(|s| s.has_type("null"))
+    }
+
     match schema.try_as_object_mut() {
         Ok(obj) => {
+            if obj.len() == 1
+                && obj
+                    .get("anyOf")
+                    .and_then(Value::as_array)
+                    .is_some_and(|a| a.iter().any(is_null_schema))
+            {
+                return;
+            }
+
             if contains_immediate_subschema(obj) {
                 *schema = json_schema!({
                     "anyOf": [
@@ -380,5 +393,20 @@ pub(crate) fn allow_null(generator: &mut SchemaGenerator, schema: &mut Schema) {
         Err(false) => {
             *schema = <()>::json_schema(generator);
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn nested_option_schemas() {
+        let mut option_schema = schema_for!(Option<Result<i8, u8>>);
+        option_schema.remove("title");
+        let mut nested_option_schema = schema_for!(Option<Option<Option<Result<i8, u8>>>>);
+        nested_option_schema.remove("title");
+
+        assert_eq!(option_schema, nested_option_schema);
     }
 }
