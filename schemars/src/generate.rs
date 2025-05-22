@@ -26,6 +26,7 @@ type CowStr = alloc::borrow::Cow<'static, str>;
 /// [`SchemaSettings::draft2020_12()`] method.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
+#[allow(clippy::struct_excessive_bools)]
 pub struct SchemaSettings {
     /// This option is now ignored and will be removed before schemars 1.0 becomes stable.
     ///
@@ -60,6 +61,8 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `Contract::Deserialize`.
     pub contract: Contract,
+    /// TODO doc
+    pub include_type_name: bool,
 }
 
 impl Default for SchemaSettings {
@@ -87,6 +90,7 @@ impl SchemaSettings {
             ],
             inline_subschemas: false,
             contract: Contract::Deserialize,
+            include_type_name: false,
         }
     }
 
@@ -101,6 +105,7 @@ impl SchemaSettings {
             transforms: vec![Box::new(ReplacePrefixItems)],
             inline_subschemas: false,
             contract: Contract::Deserialize,
+            include_type_name: false,
         }
     }
 
@@ -115,6 +120,7 @@ impl SchemaSettings {
             transforms: Vec::new(),
             inline_subschemas: false,
             contract: Contract::Deserialize,
+            include_type_name: false,
         }
     }
 
@@ -139,6 +145,7 @@ impl SchemaSettings {
             ],
             inline_subschemas: false,
             contract: Contract::Deserialize,
+            include_type_name: false,
         }
     }
 
@@ -541,7 +548,15 @@ impl SchemaGenerator {
         }
 
         let pss = PendingSchemaState::new(self, uid);
-        T::json_schema(pss.generator)
+        let mut schema = T::json_schema(pss.generator);
+
+        if pss.generator.settings().include_type_name
+            && !pss.uid.0.starts_with("_SchemarsSchemaWithFunction/")
+        {
+            schema.insert("x-rust-type".to_owned(), core::any::type_name::<T>().into());
+        }
+
+        schema
     }
 
     fn add_definitions(

@@ -80,3 +80,12 @@ fn openapi3() {
 
     assert_eq!(definitions1, &definitions2);
 }
+
+#[test]
+fn include_type_name() {
+    test!(
+        OuterStruct,
+        SchemaSettings::default().with(|s| s.include_type_name = true)
+    )
+    .assert_snapshot();
+}
