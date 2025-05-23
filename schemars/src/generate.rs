@@ -626,46 +626,53 @@ fn json_pointer_mut<'a>(
 /// }
 ///
 /// let v: &dyn GenTransform = &MyTransform;
-/// assert!(v.as_any().is::<MyTransform>());
+/// assert!(v.is::<MyTransform>());
 /// ```
 pub trait GenTransform: Transform + DynClone + Any + Send {
-    /// Upcasts this transform into an [`Any`], which can be used to inspect and manipulate it as
-    /// its concrete type.
-    ///
-    /// # Example
-    /// To remove a specific transform from an instance of `SchemaSettings`:
-    /// ```
-    /// use schemars::generate::SchemaSettings;
-    /// use schemars::transform::ReplaceBoolSchemas;
-    ///
-    /// let mut settings = SchemaSettings::openapi3();
-    /// let original_len = settings.transforms.len();
-    ///
-    /// settings
-    ///     .transforms
-    ///     .retain(|t| !t.as_any().is::<ReplaceBoolSchemas>());
-    ///
-    /// assert_eq!(settings.transforms.len(), original_len - 1);
-    /// ```
+    #[deprecated = "Only to support pre-1.86 rustc"]
+    #[doc(hidden)]
     fn as_any(&self) -> &dyn Any;
 
-    /// Mutably upcasts this transform into an [`Any`], which can be used to inspect and manipulate
-    /// it as its concrete type.
-    ///
-    /// # Example
-    /// To modify a specific transform in an instance of `SchemaSettings`:
-    /// ```
-    /// use schemars::generate::SchemaSettings;
-    /// use schemars::transform::ReplaceBoolSchemas;
-    ///
-    /// let mut settings = SchemaSettings::openapi3();
-    /// for t in &mut settings.transforms {
-    ///     if let Some(replace_bool_schemas) = t.as_any_mut().downcast_mut::<ReplaceBoolSchemas>() {
-    ///         replace_bool_schemas.skip_additional_properties = false;
-    ///     }
-    /// }
-    /// ```
+    #[deprecated = "Only to support pre-1.86 rustc"]
+    #[doc(hidden)]
     fn as_any_mut(&mut self) -> &mut dyn Any;
+
+    #[deprecated = "Only to support pre-1.86 rustc"]
+    #[doc(hidden)]
+    fn into_any(self: Box<Self>) -> Box<dyn Any>;
+}
+
+#[allow(deprecated)]
+impl dyn GenTransform {
+    /// TODO doc
+    pub fn is<T: Transform + Clone + Any + Send>(&self) -> bool {
+        self.as_any().is::<T>()
+    }
+
+    /// TODO doc
+    pub fn downcast_ref<T: Transform + Clone + Any + Send>(&self) -> Option<&T> {
+        self.as_any().downcast_ref::<T>()
+    }
+
+    /// TODO doc
+    pub fn downcast_mut<T: Transform + Clone + Any + Send>(&mut self) -> Option<&mut T> {
+        self.as_any_mut().downcast_mut::<T>()
+    }
+
+    /// TODO doc
+    #[allow(
+        clippy::missing_panics_doc,
+        reason = "`is()` ensures that downcast succeeds"
+    )]
+    pub fn downcast<T: Transform + Clone + Any + Send>(
+        self: Box<Self>,
+    ) -> Result<Box<T>, Box<Self>> {
+        if self.is::<T>() {
+            Ok(self.into_any().downcast().unwrap())
+        } else {
+            Err(self)
+        }
+    }
 }
 
 dyn_clone::clone_trait_object!(GenTransform);
@@ -679,6 +686,10 @@ where
     }
 
     fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+
+    fn into_any(self: Box<Self>) -> Box<dyn Any> {
         self
     }
 }
