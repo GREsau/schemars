@@ -5,6 +5,8 @@ mod arrayvec;
 mod bound;
 #[cfg(feature = "bytes1")]
 mod bytes;
+#[cfg(feature = "bytesize2")]
+mod bytesize;
 #[cfg(feature = "chrono04")]
 mod chrono;
 mod contract;

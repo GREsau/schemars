@@ -264,6 +264,7 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 Schemars can implement `JsonSchema` on types from several popular crates, enabled via feature flags (dependency versions are shown in brackets):
 
 - `arrayvec07` - [arrayvec](https://crates.io/crates/arrayvec) (^0.7)
+- `bytesize2` - [bytesize](https://crates.io/crates/bytesize) (^2.0)
 - `bigdecimal04` - [bigdecimal](https://crates.io/crates/bigdecimal) (^0.4)
 - `bytes1` - [bytes](https://crates.io/crates/bytes) (^1.0)
 - `chrono04` - [chrono](https://crates.io/crates/chrono) (^0.4)

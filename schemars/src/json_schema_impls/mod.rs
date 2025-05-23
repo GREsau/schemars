@@ -62,6 +62,9 @@ mod arrayvec07;
 #[cfg(feature = "bytes1")]
 mod bytes1;
 
+#[cfg(feature = "bytesize2")]
+mod bytesize2;
+
 #[cfg(feature = "chrono04")]
 mod chrono04;
 
