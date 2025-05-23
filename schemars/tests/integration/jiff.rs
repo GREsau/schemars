@@ -48,9 +48,15 @@ fn jiff() {
 
     test!(SignedDuration)
         .assert_allows_ser_roundtrip_default()
-        .assert_matches_de_roundtrip(arbitrary_values());
+        .assert_matches_de_roundtrip(arbitrary_values_except(
+            Value::is_string,
+            "jsonschema 0.20 does not handle durations correctly - this can be removed once MSRV is increased",
+        ));
 
     test!(Span)
         .assert_allows_ser_roundtrip_default()
-        .assert_matches_de_roundtrip(arbitrary_values());
+        .assert_matches_de_roundtrip(arbitrary_values_except(
+            Value::is_string,
+            "jsonschema 0.20 does not handle durations correctly - this can be removed once MSRV is increased",
+        ));
 }
