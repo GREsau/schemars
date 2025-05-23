@@ -74,6 +74,9 @@ mod either1;
 #[cfg(feature = "indexmap2")]
 mod indexmap2;
 
+#[cfg(feature = "jiff02")]
+mod jiff02;
+
 #[cfg(feature = "semver1")]
 mod semver1;
 
