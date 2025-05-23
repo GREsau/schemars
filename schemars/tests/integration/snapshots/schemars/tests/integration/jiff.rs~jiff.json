@@ -22,6 +22,14 @@
     "naive_time": {
       "type": "string",
       "format": "partial-time"
+    },
+    "duration": {
+      "type": "string",
+      "format": "duration"
+    },
+    "span": {
+      "type": "string",
+      "format": "duration"
     }
   },
   "required": [
@@ -29,6 +37,8 @@
     "date_time_zoned",
     "naive_date",
     "naive_date_time",
-    "naive_time"
+    "naive_time",
+    "duration",
+    "span"
   ]
 }

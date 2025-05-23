@@ -1,7 +1,7 @@
 use crate::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use alloc::borrow::Cow;
 use jiff02::civil::{Date, DateTime, Time};
-use jiff02::{SignedDuration, Timestamp, Zoned};
+use jiff02::{SignedDuration, Span, Timestamp, Zoned};
 
 macro_rules! formatted_string_impl {
     ($ty:ident, $format:literal) => {
@@ -30,6 +30,7 @@ macro_rules! formatted_string_impl {
 }
 
 formatted_string_impl!(SignedDuration, "duration");
+formatted_string_impl!(Span, "duration");
 formatted_string_impl!(Timestamp, "date-time");
 formatted_string_impl!(Zoned, "zoned-date-time");
 formatted_string_impl!(Date, "date");
