@@ -3,7 +3,9 @@ mod parse_meta;
 mod schemars_to_serde;
 mod validation;
 
-use parse_meta::{parse_extensions, parse_name_value_expr, parse_name_value_lit_str};
+use parse_meta::{
+    parse_extensions, parse_name_value_expr, parse_name_value_lit_str, require_path_only,
+};
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
@@ -300,7 +302,13 @@ impl ContainerAttrs {
             // The actual parsing of `rename` is done by serde
             "rename" => self.is_renamed = true,
 
-            "always_inline" => self.always_inline = true,
+            "always_inline" => {
+                if self.always_inline {
+                    cx.duplicate_error(&meta);
+                } else if require_path_only(meta, cx).is_ok() {
+                    self.always_inline = true;
+                }
+            }
 
             _ => return Some(meta),
         };

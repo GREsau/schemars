@@ -1,29 +1,41 @@
 error: expected serde default attribute to be a string: `default = "..."`
- --> $DIR/invalid_attrs.rs:4:19
+ --> tests/ui/invalid_attrs.rs:5:15
   |
-4 | #[serde(default = 0, foo, deny_unknown_fields, deny_unknown_fields)]
-  |                   ^
+5 |     default = 0,
+  |               ^
 
 error: duplicate serde attribute `deny_unknown_fields`
- --> $DIR/invalid_attrs.rs:4:48
+ --> tests/ui/invalid_attrs.rs:8:5
   |
-4 | #[serde(default = 0, foo, deny_unknown_fields, deny_unknown_fields)]
-  |                                                ^^^^^^^^^^^^^^^^^^^
+8 |     deny_unknown_fields,
+  |     ^^^^^^^^^^^^^^^^^^^
 
 error: expected serde default attribute to be a string: `default = "..."`
- --> $DIR/invalid_attrs.rs:8:22
-  |
-8 | #[schemars(default = 0, foo, deny_unknown_fields, deny_unknown_fields)]
-  |                      ^
+  --> tests/ui/invalid_attrs.rs:17:15
+   |
+17 |     default = 0,
+   |               ^
 
 error: duplicate serde attribute `deny_unknown_fields`
- --> $DIR/invalid_attrs.rs:8:51
-  |
-8 | #[schemars(default = 0, foo, deny_unknown_fields, deny_unknown_fields)]
-  |                                                   ^^^^^^^^^^^^^^^^^^^
+  --> tests/ui/invalid_attrs.rs:20:5
+   |
+20 |     deny_unknown_fields,
+   |     ^^^^^^^^^^^^^^^^^^^
+
+error: unexpected value of schemars always_inline attribute item
+  --> tests/ui/invalid_attrs.rs:21:19
+   |
+21 |     always_inline = 1,
+   |                   ^^^
+
+error: duplicate schemars attribute item `always_inline`
+  --> tests/ui/invalid_attrs.rs:23:5
+   |
+23 |     always_inline
+   |     ^^^^^^^^^^^^^
 
 error: unknown schemars attribute `foo`
- --> $DIR/invalid_attrs.rs:8:25
-  |
-8 | #[schemars(default = 0, foo, deny_unknown_fields, deny_unknown_fields)]
-  |                         ^^^
+  --> tests/ui/invalid_attrs.rs:18:5
+   |
+18 |     foo,
+   |     ^^^
