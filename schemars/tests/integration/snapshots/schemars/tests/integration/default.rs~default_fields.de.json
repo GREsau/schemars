@@ -36,7 +36,9 @@
   "$defs": {
     "NotSerialize": {
       "type": "integer",
-      "format": "int8"
+      "format": "int8",
+      "minimum": -128,
+      "maximum": 127
     }
   }
 }
