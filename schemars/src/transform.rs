@@ -257,6 +257,7 @@ pub(crate) fn transform_immediate_subschemas<T: Transform + ?Sized>(
 /// );
 /// ```
 #[derive(Debug, Clone)]
+#[allow(clippy::exhaustive_structs)]
 pub struct RecursiveTransform<T>(pub T);
 
 impl<T> Transform for RecursiveTransform<T>
