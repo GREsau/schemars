@@ -14,8 +14,16 @@ impl JsonSchema for ByteSize {
 
     fn json_schema(_: &mut SchemaGenerator) -> Schema {
         json_schema!({
-            "type": "string",
-            "pattern": r"^(\d+(\.\d+)?)\s*((?i)[kmgtp]i?b?)?$"
+            "oneOf": [
+                {
+                    "type": "integer",
+                    "minimum": 0
+                },
+                {
+                    "type": "string",
+                    "pattern": r"^(\d+(\.\d+)?)\s*((?i)(b)|([kmgtpe]((b)|(ib))?))?$"
+                }
+            ],
         })
     }
 }
