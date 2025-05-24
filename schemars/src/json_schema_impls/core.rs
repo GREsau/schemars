@@ -6,7 +6,7 @@ use core::ops::{Bound, Range, RangeInclusive};
 use serde_json::Value;
 
 impl<T: JsonSchema> JsonSchema for Option<T> {
-    always_inline!();
+    inline_schema!();
 
     fn schema_name() -> Cow<'static, str> {
         format!("Nullable_{}", T::schema_name()).into()

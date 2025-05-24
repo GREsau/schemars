@@ -159,7 +159,7 @@
 - The default `SchemaSettings` (used by the `schema_for!()`/`schema_for_value!()` macros and `SchemaGenerator::default()`) now conform to JSON Schema draft 2020-12 instead of draft 7.
 - Schemas generated using `SchemaSettings::draft2019_09()` (and `draft2020_12()` and `default()`) now use `$defs` instead of `definitions`. While using `definitions` is allowed by the spec, `$defs` is the preferred property for storing reusable schemas.
 - `JsonSchema::schema_name()` now returns `Cow<'static, str>` instead of `String`
-- `JsonSchema::is_referenceable()` has been removed, and replaced with the more clearly-named `JsonSchema::always_inline()` (which should returns the **opposite** value to what `is_referenceable` returned!)
+- `JsonSchema::is_referenceable()` has been removed, and replaced with the more clearly-named `JsonSchema::always_inline_schema()` (which should returns the **opposite** value to what `is_referenceable` returned!)
 - The `SchemaGenerator.definitions` field is now a `serde_json::Map<String, Value>`
 - Macros/functions that previously returned a `RootSchema` now return a `Schema` instead
 - All optional dependencies are now suffixed by their version:

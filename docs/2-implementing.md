@@ -67,10 +67,10 @@ This function creates the JSON schema itself. The `generator` argument can be us
 
 `json_schema` should not return a `$ref` schema.
 
-## always_inline_schema (optional)
+## inline_schema (optional)
 
 ```rust
-fn always_inline_schema() -> bool;
+fn inline_schema() -> bool;
 ```
 
 If this function returns `false`, then Schemars can re-use the generate schema where possible by adding it to the root schema's `$defs` and having other schemas reference it using the `$ref` keyword. This can greatly simplify schemas that include a particular type multiple times, especially if that type's schema is fairly complex.

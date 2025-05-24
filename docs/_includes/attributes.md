@@ -323,7 +323,7 @@ Set the Rust built-in [`deprecated`](https://doc.rust-lang.org/edition-guide/rus
 
 </h3>
 
-Set the return value of [`always_inline_schema`](trait.JsonSchema.html#method.always_inline_schema) to `true` to include JSON schemas generated for this type directly in parent schemas, rather than being re-used where possible using the `$ref` keyword.
+Set the return value of [`inline_schema`](trait.JsonSchema.html#method.inline_schema) to `true` to include JSON schemas generated for this type directly in parent schemas, rather than being re-used where possible using the `$ref` keyword.
 
 <h3 id="crate">
 

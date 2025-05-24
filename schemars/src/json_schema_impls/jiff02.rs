@@ -9,7 +9,7 @@ macro_rules! formatted_string_impl {
     };
     ($ty:ident, $format:literal, $($desc:tt)+) => {
         impl $($desc)+ {
-            always_inline!();
+            inline_schema!();
 
             fn schema_name() -> Cow<'static, str> {
                 stringify!($ty).into()
