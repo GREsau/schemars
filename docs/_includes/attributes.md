@@ -36,6 +36,7 @@ TABLE OF CONTENTS
    - [`title` / `description`](#title-description)
    - [`example`](#example)
    - [`deprecated`](#deprecated)
+   - [`inline`](#inline)
    - [`crate`](#crate)
    - [`extend`](#extend)
    - [`transform`](#transform)
@@ -315,6 +316,14 @@ Alternatively, to directly set multiple examples without repeating `example = ..
 </h3>
 
 Set the Rust built-in [`deprecated`](https://doc.rust-lang.org/edition-guide/rust-2018/the-compiler/an-attribute-for-deprecation.html) attribute on a struct, enum, field or variant to set the generated schema's `deprecated` keyword to `true`.
+
+<h3 id="inline">
+
+`#[schemars(inline)]`
+
+</h3>
+
+Set the return value of [`always_inline_schema`](trait.JsonSchema.html#method.always_inline_schema) to `true` to include JSON schemas generated for this type directly in parent schemas, rather than being re-used where possible using the `$ref` keyword.
 
 <h3 id="crate">
 
