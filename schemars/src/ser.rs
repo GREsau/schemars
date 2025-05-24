@@ -1,5 +1,6 @@
 use crate::_alloc_prelude::*;
-use crate::{json_schema, JsonSchema, Schema, SchemaGenerator};
+use crate::_private::allow_null;
+use crate::{json_schema, Schema, SchemaGenerator};
 use core::fmt::Display;
 use serde_json::{Error, Map, Value};
 
@@ -113,7 +114,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
     }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
-        Ok(self.generator.subschema_for::<Option<Value>>())
+        Ok(self.generator.subschema_for::<Value>())
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
@@ -129,45 +130,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
             include_title: false,
         })?;
 
-        if self.generator.settings().option_add_null_type {
-            schema = match schema.try_to_object() {
-                Ok(mut obj) => {
-                    let value = obj.get_mut("type");
-                    match value {
-                        Some(Value::Array(array)) => {
-                            let null = Value::from("null");
-                            if !array.contains(&null) {
-                                array.push(null);
-                            }
-                            obj.into()
-                        }
-                        Some(Value::String(string)) => {
-                            if string != "null" {
-                                *value.unwrap() = Value::Array(vec![
-                                    core::mem::take(string).into(),
-                                    "null".into(),
-                                ]);
-                            }
-                            obj.into()
-                        }
-                        _ => json_schema!({
-                            "anyOf": [
-                                obj,
-                                <()>::json_schema(self.generator)
-                            ]
-                        }),
-                    }
-                }
-                Err(true) => true.into(),
-                Err(false) => <()>::json_schema(self.generator),
-            }
-        }
-
-        if self.generator.settings().option_nullable {
-            schema
-                .ensure_object()
-                .insert("nullable".into(), true.into());
-        }
+        allow_null(self.generator, &mut schema);
 
         Ok(schema)
     }

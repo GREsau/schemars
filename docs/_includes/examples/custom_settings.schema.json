@@ -1,5 +1,4 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "MyStruct",
   "type": "object",
   "properties": {
@@ -11,58 +10,55 @@
       "format": "int32"
     },
     "my_nullable_enum": {
-      "allOf": [
+      "anyOf": [
         {
-          "$ref": "#/definitions/MyEnum"
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "StringNewType": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "StringNewType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "StructVariant": {
+                  "type": "object",
+                  "properties": {
+                    "floats": {
+                      "type": "array",
+                      "items": {
+                        "type": "number",
+                        "format": "float"
+                      }
+                    }
+                  },
+                  "required": [
+                    "floats"
+                  ]
+                }
+              },
+              "additionalProperties": false,
+              "required": [
+                "StructVariant"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "null"
         }
-      ],
-      "nullable": true
+      ]
     }
   },
   "required": [
     "my_int",
     "my_bool"
-  ],
-  "definitions": {
-    "MyEnum": {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "StringNewType": {
-              "type": "string"
-            }
-          },
-          "additionalProperties": false,
-          "required": [
-            "StringNewType"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "StructVariant": {
-              "type": "object",
-              "properties": {
-                "floats": {
-                  "type": "array",
-                  "items": {
-                    "type": "number",
-                    "format": "float"
-                  }
-                }
-              },
-              "required": [
-                "floats"
-              ]
-            }
-          },
-          "additionalProperties": false,
-          "required": [
-            "StructVariant"
-          ]
-        }
-      ]
-    }
-  }
+  ]
 }

@@ -26,15 +26,15 @@ type CowStr = alloc::borrow::Cow<'static, str>;
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct SchemaSettings {
-    /// If `true`, schemas for [`Option<T>`] will include a `nullable` property.
+    /// This option is now ignored and will be removed before schemars 1.0 becomes stable.
     ///
-    /// This is not part of the JSON Schema spec, but is used in Swagger/OpenAPI schemas.
-    ///
-    /// Defaults to `false`.
+    /// If you need the `nullable` keyword to be added to schemas for [`Option<T>`], you should use the [`AddNullable`] transform.
+    #[deprecated = "This option is now ignored. If you need the `nullable` keyword to be added to schemas for `Option<T>`, you should use the `AddNullable` transform."]
     pub option_nullable: bool,
-    /// If `true`, schemas for [`Option<T>`] will have `null` added to their `type` property.
+    /// This option is now ignored and will be removed before schemars 1.0 becomes stable.
     ///
-    /// Defaults to `true`.
+    /// The null type is now always added to schema for [`Option<T>`], but may be removed if using the [`AddNullable`] transform.
+    #[deprecated = "This option is now ignored."]
     pub option_add_null_type: bool,
     /// A JSON pointer to the expected location of referenceable subschemas within the resulting
     /// root schema.
@@ -62,9 +62,9 @@ pub struct SchemaSettings {
 }
 
 impl Default for SchemaSettings {
-    /// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
-    /// If you rely on generated schemas conforming to draft 2020-12, consider using the
-    /// [`SchemaSettings::draft2020_12()`] method.
+    /// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12),
+    /// but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
+    /// If you rely on generated schemas conforming to draft 2020-12, consider using [`SchemaSettings::draft2020_12()`] instead.
     fn default() -> SchemaSettings {
         SchemaSettings::draft2020_12()
     }
@@ -73,6 +73,7 @@ impl Default for SchemaSettings {
 impl SchemaSettings {
     /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links#draft-7).
     pub fn draft07() -> SchemaSettings {
+        #[allow(deprecated)]
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
@@ -90,6 +91,7 @@ impl SchemaSettings {
 
     /// Creates `SchemaSettings` that conform to [JSON Schema 2019-09](https://json-schema.org/specification-links#draft-2019-09-(formerly-known-as-draft-8)).
     pub fn draft2019_09() -> SchemaSettings {
+        #[allow(deprecated)]
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
@@ -103,6 +105,7 @@ impl SchemaSettings {
 
     /// Creates `SchemaSettings` that conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12).
     pub fn draft2020_12() -> SchemaSettings {
+        #[allow(deprecated)]
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
@@ -116,6 +119,7 @@ impl SchemaSettings {
 
     /// Creates `SchemaSettings` that conform to [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema).
     pub fn openapi3() -> SchemaSettings {
+        #[allow(deprecated)]
         SchemaSettings {
             option_nullable: true,
             option_add_null_type: false,
@@ -126,10 +130,11 @@ impl SchemaSettings {
             ),
             transforms: vec![
                 Box::new(ReplaceUnevaluatedProperties),
-                Box::new(RemoveRefSiblings),
                 Box::new(ReplaceBoolSchemas {
                     skip_additional_properties: true,
                 }),
+                Box::new(AddNullable::default()),
+                Box::new(RemoveRefSiblings),
                 Box::new(SetSingleExample),
                 Box::new(ReplaceConstValue),
                 Box::new(ReplacePrefixItems),
@@ -146,8 +151,8 @@ impl SchemaSettings {
     /// use schemars::generate::{SchemaGenerator, SchemaSettings};
     ///
     /// let settings = SchemaSettings::default().with(|s| {
-    ///     s.option_nullable = true;
-    ///     s.option_add_null_type = false;
+    ///     s.meta_schema = None;
+    ///     s.inline_subschemas = true;
     /// });
     /// let generator = settings.into_generator();
     /// ```
@@ -223,13 +228,19 @@ struct SchemaUid(CowStr, Contract);
 /// let generator = SchemaGenerator::default();
 /// let schema = generator.into_root_schema_for::<MyStruct>();
 /// ```
-#[derive(Debug, Default)]
+#[derive(Debug)]
 pub struct SchemaGenerator {
     settings: SchemaSettings,
     definitions: JsonMap<String, Value>,
     pending_schema_ids: BTreeSet<SchemaUid>,
     schema_id_to_name: BTreeMap<SchemaUid, CowStr>,
     used_schema_names: BTreeSet<CowStr>,
+}
+
+impl Default for SchemaGenerator {
+    fn default() -> Self {
+        SchemaSettings::default().into_generator()
+    }
 }
 
 impl Clone for SchemaGenerator {
@@ -255,7 +266,10 @@ impl SchemaGenerator {
     pub fn new(settings: SchemaSettings) -> SchemaGenerator {
         SchemaGenerator {
             settings,
-            ..Default::default()
+            definitions: JsonMap::new(),
+            pending_schema_ids: BTreeSet::new(),
+            schema_id_to_name: BTreeMap::new(),
+            used_schema_names: BTreeSet::new(),
         }
     }
 

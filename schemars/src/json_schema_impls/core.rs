@@ -1,9 +1,9 @@
 use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
+use crate::_private::allow_null;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 use core::ops::{Bound, Range, RangeInclusive};
-use serde_json::Value;
 
 impl<T: JsonSchema> JsonSchema for Option<T> {
     inline_schema!();
@@ -19,45 +19,7 @@ impl<T: JsonSchema> JsonSchema for Option<T> {
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         let mut schema = generator.subschema_for::<T>();
 
-        if generator.settings().option_add_null_type {
-            schema = match schema.try_to_object() {
-                Ok(mut obj) => {
-                    let instance_type = obj.get_mut("type");
-                    match instance_type {
-                        Some(Value::Array(array)) => {
-                            let null = Value::from("null");
-                            if !array.contains(&null) {
-                                array.push(null);
-                            }
-                            obj.into()
-                        }
-                        Some(Value::String(string)) => {
-                            if string != "null" {
-                                *instance_type.unwrap() = Value::Array(vec![
-                                    core::mem::take(string).into(),
-                                    "null".into(),
-                                ]);
-                            }
-                            obj.into()
-                        }
-                        _ => json_schema!({
-                            "anyOf": [
-                                obj,
-                                <()>::json_schema(generator)
-                            ]
-                        }),
-                    }
-                }
-                Err(true) => true.into(),
-                Err(false) => <()>::json_schema(generator),
-            }
-        }
-
-        if generator.settings().option_nullable {
-            schema
-                .ensure_object()
-                .insert("nullable".into(), true.into());
-        }
+        allow_null(generator, &mut schema);
 
         schema
     }

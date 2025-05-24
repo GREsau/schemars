@@ -85,6 +85,42 @@ impl Serialize for Schema {
     }
 }
 
+impl PartialEq<bool> for Schema {
+    fn eq(&self, other: &bool) -> bool {
+        self.as_bool() == Some(*other)
+    }
+}
+
+impl PartialEq<Map<String, Value>> for Schema {
+    fn eq(&self, other: &Map<String, Value>) -> bool {
+        self.as_object() == Some(other)
+    }
+}
+
+impl PartialEq<Value> for Schema {
+    fn eq(&self, other: &Value) -> bool {
+        self.as_value() == other
+    }
+}
+
+impl PartialEq<Schema> for bool {
+    fn eq(&self, other: &Schema) -> bool {
+        other == self
+    }
+}
+
+impl PartialEq<Schema> for Map<String, Value> {
+    fn eq(&self, other: &Schema) -> bool {
+        other == self
+    }
+}
+
+impl PartialEq<Schema> for Value {
+    fn eq(&self, other: &Schema) -> bool {
+        other == self
+    }
+}
+
 impl Schema {
     /// Creates a new schema object with a single string property `"$ref"`.
     ///
@@ -122,6 +158,14 @@ impl Schema {
         match self.0 {
             Value::Object(m) => Ok(m),
             Value::Bool(b) => Err(b),
+            _ => unreachable!(),
+        }
+    }
+
+    pub(crate) fn try_as_object_mut(&mut self) -> Result<&mut Map<String, Value>, bool> {
+        match &mut self.0 {
+            Value::Object(m) => Ok(m),
+            Value::Bool(b) => Err(*b),
             _ => unreachable!(),
         }
     }
@@ -178,7 +222,7 @@ impl Schema {
     }
 
     /// If the `Schema`'s underlying JSON value is an object, gets a reference to that object's
-    /// value for the given key.
+    /// value for the given key if it exists.
     ///
     /// This always returns `None` for bool schemas.
     ///

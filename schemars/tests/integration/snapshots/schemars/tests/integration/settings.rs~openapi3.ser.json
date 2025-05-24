@@ -18,10 +18,15 @@
       "$ref": "#/components/schemas/InnerEnum"
     },
     "maybe_inner": {
-      "nullable": true,
-      "allOf": [
+      "anyOf": [
         {
           "$ref": "#/components/schemas/InnerEnum"
+        },
+        {
+          "nullable": true,
+          "enum": [
+            null
+          ]
         }
       ]
     },

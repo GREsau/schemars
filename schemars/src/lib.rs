@@ -3,7 +3,9 @@
     missing_docs,
     unused_imports,
     clippy::cargo,
-    clippy::pedantic
+    clippy::pedantic,
+    clippy::exhaustive_structs,
+    clippy::exhaustive_enums
 )]
 #![allow(
     clippy::must_use_candidate,
@@ -29,6 +31,7 @@ mod macros;
 /// This module is only public for use by `schemars_derive`. It should not need to be used by code
 /// outside of `schemars`, and should not be considered part of the public API.
 #[doc(hidden)]
+#[allow(clippy::exhaustive_structs)]
 pub mod _private;
 pub mod generate;
 pub mod transform;
