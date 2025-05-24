@@ -422,9 +422,8 @@ impl Default for AddNullable {
 impl Transform for AddNullable {
     fn transform(&mut self, schema: &mut Schema) {
         if schema.has_type("null") {
-            let Some(obj) = schema.as_object_mut() else {
-                unreachable!();
-            };
+            // has_type returned true so we know schema is an object
+            let obj = schema.as_object_mut().unwrap();
 
             obj.insert("nullable".into(), true.into());
 
