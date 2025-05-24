@@ -36,7 +36,7 @@ TABLE OF CONTENTS
    - [`title` / `description`](#title-description)
    - [`example`](#example)
    - [`deprecated`](#deprecated)
-   - [`always_inline`](#always_inline)
+   - [`inline`](#inline)
    - [`crate`](#crate)
    - [`extend`](#extend)
    - [`transform`](#transform)
@@ -317,9 +317,9 @@ Alternatively, to directly set multiple examples without repeating `example = ..
 
 Set the Rust built-in [`deprecated`](https://doc.rust-lang.org/edition-guide/rust-2018/the-compiler/an-attribute-for-deprecation.html) attribute on a struct, enum, field or variant to set the generated schema's `deprecated` keyword to `true`.
 
-<h3 id="always_inline">
+<h3 id="inline">
 
-`#[schemars(always_inline)]`
+`#[schemars(inline)]`
 
 </h3>
 

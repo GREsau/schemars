@@ -6,9 +6,9 @@ use schemars::JsonSchema;
     foo,
     deny_unknown_fields,
     deny_unknown_fields,
-    always_inline = 1,
-    always_inline,
-    always_inline
+    inline = 1,
+    inline,
+    inline
 )]
 pub struct Struct1;
 
@@ -18,9 +18,9 @@ pub struct Struct1;
     foo,
     deny_unknown_fields,
     deny_unknown_fields,
-    always_inline = 1,
-    always_inline,
-    always_inline
+    inline = 1,
+    inline,
+    inline
 )]
 pub struct Struct2;
 

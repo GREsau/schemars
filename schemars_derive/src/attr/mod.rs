@@ -41,7 +41,7 @@ pub struct ContainerAttrs {
     pub repr: Option<Type>,
     pub crate_name: Option<Path>,
     pub is_renamed: bool,
-    pub always_inline: bool,
+    pub inline: bool,
 }
 
 #[derive(Debug, Default)]
@@ -302,11 +302,11 @@ impl ContainerAttrs {
             // The actual parsing of `rename` is done by serde
             "rename" => self.is_renamed = true,
 
-            "always_inline" => {
-                if self.always_inline {
+            "inline" => {
+                if self.inline {
                     cx.duplicate_error(&meta);
                 } else if require_path_only(meta, cx).is_ok() {
-                    self.always_inline = true;
+                    self.inline = true;
                 }
             }
 
