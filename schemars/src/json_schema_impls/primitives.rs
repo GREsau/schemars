@@ -40,7 +40,7 @@ macro_rules! simple_impl {
 macro_rules! ranged_impl {
     ($type:ty => $instance_type:literal, $format:literal) => {
         impl JsonSchema for $type {
-            always_inline!();
+            inline_schema!();
 
             fn schema_name() -> Cow<'static, str> {
                 $format.into()
