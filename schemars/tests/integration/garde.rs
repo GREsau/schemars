@@ -1,5 +1,3 @@
-#![allow(clippy::incompatible_msrv)]
-
 use crate::prelude::*;
 use garde::Validate;
 
