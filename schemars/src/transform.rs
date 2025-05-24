@@ -280,6 +280,8 @@ where
 pub struct ReplaceBoolSchemas {
     /// When set to `true`, a schema's `additionalProperties` property will not be changed from a
     /// boolean.
+    ///
+    /// Defaults to `false`.
     pub skip_additional_properties: bool,
 }
 
@@ -403,10 +405,10 @@ impl Transform for ReplacePrefixItems {
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct AddNullable {
-    /// When set to `true`, `"null"` will also be removed from the schemas `type`.
+    /// When set to `true` (the default), `"null"` will also be removed from the schemas `type`.
     pub remove_null_type: bool,
-    /// When set to `true`, a schema that has a type only allowing `null` will also have the
-    /// equivalent `"const": null` inserted.
+    /// When set to `true` (the default), a schema that has a type only allowing `null` will also
+    /// have the equivalent `"const": null` inserted.
     pub add_const_null: bool,
 }
 

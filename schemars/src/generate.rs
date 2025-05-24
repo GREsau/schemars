@@ -26,11 +26,15 @@ type CowStr = alloc::borrow::Cow<'static, str>;
 #[derive(Debug, Clone)]
 #[non_exhaustive]
 pub struct SchemaSettings {
-    /// This option is now ignored - if you need the `nullable` keyword to be added to schemas, you should use the [`AddNullable`] transform instead.
-    #[deprecated = "This option is now ignored - if you need the `nullable` keyword to be added to schemas, you should use the [`AddNullable`] transform instead."]
+    /// This option is now ignored and will be removed before schemars 1.0 becomes stable.
+    ///
+    /// If you need the `nullable` keyword to be added to schemas for [`Option<T>`], you should use the [`AddNullable`] transform.
+    #[deprecated = "This option is now ignored. If you need the `nullable` keyword to be added to schemas for `Option<T>`, you should use the `AddNullable` transform."]
     pub option_nullable: bool,
-    /// This option is now ignored - if you need the `nullable` keyword to be added to schemas, you should use the [`AddNullable`] transform instead.
-    #[deprecated = "This option is now ignored - if you need the `nullable` keyword to be added to schemas, you should use the [`AddNullable`] transform instead."]
+    /// This option is now ignored and will be removed before schemars 1.0 becomes stable.
+    ///
+    /// The null type is now always added to schema for [`Option<T>`], but may be removed if using the [`AddNullable`] transform.
+    #[deprecated = "This option is now ignored."]
     pub option_add_null_type: bool,
     /// A JSON pointer to the expected location of referenceable subschemas within the resulting
     /// root schema.
@@ -58,9 +62,9 @@ pub struct SchemaSettings {
 }
 
 impl Default for SchemaSettings {
-    /// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12), but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
-    /// If you rely on generated schemas conforming to draft 2020-12, consider using the
-    /// [`SchemaSettings::draft2020_12()`] method.
+    /// The default settings currently conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12),
+    /// but this is liable to change in a future version of Schemars if support for other JSON Schema versions is added.
+    /// If you rely on generated schemas conforming to draft 2020-12, consider using [`SchemaSettings::draft2020_12()`] instead.
     fn default() -> SchemaSettings {
         SchemaSettings::draft2020_12()
     }
