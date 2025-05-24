@@ -117,7 +117,7 @@ impl SchemaSettings {
         }
     }
 
-    /// Creates `SchemaSettings` that conform to [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#schema).
+    /// Creates `SchemaSettings` that conform to [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.4.md#schema).
     pub fn openapi3() -> SchemaSettings {
         #[allow(deprecated)]
         SchemaSettings {
@@ -125,7 +125,7 @@ impl SchemaSettings {
             option_add_null_type: false,
             definitions_path: "/components/schemas".to_owned(),
             meta_schema: Some(
-                "https://spec.openapis.org/oas/3.0/schema/2021-09-28#/definitions/Schema"
+                "https://spec.openapis.org/oas/3.0/schema/2024-10-18#/definitions/Schema"
                     .to_owned(),
             ),
             transforms: vec![
