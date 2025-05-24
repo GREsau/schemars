@@ -64,8 +64,8 @@ fn custom_struct_openapi3() {
 
     // schemars uses a nonstandard meta-schema for openapi 3.0 which the jsonschema crate doesn't
     // accept, so we swap it out for the standard draft-04 meta-schema.
-    let draft04 = "http://json-schema.org/draft-04/schema".to_owned();
-    test!(value: value.clone(), SchemaSettings::openapi3().with(|o| o.meta_schema = Some(draft04)))
+    let draft04 = "http://json-schema.org/draft-04/schema";
+    test!(value: value.clone(), SchemaSettings::openapi3().with(|o| o.meta_schema = Some(draft04.into())))
         .assert_allows_ser_roundtrip([value, MyStruct::default()]);
 }
 
