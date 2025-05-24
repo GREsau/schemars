@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0-alpha.18] - **in dev**
+
+## Added
+
+- `#[schemars(inline)]` attribute for inling schemas when deriving `JsonSchema` (https://github.com/GREsau/schemars/pull/380)
+- Implement `JsonSchema` for [jiff](https://crates.io/crates/jiff) 0.2 types, under the optional `jiff02` feature flag (https://github.com/GREsau/schemars/pull/364)
+
+### Changed
+
+- Rename `JsonSchema::always_inline_schema()` to `inline_schema()`, because future attributes may allow particular fields to be uninlined
+
 ## [0.8.22] - 2025-02-25
 
 ### Fixed:
