@@ -10,6 +10,7 @@
 ### Changed
 
 - Rename `JsonSchema::always_inline_schema()` to `inline_schema()`, because future attributes may allow particular fields to be uninlined
+- MSRV is now 1.74
 
 ## [0.8.22] - 2025-02-25
 

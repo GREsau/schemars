@@ -10,7 +10,7 @@ license = "MIT"
 readme = "README.md"
 keywords = ["rust", "json-schema", "serde"]
 categories = ["encoding", "no-std"]
-rust-version = "1.70"
+rust-version = "1.74"
 
 [dependencies]
 schemars_derive = { version = "=1.0.0-alpha.17", optional = true, path = "../schemars_derive" }
@@ -38,7 +38,7 @@ uuid1 = { version = "1.0", default-features = false, optional = true, package = 
 pretty_assertions = "1.2.1"
 trybuild = "1.0"
 serde = { version = "1.0", features = ["derive"] }
-jsonschema = { version = "0.28", default-features = false }
+jsonschema = { version = "0.30", default-features = false }
 snapbox = { version = "0.6.17", features = ["json"] }
 serde_repr = "0.1.19"
 garde = { version = "0.22", features = ["derive", "email", "regex", "url"] }
@@ -56,7 +56,7 @@ rust_decimal1 = { version = "1", default-features = false, features = ["serde"],
 semver1 = { version = "1.0.9", default-features = false, features = ["serde"], package = "semver" }
 smallvec1 = { version = "1.0", default-features = false, features = ["serde"], package = "smallvec" }
 smol_str02 = { version = "0.2.1", default-features = false, features = ["serde"], package = "smol_str" }
-url2 = { version = "2.0", default-features = false, features = ["serde"], package = "url" }
+url2 = { version = "2.0", default-features = false, features = ["serde", "std"], package = "url" }
 uuid1 = { version = "1.0", default-features = false, features = ["serde"], package = "uuid" }
 
 [features]
