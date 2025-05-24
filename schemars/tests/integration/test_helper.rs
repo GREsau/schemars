@@ -123,9 +123,9 @@ impl<T: JsonSchema> TestHelper<T> {
         );
 
         assert_eq!(
-            T::always_inline_schema(),
-            T2::always_inline_schema(),
-            "`{t}` and `{t2}` have identical schemas, so should have the same always_inline_schema"
+            T::inline_schema(),
+            T2::inline_schema(),
+            "`{t}` and `{t2}` have identical schemas, so should have the same inline_schema"
         );
 
         self

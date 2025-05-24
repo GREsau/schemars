@@ -146,6 +146,14 @@ pub mod r#gen {
 /// assert_eq!(<GenericType<i32>>::schema_id(), <&mut GenericType<&i32>>::schema_id());
 /// ```
 pub trait JsonSchema {
+    /// Only included for backward-compatibility - use `inline_schema()` instead".
+    ///
+    /// This will be removed before schemars 1.0 becomes stable.
+    #[deprecated = "Use `inline_schema()` instead"]
+    fn always_inline_schema() -> bool {
+        false
+    }
+
     /// Whether JSON Schemas generated for this type should be included directly in parent schemas,
     /// rather than being re-used where possible using the `$ref` keyword.
     ///
@@ -154,8 +162,9 @@ pub trait JsonSchema {
     /// infinite cycles when generating schemas.
     ///
     /// By default, this returns `false`.
-    fn always_inline_schema() -> bool {
-        false
+    fn inline_schema() -> bool {
+        #[allow(deprecated)]
+        Self::always_inline_schema()
     }
 
     /// The name of the generated JSON Schema.
@@ -179,7 +188,7 @@ pub trait JsonSchema {
 
     /// Generates a JSON Schema for this type.
     ///
-    /// If the returned schema depends on any [non-inlined](JsonSchema::always_inline_schema)
+    /// If the returned schema depends on any [non-inlined](JsonSchema::inline_schema)
     /// schemas, then this method will add them to the [`SchemaGenerator`]'s schema definitions.
     ///
     /// This should not return a `$ref` schema.

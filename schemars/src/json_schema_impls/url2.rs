@@ -4,7 +4,7 @@ use alloc::borrow::Cow;
 use url2::Url;
 
 impl JsonSchema for Url {
-    always_inline!();
+    inline_schema!();
 
     fn schema_name() -> Cow<'static, str> {
         "Url".into()

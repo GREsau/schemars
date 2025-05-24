@@ -6,7 +6,7 @@ use alloc::collections::BTreeMap;
 use serde_json::{Map, Number, Value};
 
 impl JsonSchema for Value {
-    always_inline!();
+    inline_schema!();
 
     fn schema_name() -> Cow<'static, str> {
         "AnyValue".into()
@@ -20,7 +20,7 @@ impl JsonSchema for Value {
 forward_impl!(Map<String, Value> => BTreeMap<String, Value>);
 
 impl JsonSchema for Number {
-    always_inline!();
+    inline_schema!();
 
     fn schema_name() -> Cow<'static, str> {
         "Number".into()

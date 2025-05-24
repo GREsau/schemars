@@ -4,7 +4,7 @@ use alloc::borrow::Cow;
 use uuid1::Uuid;
 
 impl JsonSchema for Uuid {
-    always_inline!();
+    inline_schema!();
 
     fn schema_name() -> Cow<'static, str> {
         "Uuid".into()

@@ -6,7 +6,7 @@ use core::num::*;
 macro_rules! nonzero_signed_impl {
     ($type:ty => $primitive:ty) => {
         impl JsonSchema for $type {
-            always_inline!();
+            inline_schema!();
 
             fn schema_name() -> Cow<'static, str> {
                 stringify!($type).into()
@@ -37,7 +37,7 @@ nonzero_signed_impl!(NonZeroIsize => isize);
 macro_rules! nonzero_unsigned_impl {
     ($type:ty => $primitive:ty) => {
         impl JsonSchema for $type {
-            always_inline!();
+            inline_schema!();
 
             fn schema_name() -> Cow<'static, str> {
                 stringify!($type).into()

@@ -155,7 +155,7 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
                 struct #ty_name;
 
                 impl schemars::JsonSchema for #ty_name {
-                    fn always_inline_schema() -> bool {
+                    fn inline_schema() -> bool {
                         true
                     }
 

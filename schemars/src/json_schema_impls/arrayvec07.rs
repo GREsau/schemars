@@ -11,7 +11,7 @@ impl<T, const CAP: usize> JsonSchema for ArrayVec<T, CAP>
 where
     T: JsonSchema,
 {
-    always_inline!();
+    inline_schema!();
 
     fn schema_name() -> alloc::borrow::Cow<'static, str> {
         format!("Array_up_to_size_{}_of_{}", CAP, T::schema_name()).into()

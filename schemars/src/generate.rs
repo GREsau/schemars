@@ -277,15 +277,15 @@ impl SchemaGenerator {
     /// Generates a JSON Schema for the type `T`, and returns either the schema itself or a `$ref`
     /// schema referencing `T`'s schema.
     ///
-    /// If `T` is not [inlined](JsonSchema::always_inline_schema), this will add `T`'s schema to
+    /// If `T` is not [inlined](JsonSchema::inline_schema), this will add `T`'s schema to
     /// this generator's definitions, and return a `$ref` schema referencing that schema.
     /// Otherwise, this method behaves identically to [`JsonSchema::json_schema`].
     ///
-    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then
+    /// If `T`'s schema depends on any [non-inlined](JsonSchema::inline_schema) schemas, then
     /// this method will add them to the `SchemaGenerator`'s schema definitions.
     pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
         let uid = self.schema_uid::<T>();
-        let return_ref = !T::always_inline_schema()
+        let return_ref = !T::inline_schema()
             && (!self.settings.inline_subschemas || self.pending_schema_ids.contains(&uid));
 
         if return_ref {
@@ -335,7 +335,7 @@ impl SchemaGenerator {
         self.definitions.insert(name.into(), schema.to_value());
     }
 
-    /// Borrows the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that
+    /// Borrows the collection of all [non-inlined](JsonSchema::inline_schema) schemas that
     /// have been generated.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
@@ -344,7 +344,7 @@ impl SchemaGenerator {
         &self.definitions
     }
 
-    /// Mutably borrows the collection of all [non-inlined](JsonSchema::always_inline_schema)
+    /// Mutably borrows the collection of all [non-inlined](JsonSchema::inline_schema)
     /// schemas that have been generated.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
@@ -353,7 +353,7 @@ impl SchemaGenerator {
         &mut self.definitions
     }
 
-    /// Returns the collection of all [non-inlined](JsonSchema::always_inline_schema) schemas that
+    /// Returns the collection of all [non-inlined](JsonSchema::inline_schema) schemas that
     /// have been generated, leaving an empty `Map` in its place.
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
@@ -370,7 +370,7 @@ impl SchemaGenerator {
 
     /// Generates a JSON Schema for the type `T`.
     ///
-    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then
+    /// If `T`'s schema depends on any [non-inlined](JsonSchema::inline_schema) schemas, then
     /// this method will include them in the returned `Schema` at the [definitions
     /// path](SchemaSettings::definitions_path) (by default `"$defs"`).
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
@@ -394,7 +394,7 @@ impl SchemaGenerator {
 
     /// Consumes `self` and generates a JSON Schema for the type `T`.
     ///
-    /// If `T`'s schema depends on any [non-inlined](JsonSchema::always_inline_schema) schemas, then
+    /// If `T`'s schema depends on any [non-inlined](JsonSchema::inline_schema) schemas, then
     /// this method will include them in the returned `Schema` at the [definitions
     /// path](SchemaSettings::definitions_path) (by default `"$defs"`).
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Schema {

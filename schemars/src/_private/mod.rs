@@ -31,7 +31,7 @@ pub fn json_schema_for_internally_tagged_enum_newtype_variant<T: ?Sized + JsonSc
     let mut transform = AllowUnknownProperties::default();
     transform_immediate_subschemas(&mut transform, &mut schema);
 
-    if T::always_inline_schema()
+    if T::inline_schema()
         || generator.settings().inline_subschemas
         || schema.get("type").and_then(Value::as_str) == Some("null")
         || schema.get("additionalProperties").and_then(Value::as_bool) == Some(false)

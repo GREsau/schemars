@@ -7,7 +7,7 @@ use serde_json::Value;
 macro_rules! decimal_impl {
     ($type:ty) => {
         impl JsonSchema for $type {
-            always_inline!();
+            inline_schema!();
 
             fn schema_name() -> Cow<'static, str> {
                 "Decimal".into()

@@ -1,6 +1,6 @@
-macro_rules! always_inline {
+macro_rules! inline_schema {
     () => {
-        fn always_inline_schema() -> bool {
+        fn inline_schema() -> bool {
             true
         }
     };
@@ -9,8 +9,8 @@ macro_rules! always_inline {
 macro_rules! forward_impl {
     (($($impl:tt)+) => $target:ty) => {
         impl $($impl)+ {
-            fn always_inline_schema() -> bool {
-                <$target>::always_inline_schema()
+            fn inline_schema() -> bool {
+                <$target>::inline_schema()
             }
 
             fn schema_name() -> alloc::borrow::Cow<'static, str> {

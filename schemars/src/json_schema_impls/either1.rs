@@ -5,7 +5,7 @@ use alloc::borrow::Cow;
 use either1::Either;
 
 impl<L: JsonSchema, R: JsonSchema> JsonSchema for Either<L, R> {
-    always_inline!();
+    inline_schema!();
 
     fn schema_name() -> Cow<'static, str> {
         format!("Either_{}_or_{}", L::schema_name(), R::schema_name()).into()
