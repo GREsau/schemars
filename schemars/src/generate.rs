@@ -42,11 +42,11 @@ pub struct SchemaSettings {
     /// A single leading `#` and/or single trailing `/` are ignored.
     ///
     /// Defaults to `"/$defs"`.
-    pub definitions_path: String,
+    pub definitions_path: CowStr,
     /// The URI of the meta-schema describing the structure of the generated schemas.
     ///
     /// Defaults to `"https://json-schema.org/draft/2020-12/schema"`.
-    pub meta_schema: Option<String>,
+    pub meta_schema: Option<CowStr>,
     /// A list of [`Transform`]s that get applied to generated root schemas.
     pub transforms: Vec<Box<dyn GenTransform>>,
     /// Inline all subschemas instead of using references.
@@ -77,8 +77,8 @@ impl SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
-            definitions_path: "/definitions".to_owned(),
-            meta_schema: Some("http://json-schema.org/draft-07/schema#".to_owned()),
+            definitions_path: "/definitions".into(),
+            meta_schema: Some("http://json-schema.org/draft-07/schema#".into()),
             transforms: vec![
                 Box::new(ReplaceUnevaluatedProperties),
                 Box::new(RemoveRefSiblings),
@@ -95,8 +95,8 @@ impl SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
-            definitions_path: "/$defs".to_owned(),
-            meta_schema: Some("https://json-schema.org/draft/2019-09/schema".to_owned()),
+            definitions_path: "/$defs".into(),
+            meta_schema: Some("https://json-schema.org/draft/2019-09/schema".into()),
             transforms: vec![Box::new(ReplacePrefixItems)],
             inline_subschemas: false,
             contract: Contract::Deserialize,
@@ -109,8 +109,8 @@ impl SchemaSettings {
         SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
-            definitions_path: "/$defs".to_owned(),
-            meta_schema: Some("https://json-schema.org/draft/2020-12/schema".to_owned()),
+            definitions_path: "/$defs".into(),
+            meta_schema: Some("https://json-schema.org/draft/2020-12/schema".into()),
             transforms: Vec::new(),
             inline_subschemas: false,
             contract: Contract::Deserialize,
@@ -123,10 +123,9 @@ impl SchemaSettings {
         SchemaSettings {
             option_nullable: true,
             option_add_null_type: false,
-            definitions_path: "/components/schemas".to_owned(),
+            definitions_path: "/components/schemas".into(),
             meta_schema: Some(
-                "https://spec.openapis.org/oas/3.0/schema/2024-10-18#/definitions/Schema"
-                    .to_owned(),
+                "https://spec.openapis.org/oas/3.0/schema/2024-10-18#/definitions/Schema".into(),
             ),
             transforms: vec![
                 Box::new(ReplaceUnevaluatedProperties),
