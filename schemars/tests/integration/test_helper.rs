@@ -1,4 +1,5 @@
 use jsonschema::Validator;
+use pretty_assertions::assert_eq;
 use schemars::{
     generate::{Contract, SchemaSettings},
     JsonSchema, Schema,

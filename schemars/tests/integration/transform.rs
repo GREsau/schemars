@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use pretty_assertions::assert_eq;
 use schemars::{
     transform::{RecursiveTransform, Transform},
     Schema,
