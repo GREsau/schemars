@@ -7,6 +7,7 @@ There are two main types in this module:
 * [`SchemaGenerator`], which manages the generation of a schema document.
 */
 
+use crate::consts::meta_schemas;
 use crate::Schema;
 use crate::_alloc_prelude::*;
 use crate::{transform::*, JsonSchema};
@@ -45,7 +46,7 @@ pub struct SchemaSettings {
     pub definitions_path: CowStr,
     /// The URI of the meta-schema describing the structure of the generated schemas.
     ///
-    /// Defaults to `"https://json-schema.org/draft/2020-12/schema"`.
+    /// Defaults to [`meta_schemas::DRAFT2020_12`] (`https://json-schema.org/draft/2020-12/schema`).
     pub meta_schema: Option<CowStr>,
     /// A list of [`Transform`]s that get applied to generated root schemas.
     pub transforms: Vec<Box<dyn GenTransform>>,
@@ -78,7 +79,7 @@ impl SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
             definitions_path: "/definitions".into(),
-            meta_schema: Some("http://json-schema.org/draft-07/schema#".into()),
+            meta_schema: Some(meta_schemas::DRAFT07.into()),
             transforms: vec![
                 Box::new(ReplaceUnevaluatedProperties),
                 Box::new(RemoveRefSiblings),
@@ -96,7 +97,7 @@ impl SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
             definitions_path: "/$defs".into(),
-            meta_schema: Some("https://json-schema.org/draft/2019-09/schema".into()),
+            meta_schema: Some(meta_schemas::DRAFT2019_09.into()),
             transforms: vec![Box::new(ReplacePrefixItems)],
             inline_subschemas: false,
             contract: Contract::Deserialize,
@@ -110,7 +111,7 @@ impl SchemaSettings {
             option_nullable: false,
             option_add_null_type: true,
             definitions_path: "/$defs".into(),
-            meta_schema: Some("https://json-schema.org/draft/2020-12/schema".into()),
+            meta_schema: Some(meta_schemas::DRAFT2020_12.into()),
             transforms: Vec::new(),
             inline_subschemas: false,
             contract: Contract::Deserialize,
@@ -124,9 +125,7 @@ impl SchemaSettings {
             option_nullable: true,
             option_add_null_type: false,
             definitions_path: "/components/schemas".into(),
-            meta_schema: Some(
-                "https://spec.openapis.org/oas/3.0/schema/2024-10-18#/definitions/Schema".into(),
-            ),
+            meta_schema: Some(meta_schemas::OPENAPI3.into()),
             transforms: vec![
                 Box::new(ReplaceUnevaluatedProperties),
                 Box::new(ReplaceBoolSchemas {

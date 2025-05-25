@@ -106,8 +106,9 @@ assert_eq!(
 ```
 
 */
-use crate::Schema;
 use crate::_alloc_prelude::*;
+use crate::{consts::meta_schemas, Schema};
+use alloc::borrow::Cow;
 use alloc::collections::BTreeSet;
 use serde_json::{json, Map, Value};
 
@@ -271,6 +272,7 @@ where
 }
 
 /// Replaces boolean JSON Schemas with equivalent object schemas.
+///
 /// This also applies to subschemas.
 ///
 /// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support booleans as
@@ -306,7 +308,9 @@ impl Transform for ReplaceBoolSchemas {
 }
 
 /// Restructures JSON Schema objects so that the `$ref` property will never appear alongside any
-/// other properties. This also applies to subschemas.
+/// other properties.
+///
+/// This also applies to subschemas.
 ///
 /// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support other properties
 /// alongside `$ref`.
@@ -332,7 +336,9 @@ impl Transform for RemoveRefSiblings {
 }
 
 /// Removes the `examples` schema property and (if present) set its first value as the `example`
-/// property. This also applies to subschemas.
+/// property.
+///
+/// This also applies to subschemas.
 ///
 /// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support the `examples`
 /// property.
@@ -353,6 +359,7 @@ impl Transform for SetSingleExample {
 }
 
 /// Replaces the `const` schema property with a single-valued `enum` property.
+///
 /// This also applies to subschemas.
 ///
 /// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that do not support the `const`
@@ -372,6 +379,7 @@ impl Transform for ReplaceConstValue {
 }
 
 /// Rename the `prefixItems` schema property to `items`.
+///
 /// This also applies to subschemas.
 ///
 /// If the schema contains both `prefixItems` and `items`, then this additionally renames `items` to
@@ -398,6 +406,7 @@ impl Transform for ReplacePrefixItems {
 }
 
 /// Adds a `"nullable": true` property to schemas that allow `null` types.
+///
 /// This also applies to subschemas.
 ///
 /// This is useful for dialects of JSON Schema (e.g. OpenAPI 3.0) that use `nullable` instead of
@@ -461,6 +470,7 @@ impl Transform for AddNullable {
 
 /// Replaces the `unevaluatedProperties` schema property with the `additionalProperties` property,
 /// adding properties from a schema's subschemas to its `properties` where necessary.
+///
 /// This also applies to subschemas.
 ///
 /// This is useful for versions of JSON Schema (e.g. Draft 7) that do not support the
@@ -517,5 +527,234 @@ impl Transform for GatherPropertyNames {
         );
 
         transform_immediate_subschemas(self, schema);
+    }
+}
+
+/// Removes any `format` values that are not defined by the JSON Schema standard or explicitly
+/// allowed by a custom list.
+///
+/// This also applies to subschemas.
+///
+/// By default, this will infer the version of JSON Schema from the schema's `$schema` property,
+/// and no additional formats will be allowed (even when the JSON schema allows nonstandard
+/// formats).
+///
+/// # Example
+/// ```
+/// use schemars::json_schema;
+/// use schemars::transform::{RestrictFormats, Transform};
+///
+/// let mut schema = schemars::json_schema!({
+///     "$schema": "https://json-schema.org/draft/2020-12/schema",
+///     "anyOf": [
+///         {
+///             "type": "string",
+///             "format": "uuid"
+///         },
+///         {
+///             "$schema": "http://json-schema.org/draft-07/schema#",
+///             "type": "string",
+///             "format": "uuid"
+///         },
+///         {
+///             "type": "string",
+///             "format": "allowed-custom-format"
+///         },
+///         {
+///             "type": "string",
+///             "format": "forbidden-custom-format"
+///         }
+///     ]
+/// });
+///
+/// let mut transform = RestrictFormats::default();
+/// transform.allowed_formats.insert("allowed-custom-format".into());
+/// transform.transform(&mut schema);
+///
+/// assert_eq!(
+///     schema,
+///     json_schema!({
+///         "$schema": "https://json-schema.org/draft/2020-12/schema",
+///         "anyOf": [
+///             {
+///                 // "uuid" format is defined in draft 2020-12.
+///                 "type": "string",
+///                 "format": "uuid"
+///             },
+///             {
+///                 // "uuid" format is not defined in draft-07, so is removed from this subschema.
+///                 "$schema": "http://json-schema.org/draft-07/schema#",
+///                 "type": "string"
+///             },
+///             {
+///                 // "allowed-custom-format" format was present in `allowed_formats`...
+///                 "type": "string",
+///                 "format": "allowed-custom-format"
+///             },
+///             {
+///                 // ...but "forbidden-custom-format" format was not, so is also removed.
+///                 "type": "string"
+///             }
+///         ]
+///     })
+/// );
+/// ```
+#[derive(Debug, Clone)]
+#[non_exhaustive]
+pub struct RestrictFormats {
+    /// Whether to read the schema's `$schema` property to determine which version of JSON Schema
+    /// is being used, and allow only formats defined in that standard. If this is `true` but the
+    /// JSON Schema version can't be determined because `$schema` is missing or unknown, then no
+    /// `format` values will be removed.
+    ///
+    /// If this is set to `false`, then only the formats explicitly included in
+    /// [`allowed_formats`](Self::allowed_formats) will be allowed.
+    ///
+    /// By default, this is `true`.
+    pub infer_from_meta_schema: bool,
+    /// Values of the `format` property in schemas that will always be allowed, regardless of the
+    /// inferred version of JSON Schema.
+    pub allowed_formats: BTreeSet<Cow<'static, str>>,
+}
+
+impl Default for RestrictFormats {
+    fn default() -> Self {
+        Self {
+            infer_from_meta_schema: true,
+            allowed_formats: BTreeSet::new(),
+        }
+    }
+}
+
+impl Transform for RestrictFormats {
+    fn transform(&mut self, schema: &mut Schema) {
+        let mut implementation = RestrictFormatsImpl {
+            infer_from_meta_schema: self.infer_from_meta_schema,
+            inferred_formats: None,
+            allowed_formats: &self.allowed_formats,
+        };
+
+        implementation.transform(schema);
+    }
+}
+
+static DEFINED_FORMATS: &[&str] = &[
+    // `duration` and `uuid` are defined only in draft 2019-09+
+    "duration",
+    "uuid",
+    // The rest are also defined in draft-07:
+    "date-time",
+    "date",
+    "time",
+    "email",
+    "idn-email",
+    "hostname",
+    "idn-hostname",
+    "ipv4",
+    "ipv6",
+    "uri",
+    "uri-reference",
+    "iri",
+    "iri-reference",
+    "uri-template",
+    "json-pointer",
+    "relative-json-pointer",
+    "regex",
+];
+
+struct RestrictFormatsImpl<'a> {
+    infer_from_meta_schema: bool,
+    inferred_formats: Option<&'static [&'static str]>,
+    allowed_formats: &'a BTreeSet<Cow<'static, str>>,
+}
+
+impl Transform for RestrictFormatsImpl<'_> {
+    fn transform(&mut self, schema: &mut Schema) {
+        let Some(obj) = schema.as_object_mut() else {
+            return;
+        };
+
+        let previous_inferred_formats = self.inferred_formats;
+
+        if self.infer_from_meta_schema && obj.contains_key("$schema") {
+            self.inferred_formats = match obj
+                .get("$schema")
+                .and_then(Value::as_str)
+                .unwrap_or_default()
+            {
+                meta_schemas::DRAFT07 => Some(&DEFINED_FORMATS[2..]),
+                meta_schemas::DRAFT2019_09 | meta_schemas::DRAFT2020_12 => Some(DEFINED_FORMATS),
+                _ => {
+                    // we can't handle an unrecognised meta-schema
+                    return;
+                }
+            };
+        }
+
+        if let Some(format) = obj.get("format").and_then(Value::as_str) {
+            if !self.allowed_formats.contains(format)
+                && !self
+                    .inferred_formats
+                    .is_some_and(|formats| formats.contains(&format))
+            {
+                obj.remove("format");
+            }
+        }
+
+        transform_subschemas(self, schema);
+
+        self.inferred_formats = previous_inferred_formats;
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use pretty_assertions::assert_eq;
+
+    #[test]
+    fn restrict_formats() {
+        let mut schema = json_schema!({
+            "$schema": meta_schemas::DRAFT2020_12,
+            "anyOf": [
+                { "format": "uuid" },
+                { "$schema": meta_schemas::DRAFT07, "format": "uuid" },
+                { "$schema": "http://unknown", "format": "uuid" },
+                { "format": "date" },
+                { "$schema": meta_schemas::DRAFT07, "format": "date" },
+                { "$schema": "http://unknown", "format": "date" },
+                { "format": "custom1" },
+                { "$schema": meta_schemas::DRAFT07, "format": "custom1" },
+                { "$schema": "http://unknown", "format": "custom1" },
+                { "format": "custom2" },
+                { "$schema": meta_schemas::DRAFT07, "format": "custom2" },
+                { "$schema": "http://unknown", "format": "custom2" },
+            ]
+        });
+
+        let mut transform = RestrictFormats::default();
+        transform.allowed_formats.insert("custom1".into());
+        transform.transform(&mut schema);
+
+        assert_eq!(
+            schema,
+            json_schema!({
+                "$schema": meta_schemas::DRAFT2020_12,
+                "anyOf": [
+                    { "format": "uuid" },
+                    { "$schema": meta_schemas::DRAFT07 },
+                    { "$schema": "http://unknown", "format": "uuid" },
+                    { "format": "date" },
+                    { "$schema": meta_schemas::DRAFT07, "format": "date" },
+                    { "$schema": "http://unknown", "format": "date" },
+                    { "format": "custom1" },
+                    { "$schema": meta_schemas::DRAFT07, "format": "custom1" },
+                    { "$schema": "http://unknown", "format": "custom1" },
+                    { },
+                    { "$schema": meta_schemas::DRAFT07 },
+                    { "$schema": "http://unknown", "format": "custom2" },
+                ]
+            })
+        );
     }
 }

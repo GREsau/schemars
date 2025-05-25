@@ -31,6 +31,7 @@ mod macros;
 #[doc(hidden)]
 #[allow(clippy::exhaustive_structs)]
 pub mod _private;
+pub mod consts;
 pub mod generate;
 pub mod transform;
 
