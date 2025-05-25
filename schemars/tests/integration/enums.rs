@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
-
 use crate::prelude::*;
+use pretty_assertions::assert_eq;
+use std::collections::BTreeMap;
 
 #[derive(JsonSchema, Deserialize, Serialize)]
 struct UnitStruct;

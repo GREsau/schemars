@@ -1,6 +1,7 @@
 #![allow(clippy::approx_constant)]
 
 use crate::prelude::*;
+use pretty_assertions::assert_eq;
 
 static THREE: f64 = 3.0;
 

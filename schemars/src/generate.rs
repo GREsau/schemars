@@ -371,8 +371,19 @@ impl SchemaGenerator {
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
     /// values are the schemas themselves.
-    pub fn take_definitions(&mut self) -> JsonMap<String, Value> {
-        core::mem::take(&mut self.definitions)
+    ///
+    /// To apply this generator's [transforms](SchemaSettings::transforms) to each of the returned
+    /// schemas, set `apply_transforms` to `true`.
+    pub fn take_definitions(&mut self, apply_transforms: bool) -> JsonMap<String, Value> {
+        let mut definitions = core::mem::take(&mut self.definitions);
+
+        if apply_transforms {
+            for schema in definitions.values_mut().flat_map(<&mut Schema>::try_from) {
+                self.apply_transforms(schema);
+            }
+        }
+
+        definitions
     }
 
     /// Returns an iterator over the [transforms](SchemaSettings::transforms) being used by this
@@ -423,7 +434,7 @@ impl SchemaGenerator {
             object.insert("$schema".into(), meta_schema.into());
         }
 
-        let definitions = self.take_definitions();
+        let definitions = self.take_definitions(false);
         self.add_definitions(object, definitions);
         self.apply_transforms(&mut schema);
 
@@ -488,7 +499,7 @@ impl SchemaGenerator {
             object.insert("$schema".into(), meta_schema.into());
         }
 
-        let definitions = self.take_definitions();
+        let definitions = self.take_definitions(false);
         self.add_definitions(object, definitions);
         self.apply_transforms(&mut schema);
 

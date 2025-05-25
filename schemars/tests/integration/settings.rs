@@ -1,7 +1,9 @@
 use crate::prelude::*;
+use pretty_assertions::assert_eq;
 use schemars::{generate::SchemaSettings, Schema};
 
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
+#[schemars(inline)]
 pub struct OuterStruct {
     #[schemars(extend("examples" = [8, null]))]
     maybe_int: Option<i32>,
@@ -64,5 +66,17 @@ fn openapi3() {
         obj["components"]["schemas"] = obj.remove("$defs").unwrap();
     }));
 
-    test!(OuterStruct, settings).assert_snapshot();
+    test!(OuterStruct, settings.clone()).assert_snapshot();
+
+    // Ensure that `take_definitions()` applies transforms correctly
+
+    let gen1 = settings.into_generator();
+    let definitions1 =
+        &Value::from(gen1.into_root_schema_for::<OuterStruct>())["components"]["schemas"];
+
+    let mut gen2 = SchemaSettings::openapi3().into_generator();
+    gen2.subschema_for::<OuterStruct>();
+    let definitions2 = Value::Object(gen2.take_definitions(true));
+
+    assert_eq!(definitions1, &definitions2);
 }

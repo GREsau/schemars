@@ -1,6 +1,7 @@
 #![allow(deprecated)]
 
 use crate::prelude::*;
+use pretty_assertions::assert_eq;
 
 #[derive(JsonSchema, Default, Serialize, Deserialize)]
 #[deprecated]
