@@ -61,7 +61,20 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `Contract::Deserialize`.
     pub contract: Contract,
-    /// TODO doc
+    /// Whether to include an `"x-rust-type"` property in schemas, set to the name of the
+    /// schema's associated rust type.
+    ///
+    /// This uses [`std::any::type_name()`], so shares the caveats of that function. In particular,
+    /// the exact output is not guaranteed, and may change between versions of the rust compiler.
+    ///
+    /// When this is used with `#[derive(JsonSchema)]`, any fields with the
+    /// `#[serde(with = "Type")]`/`#[schemars(with = "Type")]` attribute will use name of the type
+    /// from the attribute, **not** the type of the actual field. Similarly, any fields with the
+    /// `#[schemars(schema_with = "function")]` attribute will not have the `"x-rust-type"`
+    /// property added (you can, of course, set the property to whatever you like in the function
+    /// implementation).
+    ///
+    /// Defaults to `false`.
     pub include_type_name: bool,
 }
 
