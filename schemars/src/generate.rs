@@ -302,9 +302,11 @@ impl SchemaGenerator {
             && (!self.settings.inline_subschemas || self.pending_schema_ids.contains(&uid));
 
         if return_ref {
-            let name = match self.schema_id_to_name.get(&uid).cloned() {
-                Some(n) => n,
-                None => {
+            let name = self
+                .schema_id_to_name
+                .get(&uid)
+                .cloned()
+                .unwrap_or_else(|| {
                     let base_name = T::schema_name();
                     let mut name = CowStr::Borrowed("");
 
@@ -322,8 +324,7 @@ impl SchemaGenerator {
                     self.used_schema_names.insert(name.clone());
                     self.schema_id_to_name.insert(uid.clone(), name.clone());
                     name
-                }
-            };
+                });
 
             let reference = format!("#{}/{}", self.definitions_path_stripped(), name);
             if !self.definitions.contains_key(name.as_ref()) {
