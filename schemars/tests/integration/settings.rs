@@ -1,6 +1,7 @@
 use crate::prelude::*;
 use pretty_assertions::assert_eq;
-use schemars::{generate::SchemaSettings, Schema};
+use schemars::{generate::SchemaSettings, Schema, SchemaGenerator};
+use std::any::type_name;
 
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
 #[schemars(inline)]
@@ -79,4 +80,64 @@ fn openapi3() {
     let definitions2 = Value::Object(gen2.take_definitions(true));
 
     assert_eq!(definitions1, &definitions2);
+}
+
+#[test]
+fn include_type_name() {
+    test!(
+        OuterStruct,
+        SchemaSettings::default().with(|s| s.include_type_name = true)
+    )
+    .assert_snapshot();
+}
+
+#[test]
+fn include_type_name_handles_with_attributes() {
+    fn dummy(_: &mut SchemaGenerator) -> Schema {
+        Schema::default()
+    }
+
+    #[derive(JsonSchema)]
+    struct Foo {
+        _int: i32,
+        _value: Value,
+        #[schemars(with = "f64")]
+        _with_type: i32,
+        #[schemars(schema_with = "dummy")]
+        _with_fn: i32,
+    }
+
+    let schema = SchemaSettings::default()
+        .with(|s| s.include_type_name = true)
+        .into_generator()
+        .into_root_schema_for::<Foo>();
+
+    assert_eq!(schema.as_value()["x-rust-type"], type_name::<Foo>());
+    assert_eq!(
+        schema
+            .as_value()
+            .pointer("/properties/_int/x-rust-type")
+            .and_then(Value::as_str),
+        Some(type_name::<i32>())
+    );
+    assert_eq!(
+        schema
+            .as_value()
+            .pointer("/properties/_value/x-rust-type")
+            .and_then(Value::as_str),
+        Some(type_name::<Value>())
+    );
+    assert_eq!(
+        schema
+            .as_value()
+            .pointer("/properties/_with_type/x-rust-type")
+            .and_then(Value::as_str),
+        Some(type_name::<f64>())
+    );
+    assert_eq!(
+        schema
+            .as_value()
+            .pointer("/properties/_with_fn/x-rust-type"),
+        None,
+    );
 }
