@@ -1,16 +1,29 @@
 # Changelog
 
-## [1.0.0-alpha.18] - **in dev**
+## [1.0.0-alpha.18] - 2025-05-26
 
 ## Added
 
 - `#[schemars(inline)]` attribute for inling schemas when deriving `JsonSchema` (https://github.com/GREsau/schemars/pull/380)
 - Implement `JsonSchema` for [jiff](https://crates.io/crates/jiff) 0.2 types, under the optional `jiff02` feature flag (https://github.com/GREsau/schemars/pull/364)
+- Add methods to `dyn GenTransform`, allowing to to be used similarly to a `dyn Any`:
+  - `fn is<T>(&self) -> bool`
+  - `fn downcast_ref<T>(&self) -> Option<&T>`
+  - `fn downcast_mut<T>(&mut self) -> Option<&mut T>`
+  - `fn downcast<T>(self: Box<Self>) -> Result<Box<T>, Box<Self>>`
+- Schemas for `i8`/`i16`/`u8`/`u16` now include `minimum` and `maximum` properties (https://github.com/GREsau/schemars/issues/298)
+- `schemars::transform::RestrictFormats` - a `Transform` that removes any `format` values that are not defined by the JSON Schema standard (or explicitly allowed by a custom list). This can be used to remove non-standard `format`s from schemas.
+- `SchemaSettings` now has an `include_type_name` flag. When enabled, this includes an `"x-rust-type"` property on generated schemas, set to the name of the schema's associated rust type.
 
 ### Changed
 
 - Rename `JsonSchema::always_inline_schema()` to `inline_schema()`, because future attributes may allow particular fields to be uninlined
 - MSRV is now 1.74
+- `GenTransform::as_any` and `GenTransform::as_any` are deprecated and will be removed before schemars 1.0 becomes stable.
+- The generation of nullable schemas (i.e. schemas for `Option<T>`) has been reworked, making them more accurate. The `SchemaSettings::option_nullable` and `SchemaSettings::option_add_null_type` fields are no longer used - instead, generated schemas always include the `"null"` type, but this can be changed to `nullable` by using the new `AddNullable` transform.
+- Update OpenAPI 3.0 meta-schema to an active URL (https://github.com/GREsau/schemars/issues/394)
+- Change `SchemaSettings::meta_schema` and `SchemaSettings::definitions_path` from `String` to `Cow<'static, str>`, making it easier to construct a `SchemaSettings` in a `const` context.
+- The `SchemaGenerator::take_definitions` method now takes an `apply_transforms` flag, which when enabled, will apply the generator's current transforms to each of the schema values in the returned map.
 
 ## [0.8.22] - 2025-02-25
 
