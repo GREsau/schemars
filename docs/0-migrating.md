@@ -7,7 +7,7 @@ permalink: /migrating/
 layout: default
 ---
 
-# Migrating from 0.8 to 1.0
+# Migrating from 0.8 to 1.0 (or to 0.9)
 
 <blockquote class="warning">
 <p>Schemars 1.0 is still under development, and further changes may be introduced.

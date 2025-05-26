@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.9.0] - 2025-05-26
+
+This version is identical to `1.0.0-alpha.18`, but is available for those who are unable to unwilling to use a pre-release version.
+
+Those upgrading from Schemars 0.8 may want to consult [the migration guide](https://graham.cool/schemars/migrating/), which also applies when migrating from 0.8 to 0.9.
+
 ## [1.0.0-alpha.18] - 2025-05-26
 
 ## Added

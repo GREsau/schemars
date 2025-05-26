@@ -31,5 +31,5 @@ For example, to implement `JsonSchema` on types from `chrono`, enable it as a fe
 
 ```toml
 [dependencies]
-schemars = { version = "1.0.0-alpha.18", features = ["chrono04"] }
+schemars = { version = "0.9.0", features = ["chrono04"] }
 ```
