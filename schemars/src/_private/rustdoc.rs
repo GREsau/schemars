@@ -1,4 +1,7 @@
-pub const fn get_title_and_description(doc: &str) -> (&str, &str) {
+#![allow(clippy::all)]
+use crate::_alloc_prelude::*;
+
+pub fn get_title_and_description(doc: &str) -> (&str, String) {
     let doc_bytes = trim_ascii(doc.as_bytes());
 
     if !doc_bytes.is_empty() && doc_bytes[0] == b'#' {
@@ -7,12 +10,19 @@ pub const fn get_title_and_description(doc: &str) -> (&str, &str) {
             None => doc_bytes.len(),
         };
 
-        let title = trim_ascii(trim_start(subslice(doc_bytes, 0, title_end_index), b'#'));
-        let description = trim_ascii(subslice(doc_bytes, title_end_index, doc_bytes.len()));
+        let title = to_utf8(trim_ascii(trim_start(
+            subslice(doc_bytes, 0, title_end_index),
+            b'#',
+        )));
+        let description = merge_description_lines(to_utf8(trim_ascii(subslice(
+            doc_bytes,
+            title_end_index,
+            doc_bytes.len(),
+        ))));
 
-        (to_utf8(title), to_utf8(description))
+        (title, description)
     } else {
-        ("", to_utf8(doc_bytes))
+        ("", merge_description_lines(to_utf8(doc_bytes)))
     }
 }
 
@@ -62,6 +72,14 @@ const fn to_utf8(bytes: &[u8]) -> &str {
     }
 }
 
+fn merge_description_lines(doc: &str) -> String {
+    doc.trim()
+        .split("\n\n")
+        .map(|line| line.trim().replace('\n', " "))
+        .collect::<Vec<_>>()
+        .join("\n\n")
+}
+
 const fn trim_start(mut bytes: &[u8], chr: u8) -> &[u8] {
     while let [first, rest @ ..] = bytes {
         if *first == chr {
@@ -91,4 +109,25 @@ const fn trim_ascii(mut bytes: &[u8]) -> &[u8] {
     }
 
     bytes
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_get_title_and_description() {
+        let doc = r"
+Title
+
+Line1
+Line2
+
+Line3
+Line4
+";
+        let (title, description) = get_title_and_description(doc);
+        pretty_assertions::assert_eq!(title, "");
+        pretty_assertions::assert_eq!(description, "Title\n\nLine1 Line2\n\nLine3 Line4");
+    }
 }
