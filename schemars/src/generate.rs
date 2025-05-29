@@ -26,7 +26,6 @@ type CowStr = alloc::borrow::Cow<'static, str>;
 /// [`SchemaSettings::draft2020_12()`] method.
 #[derive(Debug, Clone)]
 #[non_exhaustive]
-#[allow(clippy::struct_excessive_bools)]
 pub struct SchemaSettings {
     /// This option is now ignored and will be removed before schemars 1.0 becomes stable.
     ///
@@ -61,21 +60,6 @@ pub struct SchemaSettings {
     ///
     /// Defaults to `Contract::Deserialize`.
     pub contract: Contract,
-    /// Whether to include an `"x-rust-type"` property in schemas, set to the name of the
-    /// schema's associated rust type.
-    ///
-    /// This uses [`std::any::type_name()`], so shares the caveats of that function. In particular,
-    /// the exact output is not guaranteed, and may change between versions of the rust compiler.
-    ///
-    /// When this is used with `#[derive(JsonSchema)]`, any fields with the
-    /// `#[serde(with = "Type")]`/`#[schemars(with = "Type")]` attribute will use name of the type
-    /// from the attribute, **not** the type of the actual field. Similarly, any fields with the
-    /// `#[schemars(schema_with = "function")]` attribute will not have the `"x-rust-type"`
-    /// property added (you can, of course, set the property to whatever you like in the function
-    /// implementation).
-    ///
-    /// Defaults to `false`.
-    pub include_type_name: bool,
 }
 
 impl Default for SchemaSettings {
@@ -103,7 +87,6 @@ impl SchemaSettings {
             ],
             inline_subschemas: false,
             contract: Contract::Deserialize,
-            include_type_name: false,
         }
     }
 
@@ -118,7 +101,6 @@ impl SchemaSettings {
             transforms: vec![Box::new(ReplacePrefixItems)],
             inline_subschemas: false,
             contract: Contract::Deserialize,
-            include_type_name: false,
         }
     }
 
@@ -133,7 +115,6 @@ impl SchemaSettings {
             transforms: Vec::new(),
             inline_subschemas: false,
             contract: Contract::Deserialize,
-            include_type_name: false,
         }
     }
 
@@ -158,7 +139,6 @@ impl SchemaSettings {
             ],
             inline_subschemas: false,
             contract: Contract::Deserialize,
-            include_type_name: false,
         }
     }
 
@@ -561,15 +541,7 @@ impl SchemaGenerator {
         }
 
         let pss = PendingSchemaState::new(self, uid);
-        let mut schema = T::json_schema(pss.generator);
-
-        if pss.generator.settings().include_type_name
-            && !pss.uid.0.starts_with("_SchemarsSchemaWithFunction/")
-        {
-            schema.insert("x-rust-type".to_owned(), core::any::type_name::<T>().into());
-        }
-
-        schema
+        T::json_schema(pss.generator)
     }
 
     fn add_definitions(
