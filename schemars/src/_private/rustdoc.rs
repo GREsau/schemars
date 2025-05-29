@@ -75,7 +75,15 @@ const fn to_utf8(bytes: &[u8]) -> &str {
 fn merge_description_lines(doc: &str) -> String {
     doc.trim()
         .split("\n\n")
-        .map(|line| line.trim().replace('\n', " "))
+        .filter(|paragraph| !paragraph.is_empty())
+        .map(|paragraph| {
+            paragraph
+                .split('\n')
+                .map(str::trim)
+                .filter(|line| !line.is_empty())
+                .collect::<Vec<_>>()
+                .join(" ")
+        })
         .collect::<Vec<_>>()
         .join("\n\n")
 }

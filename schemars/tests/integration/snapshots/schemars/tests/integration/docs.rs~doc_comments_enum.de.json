@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "This is the enum's title",
-  "description": "This is \n the enum's description.",
+  "description": "This is the enum's description.",
   "oneOf": [
     {
       "type": "string",
@@ -25,7 +25,7 @@
           "properties": {
             "my_nullable_string": {
               "title": "A nullable string",
-              "description": "This field is a nullable string.\n\n This\nis\n   the second\n  line!\n\n\n\n\n And this is the third!",
+              "description": "This field is a nullable string.\n\nThis is the second line!\n\nAnd this is the third!",
               "type": [
                 "string",
                 "null"

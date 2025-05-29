@@ -172,7 +172,7 @@ impl CommonAttrs {
         if let Some(doc) = &self.doc {
             if title.is_none() || description.is_none() {
                 mutators.push(quote!{
-                    const title_and_description: (&str, &str) = schemars::_private::get_title_and_description(#doc);
+                    let title_and_description: (&str, String) = schemars::_private::get_title_and_description(#doc);
                 });
                 title.get_or_insert_with(|| quote!(title_and_description.0));
                 description.get_or_insert_with(|| quote!(title_and_description.1));
