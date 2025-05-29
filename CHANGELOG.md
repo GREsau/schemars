@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.19] - _in-dev_
+
+## Removed
+
+- Remove the `include_type_name` setting for including `"x-rust-type"` property on generated schemas, since it didn't solve the original feature request. If you have a use-case for that behaviour, please raise an issue in GitHub.
+
 ## [0.9.0] - 2025-05-26
 
 This version is identical to `1.0.0-alpha.18`, but is available for those who are unable to unwilling to use a pre-release version.
