@@ -10,27 +10,29 @@ macro_rules! forward_impl {
     (($($impl:tt)+) => $target:ty) => {
         impl $($impl)+ {
             fn inline_schema() -> bool {
-                <$target>::inline_schema()
+                <$target as $crate::JsonSchema>::inline_schema()
             }
 
             fn schema_name() -> alloc::borrow::Cow<'static, str> {
-                <$target>::schema_name()
+                <$target as $crate::JsonSchema>::schema_name()
             }
 
             fn schema_id() -> alloc::borrow::Cow<'static, str> {
-                <$target>::schema_id()
+                <$target as $crate::JsonSchema>::schema_id()
             }
 
             fn json_schema(generator: &mut $crate::SchemaGenerator) -> $crate::Schema {
-                <$target>::json_schema(generator)
+                <$target as $crate::JsonSchema>::json_schema(generator)
             }
 
             fn _schemars_private_non_optional_json_schema(generator: &mut $crate::SchemaGenerator) -> $crate::Schema {
-                <$target>::_schemars_private_non_optional_json_schema(generator)
+                #[allow(clippy::used_underscore_items)]
+                <$target as $crate::JsonSchema>::_schemars_private_non_optional_json_schema(generator)
             }
 
             fn _schemars_private_is_option() -> bool {
-                <$target>::_schemars_private_is_option()
+                #[allow(clippy::used_underscore_items)]
+                <$target as $crate::JsonSchema>::_schemars_private_is_option()
             }
         }
     };
