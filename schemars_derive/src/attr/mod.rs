@@ -463,7 +463,7 @@ impl<'a> AttrCtxt<'a> {
 impl Drop for AttrCtxt<'_> {
     fn drop(&mut self) {
         if self.attr_type == "schemars" {
-            for unhandled_meta in self.metas.iter().filter(|m| !is_known_serde_keyword(m)) {
+            for unhandled_meta in self.metas.iter().filter(|m| !is_schemars_serde_keyword(m)) {
                 self.error_spanned_by(
                     unhandled_meta.path(),
                     format_args!(
@@ -476,8 +476,8 @@ impl Drop for AttrCtxt<'_> {
     }
 }
 
-fn is_known_serde_keyword(meta: &Meta) -> bool {
-    let known_keywords = schemars_to_serde::SERDE_KEYWORDS;
+fn is_schemars_serde_keyword(meta: &Meta) -> bool {
+    let known_keywords = schemars_to_serde::SCHEMARS_KEYWORDS_PARSED_BY_SERDE;
     meta.path()
         .get_ident()
         .map(|i| known_keywords.contains(&i.to_string().as_str()))

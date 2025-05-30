@@ -37,6 +37,10 @@ pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     "with",
 ];
 
+pub(crate) static SCHEMARS_KEYWORDS_PARSED_BY_SERDE: &[&str] =
+    // exclude "serialize_with" and "with"
+    SERDE_KEYWORDS.split_at(SERDE_KEYWORDS.len() - 2).0;
+
 // If a struct/variant/field has any #[schemars] attributes, then create copies of them
 // as #[serde] attributes so that serde_derive_internals will parse them for us.
 pub fn process_serde_attrs(input: &mut syn::DeriveInput) -> syn::Result<()> {
@@ -76,7 +80,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
             .into_iter()
             .filter_map(|meta| {
                 let keyword = get_meta_ident(&meta)?;
-                if SERDE_KEYWORDS.contains(&keyword.as_ref()) && !keyword.ends_with("with") {
+                if SCHEMARS_KEYWORDS_PARSED_BY_SERDE.contains(&keyword.as_ref()) {
                     Some((meta, keyword))
                 } else {
                     None
