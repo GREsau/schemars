@@ -113,14 +113,14 @@ mod tests {
         let doc = r"
 Title
 
-Line1
-Line2
+ Line1
+  Line2
 
 Line3
-Line4
+ Line4
 ";
         let (title, description) = get_title_and_description(doc);
         pretty_assertions::assert_eq!(title, "");
-        pretty_assertions::assert_eq!(description, "Title\n\nLine1\nLine2\n\nLine3\nLine4");
+        pretty_assertions::assert_eq!(description, "Title\n\nLine1\n Line2\n\nLine3\nLine4");
     }
 }
