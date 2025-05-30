@@ -14,15 +14,16 @@ pub fn get_title_and_description(doc: &str) -> (&str, String) {
             subslice(doc_bytes, 0, title_end_index),
             b'#',
         )));
-        let description = merge_description_lines(to_utf8(trim_ascii(subslice(
+        let description = to_utf8(trim_ascii(subslice(
             doc_bytes,
             title_end_index,
             doc_bytes.len(),
-        ))));
+        )))
+        .replace("\n ", "\n");
 
         (title, description)
     } else {
-        ("", merge_description_lines(to_utf8(doc_bytes)))
+        ("", to_utf8(doc_bytes).replace("\n ", "\n"))
     }
 }
 
@@ -70,22 +71,6 @@ const fn to_utf8(bytes: &[u8]) -> &str {
         Ok(x) => x,
         Err(_) => panic!("Invalid UTF-8"),
     }
-}
-
-fn merge_description_lines(doc: &str) -> String {
-    doc.trim()
-        .split("\n\n")
-        .filter(|paragraph| !paragraph.is_empty())
-        .map(|paragraph| {
-            paragraph
-                .split('\n')
-                .map(str::trim)
-                .filter(|line| !line.is_empty())
-                .collect::<Vec<_>>()
-                .join(" ")
-        })
-        .collect::<Vec<_>>()
-        .join("\n\n")
 }
 
 const fn trim_start(mut bytes: &[u8], chr: u8) -> &[u8] {
@@ -136,6 +121,6 @@ Line4
 ";
         let (title, description) = get_title_and_description(doc);
         pretty_assertions::assert_eq!(title, "");
-        pretty_assertions::assert_eq!(description, "Title\n\nLine1 Line2\n\nLine3 Line4");
+        pretty_assertions::assert_eq!(description, "Title\n\nLine1\nLine2\n\nLine3\nLine4");
     }
 }
