@@ -8,9 +8,14 @@ use schemars::JsonSchema;
     deny_unknown_fields,
     inline = 1,
     inline,
-    inline
+    inline,
+    with = "String",
+    serialize_with = "String"
 )]
-pub struct Struct1;
+pub struct Struct1 {
+    #[serde(serialize_with = "u64")]
+    pub field: u32,
+}
 
 #[derive(JsonSchema)]
 #[schemars(
@@ -20,8 +25,13 @@ pub struct Struct1;
     deny_unknown_fields,
     inline = 1,
     inline,
-    inline
+    inline,
+    with = "String",
+    serialize_with = "String"
 )]
-pub struct Struct2;
+pub struct Struct2 {
+    #[schemars(serialize_with = "u64")]
+    pub field: u32,
+}
 
 fn main() {}
