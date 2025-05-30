@@ -52,6 +52,8 @@ mod url;
 #[cfg(feature = "uuid1")]
 mod uuid;
 mod validator;
+#[cfg(feature = "std")]
+mod map_with_enum_key;
 
 mod prelude {
     pub(crate) use crate::test;
