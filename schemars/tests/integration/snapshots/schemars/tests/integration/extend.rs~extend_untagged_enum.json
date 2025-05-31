@@ -3,13 +3,16 @@
   "title": "UntaggedEnum",
   "anyOf": [
     {
+      "title": "Unit",
       "type": "null",
       "foo": "bar"
     },
     {
+      "title": "NewType",
       "foo": "bar"
     },
     {
+      "title": "Tuple",
       "type": "array",
       "prefixItems": [
         {
@@ -25,6 +28,7 @@
       "foo": "bar"
     },
     {
+      "title": "Struct",
       "type": "object",
       "properties": {
         "i": {

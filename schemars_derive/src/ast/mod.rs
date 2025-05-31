@@ -96,12 +96,12 @@ impl Field<'_> {
 
         if self.serde_attrs.skip_deserializing() {
             mutators.push(quote! {
-                schemars::_private::insert_metadata_property(&mut #SCHEMA, "readOnly", true);
+                #SCHEMA.insert("readOnly".to_owned(), true.into());
             });
         }
         if self.serde_attrs.skip_serializing() {
             mutators.push(quote! {
-                schemars::_private::insert_metadata_property(&mut #SCHEMA, "writeOnly", true);
+                #SCHEMA.insert("writeOnly".to_owned(), true.into());
             });
         }
     }

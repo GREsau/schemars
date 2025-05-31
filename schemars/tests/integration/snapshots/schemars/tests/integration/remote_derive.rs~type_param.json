@@ -18,12 +18,14 @@
     "Or_for_uint8_and_boolean": {
       "anyOf": [
         {
+          "title": "A",
           "type": "integer",
           "format": "uint8",
           "minimum": 0,
           "maximum": 255
         },
         {
+          "title": "B",
           "type": "boolean"
         }
       ]
@@ -31,9 +33,11 @@
     "Or_for_null_and_string": {
       "anyOf": [
         {
+          "title": "A",
           "type": "null"
         },
         {
+          "title": "B",
           "type": "string"
         }
       ]
