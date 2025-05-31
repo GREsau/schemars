@@ -12,13 +12,20 @@ pub struct MyStruct {
 }
 
 #[derive(Deserialize, Serialize, JsonSchema)]
-#[serde(untagged)]
 pub enum MyEnum {
     StringNewType(String),
-    StructVariant { floats: Vec<f32> },
+    Unit1,
+    #[serde(untagged)]
+    StructVariant {
+        floats: Vec<f32>,
+    },
+    #[serde(untagged)]
+    Unit2,
 }
 
 fn main() {
     let schema = schema_for!(MyStruct);
     println!("{}", serde_json::to_string_pretty(&schema).unwrap());
+
+    // println!("{}", serde_json::to_string_pretty(&MyEnum::Unit1).unwrap());
 }

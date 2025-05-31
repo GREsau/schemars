@@ -207,7 +207,7 @@ fn expr_for_external_tagged_enum<'a>(
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
     let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
-        variants.partition(|v| v.is_unit() && v.attrs.is_default());
+        variants.partition(|v| v.is_unit() && v.attrs.is_default() && !v.serde_attrs.untagged());
     let add_unit_names = unit_variants.iter().map(|v| {
         let name = v.name();
         v.with_contract_check(quote! {
@@ -238,6 +238,13 @@ fn expr_for_external_tagged_enum<'a>(
     }
 
     schemas.extend(complex_variants.into_iter().map(|variant| {
+        if variant.serde_attrs.untagged() {
+            return (
+                Some(variant),
+                expr_for_untagged_enum_variant(variant, deny_unknown_fields),
+            );
+        }
+
         let name = variant.name();
 
         let mut schema_expr =
@@ -267,6 +274,9 @@ fn expr_for_internal_tagged_enum<'a>(
 ) -> SchemaExpr {
     let variant_schemas = variants
         .map(|variant| {
+            if variant.serde_attrs.untagged() {
+                return (Some(variant), expr_for_untagged_enum_variant(variant, deny_unknown_fields))
+            }
 
             let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
 
@@ -311,6 +321,13 @@ fn expr_for_adjacent_tagged_enum<'a>(
 ) -> SchemaExpr {
     let schemas = variants
         .map(|variant| {
+            if variant.serde_attrs.untagged() {
+                return (
+                    Some(variant),
+                    expr_for_untagged_enum_variant(variant, deny_unknown_fields),
+                );
+            }
+
             let content_schema = if variant.is_unit() && variant.attrs.with.is_none() {
                 None
             } else {
@@ -368,7 +385,17 @@ fn expr_for_adjacent_tagged_enum<'a>(
 
 /// Callers must determine if all subschemas are mutually exclusive. The current behaviour is to
 /// assume that variants are mutually exclusive except for untagged enums.
-fn variant_subschemas(unique: bool, schemas: Vec<(Option<&Variant>, SchemaExpr)>) -> SchemaExpr {
+fn variant_subschemas(
+    mut unique: bool,
+    schemas: Vec<(Option<&Variant>, SchemaExpr)>,
+) -> SchemaExpr {
+    if schemas
+        .iter()
+        .any(|(v, _)| v.is_some_and(|v| v.serde_attrs.untagged()))
+    {
+        unique = false;
+    }
+
     let keyword = if unique { "oneOf" } else { "anyOf" };
     let add_schemas = schemas.into_iter().map(|(v, s)| {
         let add = quote! {
