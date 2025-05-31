@@ -1,6 +1,16 @@
 # Changelog
 
-## [1.0.0-alpha.19] - _in-dev_
+## [1.0.0-alpha.19] - 2025-05-31
+
+## Added
+
+- Support `#[serde(untagged)]` on individual variants of enums (https://github.com/GREsau/schemars/issues/388 / https://github.com/GREsau/schemars/pull/412)
+- Set `"title"` to variant name in schemas for untagged enums/variants (https://github.com/GREsau/schemars/issues/102 / https://github.com/GREsau/schemars/pull/413)
+
+## Changed
+
+- When populating a schema's `"description"` from rust doc comments, trim a single leading space from the comment (https://github.com/GREsau/schemars/pull/407)
+- Invalid `with`/`serialize_with` attributes will now fail compilation rather than being silently ignored (https://github.com/GREsau/schemars/pull/410)
 
 ## Removed
 
