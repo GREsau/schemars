@@ -31,9 +31,11 @@
     "MyEnum": {
       "anyOf": [
         {
+          "title": "StringNewType",
           "type": "string"
         },
         {
+          "title": "StructVariant",
           "type": "object",
           "properties": {
             "floats": {

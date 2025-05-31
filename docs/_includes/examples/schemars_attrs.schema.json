@@ -41,10 +41,12 @@
     "MyEnum": {
       "anyOf": [
         {
+          "title": "StringNewType",
           "type": "string",
           "format": "email"
         },
         {
+          "title": "StructVariant",
           "type": "object",
           "properties": {
             "floats": {
