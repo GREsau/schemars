@@ -50,40 +50,45 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
     if let Some(transparent_field) = cont.transparent_field() {
-        let (ty, type_def) = schema_exprs::type_for_field_schema(transparent_field);
-        return Ok(quote! {
-            const _: () = {
-                #crate_alias
-                #type_def
+        // If any schemars attributes for setting metadata (e.g. description) are present, then
+        // it's not fully transparent, so use the normal `schema_exprs::expr_for_container`
+        // implementation (which always treats the struct as a newtype if it has `transparent`)
+        if cont.attrs.common.is_default() && transparent_field.attrs.is_default() {
+            let (ty, type_def) = schema_exprs::type_for_field_schema(transparent_field);
+            return Ok(quote! {
+                const _: () = {
+                    #crate_alias
+                    #type_def
 
-                #[automatically_derived]
-                impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
-                    fn inline_schema() -> bool {
-                        <#ty as schemars::JsonSchema>::inline_schema()
-                    }
+                    #[automatically_derived]
+                    impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
+                        fn inline_schema() -> bool {
+                            <#ty as schemars::JsonSchema>::inline_schema()
+                        }
 
-                    fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
-                        <#ty as schemars::JsonSchema>::schema_name()
-                    }
+                        fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
+                            <#ty as schemars::JsonSchema>::schema_name()
+                        }
 
-                    fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
-                        <#ty as schemars::JsonSchema>::schema_id()
-                    }
+                        fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
+                            <#ty as schemars::JsonSchema>::schema_id()
+                        }
 
-                    fn json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
-                        <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
-                    }
+                        fn json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                            <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
+                        }
 
-                    fn _schemars_private_non_optional_json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
-                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#GENERATOR)
-                    }
+                        fn _schemars_private_non_optional_json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                            <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#GENERATOR)
+                        }
 
-                    fn _schemars_private_is_option() -> bool {
-                        <#ty as schemars::JsonSchema>::_schemars_private_is_option()
-                    }
+                        fn _schemars_private_is_option() -> bool {
+                            <#ty as schemars::JsonSchema>::_schemars_private_is_option()
+                        }
+                    };
                 };
-            };
-        });
+            });
+        }
     }
 
     // We don't know which contract is set on the schema generator here, so we
