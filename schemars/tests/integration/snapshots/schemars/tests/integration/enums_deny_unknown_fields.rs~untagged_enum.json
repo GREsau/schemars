@@ -3,21 +3,26 @@
   "title": "Untagged",
   "anyOf": [
     {
+      "title": "Unit",
       "type": "null"
     },
     {
+      "title": "StringMap",
       "type": "object",
       "additionalProperties": {
         "type": "string"
       }
     },
     {
+      "title": "StructNewType",
       "$ref": "#/$defs/Struct"
     },
     {
+      "title": "StructDenyUnknownFieldsNewType",
       "$ref": "#/$defs/StructDenyUnknownFields"
     },
     {
+      "title": "Struct",
       "type": "object",
       "properties": {
         "foo": {

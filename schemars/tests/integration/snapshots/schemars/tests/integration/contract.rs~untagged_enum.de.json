@@ -3,9 +3,11 @@
   "title": "UntaggedEnum",
   "anyOf": [
     {
+      "title": "WriteOnlyUnit",
       "type": "null"
     },
     {
+      "title": "WriteOnlyStruct",
       "type": "object",
       "properties": {
         "i": {
@@ -18,9 +20,11 @@
       ]
     },
     {
+      "title": "de_renamed_unit",
       "type": "null"
     },
     {
+      "title": "de_renamed_struct",
       "type": "object",
       "properties": {
         "b": {

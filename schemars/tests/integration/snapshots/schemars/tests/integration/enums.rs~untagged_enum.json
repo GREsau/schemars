@@ -3,21 +3,26 @@
   "title": "Untagged",
   "anyOf": [
     {
+      "title": "UnitOne",
       "type": "null"
     },
     {
+      "title": "StringMap",
       "type": "object",
       "additionalProperties": {
         "type": "string"
       }
     },
     {
+      "title": "UnitStructNewType",
       "$ref": "#/$defs/UnitStruct"
     },
     {
+      "title": "StructNewType",
       "$ref": "#/$defs/Struct"
     },
     {
+      "title": "Struct",
       "type": "object",
       "properties": {
         "foo": {
@@ -34,6 +39,7 @@
       ]
     },
     {
+      "title": "Tuple",
       "type": "array",
       "prefixItems": [
         {
@@ -48,14 +54,17 @@
       "maxItems": 2
     },
     {
+      "title": "UnitTwo",
       "type": "null"
     },
     {
+      "title": "UnitAsInt",
       "type": "integer",
       "format": "uint64",
       "minimum": 0
     },
     {
+      "title": "TupleAsStr",
       "type": "string",
       "pattern": "^\\d+ (true|false)$"
     }

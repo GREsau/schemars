@@ -203,7 +203,7 @@ pub fn insert_object_property(
 }
 
 pub fn insert_metadata_property(schema: &mut Schema, key: &str, value: impl Into<Value>) {
-    schema.ensure_object().insert(key.to_owned(), value.into());
+    schema.insert(key.to_owned(), value.into());
 }
 
 pub fn insert_metadata_property_if_nonempty(

@@ -241,7 +241,7 @@ fn expr_for_external_tagged_enum<'a>(
         if variant.serde_attrs.untagged() {
             return (
                 Some(variant),
-                expr_for_untagged_enum_variant(variant, deny_unknown_fields),
+                expr_for_untagged_enum_variant(variant, deny_unknown_fields, true),
             );
         }
 
@@ -253,7 +253,8 @@ fn expr_for_external_tagged_enum<'a>(
                     schemars::_private::new_unit_enum_variant(#name)
                 }
             } else {
-                let sub_schema = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
+                let sub_schema =
+                    expr_for_untagged_enum_variant(variant, deny_unknown_fields, false);
                 quote! {
                     schemars::_private::new_externally_tagged_enum_variant(#name, #sub_schema)
                 }
@@ -275,7 +276,7 @@ fn expr_for_internal_tagged_enum<'a>(
     let variant_schemas = variants
         .map(|variant| {
             if variant.serde_attrs.untagged() {
-                return (Some(variant), expr_for_untagged_enum_variant(variant, deny_unknown_fields))
+                return (Some(variant), expr_for_untagged_enum_variant(variant, deny_unknown_fields, true))
             }
 
             let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
@@ -300,9 +301,7 @@ fn expr_for_untagged_enum<'a>(
 ) -> SchemaExpr {
     let schemas = variants
         .map(|variant| {
-            let mut schema_expr = expr_for_untagged_enum_variant(variant, deny_unknown_fields);
-
-            variant.add_mutators(&mut schema_expr.mutators);
+            let schema_expr = expr_for_untagged_enum_variant(variant, deny_unknown_fields, true);
 
             (Some(variant), schema_expr)
         })
@@ -324,14 +323,18 @@ fn expr_for_adjacent_tagged_enum<'a>(
             if variant.serde_attrs.untagged() {
                 return (
                     Some(variant),
-                    expr_for_untagged_enum_variant(variant, deny_unknown_fields),
+                    expr_for_untagged_enum_variant(variant, deny_unknown_fields, true),
                 );
             }
 
             let content_schema = if variant.is_unit() && variant.attrs.with.is_none() {
                 None
             } else {
-                Some(expr_for_untagged_enum_variant(variant, deny_unknown_fields))
+                Some(expr_for_untagged_enum_variant(
+                    variant,
+                    deny_unknown_fields,
+                    false,
+                ))
             };
 
             let (add_content_to_props, add_content_to_required) = content_schema
@@ -421,24 +424,45 @@ fn variant_subschemas(
     .into()
 }
 
-fn expr_for_untagged_enum_variant(variant: &Variant, deny_unknown_fields: bool) -> SchemaExpr {
-    if let Some(with_attr) = &variant.attrs.with {
+// This function is also used for tagged variants, in which case the resulting SchemaExpr will be
+// embedded or mutated to include the tag. `is_actually_untagged` will be true if the enum or the
+// variant has the `untagged` attribute.
+fn expr_for_untagged_enum_variant(
+    variant: &Variant,
+    deny_unknown_fields: bool,
+    is_actually_untagged: bool,
+) -> SchemaExpr {
+    let mut schema_expr = if let Some(with_attr) = &variant.attrs.with {
         let (ty, type_def) = type_for_schema(with_attr);
         let mut schema_expr = SchemaExpr::from(quote_spanned! {variant.original.span()=>
             #GENERATOR.subschema_for::<#ty>()
         });
 
         schema_expr.definitions.extend(type_def);
+        schema_expr
+    } else {
+        match variant.style {
+            Style::Unit => expr_for_unit_struct(),
+            Style::Newtype => expr_for_field(&variant.fields[0], false),
+            Style::Tuple => expr_for_tuple_struct(&variant.fields),
+            Style::Struct => {
+                expr_for_struct(&variant.fields, &SerdeDefault::None, deny_unknown_fields)
+            }
+        }
+    };
 
-        return schema_expr;
+    if is_actually_untagged {
+        if variant.attrs.common.title.is_none() {
+            let title = variant.name();
+            schema_expr.mutators.push(quote! {
+                #SCHEMA.insert("title".to_owned(), #title.into());
+            });
+        }
+
+        variant.add_mutators(&mut schema_expr.mutators);
     }
 
-    match variant.style {
-        Style::Unit => expr_for_unit_struct(),
-        Style::Newtype => expr_for_field(&variant.fields[0], false),
-        Style::Tuple => expr_for_tuple_struct(&variant.fields),
-        Style::Struct => expr_for_struct(&variant.fields, &SerdeDefault::None, deny_unknown_fields),
-    }
+    schema_expr
 }
 
 fn expr_for_internal_tagged_enum_variant(
