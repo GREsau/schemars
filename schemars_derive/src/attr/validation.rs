@@ -230,4 +230,20 @@ impl ValidationAttrs {
             }
         }
     }
+
+    pub(crate) fn is_default(&self) -> bool {
+        matches!(
+            self,
+            Self {
+                contains: None,
+                format: None,
+                length: None,
+                range: None,
+                pattern: None,
+                regex: None,
+                required: false,
+                inner: None,
+            }
+        )
+    }
 }

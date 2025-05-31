@@ -53,6 +53,9 @@ pub fn expr_for_container(cont: &Container) -> SchemaExpr {
         Data::Struct(Style::Unit, _) => expr_for_unit_struct(),
         Data::Struct(Style::Newtype, fields) => expr_for_newtype_struct(&fields[0]),
         Data::Struct(Style::Tuple, fields) => expr_for_tuple_struct(fields),
+        Data::Struct(Style::Struct, fields) if cont.serde_attrs.transparent() => {
+            expr_for_newtype_struct(&fields[0])
+        }
         Data::Struct(Style::Struct, fields) => expr_for_struct(
             fields,
             cont.serde_attrs.default(),

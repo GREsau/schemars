@@ -150,7 +150,7 @@ impl CommonAttrs {
         None
     }
 
-    fn is_default(&self) -> bool {
+    pub fn is_default(&self) -> bool {
         matches!(
             self,
             Self {
@@ -263,6 +263,16 @@ impl FieldAttrs {
         }
 
         None
+    }
+
+    pub fn is_default(&self) -> bool {
+        matches!(
+            self,
+            Self {
+                common,
+                validation,
+                with: None,
+            } if common.is_default() && validation.is_default())
     }
 }
 
