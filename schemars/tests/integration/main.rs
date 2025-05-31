@@ -20,6 +20,7 @@ mod enum_repr;
 mod enums;
 mod enums_deny_unknown_fields;
 mod enums_flattened;
+mod enums_untagged_variant;
 mod examples;
 mod extend;
 mod flatten;
