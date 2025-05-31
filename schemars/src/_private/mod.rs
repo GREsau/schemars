@@ -145,7 +145,7 @@ pub fn apply_internal_enum_variant_tag(
     deny_unknown_fields: bool,
 ) {
     let obj = schema.ensure_object();
-    let is_unit = obj.get("type").and_then(|t| t.as_str()) == Some("null");
+    let is_unit = obj.get("type").and_then(Value::as_str) == Some("null");
 
     obj.insert("type".to_owned(), "object".into());
 
@@ -202,10 +202,6 @@ pub fn insert_object_property(
     }
 }
 
-pub fn insert_metadata_property(schema: &mut Schema, key: &str, value: impl Into<Value>) {
-    schema.insert(key.to_owned(), value.into());
-}
-
 pub fn insert_metadata_property_if_nonempty(
     schema: &mut Schema,
     key: &str,
@@ -213,7 +209,7 @@ pub fn insert_metadata_property_if_nonempty(
 ) {
     let value: String = value.into();
     if !value.is_empty() {
-        insert_metadata_property(schema, key, value);
+        schema.insert(key.to_owned(), value.into());
     }
 }
 
@@ -224,7 +220,7 @@ pub fn insert_validation_property(
     value: impl Into<Value>,
 ) {
     if schema.has_type(required_type) || (required_type == "number" && schema.has_type("integer")) {
-        schema.ensure_object().insert(key.to_owned(), value.into());
+        schema.insert(key.to_owned(), value.into());
     }
 }
 

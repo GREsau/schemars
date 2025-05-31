@@ -587,7 +587,7 @@ fn expr_for_struct(
                 if let Some(default) = field_default_expr(field, set_container_default.is_some()) {
                     schema_expr.mutators.push(quote! {
                         #default.and_then(|d| schemars::_schemars_maybe_to_value!(d))
-                            .map(|d| schemars::_private::insert_metadata_property(&mut #SCHEMA, "default", d));
+                            .map(|d| #SCHEMA.insert("default".to_owned(), d));
                     })
                 }
 
