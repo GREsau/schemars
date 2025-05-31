@@ -11,7 +11,7 @@ use super::{
     AttrCtxt,
 };
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq)]
 pub enum Format {
     Email,
     Uri,
@@ -53,7 +53,7 @@ impl Format {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct ValidationAttrs {
     pub length: Option<LengthOrRange>,
     pub range: Option<LengthOrRange>,

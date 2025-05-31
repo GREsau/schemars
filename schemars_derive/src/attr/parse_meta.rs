@@ -204,7 +204,6 @@ pub fn parse_validate_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()>
 }
 
 pub fn parse_contains(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
-    #[derive(Debug)]
     enum ContainsFormat {
         Metas(Punctuated<Meta, Token![,]>),
         Expr(Expr),
@@ -307,14 +306,13 @@ pub fn parse_name_value_expr_handle_lit_str(meta: Meta, cx: &AttrCtxt) -> Result
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct LengthOrRange {
     pub min: Option<Expr>,
     pub max: Option<Expr>,
     pub equal: Option<Expr>,
 }
 
-#[derive(Debug)]
 pub struct Extension {
     pub key_str: String,
     pub key_lit: LitStr,

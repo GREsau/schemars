@@ -17,7 +17,7 @@ use crate::idents::SCHEMA;
 
 pub use schemars_to_serde::process_serde_attrs;
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct CommonAttrs {
     pub doc: Option<Expr>,
     pub deprecated: bool,
@@ -28,14 +28,14 @@ pub struct CommonAttrs {
     pub transforms: Vec<Expr>,
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct FieldAttrs {
     pub common: CommonAttrs,
     pub with: Option<WithAttr>,
     pub validation: ValidationAttrs,
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct ContainerAttrs {
     pub common: CommonAttrs,
     pub repr: Option<Type>,
@@ -44,13 +44,12 @@ pub struct ContainerAttrs {
     pub inline: bool,
 }
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct VariantAttrs {
     pub common: CommonAttrs,
     pub with: Option<WithAttr>,
 }
 
-#[derive(Debug)]
 pub enum WithAttr {
     Type(Type),
     Function(Path),
