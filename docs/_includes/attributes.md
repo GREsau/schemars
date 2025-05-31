@@ -90,7 +90,9 @@ Serde docs: [container](https://serde.rs/container-attrs.html#rename_all)
 
 Set on an enum to generate the schema for the [internally tagged](https://serde.rs/enum-representations.html#internally-tagged), [adjacently tagged](https://serde.rs/enum-representations.html#adjacently-tagged), or [untagged](https://serde.rs/enum-representations.html#untagged) representation of this enum.
 
-Serde docs: [`tag`](https://serde.rs/container-attrs.html#tag) / [`tag`+`content`](https://serde.rs/container-attrs.html#tag--content) / [`untagged`](https://serde.rs/container-attrs.html#untagged)
+`#[serde(untagged)]`/`#[schemars(untagged)]` can also be set on an individual variant of a tagged enum to treat just that variant as untagged.
+
+Serde docs: [`tag`](https://serde.rs/container-attrs.html#tag) / [`tag`+`content`](https://serde.rs/container-attrs.html#tag--content) / [`untagged` (enum)](https://serde.rs/container-attrs.html#untagged) / [`untagged` (variant)](https://serde.rs/variant-attrs.html#untagged)
 
 <h3 id="default">
 
