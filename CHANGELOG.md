@@ -2,17 +2,17 @@
 
 ## [1.0.0-alpha.19] - 2025-05-31
 
-## Added
+### Added
 
 - Support `#[serde(untagged)]` on individual variants of enums (https://github.com/GREsau/schemars/issues/388 / https://github.com/GREsau/schemars/pull/412)
 - Set `"title"` to variant name in schemas for untagged enums/variants (https://github.com/GREsau/schemars/issues/102 / https://github.com/GREsau/schemars/pull/413)
 
-## Changed
+### Changed
 
 - When populating a schema's `"description"` from rust doc comments, trim a single leading space from the comment (https://github.com/GREsau/schemars/pull/407)
 - Invalid `with`/`serialize_with` attributes will now fail compilation rather than being silently ignored (https://github.com/GREsau/schemars/pull/410)
 
-## Removed
+### Removed
 
 - Remove the `include_type_name` setting for including `"x-rust-type"` property on generated schemas, since it didn't solve the original feature request. If you have a use-case for that behaviour, please raise an issue in GitHub.
 
@@ -24,7 +24,7 @@ Those upgrading from Schemars 0.8 may want to consult [the migration guide](http
 
 ## [1.0.0-alpha.18] - 2025-05-26
 
-## Added
+### Added
 
 - `#[schemars(inline)]` attribute for inling schemas when deriving `JsonSchema` (https://github.com/GREsau/schemars/pull/380)
 - Implement `JsonSchema` for [jiff](https://crates.io/crates/jiff) 0.2 types, under the optional `jiff02` feature flag (https://github.com/GREsau/schemars/pull/364)
