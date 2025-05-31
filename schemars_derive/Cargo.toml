@@ -22,4 +22,5 @@ syn = "2.0"
 serde_derive_internals = "0.29"
 
 [dev-dependencies]
+syn = { version = "2.0", features = ["extra-traits"] }
 pretty_assertions = "1.2.1"
