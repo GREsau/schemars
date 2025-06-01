@@ -233,6 +233,9 @@ pub struct SchemaGenerator {
     pending_schema_ids: BTreeSet<SchemaUid>,
     schema_id_to_name: BTreeMap<SchemaUid, CowStr>,
     used_schema_names: BTreeSet<CowStr>,
+    // It's unlikely that `root_schema_id_stack` will ever contain more than one item, but it is
+    // possible, e.g. if a `json_schema()` implementation calls `generator.root_schema_for<...>()`
+    root_schema_id_stack: Vec<SchemaUid>,
 }
 
 impl Default for SchemaGenerator {
@@ -249,6 +252,7 @@ impl Clone for SchemaGenerator {
             pending_schema_ids: BTreeSet::new(),
             schema_id_to_name: BTreeMap::new(),
             used_schema_names: BTreeSet::new(),
+            root_schema_id_stack: Vec::new(),
         }
     }
 }
@@ -268,6 +272,7 @@ impl SchemaGenerator {
             pending_schema_ids: BTreeSet::new(),
             schema_id_to_name: BTreeMap::new(),
             used_schema_names: BTreeSet::new(),
+            root_schema_id_stack: Vec::new(),
         }
     }
 
@@ -301,6 +306,10 @@ impl SchemaGenerator {
             && (!self.settings.inline_subschemas || self.pending_schema_ids.contains(&uid));
 
         if return_ref {
+            if self.root_schema_id_stack.last() == Some(&uid) {
+                return Schema::new_ref("#".to_owned());
+            }
+
             let name = self
                 .schema_id_to_name
                 .get(&uid)
@@ -398,7 +407,10 @@ impl SchemaGenerator {
     /// this method will include them in the returned `Schema` at the [definitions
     /// path](SchemaSettings::definitions_path) (by default `"$defs"`).
     pub fn root_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
-        let mut schema = self.json_schema_internal::<T>(self.schema_uid::<T>());
+        let schema_uid = self.schema_uid::<T>();
+        self.root_schema_id_stack.push(schema_uid.clone());
+
+        let mut schema = self.json_schema_internal::<T>(schema_uid);
 
         let object = schema.ensure_object();
 
@@ -413,6 +425,8 @@ impl SchemaGenerator {
         self.add_definitions(object, self.definitions.clone());
         self.apply_transforms(&mut schema);
 
+        self.root_schema_id_stack.pop();
+
         schema
     }
 
@@ -422,7 +436,10 @@ impl SchemaGenerator {
     /// this method will include them in the returned `Schema` at the [definitions
     /// path](SchemaSettings::definitions_path) (by default `"$defs"`).
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Schema {
-        let mut schema = self.json_schema_internal::<T>(self.schema_uid::<T>());
+        let schema_uid = self.schema_uid::<T>();
+        self.root_schema_id_stack.push(schema_uid.clone());
+
+        let mut schema = self.json_schema_internal::<T>(schema_uid);
 
         let object = schema.ensure_object();
 
