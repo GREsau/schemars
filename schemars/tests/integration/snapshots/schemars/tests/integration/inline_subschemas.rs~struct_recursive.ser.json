@@ -6,7 +6,7 @@
     "direct": {
       "anyOf": [
         {
-          "$ref": "#/$defs/RecursiveOuter"
+          "$ref": "#"
         },
         {
           "type": "null"
@@ -20,7 +20,7 @@
       ],
       "properties": {
         "recursive": {
-          "$ref": "#/$defs/RecursiveOuter"
+          "$ref": "#"
         }
       },
       "required": [
@@ -31,40 +31,5 @@
   "required": [
     "direct",
     "indirect"
-  ],
-  "$defs": {
-    "RecursiveOuter": {
-      "type": "object",
-      "properties": {
-        "direct": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/RecursiveOuter"
-            },
-            {
-              "type": "null"
-            }
-          ]
-        },
-        "indirect": {
-          "type": [
-            "object",
-            "null"
-          ],
-          "properties": {
-            "recursive": {
-              "$ref": "#/$defs/RecursiveOuter"
-            }
-          },
-          "required": [
-            "recursive"
-          ]
-        }
-      },
-      "required": [
-        "direct",
-        "indirect"
-      ]
-    }
-  }
+  ]
 }
