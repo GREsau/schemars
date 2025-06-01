@@ -17,9 +17,9 @@ macro_rules! decimal_impl {
                 let (ty, pattern) = match generator.contract() {
                     Contract::Deserialize => (
                         Value::Array(vec!["string".into(), "number".into()]),
-                        r"^-?[0-9]+(\.[0-9]+)?([eE][0-9]+)?$".into(),
+                        r"^-?\d+(\.\d+)?([eE]\d+)?$".into(),
                     ),
-                    Contract::Serialize => ("string".into(), r"^-?[0-9]+(\.[0-9]+)?$".into()),
+                    Contract::Serialize => ("string".into(), r"^-?\d+(\.\d+)?$".into()),
                 };
 
                 let mut result = Schema::default();

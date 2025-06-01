@@ -32,6 +32,7 @@ mod inline_subschemas;
 #[cfg(feature = "jiff02")]
 mod jiff;
 mod macros;
+mod map;
 mod remote_derive;
 mod same_name;
 mod schema_name;
