@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0-alpha.20] - 2025-06-01
+
+### Added
+
+- Add `get_mut`, `pointer`, `pointer_mut` methods for easier manipulation of `Schema`s ([#416](https://github.com/GREsau/schemars/issues/416))
+- Use `patternProperties` on map schemas where appropriate ([#417](https://github.com/GREsau/schemars/issues/417))
+  - ⚠️ `BTreeMap<K,V>`/`HashMap<K,V>` now only implement `JsonSchema` when both `K` and `V` implement `JsonSchema`
+
+### Fixed
+
+- When a struct is `transparent`, don't ignore other attributes ([#415](https://github.com/GREsau/schemars/issues/415))
+
 ## [1.0.0-alpha.19] - 2025-05-31
 
 ### Added
