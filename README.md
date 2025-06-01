@@ -257,6 +257,16 @@ println!("{}", serde_json::to_string_pretty(&schema).unwrap());
 
 </details>
 
+## Versioning and Stability
+
+Schemars follows semantic versioning, with the following caveats:
+
+- Increasing MSRV (Minimum Supported Rust Version) is considered a semver-minor change. Schemars aims to support the past year of stable rust versions, but this is not guaranteed.
+- External libraries that are supported via optional dependencies (see [Feature Flags](#feature-flags)) _may_ be removed in a minor version change, particularly if a newer semver-incompatible version has been released for a long time.
+- The exact structure of generated schemas (both for built-in implementations on standard library types, and for `#[derive(JsonSchema)]` implementations) may change between versions of schemars - this is not considered a breaking change.
+- Exported items that are marked with `#[doc(hidden)]` and have names beginning with `_` are not part of the public API, and may be changed or removed without notice.
+- If a bug is found in schemars that causes attributes to be incorrectly processed or silently ignored by `#[derive(JsonSchema)]`, a subsequent version of schemars may instead fail compilation when encountering such attributes. This is considered a bug fix, and not a breaking change.
+
 ## Feature Flags
 
 - `std` (enabled by default) - implements `JsonSchema` for types in the rust standard library (`JsonSchema` is still implemented on types in `core` and `alloc`, even when this feature is disabled). Disable this feature to use schemars in `no_std` environments.
@@ -279,6 +289,8 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `smol_str02` - [smol_str](https://crates.io/crates/smol_str) (^0.2.1)
 - `url2` - [url](https://crates.io/crates/url) (^2.0)
 - `uuid1` - [uuid](https://crates.io/crates/uuid) (^1.0)
+
+Bear in mind that each of these feature flags _may_ be removed in a future semver-minor change of Schemars, particularly if a newer semver-incompatible version of the external library has been released for a long time. This is unfortunately necessary to avoid supporting old/unmaintained libraries indefinitely.
 
 For example, to implement `JsonSchema` on types from `chrono`, enable it as a feature in the `schemars` dependency in your `Cargo.toml` like so:
 
