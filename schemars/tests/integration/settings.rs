@@ -56,14 +56,12 @@ fn openapi3() {
     settings.transforms.insert(
         0,
         Box::new(|s: &mut Schema| {
-            let obj = s.ensure_object();
-            let defs = obj["components"]["schemas"].take();
-            obj.insert("$defs".to_owned(), defs);
+            let defs = s.pointer_mut("/components/schemas").unwrap().take();
+            s.insert("$defs".to_owned(), defs);
         }),
     );
     settings.transforms.push(Box::new(|s: &mut Schema| {
-        let obj = s.ensure_object();
-        obj["components"]["schemas"] = obj.remove("$defs").unwrap();
+        *s.pointer_mut("/components/schemas").unwrap() = s.remove("$defs").unwrap();
     }));
 
     test!(OuterStruct, settings.clone()).assert_snapshot();

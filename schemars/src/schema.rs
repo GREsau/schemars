@@ -246,6 +246,82 @@ impl Schema {
         self.0.as_object().and_then(|o| o.get(key))
     }
 
+    /// If the `Schema`'s underlying JSON value is an object, gets a mutable reference to that
+    /// object's value for the given key if it exists.
+    ///
+    /// This always returns `None` for bool schemas.
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::json_schema;
+    /// use serde_json::{json, Value};
+    ///
+    /// let mut obj_schema = json_schema!({ "properties": {} });
+    /// if let Some(Value::Object(properties)) = obj_schema.get_mut("properties") {
+    ///     properties.insert("anything".to_owned(), true.into());
+    /// }
+    /// assert_eq!(obj_schema, json_schema!({ "properties": { "anything": true } }));
+    /// ```
+    pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut Value>
+    where
+        String: core::borrow::Borrow<Q>,
+        Q: ?Sized + Ord + Eq + core::hash::Hash,
+    {
+        self.0.as_object_mut().and_then(|o| o.get_mut(key))
+    }
+    /// If the `Schema`'s underlying JSON value is an object, looks up a value within the schema
+    /// by a JSON Pointer.
+    ///
+    /// For more information on JSON Pointer, read [RFC6901](https://tools.ietf.org/html/rfc6901).
+    ///
+    /// This always returns `None` for bool schemas.
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::json_schema;
+    /// use serde_json::json;
+    ///
+    /// let schema = json_schema!({
+    ///     "properties": {
+    ///         "anything": true
+    ///     }
+    /// });
+    ///
+    /// assert_eq!(schema.pointer("/properties/anything").unwrap(), &json!(true));
+    /// assert_eq!(schema.pointer("/$defs/example"), None);
+    /// ```
+    pub fn pointer(&self, pointer: &str) -> Option<&Value> {
+        self.0.pointer(pointer)
+    }
+
+    /// If the `Schema`'s underlying JSON value is an object, looks up a value by a JSON Pointer
+    /// and returns a mutable reference to that value.
+    ///
+    /// For more information on JSON Pointer, read [RFC6901](https://tools.ietf.org/html/rfc6901).
+    ///
+    /// This always returns `None` for bool schemas.
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::{json_schema, Schema};
+    /// use serde_json::json;
+    ///
+    /// let mut schema = json_schema!({
+    ///     "properties": {
+    ///         "anything": true
+    ///     }
+    /// });
+    ///
+    /// let subschema_value = schema.pointer_mut("/properties/anything").unwrap();
+    /// let subschema: &mut Schema = subschema_value.try_into().unwrap();
+    /// subschema.ensure_object();
+    ///
+    /// assert_eq!(schema.pointer_mut("/properties/anything").unwrap(), &json!({}));
+    /// ```
+    pub fn pointer_mut(&mut self, pointer: &str) -> Option<&mut Value> {
+        self.0.pointer_mut(pointer)
+    }
+
     /// If the `Schema`'s underlying JSON value is an object, removes and returns its value for the
     /// given key.
     ///

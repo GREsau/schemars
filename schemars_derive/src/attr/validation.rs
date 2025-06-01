@@ -95,7 +95,7 @@ impl ValidationAttrs {
         if let Some(format) = &self.format {
             let f = format.schema_str();
             mutators.push(quote! {
-                    (#mut_ref_schema).ensure_object().insert("format".into(), #f.into());
+                    (#mut_ref_schema).insert("format".into(), #f.into());
             })
         };
 

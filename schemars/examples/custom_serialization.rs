@@ -21,9 +21,7 @@ pub struct MyStruct {
 
 fn make_custom_schema(generator: &mut SchemaGenerator) -> Schema {
     let mut schema = String::json_schema(generator);
-    schema
-        .ensure_object()
-        .insert("format".into(), "boolean".into());
+    schema.insert("format".into(), "boolean".into());
     schema
 }
 

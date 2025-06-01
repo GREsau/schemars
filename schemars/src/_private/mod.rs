@@ -230,11 +230,7 @@ pub fn must_contain(schema: &mut Schema, substring: &str) {
 }
 
 pub fn apply_inner_validation(schema: &mut Schema, f: fn(&mut Schema) -> ()) {
-    if let Some(inner_schema) = schema
-        .as_object_mut()
-        .and_then(|o| o.get_mut("items"))
-        .and_then(|i| i.try_into().ok())
-    {
+    if let Some(inner_schema) = schema.get_mut("items").and_then(|i| i.try_into().ok()) {
         f(inner_schema);
     }
 }

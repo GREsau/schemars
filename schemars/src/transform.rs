@@ -433,22 +433,19 @@ impl Default for AddNullable {
 impl Transform for AddNullable {
     fn transform(&mut self, schema: &mut Schema) {
         if schema.has_type("null") {
-            // has_type returned true so we know schema is an object
-            let obj = schema.as_object_mut().unwrap();
-
-            obj.insert("nullable".into(), true.into());
+            schema.insert("nullable".into(), true.into());
 
             // has_type returned true so we know "type" exists and is a string or array
-            let ty = obj.get_mut("type").unwrap();
+            let ty = schema.get_mut("type").unwrap();
             let only_allows_null =
                 ty.is_string() || ty.as_array().unwrap().iter().all(|v| v == "null");
 
             if only_allows_null {
                 if self.add_const_null {
-                    obj.insert("const".to_string(), Value::Null);
+                    schema.insert("const".to_string(), Value::Null);
 
                     if self.remove_null_type {
-                        obj.remove("type");
+                        schema.remove("type");
                     }
                 } else if self.remove_null_type {
                     *ty = Value::Array(Vec::new());
