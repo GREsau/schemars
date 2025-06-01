@@ -601,7 +601,7 @@ fn json_pointer_mut<'a>(
 
         let next_value = match object.entry(segment) {
             Entry::Occupied(o) => o.into_mut(),
-            Entry::Vacant(v) if create_if_missing => v.insert(Value::Object(JsonMap::default())),
+            Entry::Vacant(v) if create_if_missing => v.insert(Value::Object(JsonMap::new())),
             Entry::Vacant(_) => return None,
         };
 

@@ -160,7 +160,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
         let mut schema = value.serialize(self)?;
 
         if include_title && !name.is_empty() {
-            schema.ensure_object().insert("title".into(), name.into());
+            schema.insert("title".into(), name.into());
         }
 
         Ok(schema)
