@@ -11,10 +11,11 @@ impl Iterator for MyIterator {
     }
 }
 
-// The default trait bounds would require T to implement JsonSchema,
-// which MyIterator does not.
+// The default trait bounds would require T to implement JsonSchema, which MyIterator does not.
+// Ideally we wouldn't need the `bound` attribute here at all - it should be possible to better
+// infer automatic trait bounds (tracked in https://github.com/GREsau/schemars/issues/168)
 #[derive(JsonSchema, Serialize, Deserialize)]
-#[schemars(bound = "T::Item: JsonSchema", rename = "MyContainer")]
+#[schemars(bound = "T::Item: JsonSchema")]
 pub struct MyContainer<T>
 where
     T: Iterator,

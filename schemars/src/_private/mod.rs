@@ -1,6 +1,7 @@
 use crate::_alloc_prelude::*;
 use crate::transform::{transform_immediate_subschemas, Transform};
 use crate::{JsonSchema, Schema, SchemaGenerator};
+use alloc::borrow::Cow;
 use serde::Serialize;
 use serde_json::{json, map::Entry, Map, Value};
 
@@ -120,6 +121,56 @@ pub fn new_unit_enum_variant(variant: &str) -> Schema {
         "type": "string",
         "const": variant,
     })
+}
+
+/// Hack to simulate specialization:
+/// `<MaybeJsonSchemaWrapper<T>>::maybe_schema_id()` will resolve to either
+/// - The inherent method `MaybeJsonSchemaWrapper::maybe_schema_id()` if T impls `JsonSchema`
+/// - The trait method `NoJsonSchema::maybe_schema_id()` from the blanket impl otherwise
+/// (and same idea for `maybe_schema_name`)
+#[doc(hidden)]
+#[macro_export]
+macro_rules! _schemars_maybe_schema_id {
+    ($ty:ty) => {{
+        #[allow(unused_imports)]
+        use $crate::_private::{alloc::borrow::Cow, MaybeJsonSchemaWrapper, NoJsonSchema as _};
+
+        <MaybeJsonSchemaWrapper<$ty>>::maybe_schema_id().unwrap_or(Cow::Borrowed(stringify!($ty)))
+    }};
+}
+#[doc(hidden)]
+#[macro_export]
+macro_rules! _schemars_maybe_schema_name {
+    ($ty:ty) => {{
+        #[allow(unused_imports)]
+        use $crate::_private::{alloc::borrow::Cow, MaybeJsonSchemaWrapper, NoJsonSchema as _};
+
+        <MaybeJsonSchemaWrapper<$ty>>::maybe_schema_name().unwrap_or(Cow::Borrowed(stringify!($ty)))
+    }};
+}
+
+pub struct MaybeJsonSchemaWrapper<T>(core::marker::PhantomData<T>);
+
+pub trait NoJsonSchema {
+    fn maybe_schema_id() -> Option<Cow<'static, str>> {
+        None
+    }
+
+    fn maybe_schema_name() -> Option<Cow<'static, str>> {
+        None
+    }
+}
+
+impl<T> NoJsonSchema for T {}
+
+impl<T: JsonSchema> MaybeJsonSchemaWrapper<T> {
+    pub fn maybe_schema_id() -> Option<Cow<'static, str>> {
+        Some(T::schema_id())
+    }
+
+    pub fn maybe_schema_name() -> Option<Cow<'static, str>> {
+        Some(T::schema_name())
+    }
 }
 
 /// Create a schema for an externally tagged enum variant

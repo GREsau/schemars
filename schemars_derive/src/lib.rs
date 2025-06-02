@@ -133,7 +133,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                 schemars::_private::alloc::borrow::Cow::Owned(
                     schemars::_private::alloc::format!(
                         #schema_name_fmt
-                        #(,#type_params=#type_params::schema_name())*
+                        #(,#type_params=schemars::_schemars_maybe_schema_name!(#type_params))*
                         #(,#const_params=schemars::_private::alloc::string::ToString::to_string(&#const_params))*)
                 )
             },
@@ -145,7 +145,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                             "::",
                             #schema_name_fmt
                         )
-                        #(,#type_params=#type_params::schema_id())*
+                        #(,#type_params=schemars::_schemars_maybe_schema_id!(#type_params))*
                         #(,#const_params=#const_params)*
                     )
                 )
@@ -158,7 +158,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
         (
             quote! {
                 schemars::_private::alloc::borrow::Cow::Owned(
-                    schemars::_private::alloc::format!(#schema_name_fmt #(,#type_params::schema_name())* #(,#const_params)*)
+                    schemars::_private::alloc::format!(#schema_name_fmt #(,schemars::_schemars_maybe_schema_name!(#type_params))* #(,#const_params)*)
                 )
             },
             quote! {
@@ -169,7 +169,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                             "::",
                             #schema_name_fmt
                         )
-                        #(,#type_params::schema_id())*
+                        #(,schemars::_schemars_maybe_schema_id!(#type_params))*
                         #(,#const_params)*
                     )
                 )
