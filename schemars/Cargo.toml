@@ -21,6 +21,7 @@ ref-cast = "1.0.22"
 
 # optional dependencies
 arrayvec07 = { version = "0.7", default-features = false, optional = true, package = "arrayvec" }
+bytesize2 = { version = "2.0", default-features = false, optional = true, package = "bytesize" }
 bigdecimal04 = { version = "0.4", default-features = false, optional = true, package = "bigdecimal" }
 bytes1 = { version = "1.0", default-features = false, optional = true, package = "bytes" }
 chrono04 = { version = "0.4", default-features = false, optional = true, package = "chrono" }
@@ -48,6 +49,7 @@ regex = { version = "1.10.6", default-features = false }
 arrayvec07 = { version = "0.7", default-features = false, features = ["serde"], package = "arrayvec"}
 bigdecimal04 = { version = "0.4", default-features = false, features = ["serde"], package = "bigdecimal" }
 bytes1 = { version = "1.0", default-features = false, features = ["serde"], package = "bytes" }
+bytesize2 = { version = "2.0", features = ["serde"], package = "bytesize" }
 chrono04 = { version = "0.4", default-features = false, features = ["serde"], package = "chrono" }
 either1 = { version = "1.3", default-features = false, features = ["serde"], package = "either" }
 indexmap2 = { version = "2.0", default-features = false, features = ["serde"], package = "indexmap" }
