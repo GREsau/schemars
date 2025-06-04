@@ -1,4 +1,5 @@
 use super::*;
+use crate::name::get_rename_format_type_params;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::Ctxt;
 
@@ -20,13 +21,21 @@ impl<'a> FromSerde for Container<'a> {
     type SerdeType = serde_ast::Container<'a>;
 
     fn from_serde(errors: &Ctxt, serde: Self::SerdeType) -> Result<Self, ()> {
-        Ok(Self {
+        let mut result = Self {
             ident: serde.ident,
             serde_attrs: serde.attrs,
             data: Data::from_serde(errors, serde.data)?,
             generics: serde.generics.clone(),
             attrs: ContainerAttrs::new(&serde.original.attrs, errors),
-        })
+            rename_params: BTreeSet::new(),
+        };
+
+        if let Some(raw_rename) = &result.attrs.raw_rename {
+            let name = result.serde_attrs.name().deserialize_name();
+            result.rename_params = get_rename_format_type_params(errors, raw_rename, name);
+        }
+
+        Ok(result)
     }
 }
 

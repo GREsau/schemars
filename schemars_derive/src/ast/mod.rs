@@ -6,6 +6,7 @@ use from_serde::FromSerde;
 use proc_macro2::TokenStream;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::{Ctxt, Derive};
+use std::collections::BTreeSet;
 
 pub struct Container<'a> {
     pub ident: syn::Ident,
@@ -13,6 +14,8 @@ pub struct Container<'a> {
     pub data: Data<'a>,
     pub generics: syn::Generics,
     pub attrs: ContainerAttrs,
+    // Distinct type/const params used in the `rename` attribute format string
+    pub rename_params: BTreeSet<syn::Ident>,
 }
 
 pub enum Data<'a> {

@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MyContainer_for_T",
+  "type": "object",
+  "properties": {
+    "associated": {
+      "type": "string"
+    },
+    "generic1": {
+      "$ref": "#/$defs/SomeGeneric"
+    },
+    "generic2": {
+      "$ref": "#/$defs/SomeGeneric"
+    },
+    "phantom": {
+      "type": "null"
+    }
+  },
+  "required": [
+    "associated",
+    "generic1",
+    "generic2",
+    "phantom"
+  ],
+  "$defs": {
+    "SomeGeneric": {
+      "type": "null"
+    }
+  }
+}

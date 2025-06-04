@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "S_for_T",
+  "type": "object",
+  "properties": {
+    "a": {
+      "type": "string"
+    },
+    "b": {
+      "type": "string"
+    },
+    "aa": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ab": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "ba": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "bb": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "a_cow": {
+      "type": "string"
+    },
+    "b_cow": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "a",
+    "b",
+    "a_cow",
+    "b_cow"
+  ]
+}

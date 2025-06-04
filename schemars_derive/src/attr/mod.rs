@@ -40,7 +40,12 @@ pub struct ContainerAttrs {
     pub common: CommonAttrs,
     pub repr: Option<Type>,
     pub crate_name: Option<Path>,
-    pub is_renamed: bool,
+    // The actual parsing of the rename attribute is done by serde, but we keep track of the
+    // attribute so that:
+    // 1. we can determine whether the type has been explicitly renamed (which changes how
+    //    bounds are inferred)
+    // 2. we have a reasonable span to use for emitting errors related to the name string
+    pub raw_rename: Option<Meta>,
     pub inline: bool,
 }
 
@@ -309,7 +314,9 @@ impl ContainerAttrs {
             },
 
             // The actual parsing of `rename` is done by serde
-            "rename" => self.is_renamed = true,
+            "rename" => {
+                self.raw_rename = Some(meta);
+            }
 
             "inline" => {
                 if self.inline {

@@ -135,7 +135,8 @@ macro_rules! _schemars_maybe_schema_id {
         #[allow(unused_imports)]
         use $crate::_private::{alloc::borrow::Cow, MaybeJsonSchemaWrapper, NoJsonSchema as _};
 
-        <MaybeJsonSchemaWrapper<$ty>>::maybe_schema_id().unwrap_or(Cow::Borrowed(stringify!($ty)))
+        <MaybeJsonSchemaWrapper<$ty>>::maybe_schema_id()
+            .unwrap_or(Cow::Borrowed(core::any::type_name::<$ty>()))
     }};
 }
 #[doc(hidden)]
@@ -149,7 +150,7 @@ macro_rules! _schemars_maybe_schema_name {
     }};
 }
 
-pub struct MaybeJsonSchemaWrapper<T>(core::marker::PhantomData<T>);
+pub struct MaybeJsonSchemaWrapper<T: ?Sized>(core::marker::PhantomData<T>);
 
 pub trait NoJsonSchema {
     fn maybe_schema_id() -> Option<Cow<'static, str>> {
@@ -161,9 +162,9 @@ pub trait NoJsonSchema {
     }
 }
 
-impl<T> NoJsonSchema for T {}
+impl<T: ?Sized> NoJsonSchema for T {}
 
-impl<T: JsonSchema> MaybeJsonSchemaWrapper<T> {
+impl<T: JsonSchema + ?Sized> MaybeJsonSchemaWrapper<T> {
     pub fn maybe_schema_id() -> Option<Cow<'static, str>> {
         Some(T::schema_id())
     }

@@ -26,7 +26,7 @@ struct TypeParams<T, U, V, W> {
     t: T,
     u: U,
     v: V,
-    w: W,
+    w: Option<W>,
 }
 
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
@@ -35,22 +35,22 @@ struct RenamedTypeParams<T, U, V, W> {
     t: T,
     u: U,
     v: V,
-    w: W,
+    w: Option<W>,
 }
 
 #[test]
 fn type_params() {
-    test!(TypeParams<u8, String, bool, ()>).custom(|schema, _| {
+    test!(TypeParams<u8, String, (), bool>).custom(|schema, _| {
         assert_eq!(
             schema.get("title"),
-            Some(&"TypeParams_for_uint8_and_string_and_boolean_and_null".into())
+            Some(&"TypeParams_for_uint8_and_string_and_null_and_boolean".into())
         )
     });
 
-    test!(RenamedTypeParams<u8, String, bool, ()>).custom(|schema, _| {
+    test!(RenamedTypeParams<u8, String, (), bool>).custom(|schema, _| {
         assert_eq!(
             schema.get("title"),
-            Some(&"new-name-null-uint8-uint8".into())
+            Some(&"new-name-boolean-uint8-uint8".into())
         )
     });
 }
