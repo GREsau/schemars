@@ -36,19 +36,15 @@
       ]
     },
     {
-      "title": "UnitOne",
       "type": "null"
     },
     {
-      "title": "UnitStructNewType",
       "$ref": "#/$defs/UnitStruct"
     },
     {
-      "title": "StructNewType",
       "$ref": "#/$defs/Struct"
     },
     {
-      "title": "Struct",
       "type": "object",
       "properties": {
         "baz": {
@@ -65,7 +61,6 @@
       ]
     },
     {
-      "title": "StringMap",
       "type": "object",
       "additionalProperties": {
         "type": "string"

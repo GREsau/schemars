@@ -1,5 +1,6 @@
 use crate::prelude::*;
 use pretty_assertions::assert_eq;
+use schemars::generate::SchemaSettings;
 use std::collections::BTreeMap;
 
 #[derive(JsonSchema, Deserialize, Serialize)]
@@ -280,6 +281,26 @@ fn untagged_enum() {
         .assert_snapshot()
         .assert_allows_ser_roundtrip(Untagged::values())
         .assert_matches_de_roundtrip(arbitrary_values());
+}
+
+#[test]
+fn untagged_enum_with_titles() {
+    test!(
+        Untagged,
+        SchemaSettings::default().with(|s| s.untagged_enum_variant_titles = true)
+    )
+    .custom(|s, _| {
+        assert_eq!(
+            s.pointer("/anyOf/0/title").and_then(Value::as_str),
+            Some("UnitOne")
+        );
+        for variant in s.pointer("/anyOf").and_then(Value::as_array).unwrap() {
+            assert!(variant.get("title").is_some_and(Value::is_string));
+        }
+    })
+    .assert_snapshot()
+    .assert_allows_ser_roundtrip(Untagged::values())
+    .assert_matches_de_roundtrip(arbitrary_values());
 }
 
 #[derive(JsonSchema, Serialize, Deserialize)]

@@ -3,11 +3,9 @@
   "title": "UntaggedEnum",
   "anyOf": [
     {
-      "title": "READ-ONLY-UNIT",
       "type": "null"
     },
     {
-      "title": "READ-ONLY-STRUCT",
       "type": "object",
       "properties": {
         "S": {
@@ -19,11 +17,9 @@
       ]
     },
     {
-      "title": "ser_renamed_unit",
       "type": "null"
     },
     {
-      "title": "ser_renamed_struct",
       "type": "object",
       "properties": {
         "B": {

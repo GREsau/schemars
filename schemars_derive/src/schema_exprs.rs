@@ -458,7 +458,9 @@ fn expr_for_untagged_enum_variant(
         if variant.attrs.common.title.is_none() {
             let title = variant.name();
             schema_expr.mutators.push(quote! {
-                #SCHEMA.insert("title".to_owned(), #title.into());
+                if #GENERATOR.settings().untagged_enum_variant_titles {
+                    #SCHEMA.insert("title".to_owned(), #title.into());
+                }
             });
         }
 

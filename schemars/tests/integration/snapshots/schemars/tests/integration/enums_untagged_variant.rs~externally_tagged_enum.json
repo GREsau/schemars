@@ -34,19 +34,15 @@
       "additionalProperties": false
     },
     {
-      "title": "unitOne",
       "type": "null"
     },
     {
-      "title": "unitStructNewType",
       "$ref": "#/$defs/UnitStruct"
     },
     {
-      "title": "structNewType",
       "$ref": "#/$defs/Struct"
     },
     {
-      "title": "struct",
       "type": "object",
       "properties": {
         "baz": {
@@ -63,7 +59,6 @@
       ]
     },
     {
-      "title": "tuple",
       "type": "array",
       "prefixItems": [
         {
@@ -78,7 +73,6 @@
       "maxItems": 2
     },
     {
-      "title": "stringMap",
       "type": "object",
       "additionalProperties": {
         "type": "string"
