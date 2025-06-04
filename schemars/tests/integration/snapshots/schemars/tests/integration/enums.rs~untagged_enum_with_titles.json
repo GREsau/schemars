@@ -1,74 +1,45 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Adjacent",
+  "title": "Untagged",
   "anyOf": [
     {
-      "type": "object",
-      "properties": {
-        "tag": {
-          "type": "string",
-          "const": "TaggedUnitOne"
-        }
-      },
-      "required": [
-        "tag"
-      ]
-    },
-    {
-      "type": "object",
-      "properties": {
-        "tag": {
-          "type": "string",
-          "const": "TaggedStruct"
-        },
-        "content": {
-          "type": "object",
-          "properties": {
-            "baz": {
-              "type": "integer",
-              "format": "int32"
-            },
-            "foobar": {
-              "type": "boolean"
-            }
-          },
-          "required": [
-            "baz",
-            "foobar"
-          ]
-        }
-      },
-      "required": [
-        "tag",
-        "content"
-      ]
-    },
-    {
+      "title": "UnitOne",
       "type": "null"
     },
     {
+      "title": "StringMap",
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    {
+      "title": "UnitStructNewType",
       "$ref": "#/$defs/UnitStruct"
     },
     {
+      "title": "StructNewType",
       "$ref": "#/$defs/Struct"
     },
     {
+      "title": "Struct",
       "type": "object",
       "properties": {
-        "baz": {
+        "foo": {
           "type": "integer",
           "format": "int32"
         },
-        "foobar": {
+        "bar": {
           "type": "boolean"
         }
       },
       "required": [
-        "baz",
-        "foobar"
+        "foo",
+        "bar"
       ]
     },
     {
+      "title": "Tuple",
       "type": "array",
       "prefixItems": [
         {
@@ -83,10 +54,19 @@
       "maxItems": 2
     },
     {
-      "type": "object",
-      "additionalProperties": {
-        "type": "string"
-      }
+      "title": "UnitTwo",
+      "type": "null"
+    },
+    {
+      "title": "UnitAsInt",
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    {
+      "title": "TupleAsStr",
+      "type": "string",
+      "pattern": "^\\d+ (true|false)$"
     }
   ],
   "$defs": {

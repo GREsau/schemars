@@ -132,9 +132,11 @@ impl<T: JsonSchema> TestHelper<T> {
         self
     }
 
-    pub fn custom(&self, assertion: impl Fn(&Schema, Contract)) {
+    pub fn custom(&self, assertion: impl Fn(&Schema, Contract)) -> &Self {
         assertion(&self.de_schema, Contract::Deserialize);
         assertion(&self.ser_schema, Contract::Serialize);
+
+        self
     }
 
     fn de_schema_validate(&self, instance: &Value) -> bool {
