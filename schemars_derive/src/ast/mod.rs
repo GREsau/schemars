@@ -6,13 +6,15 @@ use from_serde::FromSerde;
 use proc_macro2::TokenStream;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::{Ctxt, Derive};
+use std::collections::BTreeSet;
 
 pub struct Container<'a> {
     pub ident: syn::Ident,
     pub serde_attrs: serde_derive_internals::attr::Container,
     pub data: Data<'a>,
-    pub generics: syn::Generics,
+    pub generics: &'a syn::Generics,
     pub attrs: ContainerAttrs,
+    pub rename_type_params: BTreeSet<&'a syn::Ident>,
 }
 
 pub enum Data<'a> {
@@ -42,7 +44,7 @@ impl<'a> Container<'a> {
         let ctxt = Ctxt::new();
         let result = serde_ast::Container::from_ast(&ctxt, item, Derive::Deserialize)
             .ok_or(())
-            .and_then(|serde| Self::from_serde(&ctxt, serde));
+            .map(|serde| Self::from_serde(&ctxt, serde));
 
         ctxt.check()
             .map(|_| result.expect("from_ast set no errors on Ctxt, so should have returned Ok"))
@@ -60,6 +62,16 @@ impl<'a> Container<'a> {
 
     pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
         self.attrs.common.add_mutators(mutators);
+    }
+
+    pub fn name(&'a self) -> std::borrow::Cow<'a, str> {
+        if self.attrs.rename_format_string.is_none() {
+            if let Some(remote_name) = self.serde_attrs.remote().and_then(|r| r.segments.last()) {
+                return remote_name.ident.to_string().into();
+            }
+        }
+
+        self.serde_attrs.name().deserialize_name().into()
     }
 }
 
