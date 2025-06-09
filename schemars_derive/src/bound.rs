@@ -8,19 +8,15 @@ use syn::{punctuated::Punctuated, Ident};
 // This logic is heavily based on serde_derive:
 // https://github.com/serde-rs/serde/blob/a1ddb18c92f32d64b2ccaf31ddd776e56be34ba2/serde_derive/src/bound.rs#L91
 
-/// Returns a tuple of:
-/// 1. The `where` clause to be included on the `JsonSchema` impl
-/// 2. A `BTreeSet` of type params that are "relevant" to the impl, i.e. excluding params only used
-///    in `PhantomData` or skipped fields
-pub fn find_trait_bounds<'a>(
-    cont: &'a Container<'a>,
-) -> (Option<syn::WhereClause>, BTreeSet<&'a Ident>) {
-    if cont.generics.params.is_empty() {
-        return (cont.generics.where_clause.clone(), BTreeSet::new());
+pub fn find_trait_bounds<'a>(orig_generics: &'a syn::Generics, cont: &mut Container<'a>) {
+    if orig_generics.params.is_empty() {
+        return;
     }
 
-    let all_type_params =
-        BTreeSet::from_iter(cont.generics.type_params().map(|param| &param.ident));
+    let all_type_params = orig_generics
+        .type_params()
+        .map(|param| &param.ident)
+        .collect();
 
     assert!(cont.rename_type_params.is_subset(&all_type_params));
 
@@ -53,21 +49,16 @@ pub fn find_trait_bounds<'a>(
         }
     }
 
-    let mut where_clause = cont
-        .generics
-        .where_clause
-        .clone()
-        .unwrap_or_else(|| syn::WhereClause {
-            where_token: <Token![where]>::default(),
-            predicates: Punctuated::default(),
-        });
+    cont.relevant_type_params = visitor.relevant_type_params;
+
+    let where_clause = cont.generics.make_where_clause();
 
     if let Some(bounds) = cont.serde_attrs.de_bound() {
         where_clause.predicates.extend(bounds.iter().cloned());
     } else {
         where_clause
             .predicates
-            .extend(visitor.relevant_type_params.iter().map(|ty| {
+            .extend(cont.relevant_type_params.iter().map(|ty| {
                 syn::WherePredicate::Type(syn::PredicateType {
                     lifetimes: None,
                     bounded_ty: syn::Type::Path(syn::TypePath {
@@ -90,8 +81,6 @@ pub fn find_trait_bounds<'a>(
                 })
             }));
     }
-
-    (Some(where_clause), visitor.relevant_type_params)
 }
 
 fn needs_jsonschema_bound(field: &Field, variant: Option<&Variant>) -> bool {
@@ -113,7 +102,7 @@ struct FindTyParams<'ast> {
 }
 
 impl<'ast> FindTyParams<'ast> {
-    fn visit_field(&mut self, field: &'ast Field) {
+    fn visit_field(&mut self, field: &Field) {
         match &field.attrs.with {
             Some(WithAttr::Type(ty)) => self.visit_type(ty),
             Some(WithAttr::Function(f)) => self.visit_path(f),
@@ -121,7 +110,7 @@ impl<'ast> FindTyParams<'ast> {
         }
     }
 
-    fn visit_path(&mut self, path: &'ast syn::Path) {
+    fn visit_path(&mut self, path: &syn::Path) {
         if let Some(seg) = path.segments.last() {
             if seg.ident == "PhantomData" {
                 // Hardcoded exception, because PhantomData<T> implements
@@ -133,7 +122,7 @@ impl<'ast> FindTyParams<'ast> {
         if path.leading_colon.is_none() {
             if let Some(first_segment) = path.segments.first() {
                 let id = &first_segment.ident;
-                if self.all_type_params.contains(id) {
+                if let Some(id) = self.all_type_params.get(id) {
                     self.relevant_type_params.insert(id);
                 }
             }
@@ -144,7 +133,7 @@ impl<'ast> FindTyParams<'ast> {
         }
     }
 
-    fn visit_type(&mut self, ty: &'ast syn::Type) {
+    fn visit_type(&mut self, ty: &syn::Type) {
         match ty {
             syn::Type::Array(ty) => self.visit_type(&ty.elem),
             syn::Type::BareFn(ty) => {
@@ -189,11 +178,11 @@ impl<'ast> FindTyParams<'ast> {
         }
     }
 
-    fn visit_path_segment(&mut self, segment: &'ast syn::PathSegment) {
+    fn visit_path_segment(&mut self, segment: &syn::PathSegment) {
         self.visit_path_arguments(&segment.arguments)
     }
 
-    fn visit_path_arguments(&mut self, arguments: &'ast syn::PathArguments) {
+    fn visit_path_arguments(&mut self, arguments: &syn::PathArguments) {
         match arguments {
             syn::PathArguments::None => {}
             syn::PathArguments::AngleBracketed(arguments) => {
@@ -218,14 +207,14 @@ impl<'ast> FindTyParams<'ast> {
         }
     }
 
-    fn visit_return_type(&mut self, return_type: &'ast syn::ReturnType) {
+    fn visit_return_type(&mut self, return_type: &syn::ReturnType) {
         match return_type {
             syn::ReturnType::Default => {}
             syn::ReturnType::Type(_, output) => self.visit_type(output),
         }
     }
 
-    fn visit_type_param_bound(&mut self, bound: &'ast syn::TypeParamBound) {
+    fn visit_type_param_bound(&mut self, bound: &syn::TypeParamBound) {
         match bound {
             syn::TypeParamBound::Trait(bound) => self.visit_path(&bound.path),
             syn::TypeParamBound::Lifetime(_)
@@ -241,7 +230,7 @@ impl<'ast> FindTyParams<'ast> {
     //         mac: T!(),
     //         marker: PhantomData<T>,
     //     }
-    fn visit_macro(&mut self, _mac: &'ast syn::Macro) {}
+    fn visit_macro(&mut self, _mac: &syn::Macro) {}
 }
 
 #[cfg(test)]
@@ -278,10 +267,8 @@ mod tests {
 
         let cont = Container::from_ast(&input).unwrap();
 
-        let (where_clause, relevant_type_params) = find_trait_bounds(&cont);
-
         assert_eq!(
-            where_clause,
+            cont.generics.where_clause,
             Some(parse_quote!(
                 where
                     X: Trait,
@@ -296,7 +283,7 @@ mod tests {
         );
 
         let relevant_type_params =
-            Vec::from_iter(relevant_type_params.into_iter().map(Ident::to_string));
+            Vec::from_iter(cont.relevant_type_params.into_iter().map(Ident::to_string));
         assert_eq!(relevant_type_params, vec!["T", "U", "V", "W", "X", "Y"]);
     }
 }

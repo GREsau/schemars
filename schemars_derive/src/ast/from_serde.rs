@@ -1,5 +1,4 @@
 use super::*;
-use crate::name::get_rename_format_type_params;
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::Ctxt;
 
@@ -20,16 +19,28 @@ impl<'a> FromSerde for Container<'a> {
     type SerdeType = serde_ast::Container<'a>;
 
     fn from_serde(errors: &Ctxt, serde: Self::SerdeType) -> Self {
-        let mut result = Self {
+        let data = Data::from_serde(errors, serde.data);
+        let attrs = ContainerAttrs::new(&serde.original.attrs, errors);
+        let rename_type_params = match &attrs.rename_format_string {
+            Some(s) => crate::name::get_rename_format_type_params(errors, s, serde.generics),
+            None => BTreeSet::new(),
+        };
+
+        let mut cont = Self {
             ident: serde.ident,
             serde_attrs: serde.attrs,
-            data: Data::from_serde(errors, serde.data),
-            generics: serde.generics,
-            attrs: ContainerAttrs::new(&serde.original.attrs, errors),
-            rename_type_params: BTreeSet::new(),
+            data,
+            attrs,
+            rename_type_params,
+            // `relevant_type_params` populated in find_trait_bounds()
+            relevant_type_params: BTreeSet::new(),
+            // `generics.where_clause` extended in find_trait_bounds()
+            generics: serde.generics.clone(),
         };
-        result.rename_type_params = get_rename_format_type_params(errors, &result);
-        result
+
+        crate::bound::find_trait_bounds(serde.generics, &mut cont);
+
+        cont
     }
 }
 

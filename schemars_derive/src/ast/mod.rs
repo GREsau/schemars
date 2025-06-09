@@ -12,9 +12,14 @@ pub struct Container<'a> {
     pub ident: syn::Ident,
     pub serde_attrs: serde_derive_internals::attr::Container,
     pub data: Data<'a>,
-    pub generics: &'a syn::Generics,
+    pub generics: syn::Generics,
     pub attrs: ContainerAttrs,
+    /// A set of type params that are used in a `rename` attribute format string, e.g. `T` and `U`
+    /// in `#[schemars(rename = "StructFor{T}And{U}")]`. This does not include const params.
     pub rename_type_params: BTreeSet<&'a syn::Ident>,
+    /// A set of type params that are "relevant" to the impl, i.e. excluding params only used in
+    /// `PhantomData` or skipped fields
+    pub relevant_type_params: BTreeSet<&'a syn::Ident>,
 }
 
 pub enum Data<'a> {
