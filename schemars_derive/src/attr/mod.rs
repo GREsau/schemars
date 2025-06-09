@@ -4,13 +4,13 @@ mod schemars_to_serde;
 mod validation;
 
 use parse_meta::{
-    parse_extensions, parse_name_value_expr, parse_name_value_lit_str, require_path_only,
+    parse_extensions, parse_name_value_expr, parse_name_value_lit_str, require_name_value_lit_str,
+    require_path_only,
 };
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
-use syn::Ident;
-use syn::{punctuated::Punctuated, Attribute, Expr, ExprLit, Lit, Meta, Path, Type};
+use syn::{punctuated::Punctuated, Attribute, Expr, ExprLit, Ident, Lit, LitStr, Meta, Path, Type};
 use validation::ValidationAttrs;
 
 use crate::idents::SCHEMA;
@@ -40,7 +40,9 @@ pub struct ContainerAttrs {
     pub common: CommonAttrs,
     pub repr: Option<Type>,
     pub crate_name: Option<Path>,
-    pub is_renamed: bool,
+    // The actual parsing of this is done in `get_rename_format_type_params()`,
+    // because it depends on the type's generic params.
+    pub rename_format_string: Option<LitStr>,
     pub inline: bool,
 }
 
@@ -308,8 +310,10 @@ impl ContainerAttrs {
                 None => self.crate_name = parse_name_value_lit_str(meta, cx).ok(),
             },
 
-            // The actual parsing of `rename` is done by serde
-            "rename" => self.is_renamed = true,
+            "rename" if cx.attr_type == "schemars" => match self.rename_format_string {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.rename_format_string = require_name_value_lit_str(meta, cx).ok(),
+            },
 
             "inline" => {
                 if self.inline {

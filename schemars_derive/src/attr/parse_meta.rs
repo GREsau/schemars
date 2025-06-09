@@ -58,7 +58,7 @@ pub fn parse_name_value_expr(meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
     }
 }
 
-pub fn parse_name_value_lit_str<T: Parse>(meta: Meta, cx: &AttrCtxt) -> Result<T, ()> {
+pub fn require_name_value_lit_str(meta: Meta, cx: &AttrCtxt) -> Result<LitStr, ()> {
     let Meta::NameValue(MetaNameValue {
         value: Expr::Lit(ExprLit {
             lit: Lit::Str(lit_str),
@@ -77,6 +77,12 @@ pub fn parse_name_value_lit_str<T: Parse>(meta: Meta, cx: &AttrCtxt) -> Result<T
         );
         return Err(());
     };
+
+    Ok(lit_str)
+}
+
+pub fn parse_name_value_lit_str<T: Parse>(meta: Meta, cx: &AttrCtxt) -> Result<T, ()> {
+    let lit_str = require_name_value_lit_str(meta, cx)?;
 
     parse_lit_str(lit_str, cx)
 }

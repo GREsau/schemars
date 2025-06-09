@@ -39,6 +39,7 @@ fn simple() {
 
 #[derive(JsonSchema, Deserialize, Serialize)]
 #[serde(untagged, remote = "external::Or")]
+#[schemars(rename = "{A}_or_{B}")]
 enum OrDef<A, B> {
     A(A),
     B(B),
