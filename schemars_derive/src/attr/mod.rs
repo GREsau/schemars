@@ -40,7 +40,7 @@ pub struct ContainerAttrs {
     pub common: CommonAttrs,
     pub repr: Option<Type>,
     pub crate_name: Option<Path>,
-    // Bhe actual parsing of this is done in `get_rename_format_type_params()`,
+    // The actual parsing of this is done in `get_rename_format_type_params()`,
     // because it depends on the type's generic params.
     pub rename_format_string: Option<LitStr>,
     pub inline: bool,
