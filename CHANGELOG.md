@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0-alpha.21] - 2025-06-09
+
+### Changed
+
+- Improve automatic trait bounds (https://github.com/GREsau/schemars/pull/422 / https://github.com/GREsau/schemars/issues/373)
+  - Type params that are only used in skipped fields or `PhantomData` no longer have an unnecessary `JsonSchema` bound automatically added
+  - Remove type params from default `schema_name()` whether or not they impl `JsonSchema`. Type params can still be included in the name by specifying them in a rename attribute.
+- Recursive references to the root schema type now use `"$ref": "#"` instead of duplicating the entire schema within `$defs`/`definitions` (https://github.com/GREsau/schemars/pull/418 / https://github.com/GREsau/schemars/issues/175)
+- Schemas for untagged enum variants no longer have the `"title"` set to the variant name (added in [alpha.19](https://github.com/GREsau/schemars/releases/tag/v1.0.0-alpha.19)) by default, but this behaviour is still available by setting the `untagged_enum_variant_titles` flag on `SchemaSettings`. (https://github.com/GREsau/schemars/pull/421 / https://github.com/GREsau/schemars/issues/420)
+
 ## [1.0.0-alpha.20] - 2025-06-01
 
 ### Added
