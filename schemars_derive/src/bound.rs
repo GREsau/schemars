@@ -33,6 +33,7 @@ pub fn find_trait_bounds<'a>(orig_generics: &'a syn::Generics, cont: &mut Contai
                         .fields
                         .iter()
                         .filter(|field| needs_jsonschema_bound(field, Some(variant)));
+
                     for field in relevant_fields {
                         visitor.visit_field(field);
                     }
@@ -42,6 +43,7 @@ pub fn find_trait_bounds<'a>(orig_generics: &'a syn::Generics, cont: &mut Contai
                 let relevant_fields = fields
                     .iter()
                     .filter(|field| needs_jsonschema_bound(field, None));
+
                 for field in relevant_fields {
                     visitor.visit_field(field);
                 }
@@ -105,7 +107,9 @@ impl<'ast> FindTyParams<'ast> {
     fn visit_field(&mut self, field: &Field) {
         match &field.attrs.with {
             Some(WithAttr::Type(ty)) => self.visit_type(ty),
-            Some(WithAttr::Function(f)) => self.visit_path(f),
+            Some(WithAttr::Function(_)) => {
+                // `schema_with` function type params may or may not implement `JsonSchema`
+            }
             None => self.visit_type(&field.original.ty),
         }
     }

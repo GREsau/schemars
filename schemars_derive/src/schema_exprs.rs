@@ -152,17 +152,18 @@ pub fn type_for_field_schema(cont: &Container, field: &Field) -> (syn::Type, Opt
     }
 }
 
-fn type_for_schema(_cont: &Container, with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
+fn type_for_schema(cont: &Container, with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
     match with_attr {
         WithAttr::Type(ty) => (ty.to_owned(), None),
         WithAttr::Function(fun) => {
-            let ty_name = syn::Ident::new("_SchemarsSchemaWithFunction", Span::call_site());
+            let cont_name = &cont.ident;
             let fn_name = fun.segments.last().unwrap().ident.to_string();
+            let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
             let type_def = quote_spanned! {fun.span()=>
-                struct #ty_name;
+                struct _SchemarsSchemaWithFunction<T: ?::core::marker::Sized>(::core::marker::PhantomData<T>);
 
-                impl schemars::JsonSchema for #ty_name {
+                impl #impl_generics schemars::JsonSchema for _SchemarsSchemaWithFunction<#cont_name #ty_generics> #where_clause {
                     fn inline_schema() -> bool {
                         true
                     }
@@ -176,7 +177,7 @@ fn type_for_schema(_cont: &Container, with_attr: &WithAttr) -> (syn::Type, Optio
                             "_SchemarsSchemaWithFunction/",
                             ::core::module_path!(),
                             "/",
-                            #fn_name
+                            ::core::stringify!(#fun)
                         ))
                     }
 
@@ -186,7 +187,10 @@ fn type_for_schema(_cont: &Container, with_attr: &WithAttr) -> (syn::Type, Optio
                 }
             };
 
-            (parse_quote!(#ty_name), Some(type_def))
+            (
+                parse_quote!(_SchemarsSchemaWithFunction::<#cont_name #ty_generics>),
+                Some(type_def),
+            )
         }
     }
 }
@@ -596,11 +600,13 @@ fn expr_for_struct(
 
                 let is_optional = if has_skip_serialize_if && has_default {
                     quote!(true)
+                } else if !has_skip_serialize_if && !has_default && !required_attr {
+                    quote!(#GENERATOR.contract().is_deserialize() && <#ty as schemars::JsonSchema>::_schemars_private_is_option())
                 } else {
-                    quote!(if #GENERATOR.contract().is_serialize() {
-                        #has_skip_serialize_if
-                    } else {
+                    quote!(if #GENERATOR.contract().is_deserialize() {
                         #has_default || (!#required_attr && <#ty as schemars::JsonSchema>::_schemars_private_is_option())
+                    } else {
+                        #has_skip_serialize_if
                     })
                 };
 

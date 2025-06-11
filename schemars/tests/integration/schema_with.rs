@@ -1,10 +1,12 @@
 use crate::prelude::*;
 
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
-struct Struct {
+struct Struct<T: Default + Serialize> {
     #[serde(with = "int_as_str")]
     #[schemars(schema_with = "int_as_str::json_schema")]
     x: i64,
+    #[schemars(schema_with = "from_serialize_default::<T>")]
+    t: T,
 }
 
 mod int_as_str {
@@ -34,9 +36,20 @@ mod int_as_str {
     }
 }
 
+fn from_serialize_default<T: Default + Serialize>(
+    generator: &mut schemars::SchemaGenerator,
+) -> schemars::Schema {
+    generator
+        .settings()
+        .clone()
+        .into_generator()
+        .into_root_schema_for_value(&T::default())
+        .unwrap()
+}
+
 #[test]
 fn schema_with() {
-    test!(Struct)
+    test!(Struct<String>)
         .assert_snapshot()
         .assert_allows_ser_roundtrip_default()
         .assert_matches_de_roundtrip(arbitrary_values_except(
