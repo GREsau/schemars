@@ -51,17 +51,18 @@ impl ToTokens for SchemaExpr {
 pub fn expr_for_container(cont: &Container) -> SchemaExpr {
     let mut schema_expr = match &cont.data {
         Data::Struct(Style::Unit, _) => expr_for_unit_struct(),
-        Data::Struct(Style::Newtype, fields) => expr_for_newtype_struct(&fields[0]),
-        Data::Struct(Style::Tuple, fields) => expr_for_tuple_struct(fields),
+        Data::Struct(Style::Newtype, fields) => expr_for_newtype_struct(cont, &fields[0]),
+        Data::Struct(Style::Tuple, fields) => expr_for_tuple_struct(cont, fields),
         Data::Struct(Style::Struct, fields) if cont.serde_attrs.transparent() => {
-            expr_for_newtype_struct(&fields[0])
+            expr_for_newtype_struct(cont, &fields[0])
         }
         Data::Struct(Style::Struct, fields) => expr_for_struct(
+            cont,
             fields,
             cont.serde_attrs.default(),
             cont.serde_attrs.deny_unknown_fields(),
         ),
-        Data::Enum(variants) => expr_for_enum(variants, &cont.serde_attrs),
+        Data::Enum(variants) => expr_for_enum(cont, variants, &cont.serde_attrs),
     };
 
     cont.add_mutators(&mut schema_expr.mutators);
@@ -115,8 +116,12 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
     Ok(schema_expr)
 }
 
-fn expr_for_field(field: &Field, is_internal_tagged_enum_newtype: bool) -> SchemaExpr {
-    let (ty, type_def) = type_for_field_schema(field);
+fn expr_for_field(
+    cont: &Container,
+    field: &Field,
+    is_internal_tagged_enum_newtype: bool,
+) -> SchemaExpr {
+    let (ty, type_def) = type_for_field_schema(cont, field);
     let span = field.original.span();
 
     let schema_expr = if field.attrs.validation.required {
@@ -140,24 +145,25 @@ fn expr_for_field(field: &Field, is_internal_tagged_enum_newtype: bool) -> Schem
     schema_expr
 }
 
-pub fn type_for_field_schema(field: &Field) -> (syn::Type, Option<TokenStream>) {
+pub fn type_for_field_schema(cont: &Container, field: &Field) -> (syn::Type, Option<TokenStream>) {
     match &field.attrs.with {
         None => (field.ty.to_owned(), None),
-        Some(with_attr) => type_for_schema(with_attr),
+        Some(with_attr) => type_for_schema(cont, with_attr),
     }
 }
 
-fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
+fn type_for_schema(cont: &Container, with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
     match with_attr {
         WithAttr::Type(ty) => (ty.to_owned(), None),
         WithAttr::Function(fun) => {
-            let ty_name = syn::Ident::new("_SchemarsSchemaWithFunction", Span::call_site());
+            let cont_name = &cont.ident;
             let fn_name = fun.segments.last().unwrap().ident.to_string();
+            let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
             let type_def = quote_spanned! {fun.span()=>
-                struct #ty_name;
+                struct _SchemarsSchemaWithFunction<T: ?::core::marker::Sized>(::core::marker::PhantomData<T>);
 
-                impl schemars::JsonSchema for #ty_name {
+                impl #impl_generics schemars::JsonSchema for _SchemarsSchemaWithFunction<#cont_name #ty_generics> #where_clause {
                     fn inline_schema() -> bool {
                         true
                     }
@@ -171,7 +177,7 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
                             "_SchemarsSchemaWithFunction/",
                             ::core::module_path!(),
                             "/",
-                            #fn_name
+                            ::core::stringify!(#fun)
                         ))
                     }
 
@@ -181,12 +187,19 @@ fn type_for_schema(with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
                 }
             };
 
-            (parse_quote!(#ty_name), Some(type_def))
+            (
+                parse_quote!(_SchemarsSchemaWithFunction::<#cont_name #ty_generics>),
+                Some(type_def),
+            )
         }
     }
 }
 
-fn expr_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> SchemaExpr {
+fn expr_for_enum(
+    cont: &Container,
+    variants: &[Variant],
+    cattrs: &serde_attr::Container,
+) -> SchemaExpr {
     if variants.is_empty() {
         return quote!(schemars::Schema::from(false)).into();
     }
@@ -194,18 +207,19 @@ fn expr_for_enum(variants: &[Variant], cattrs: &serde_attr::Container) -> Schema
     let variants = variants.iter();
 
     match cattrs.tag() {
-        TagType::External => expr_for_external_tagged_enum(variants, deny_unknown_fields),
-        TagType::None => expr_for_untagged_enum(variants, deny_unknown_fields),
+        TagType::External => expr_for_external_tagged_enum(cont, variants, deny_unknown_fields),
+        TagType::None => expr_for_untagged_enum(cont, variants, deny_unknown_fields),
         TagType::Internal { tag } => {
-            expr_for_internal_tagged_enum(variants, tag, deny_unknown_fields)
+            expr_for_internal_tagged_enum(cont, variants, tag, deny_unknown_fields)
         }
         TagType::Adjacent { tag, content } => {
-            expr_for_adjacent_tagged_enum(variants, tag, content, deny_unknown_fields)
+            expr_for_adjacent_tagged_enum(cont, variants, tag, content, deny_unknown_fields)
         }
     }
 }
 
 fn expr_for_external_tagged_enum<'a>(
+    cont: &Container,
     variants: impl Iterator<Item = &'a Variant<'a>>,
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
@@ -244,7 +258,7 @@ fn expr_for_external_tagged_enum<'a>(
         if variant.serde_attrs.untagged() {
             return (
                 Some(variant),
-                expr_for_untagged_enum_variant(variant, deny_unknown_fields, true),
+                expr_for_untagged_enum_variant(cont, variant, deny_unknown_fields, true),
             );
         }
 
@@ -257,7 +271,7 @@ fn expr_for_external_tagged_enum<'a>(
                 }
             } else {
                 let sub_schema =
-                    expr_for_untagged_enum_variant(variant, deny_unknown_fields, false);
+                    expr_for_untagged_enum_variant(cont, variant, deny_unknown_fields, false);
                 quote! {
                     schemars::_private::new_externally_tagged_enum_variant(#name, #sub_schema)
                 }
@@ -272,6 +286,7 @@ fn expr_for_external_tagged_enum<'a>(
 }
 
 fn expr_for_internal_tagged_enum<'a>(
+    cont: &Container,
     variants: impl Iterator<Item = &'a Variant<'a>>,
     tag_name: &str,
     deny_unknown_fields: bool,
@@ -279,10 +294,10 @@ fn expr_for_internal_tagged_enum<'a>(
     let variant_schemas = variants
         .map(|variant| {
             if variant.serde_attrs.untagged() {
-                return (Some(variant), expr_for_untagged_enum_variant(variant, deny_unknown_fields, true))
+                return (Some(variant), expr_for_untagged_enum_variant(cont, variant, deny_unknown_fields, true))
             }
 
-            let mut schema_expr = expr_for_internal_tagged_enum_variant(variant, deny_unknown_fields);
+            let mut schema_expr = expr_for_internal_tagged_enum_variant(cont, variant, deny_unknown_fields);
 
             let name = variant.name();
             schema_expr.mutators.push(quote!(
@@ -299,12 +314,14 @@ fn expr_for_internal_tagged_enum<'a>(
 }
 
 fn expr_for_untagged_enum<'a>(
+    cont: &Container,
     variants: impl Iterator<Item = &'a Variant<'a>>,
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
     let schemas = variants
         .map(|variant| {
-            let schema_expr = expr_for_untagged_enum_variant(variant, deny_unknown_fields, true);
+            let schema_expr =
+                expr_for_untagged_enum_variant(cont, variant, deny_unknown_fields, true);
 
             (Some(variant), schema_expr)
         })
@@ -316,6 +333,7 @@ fn expr_for_untagged_enum<'a>(
 }
 
 fn expr_for_adjacent_tagged_enum<'a>(
+    cont: &Container,
     variants: impl Iterator<Item = &'a Variant<'a>>,
     tag_name: &str,
     content_name: &str,
@@ -326,7 +344,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
             if variant.serde_attrs.untagged() {
                 return (
                     Some(variant),
-                    expr_for_untagged_enum_variant(variant, deny_unknown_fields, true),
+                    expr_for_untagged_enum_variant(cont, variant, deny_unknown_fields, true),
                 );
             }
 
@@ -334,6 +352,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
                 None
             } else {
                 Some(expr_for_untagged_enum_variant(
+                    cont,
                     variant,
                     deny_unknown_fields,
                     false,
@@ -431,12 +450,13 @@ fn variant_subschemas(
 // embedded or mutated to include the tag. `is_actually_untagged` will be true if the enum or the
 // variant has the `untagged` attribute.
 fn expr_for_untagged_enum_variant(
+    cont: &Container,
     variant: &Variant,
     deny_unknown_fields: bool,
     is_actually_untagged: bool,
 ) -> SchemaExpr {
     let mut schema_expr = if let Some(with_attr) = &variant.attrs.with {
-        let (ty, type_def) = type_for_schema(with_attr);
+        let (ty, type_def) = type_for_schema(cont, with_attr);
         let mut schema_expr = SchemaExpr::from(quote_spanned! {variant.original.span()=>
             #GENERATOR.subschema_for::<#ty>()
         });
@@ -446,11 +466,14 @@ fn expr_for_untagged_enum_variant(
     } else {
         match variant.style {
             Style::Unit => expr_for_unit_struct(),
-            Style::Newtype => expr_for_field(&variant.fields[0], false),
-            Style::Tuple => expr_for_tuple_struct(&variant.fields),
-            Style::Struct => {
-                expr_for_struct(&variant.fields, &SerdeDefault::None, deny_unknown_fields)
-            }
+            Style::Newtype => expr_for_field(cont, &variant.fields[0], false),
+            Style::Tuple => expr_for_tuple_struct(cont, &variant.fields),
+            Style::Struct => expr_for_struct(
+                cont,
+                &variant.fields,
+                &SerdeDefault::None,
+                deny_unknown_fields,
+            ),
         }
     };
 
@@ -471,11 +494,12 @@ fn expr_for_untagged_enum_variant(
 }
 
 fn expr_for_internal_tagged_enum_variant(
+    cont: &Container,
     variant: &Variant,
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
     if let Some(with_attr) = &variant.attrs.with {
-        let (ty, type_def) = type_for_schema(with_attr);
+        let (ty, type_def) = type_for_schema(cont, with_attr);
         let mut schema_expr = SchemaExpr::from(quote_spanned! {variant.original.span()=>
             <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
         });
@@ -487,9 +511,14 @@ fn expr_for_internal_tagged_enum_variant(
 
     match variant.style {
         Style::Unit => expr_for_unit_struct(),
-        Style::Newtype => expr_for_field(&variant.fields[0], true),
-        Style::Tuple => expr_for_tuple_struct(&variant.fields),
-        Style::Struct => expr_for_struct(&variant.fields, &SerdeDefault::None, deny_unknown_fields),
+        Style::Newtype => expr_for_field(cont, &variant.fields[0], true),
+        Style::Tuple => expr_for_tuple_struct(cont, &variant.fields),
+        Style::Struct => expr_for_struct(
+            cont,
+            &variant.fields,
+            &SerdeDefault::None,
+            deny_unknown_fields,
+        ),
     }
 }
 
@@ -500,15 +529,15 @@ fn expr_for_unit_struct() -> SchemaExpr {
     .into()
 }
 
-fn expr_for_newtype_struct(field: &Field) -> SchemaExpr {
-    expr_for_field(field, false)
+fn expr_for_newtype_struct(cont: &Container, field: &Field) -> SchemaExpr {
+    expr_for_field(cont, field, false)
 }
 
-fn expr_for_tuple_struct(fields: &[Field]) -> SchemaExpr {
+fn expr_for_tuple_struct(cont: &Container, fields: &[Field]) -> SchemaExpr {
     let fields: Vec<_> = fields
         .iter()
         .map(|f| {
-            let field_expr = expr_for_field(f, false);
+            let field_expr = expr_for_field(cont, f, false);
             f.with_contract_check(quote! {
                 prefix_items.push((#field_expr).to_value());
             })
@@ -532,6 +561,7 @@ fn expr_for_tuple_struct(fields: &[Field]) -> SchemaExpr {
 }
 
 fn expr_for_struct(
+    cont: &Container,
     fields: &[Field],
     default: &SerdeDefault,
     deny_unknown_fields: bool,
@@ -548,7 +578,7 @@ fn expr_for_struct(
         .filter(|f| !f.serde_attrs.skip_deserializing() || !f.serde_attrs.skip_serializing())
         .map(|field| {
             if field.serde_attrs.flatten() {
-                let (ty, type_def) = type_for_field_schema(field);
+                let (ty, type_def) = type_for_field_schema(cont, field);
 
                 let required = field.attrs.validation.required;
                 let mut schema_expr = SchemaExpr::from(quote_spanned! {ty.span()=>
@@ -562,7 +592,7 @@ fn expr_for_struct(
                 })
             } else {
                 let name = field.name();
-                let (ty, type_def) = type_for_field_schema(field);
+                let (ty, type_def) = type_for_field_schema(cont, field);
 
                 let has_default = set_container_default.is_some() || !field.serde_attrs.default().is_none();
                 let has_skip_serialize_if = field.serde_attrs.skip_serializing_if().is_some();
@@ -570,11 +600,13 @@ fn expr_for_struct(
 
                 let is_optional = if has_skip_serialize_if && has_default {
                     quote!(true)
+                } else if !has_skip_serialize_if && !has_default && !required_attr {
+                    quote!(#GENERATOR.contract().is_deserialize() && <#ty as schemars::JsonSchema>::_schemars_private_is_option())
                 } else {
-                    quote!(if #GENERATOR.contract().is_serialize() {
-                        #has_skip_serialize_if
-                    } else {
+                    quote!(if #GENERATOR.contract().is_deserialize() {
                         #has_default || (!#required_attr && <#ty as schemars::JsonSchema>::_schemars_private_is_option())
+                    } else {
+                        #has_skip_serialize_if
                     })
                 };
 

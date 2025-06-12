@@ -1,45 +1,43 @@
-use crate::ast::Container;
 use serde_derive_internals::Ctxt;
 use std::collections::{BTreeMap, BTreeSet};
 use syn::Ident;
 
 pub fn get_rename_format_type_params<'a>(
     errors: &Ctxt,
-    cont: &Container<'a>,
+    rename_format_string: &syn::LitStr,
+    generics: &'a syn::Generics,
 ) -> BTreeSet<&'a Ident> {
     let mut type_params = BTreeSet::new();
+    let mut str_value = rename_format_string.value();
 
-    let Some(lit_str) = &cont.attrs.rename_format_string else {
-        return type_params;
-    };
-
-    let mut format_str = lit_str.value();
-
-    if !format_str.contains('{') {
+    if !str_value.contains('{') {
         return type_params;
     }
 
-    if format_str.contains("{{") {
-        format_str = format_str.replace("{{", "");
+    if str_value.contains("{{") {
+        str_value = str_value.replace("{{", "");
     }
 
-    if format_str.contains("}}") {
-        format_str = format_str.replace("}}", "");
+    if str_value.contains("}}") {
+        str_value = str_value.replace("}}", "");
     }
 
     let all_const_params =
-        BTreeSet::from_iter(cont.generics.const_params().map(|c| c.ident.to_string()));
+        BTreeSet::from_iter(generics.const_params().map(|c| c.ident.to_string()));
     let all_type_params = BTreeMap::from_iter(
-        cont.generics
+        generics
             .type_params()
             .map(|c| (c.ident.to_string(), &c.ident)),
     );
 
-    let mut segments = format_str.split('{');
+    let mut segments = str_value.split('{');
 
     if segments.next().unwrap_or_default().contains('}') {
         // The name format string contains a '}' before the first '{'
-        errors.error_spanned_by(lit_str, "invalid name format string: unmatched `}` found");
+        errors.error_spanned_by(
+            rename_format_string,
+            "invalid name format string: unmatched `}` found",
+        );
     }
 
     for segment in segments {
@@ -47,7 +45,7 @@ pub fn get_rename_format_type_params<'a>(
             Some((param, rest)) => {
                 if rest.contains('}') {
                     errors.error_spanned_by(
-                        lit_str,
+                        rename_format_string,
                         "invalid name format string: unmatched `}` found",
                     );
                 }
@@ -59,7 +57,7 @@ pub fn get_rename_format_type_params<'a>(
                     // `format!()`
                 } else {
                     errors.error_spanned_by(
-                        lit_str,
+                        rename_format_string,
                         format_args!(
                             "invalid name format string: expected generic param, found `{param}`"
                         ),
@@ -68,7 +66,7 @@ pub fn get_rename_format_type_params<'a>(
             }
             None => {
                 errors.error_spanned_by(
-                    lit_str,
+                    rename_format_string,
                     "invalid name format string: found `{` without matching `}`",
                 );
             }

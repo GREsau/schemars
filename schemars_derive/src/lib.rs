@@ -49,16 +49,15 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
     });
 
     let type_name = &cont.ident;
-    let (impl_generics, ty_generics, _) = cont.generics.split_for_impl();
 
-    let (where_clause, relevant_type_params) = bound::find_trait_bounds(&cont);
+    let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
     if let Some(transparent_field) = cont.transparent_field() {
         // If any schemars attributes for setting metadata (e.g. description) are present, then
         // it's not fully transparent, so use the normal `schema_exprs::expr_for_container`
         // implementation (which always treats the struct as a newtype if it has `transparent`)
         if cont.attrs.common.is_default() && transparent_field.attrs.is_default() {
-            let (ty, type_def) = schema_exprs::type_for_field_schema(transparent_field);
+            let (ty, type_def) = schema_exprs::type_for_field_schema(&cont, transparent_field);
             return Ok(quote! {
                 const _: () = {
                     #crate_alias
@@ -115,7 +114,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
         }
     };
 
-    let schema_id = if const_params.is_empty() && relevant_type_params.is_empty() {
+    let schema_id = if const_params.is_empty() && cont.relevant_type_params.is_empty() {
         quote! {
             schemars::_private::alloc::borrow::Cow::Borrowed(::core::concat!(
                 ::core::module_path!(),
@@ -124,6 +123,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
             ))
         }
     } else {
+        let relevant_type_params = &cont.relevant_type_params;
         let format_string_braces = vec!["{}"; const_params.len() + relevant_type_params.len()];
 
         quote! {
