@@ -10,7 +10,9 @@ use parse_meta::{
 use proc_macro2::TokenStream;
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
-use syn::{punctuated::Punctuated, Attribute, Expr, ExprLit, Ident, Lit, LitStr, Meta, Path, Type};
+use syn::punctuated::Punctuated;
+use syn::spanned::Spanned;
+use syn::{Attribute, Expr, ExprLit, Ident, Lit, LitStr, Meta, Path, Type};
 use validation::ValidationAttrs;
 
 use crate::idents::SCHEMA;
@@ -214,7 +216,7 @@ impl CommonAttrs {
         }
 
         for transform in &self.transforms {
-            mutators.push(quote! {
+            mutators.push(quote_spanned! {transform.span()=>
                 schemars::transform::Transform::transform(&mut #transform, &mut #SCHEMA);
             });
         }
