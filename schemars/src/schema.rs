@@ -61,7 +61,7 @@ use serde_json::{Map, Value};
 ///
 /// let bool_schema: Schema = true.into();
 /// ```
-#[derive(Debug, Clone, PartialEq, RefCastCustom)]
+#[derive(Debug, Clone, PartialEq, Eq, RefCastCustom, Hash)]
 #[repr(transparent)]
 pub struct Schema(Value);
 

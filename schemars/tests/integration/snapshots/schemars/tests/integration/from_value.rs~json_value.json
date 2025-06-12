@@ -23,7 +23,16 @@
         },
         "mixed": {
           "type": "array",
-          "items": true
+          "items": {
+            "oneOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "integer"
+              }
+            ]
+          }
         }
       }
     }
