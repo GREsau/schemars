@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.0-alpha.22] - 2025-06-12
+
+### Added
+
+- Type and const generic params can now be used in `schema_with` attributes, e.g. `#[schemars(schema_with = "func::<T>")]` (https://github.com/GREsau/schemars/pull/426 / https://github.com/GREsau/schemars/issues/375)
+
 ## [1.0.0-alpha.21] - 2025-06-09
 
 ### Changed
