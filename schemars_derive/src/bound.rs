@@ -103,7 +103,7 @@ struct FindTyParams<'ast> {
     relevant_type_params: BTreeSet<&'ast Ident>,
 }
 
-impl<'ast> FindTyParams<'ast> {
+impl FindTyParams<'_> {
     fn visit_field(&mut self, field: &Field) {
         match &field.attrs.with {
             Some(WithAttr::Type(ty)) => self.visit_type(ty),
