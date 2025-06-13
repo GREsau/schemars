@@ -12,7 +12,7 @@ use std::{
     sync::OnceLock,
 };
 
-pub struct TestHelper<T: JsonSchema> {
+pub struct TestHelper<T> {
     settings: SchemaSettings,
     name: String,
     phantom: PhantomData<T>,
@@ -23,9 +23,12 @@ pub struct TestHelper<T: JsonSchema> {
     validator: fn(&T) -> bool,
 }
 
-impl<T: JsonSchema> TestHelper<T> {
+impl<T> TestHelper<T> {
     /// Should be used via the `test!(SomeType)` macro
-    pub fn new(name: String, settings: SchemaSettings) -> Self {
+    pub fn new(name: String, settings: SchemaSettings) -> Self
+    where
+        T: JsonSchema,
+    {
         let de_schema = schema_for::<T>(&settings, Contract::Deserialize);
         let ser_schema = schema_for::<T>(&settings, Contract::Serialize);
         Self {
@@ -95,7 +98,10 @@ impl<T: JsonSchema> TestHelper<T> {
     }
 
     /// Checks that the schema generated for this type is identical to that of another type.
-    pub fn assert_identical<T2: JsonSchema>(&self) -> &Self {
+    pub fn assert_identical<T2: JsonSchema>(&self) -> &Self
+    where
+        T: JsonSchema,
+    {
         snapbox::assert_data_eq!(
             (&self.de_schema).into_json(),
             schema_for::<T2>(&self.settings, Contract::Deserialize)
@@ -159,7 +165,7 @@ fn build_validator(schema: &Schema) -> Validator {
         .expect("valid schema")
 }
 
-impl<T: JsonSchema + Serialize> TestHelper<T> {
+impl<T: Serialize> TestHelper<T> {
     /// Checks that the "serialize" schema allows the given sample values when serialized to JSON.
     /// If `T implements `DeserializeOwned`, prefer using `assert_allows_ser_roundtrip()`
     pub fn assert_allows_ser_only(&self, samples: impl IntoIterator<Item = T>) -> &Self {
@@ -181,7 +187,7 @@ impl<T: JsonSchema + Serialize> TestHelper<T> {
     }
 }
 
-impl<T: JsonSchema + Serialize + DeserializeOwned> TestHelper<T> {
+impl<T: Serialize + DeserializeOwned> TestHelper<T> {
     /// Checks that the "serialize" schema allows the given sample values when serialized to JSON
     /// and, if the value can then be deserialized, that the "deserialize" schema also allows it.
     pub fn assert_allows_ser_roundtrip(&self, samples: impl IntoIterator<Item = T>) -> &Self {

@@ -23,7 +23,16 @@
         },
         "mixed": {
           "type": "array",
-          "items": true
+          "items": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          }
         }
       }
     }
