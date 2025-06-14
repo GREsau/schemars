@@ -52,46 +52,40 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
 
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
-    if let Some(transparent_field) = cont.transparent_field() {
-        // If any schemars attributes for setting metadata (e.g. description) are present, then
-        // it's not fully transparent, so use the normal `schema_exprs::expr_for_container`
-        // implementation (which always treats the struct as a newtype if it has `transparent`)
-        if cont.attrs.common.is_default() && transparent_field.attrs.is_default() {
-            let (ty, type_def) = schema_exprs::type_for_field_schema(&cont, transparent_field);
-            return Ok(quote! {
-                const _: () = {
-                    #crate_alias
-                    #type_def
+    if let Some((ty, type_def)) = get_transparent_type(&cont) {
+        return Ok(quote! {
+            const _: () = {
+                #crate_alias
+                #type_def
 
-                    #[automatically_derived]
-                    impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
-                        fn inline_schema() -> bool {
-                            <#ty as schemars::JsonSchema>::inline_schema()
-                        }
+                #[automatically_derived]
+                impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
+                    fn inline_schema() -> bool {
+                        <#ty as schemars::JsonSchema>::inline_schema()
+                    }
 
-                        fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
-                            <#ty as schemars::JsonSchema>::schema_name()
-                        }
+                    fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
+                        <#ty as schemars::JsonSchema>::schema_name()
+                    }
 
-                        fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
-                            <#ty as schemars::JsonSchema>::schema_id()
-                        }
+                    fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
+                        <#ty as schemars::JsonSchema>::schema_id()
+                    }
 
-                        fn json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
-                            <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
-                        }
+                    fn json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                        <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
+                    }
 
-                        fn _schemars_private_non_optional_json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
-                            <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#GENERATOR)
-                        }
+                    fn _schemars_private_non_optional_json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#GENERATOR)
+                    }
 
-                        fn _schemars_private_is_option() -> bool {
-                            <#ty as schemars::JsonSchema>::_schemars_private_is_option()
-                        }
-                    };
+                    fn _schemars_private_is_option() -> bool {
+                        <#ty as schemars::JsonSchema>::_schemars_private_is_option()
+                    }
                 };
-            });
-        }
+            };
+        });
     }
 
     let name = cont.name();
@@ -176,4 +170,24 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
             };
         };
     })
+}
+
+fn get_transparent_type(cont: &Container) -> Option<(syn::Type, Option<TokenStream>)> {
+    // If any schemars attributes for setting metadata (e.g. description) are present, then
+    // it's not fully transparent, so use the normal `schema_exprs::expr_for_container`
+    // implementation (which always treats the struct as a newtype if it has `transparent`)
+
+    if let Some(with) = &cont.attrs.with {
+        if cont.attrs.common.is_default() {
+            return Some(schema_exprs::type_for_schema(cont, with));
+        }
+    }
+
+    if let Some(transparent_field) = cont.transparent_field() {
+        if cont.attrs.common.is_default() && transparent_field.attrs.is_default() {
+            return Some(schema_exprs::type_for_field_schema(cont, transparent_field));
+        }
+    }
+
+    None
 }

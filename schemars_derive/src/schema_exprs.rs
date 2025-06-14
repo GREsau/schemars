@@ -49,23 +49,66 @@ impl ToTokens for SchemaExpr {
 }
 
 pub fn expr_for_container(cont: &Container) -> SchemaExpr {
-    let mut schema_expr = match &cont.data {
-        Data::Struct(Style::Unit, _) => expr_for_unit_struct(),
-        Data::Struct(Style::Newtype, fields) => expr_for_newtype_struct(cont, &fields[0]),
-        Data::Struct(Style::Tuple, fields) => expr_for_tuple_struct(cont, fields),
-        Data::Struct(Style::Struct, fields) if cont.serde_attrs.transparent() => {
-            expr_for_newtype_struct(cont, &fields[0])
+    let type_from = cont
+        .serde_attrs
+        .type_from()
+        .or(cont.serde_attrs.type_try_from());
+    let type_into = cont.serde_attrs.type_into();
+
+    let mut schema_expr = if let Some(with) = &cont.attrs.with {
+        expr_for_container_with(cont, with)
+    } else if let (Some(from), Some(into)) = (type_from, type_into) {
+        quote! {
+            if #GENERATOR.contract().is_deserialize() {
+                <#from as schemars::JsonSchema>::json_schema(#GENERATOR)
+            } else {
+                <#into as schemars::JsonSchema>::json_schema(#GENERATOR)
+            }
         }
-        Data::Struct(Style::Struct, fields) => expr_for_struct(
-            cont,
-            fields,
-            cont.serde_attrs.default(),
-            cont.serde_attrs.deny_unknown_fields(),
-        ),
-        Data::Enum(variants) => expr_for_enum(cont, variants, &cont.serde_attrs),
+        .into()
+    } else {
+        let schema_expr = match &cont.data {
+            Data::Struct(_, fields) if cont.serde_attrs.transparent() => {
+                let field = fields.iter().find(|f| f.serde_attrs.transparent()).unwrap();
+                expr_for_newtype_struct(cont, field)
+            }
+            Data::Struct(Style::Unit, _) => expr_for_unit_struct(),
+            Data::Struct(Style::Newtype, fields) => expr_for_newtype_struct(cont, &fields[0]),
+            Data::Struct(Style::Tuple, fields) => expr_for_tuple_struct(cont, fields),
+            Data::Struct(Style::Struct, fields) => expr_for_struct(
+                cont,
+                fields,
+                cont.serde_attrs.default(),
+                cont.serde_attrs.deny_unknown_fields(),
+            ),
+            Data::Enum(variants) => expr_for_enum(cont, variants, &cont.serde_attrs),
+        };
+
+        if let Some(from) = type_from {
+            quote! {
+                if #GENERATOR.contract().is_deserialize() {
+                    <#from as schemars::JsonSchema>::json_schema(#GENERATOR)
+                } else {
+                    #schema_expr
+                }
+            }
+            .into()
+        } else if let Some(into) = type_into {
+            quote! {
+                if #GENERATOR.contract().is_serialize() {
+                    <#into as schemars::JsonSchema>::json_schema(#GENERATOR)
+                } else {
+                    #schema_expr
+                }
+            }
+            .into()
+        } else {
+            schema_expr
+        }
     };
 
     cont.add_mutators(&mut schema_expr.mutators);
+
     schema_expr
 }
 
@@ -116,6 +159,18 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
     Ok(schema_expr)
 }
 
+fn expr_for_container_with(cont: &Container, with_attr: &WithAttr) -> SchemaExpr {
+    let (ty, type_def) = type_for_schema(cont, with_attr);
+
+    let mut schema_expr = SchemaExpr::from(quote! {
+        #GENERATOR.subschema_for::<#ty>()
+    });
+
+    schema_expr.definitions.extend(type_def);
+
+    schema_expr
+}
+
 fn expr_for_field(
     cont: &Container,
     field: &Field,
@@ -152,7 +207,7 @@ pub fn type_for_field_schema(cont: &Container, field: &Field) -> (syn::Type, Opt
     }
 }
 
-fn type_for_schema(cont: &Container, with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
+pub fn type_for_schema(cont: &Container, with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
     match with_attr {
         WithAttr::Type(ty) => (ty.to_owned(), None),
         WithAttr::Function(fun) => {

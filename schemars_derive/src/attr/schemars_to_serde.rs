@@ -24,6 +24,9 @@ pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     "flatten",
     "remote",
     "transparent",
+    "into",
+    "from",
+    "try_from",
     // Special case - `bound` is removed from serde attrs, so is only respected when present in
     // schemars attr.
     "bound",
