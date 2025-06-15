@@ -46,7 +46,6 @@ pub struct ContainerAttrs {
     // because it depends on the type's generic params.
     pub rename_format_string: Option<LitStr>,
     pub inline: bool,
-    // TODO actually parse this (not from serde attrs)
     pub with: Option<WithAttr>,
 }
 
