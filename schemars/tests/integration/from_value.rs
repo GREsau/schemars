@@ -2,7 +2,7 @@ use crate::prelude::*;
 use schemars::generate::SchemaSettings;
 use std::collections::BTreeMap;
 
-#[derive(JsonSchema, Deserialize, Serialize, Default, Clone)]
+#[derive(Deserialize, Serialize, Default, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct MyStruct {
     pub my_int: i32,
@@ -15,7 +15,7 @@ pub struct MyStruct {
     pub skip_if_none: Option<MyEnum>,
 }
 
-#[derive(JsonSchema, Deserialize, Serialize, Default, Clone)]
+#[derive(Deserialize, Serialize, Default, Clone)]
 pub struct MyInnerStruct {
     pub my_map: BTreeMap<String, f64>,
     pub my_vec: Vec<f32>,

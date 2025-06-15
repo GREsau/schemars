@@ -11,7 +11,7 @@ pub(crate) struct Serializer<'a> {
 
 pub(crate) struct SerializeSeq<'a> {
     generator: &'a mut SchemaGenerator,
-    items: Option<Schema>,
+    items: Vec<Schema>,
 }
 
 pub(crate) struct SerializeTuple<'a> {
@@ -182,7 +182,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
     fn serialize_seq(self, _len: Option<usize>) -> Result<Self::SerializeSeq, Self::Error> {
         Ok(SerializeSeq {
             generator: self.generator,
-            items: None,
+            items: Vec::new(),
         })
     }
 
@@ -291,26 +291,33 @@ impl serde::ser::SerializeSeq for SerializeSeq<'_> {
     where
         T: serde::Serialize + ?Sized,
     {
-        if self.items != Some(true.into()) {
-            let schema = value.serialize(Serializer {
-                generator: self.generator,
-                include_title: false,
-            })?;
-            match &self.items {
-                None => self.items = Some(schema),
-                Some(items) => {
-                    if items != &schema {
-                        self.items = Some(true.into());
-                    }
-                }
-            }
+        if self.items.first() == Some(&true.into()) {
+            // Schema already allows any value, so no point in extending it
+            return Ok(());
+        }
+
+        let schema = value.serialize(Serializer {
+            generator: self.generator,
+            include_title: false,
+        })?;
+
+        if schema == true {
+            self.items = vec![schema];
+        } else if !self.items.contains(&schema) {
+            self.items.push(schema);
         }
 
         Ok(())
     }
 
-    fn end(self) -> Result<Self::Ok, Self::Error> {
-        let items = self.items.unwrap_or(true.into());
+    fn end(mut self) -> Result<Self::Ok, Self::Error> {
+        let items = match self.items.len() {
+            0 => true.into(),
+            1 => self.items.remove(0),
+            _ => json_schema!({
+                "anyOf": self.items
+            }),
+        };
 
         Ok(json_schema!({
             "type": "array",
