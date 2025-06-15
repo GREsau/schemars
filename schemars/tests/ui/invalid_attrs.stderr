@@ -52,12 +52,6 @@ error: unknown schemars attribute `foo`
 23 |     foo,
    |     ^^^
 
-error: unknown schemars attribute `with`
-  --> tests/ui/invalid_attrs.rs:29:5
-   |
-29 |     with = "String",
-   |     ^^^^
-
 error: unknown schemars attribute `serialize_with`
   --> tests/ui/invalid_attrs.rs:30:5
    |

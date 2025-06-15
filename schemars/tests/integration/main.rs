@@ -24,6 +24,7 @@ mod enums_untagged_variant;
 mod examples;
 mod extend;
 mod flatten;
+mod from_into;
 mod from_value;
 mod garde;
 #[cfg(feature = "indexmap2")]

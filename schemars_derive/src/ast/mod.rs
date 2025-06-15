@@ -58,7 +58,7 @@ impl<'a> Container<'a> {
     pub fn transparent_field(&'a self) -> Option<&'a Field<'a>> {
         if self.serde_attrs.transparent() {
             if let Data::Struct(_, fields) = &self.data {
-                return Some(&fields[0]);
+                return fields.iter().find(|f| f.serde_attrs.transparent());
             }
         }
 

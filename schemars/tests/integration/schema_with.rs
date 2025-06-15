@@ -1,4 +1,5 @@
 use crate::prelude::*;
+use schemars::generate::SchemaSettings;
 
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
 struct Struct<T: Default + Serialize> {
@@ -48,7 +49,7 @@ fn from_serialize_default<T: Default + Serialize>(
 }
 
 #[test]
-fn schema_with() {
+fn field_schema_with() {
     test!(Struct<String>)
         .assert_snapshot()
         .assert_allows_ser_roundtrip_default()
@@ -56,4 +57,57 @@ fn schema_with() {
             Value::is_array,
             "structs with `#derive(Deserialize)` can technically be deserialized from sequences, but that's not intended to be used via JSON, so schemars ignores it",
         ));
+}
+
+struct NotJsonSchema;
+
+#[derive(JsonSchema)]
+#[schemars(with = "Struct<String>")]
+struct Struct2 {
+    _x: NotJsonSchema,
+}
+
+#[test]
+fn container_with() {
+    test!(Struct2).assert_identical::<Struct<String>>();
+}
+
+#[derive(JsonSchema)]
+#[schemars(with = "Struct<String>", description = "Testing...")]
+struct Struct3 {
+    _x: NotJsonSchema,
+}
+
+#[test]
+fn container_with_metadata() {
+    test!(Struct3).assert_snapshot().custom(|schema, _| {
+        assert_eq!(schema.get("description"), Some(&"Testing...".into()));
+    });
+
+    assert_ne!(<Struct2>::schema_id(), <Struct3>::schema_id());
+}
+
+#[derive(JsonSchema)]
+#[schemars(schema_with = "int_as_str::json_schema")]
+struct IntAsString {
+    _x: NotJsonSchema,
+}
+
+#[test]
+fn container_schema_with() {
+    test!(IntAsString)
+        .assert_snapshot()
+        .custom(|schema, contract| {
+            let mut generator = SchemaSettings::default()
+                .with(|s| s.contract = contract)
+                .into_generator();
+            let expected = int_as_str::json_schema(&mut generator);
+
+            // `title` and `$schema` are added for root schemas - ignore for comparison purposes
+            let mut schema = schema.clone();
+            schema.remove("title");
+            schema.remove("$schema");
+
+            assert_eq!(schema, expected);
+        });
 }

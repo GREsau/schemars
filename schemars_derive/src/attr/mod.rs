@@ -46,6 +46,7 @@ pub struct ContainerAttrs {
     // because it depends on the type's generic params.
     pub rename_format_string: Option<LitStr>,
     pub inline: bool,
+    pub with: Option<WithAttr>,
 }
 
 #[derive(Default)]
@@ -324,6 +325,21 @@ impl ContainerAttrs {
                     self.inline = true;
                 }
             }
+
+            "with" if cx.attr_type == "schemars" => match self.with {
+                Some(WithAttr::Type(_)) => cx.duplicate_error(&meta),
+                Some(WithAttr::Function(_)) => cx.mutual_exclusive_error(&meta, "schema_with"),
+                None => self.with = parse_name_value_lit_str(meta, cx).ok().map(WithAttr::Type),
+            },
+            "schema_with" if cx.attr_type == "schemars" => match self.with {
+                Some(WithAttr::Function(_)) => cx.duplicate_error(&meta),
+                Some(WithAttr::Type(_)) => cx.mutual_exclusive_error(&meta, "with"),
+                None => {
+                    self.with = parse_name_value_lit_str(meta, cx)
+                        .ok()
+                        .map(WithAttr::Function)
+                }
+            },
 
             _ => return Some(meta),
         };

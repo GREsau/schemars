@@ -49,23 +49,64 @@ impl ToTokens for SchemaExpr {
 }
 
 pub fn expr_for_container(cont: &Container) -> SchemaExpr {
-    let mut schema_expr = match &cont.data {
-        Data::Struct(Style::Unit, _) => expr_for_unit_struct(),
-        Data::Struct(Style::Newtype, fields) => expr_for_newtype_struct(cont, &fields[0]),
-        Data::Struct(Style::Tuple, fields) => expr_for_tuple_struct(cont, fields),
-        Data::Struct(Style::Struct, fields) if cont.serde_attrs.transparent() => {
-            expr_for_newtype_struct(cont, &fields[0])
+    let type_from = cont
+        .serde_attrs
+        .type_from()
+        .or(cont.serde_attrs.type_try_from());
+    let type_into = cont.serde_attrs.type_into();
+
+    let mut schema_expr = if let Some(with) = &cont.attrs.with {
+        expr_for_container_with(cont, with)
+    } else if let Some(transparent_field) = cont.transparent_field() {
+        expr_for_newtype_struct(cont, transparent_field)
+    } else if let (Some(from), Some(into)) = (type_from, type_into) {
+        quote! {
+            if #GENERATOR.contract().is_deserialize() {
+                <#from as schemars::JsonSchema>::json_schema(#GENERATOR)
+            } else {
+                <#into as schemars::JsonSchema>::json_schema(#GENERATOR)
+            }
         }
-        Data::Struct(Style::Struct, fields) => expr_for_struct(
-            cont,
-            fields,
-            cont.serde_attrs.default(),
-            cont.serde_attrs.deny_unknown_fields(),
-        ),
-        Data::Enum(variants) => expr_for_enum(cont, variants, &cont.serde_attrs),
+        .into()
+    } else {
+        let schema_expr = match &cont.data {
+            Data::Struct(Style::Unit, _) => expr_for_unit_struct(),
+            Data::Struct(Style::Newtype, fields) => expr_for_newtype_struct(cont, &fields[0]),
+            Data::Struct(Style::Tuple, fields) => expr_for_tuple_struct(cont, fields),
+            Data::Struct(Style::Struct, fields) => expr_for_struct(
+                cont,
+                fields,
+                cont.serde_attrs.default(),
+                cont.serde_attrs.deny_unknown_fields(),
+            ),
+            Data::Enum(variants) => expr_for_enum(cont, variants, &cont.serde_attrs),
+        };
+
+        if let Some(from) = type_from {
+            quote! {
+                if #GENERATOR.contract().is_deserialize() {
+                    <#from as schemars::JsonSchema>::json_schema(#GENERATOR)
+                } else {
+                    #schema_expr
+                }
+            }
+            .into()
+        } else if let Some(into) = type_into {
+            quote! {
+                if #GENERATOR.contract().is_serialize() {
+                    <#into as schemars::JsonSchema>::json_schema(#GENERATOR)
+                } else {
+                    #schema_expr
+                }
+            }
+            .into()
+        } else {
+            schema_expr
+        }
     };
 
     cont.add_mutators(&mut schema_expr.mutators);
+
     schema_expr
 }
 
@@ -116,6 +157,18 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
     Ok(schema_expr)
 }
 
+fn expr_for_container_with(cont: &Container, with_attr: &WithAttr) -> SchemaExpr {
+    let (ty, type_def) = type_for_schema(cont, with_attr);
+
+    let mut schema_expr = SchemaExpr::from(quote! {
+        <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
+    });
+
+    schema_expr.definitions.extend(type_def);
+
+    schema_expr
+}
+
 fn expr_for_field(
     cont: &Container,
     field: &Field,
@@ -145,16 +198,16 @@ fn expr_for_field(
     schema_expr
 }
 
-pub fn type_for_field_schema(cont: &Container, field: &Field) -> (syn::Type, Option<TokenStream>) {
+fn type_for_field_schema(cont: &Container, field: &Field) -> (syn::Type, Option<TokenStream>) {
     match &field.attrs.with {
-        None => (field.ty.to_owned(), None),
+        None => (field.ty.clone(), None),
         Some(with_attr) => type_for_schema(cont, with_attr),
     }
 }
 
 fn type_for_schema(cont: &Container, with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
     match with_attr {
-        WithAttr::Type(ty) => (ty.to_owned(), None),
+        WithAttr::Type(ty) => (ty.clone(), None),
         WithAttr::Function(fun) => {
             let cont_name = &cont.ident;
             let fn_name = fun.segments.last().unwrap().ident.to_string();
