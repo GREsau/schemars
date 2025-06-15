@@ -52,11 +52,10 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
 
     let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
 
-    if let Some((ty, type_def)) = get_transparent_type(&cont) {
+    if let Some(ty) = get_transparent_type(&cont) {
         return Ok(quote! {
             const _: () = {
                 #crate_alias
-                #type_def
 
                 #[automatically_derived]
                 impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
@@ -172,20 +171,20 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
     })
 }
 
-fn get_transparent_type(cont: &Container) -> Option<(syn::Type, Option<TokenStream>)> {
+fn get_transparent_type<'a>(cont: &'a Container) -> Option<&'a syn::Type> {
     // If any schemars attributes for setting metadata (e.g. description) are present, then
     // it's not fully transparent, so use the normal `schema_exprs::expr_for_container`
     // implementation (which always treats the struct as a newtype if it has `transparent`)
 
-    if let Some(with) = &cont.attrs.with {
+    if let Some(attr::WithAttr::Type(ty)) = &cont.attrs.with {
         if cont.attrs.common.is_default() {
-            return Some(schema_exprs::type_for_schema(cont, with));
+            return Some(ty);
         }
     }
 
     if let Some(transparent_field) = cont.transparent_field() {
         if cont.attrs.common.is_default() && transparent_field.attrs.is_default() {
-            return Some(schema_exprs::type_for_field_schema(cont, transparent_field));
+            return Some(transparent_field.ty);
         }
     }
 

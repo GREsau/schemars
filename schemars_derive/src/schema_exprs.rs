@@ -57,6 +57,8 @@ pub fn expr_for_container(cont: &Container) -> SchemaExpr {
 
     let mut schema_expr = if let Some(with) = &cont.attrs.with {
         expr_for_container_with(cont, with)
+    } else if let Some(transparent_field) = cont.transparent_field() {
+        expr_for_newtype_struct(cont, transparent_field)
     } else if let (Some(from), Some(into)) = (type_from, type_into) {
         quote! {
             if #GENERATOR.contract().is_deserialize() {
@@ -68,10 +70,6 @@ pub fn expr_for_container(cont: &Container) -> SchemaExpr {
         .into()
     } else {
         let schema_expr = match &cont.data {
-            Data::Struct(_, fields) if cont.serde_attrs.transparent() => {
-                let field = fields.iter().find(|f| f.serde_attrs.transparent()).unwrap();
-                expr_for_newtype_struct(cont, field)
-            }
             Data::Struct(Style::Unit, _) => expr_for_unit_struct(),
             Data::Struct(Style::Newtype, fields) => expr_for_newtype_struct(cont, &fields[0]),
             Data::Struct(Style::Tuple, fields) => expr_for_tuple_struct(cont, fields),
@@ -163,7 +161,7 @@ fn expr_for_container_with(cont: &Container, with_attr: &WithAttr) -> SchemaExpr
     let (ty, type_def) = type_for_schema(cont, with_attr);
 
     let mut schema_expr = SchemaExpr::from(quote! {
-        #GENERATOR.subschema_for::<#ty>()
+        <#ty as schemars::JsonSchema>::json_schema(#GENERATOR)
     });
 
     schema_expr.definitions.extend(type_def);
@@ -200,16 +198,16 @@ fn expr_for_field(
     schema_expr
 }
 
-pub fn type_for_field_schema(cont: &Container, field: &Field) -> (syn::Type, Option<TokenStream>) {
+fn type_for_field_schema(cont: &Container, field: &Field) -> (syn::Type, Option<TokenStream>) {
     match &field.attrs.with {
-        None => (field.ty.to_owned(), None),
+        None => (field.ty.clone(), None),
         Some(with_attr) => type_for_schema(cont, with_attr),
     }
 }
 
-pub fn type_for_schema(cont: &Container, with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
+fn type_for_schema(cont: &Container, with_attr: &WithAttr) -> (syn::Type, Option<TokenStream>) {
     match with_attr {
-        WithAttr::Type(ty) => (ty.to_owned(), None),
+        WithAttr::Type(ty) => (ty.clone(), None),
         WithAttr::Function(fun) => {
             let cont_name = &cont.ident;
             let fn_name = fun.segments.last().unwrap().ident.to_string();
