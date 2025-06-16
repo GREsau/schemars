@@ -30,6 +30,22 @@
     "naive_time": {
       "type": "string",
       "format": "partial-time"
+    },
+    "time_delta": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "type": "integer",
+          "format": "int64"
+        },
+        {
+          "type": "integer",
+          "minimum": 0,
+          "exclusiveMaximum": 1000000000
+        }
+      ],
+      "minItems": 2,
+      "maxItems": 2
     }
   },
   "required": [
@@ -37,6 +53,7 @@
     "date_time",
     "naive_date",
     "naive_date_time",
-    "naive_time"
+    "naive_time",
+    "time_delta"
   ]
 }
