@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.0.0-rc.1] - 2025-06-16
+
+### Added
+
+- Impl `JsonSchema` for `chrono::TimeDelta` (https://github.com/GREsau/schemars/issues/357)
+- Support `with`/`into`/`from`/`try_from` container attributes (https://github.com/GREsau/schemars/issues/210 / https://github.com/GREsau/schemars/issues/267)
+
+### Changed
+
+- Use `oneOf` when generating schema for serialized mixed-type sequences (https://github.com/GREsau/schemars/issues/348) - the previous behaviour was to always use `true` schema (i.e. any value) for mixed-type sequences
+
 ## [1.0.0-alpha.22] - 2025-06-12
 
 ### Added
