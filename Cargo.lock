@@ -159,6 +159,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bytesize"
+version = "2.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a3c8f83209414aacf0eeae3cf730b18d6981697fba62f200fcfb92b9f082acba"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "castaway"
 version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -978,6 +987,7 @@ dependencies = [
  "arrayvec",
  "bigdecimal",
  "bytes",
+ "bytesize",
  "chrono",
  "dyn-clone",
  "either",
