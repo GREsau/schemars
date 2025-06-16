@@ -150,11 +150,32 @@ Serde docs: [field](https://serde.rs/field-attrs.html#flatten)
 
 </h3>
 
-Set on a variant or field to generate its schema as the given type instead of its actual type. Serde allows the `with` attribute to refer to any module path, but Schemars requires this to be an actual type which implements `JsonSchema`.
+Set on a container, variant or field to generate its schema as the given type instead of its actual type. Serde allows the `with` attribute to refer to any module path, but Schemars requires this to be an actual type which implements `JsonSchema`.
+
+Serde does not allow this attribute to be set on containers, but this is allowed in `#[schemars(...)]` attributes.
 
 If the given type has any required generic type parameters, then they must all be explicitly specified in this attribute. Serde frequently allows you to omit them as it can make use of type inference, but unfortunately this is not possible with Schemars. For example, `with = "Vec::<i32>"` will work, but `with = "Vec"` and `with = "Vec::<_>"` will not.
 
-Serde docs: [variant](https://serde.rs/variant-attrs.html#with) / [field](https://serde.rs/field-attrs.html#with)
+Serde docs: [from](https://serde.rs/container-attrs.html#from) / [try_from](https://serde.rs/container-attrs.html#try_from)
+
+<h3 id="from">
+
+`#[serde(from = "Type")]` / `#[schemars(from = "Type")]`<br />
+`#[serde(try_from = "Type")]` / `#[schemars(try_from = "Type")]`
+
+</h3>
+
+Set on a container to generate its [**deserialize** schema](https://graham.cool/schemars/generating/#serialize-vs-deserialize-contract) as the given type instead of its actual type. Schemars treats the `from`/`try_from` attributes identically.
+
+Serde docs: [into](https://serde.rs/container-attrs.html#into)
+
+<h3 id="into">
+
+`#[serde(into = "Type")]` / `#[schemars(into = "Type")]`
+
+</h3>
+
+Set on a container to generate its [**serialize** schema](https://graham.cool/schemars/generating/#serialize-vs-deserialize-contract) as the given type instead of its actual type. Schemars treats the `from`/`try_from` attributes identically.
 
 <h3 id="deny_unknown_fields">
 
