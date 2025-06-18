@@ -351,15 +351,15 @@ impl SchemaGenerator {
 
             let reference = format!("#{}/{}", self.definitions_path_stripped(), name);
             if !self.definitions.contains_key(name.as_ref()) {
-                self.insert_new_subschema_for::<T>(name, uid);
+                self.insert_new_subschema_for::<T>(name, &uid);
             }
             Schema::new_ref(reference)
         } else {
-            self.json_schema_internal::<T>(uid)
+            self.json_schema_internal::<T>(&uid)
         }
     }
 
-    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: CowStr, uid: SchemaUid) {
+    fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: CowStr, uid: &SchemaUid) {
         // TODO: If we've already added a schema for T with the "opposite" contract, then check
         // whether the new schema is identical. If so, re-use the original for both contracts.
 
@@ -425,7 +425,7 @@ impl SchemaGenerator {
         let schema_uid = self.schema_uid::<T>();
         self.root_schema_id_stack.push(schema_uid.clone());
 
-        let mut schema = self.json_schema_internal::<T>(schema_uid);
+        let mut schema = self.json_schema_internal::<T>(&schema_uid);
 
         let object = schema.ensure_object();
 
@@ -454,7 +454,7 @@ impl SchemaGenerator {
         let schema_uid = self.schema_uid::<T>();
         self.root_schema_id_stack.push(schema_uid.clone());
 
-        let mut schema = self.json_schema_internal::<T>(schema_uid);
+        let mut schema = self.json_schema_internal::<T>(&schema_uid);
 
         let object = schema.ensure_object();
 
@@ -546,34 +546,16 @@ impl SchemaGenerator {
         &self.settings.contract
     }
 
-    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, uid: SchemaUid) -> Schema {
-        struct PendingSchemaState<'a> {
-            generator: &'a mut SchemaGenerator,
-            uid: SchemaUid,
-            did_add: bool,
+    fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, uid: &SchemaUid) -> Schema {
+        let did_add = self.pending_schema_ids.insert(uid.clone());
+
+        let schema = T::json_schema(self);
+
+        if did_add {
+            self.pending_schema_ids.remove(uid);
         }
 
-        impl<'a> PendingSchemaState<'a> {
-            fn new(generator: &'a mut SchemaGenerator, uid: SchemaUid) -> Self {
-                let did_add = generator.pending_schema_ids.insert(uid.clone());
-                Self {
-                    generator,
-                    uid,
-                    did_add,
-                }
-            }
-        }
-
-        impl Drop for PendingSchemaState<'_> {
-            fn drop(&mut self) {
-                if self.did_add {
-                    self.generator.pending_schema_ids.remove(&self.uid);
-                }
-            }
-        }
-
-        let pss = PendingSchemaState::new(self, uid);
-        T::json_schema(pss.generator)
+        schema
     }
 
     fn add_definitions(
