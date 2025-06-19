@@ -55,17 +55,6 @@ mod _alloc_prelude {
     pub use alloc::vec::Vec;
 }
 
-#[deprecated = "Only included for backward-compatibility - use the `schemars::generate` module instead."]
-#[doc(hidden)]
-pub mod r#gen {
-    #[deprecated = "Only included for backward-compatibility - use `schemars::SchemaGenerator` or `schemars::generate::SchemaGenerator` instead."]
-    pub type SchemaGenerator = crate::generate::SchemaGenerator;
-    #[deprecated = "Only included for backward-compatibility - use `schemars::generate::SchemaSettings` instead."]
-    pub type SchemaSettings = crate::generate::SchemaSettings;
-    #[deprecated = "Only included for backward-compatibility - use `schemars::generate::GenTransform` instead."]
-    pub use crate::generate::GenTransform;
-}
-
 /// A type which can be described as a JSON Schema document.
 ///
 /// This is implemented for many Rust primitive and standard library types.
@@ -148,14 +137,6 @@ pub mod r#gen {
 /// assert_eq!(<GenericType<i32>>::schema_id(), <&mut GenericType<&i32>>::schema_id());
 /// ```
 pub trait JsonSchema {
-    /// Only included for backward-compatibility - use `inline_schema()` instead".
-    ///
-    /// This will be removed before schemars 1.0 becomes stable.
-    #[deprecated = "Use `inline_schema()` instead"]
-    fn always_inline_schema() -> bool {
-        false
-    }
-
     /// Whether JSON Schemas generated for this type should be included directly in parent schemas,
     /// rather than being re-used where possible using the `$ref` keyword.
     ///
@@ -165,8 +146,7 @@ pub trait JsonSchema {
     ///
     /// By default, this returns `false`.
     fn inline_schema() -> bool {
-        #[allow(deprecated)]
-        Self::always_inline_schema()
+        false
     }
 
     /// The name of the generated JSON Schema.
