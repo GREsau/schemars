@@ -278,7 +278,7 @@ impl SchemaGenerator {
     /// let generator = SchemaGenerator::default();
     /// let settings = generator.settings();
     ///
-    /// assert_eq!(settings.option_add_null_type, true);
+    /// assert_eq!(settings.inline_subschemas, false);
     /// ```
     pub fn settings(&self) -> &SchemaSettings {
         &self.settings
