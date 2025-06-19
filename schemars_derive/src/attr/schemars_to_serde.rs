@@ -1,7 +1,7 @@
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
-use std::collections::hash_map::Entry;
-use std::collections::{HashMap, HashSet};
+use std::collections::btree_map::Entry;
+use std::collections::{BTreeMap, BTreeSet};
 use syn::parse::Parser;
 use syn::{Attribute, Data, Field, Variant};
 
@@ -79,9 +79,9 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
     *attrs = other_attrs;
 
     let mut effective_serde_meta = Vec::new();
-    let mut unset_meta = HashMap::new();
-    let mut serde_meta_names = HashSet::new();
-    let mut schemars_meta_names = HashSet::new();
+    let mut unset_meta = BTreeMap::new();
+    let mut serde_meta_names = BTreeSet::new();
+    let mut schemars_meta_names = BTreeSet::new();
 
     // Copy appropriate #[schemars(...)] attributes to #[serde(...)] attributes
     for meta in get_meta_items(attrs, "schemars", ctxt) {
