@@ -50,6 +50,7 @@ mod std_types;
 mod structs;
 mod transform;
 mod transparent;
+mod unset;
 #[cfg(feature = "url2")]
 mod url;
 #[cfg(feature = "uuid1")]
