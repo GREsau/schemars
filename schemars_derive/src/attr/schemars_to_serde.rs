@@ -54,7 +54,7 @@ pub fn process_serde_attrs(input: &mut syn::DeriveInput) -> syn::Result<()> {
         Data::Struct(s) => process_serde_field_attrs(&ctxt, s.fields.iter_mut()),
         Data::Enum(e) => process_serde_variant_attrs(&ctxt, e.variants.iter_mut()),
         Data::Union(u) => process_serde_field_attrs(&ctxt, u.fields.named.iter_mut()),
-    };
+    }
 
     ctxt.check()
 }
@@ -143,8 +143,7 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
             ctxt.error_spanned_by(
                 meta,
                 format_args!(
-                    "useless `!{0}` - no serde attribute containing `{0}` is present",
-                    keyword
+                    "useless `!{keyword}` - no serde attribute containing `{keyword}` is present"
                 ),
             );
         }
@@ -172,7 +171,7 @@ fn to_tokens(attrs: &[Attribute]) -> impl ToTokens {
 }
 
 fn get_meta_ident(meta: &CustomMeta) -> Option<String> {
-    meta.path().get_ident().map(|i| i.to_string())
+    meta.path().get_ident().map(std::string::ToString::to_string)
 }
 
 #[cfg(test)]
@@ -218,8 +217,8 @@ mod tests {
         };
 
         if let Err(e) = process_serde_attrs(&mut input) {
-            panic!("process_serde_attrs returned error: {}", e)
-        };
+            panic!("process_serde_attrs returned error: {e}")
+        }
 
         assert_eq!(input, expected);
     }

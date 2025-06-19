@@ -52,7 +52,7 @@ impl<'a> Container<'a> {
             .map(|serde| Self::from_serde(&ctxt, serde));
 
         ctxt.check()
-            .map(|_| result.expect("from_ast set no errors on Ctxt, so should have returned Ok"))
+            .map(|()| result.expect("from_ast set no errors on Ctxt, so should have returned Ok"))
     }
 
     pub fn transparent_field(&'a self) -> Option<&'a Field<'a>> {
@@ -148,7 +148,7 @@ impl quote::ToTokens for Name<'_> {
                     #de_name
                 }
             }
-            .to_tokens(tokens)
+            .to_tokens(tokens);
         }
     }
 }

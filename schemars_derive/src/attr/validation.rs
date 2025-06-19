@@ -96,8 +96,8 @@ impl ValidationAttrs {
             let f = format.schema_str();
             mutators.push(quote! {
                     (#mut_ref_schema).insert("format".into(), #f.into());
-            })
-        };
+            });
+        }
 
         if let Some(inner) = &self.inner {
             let mut inner_mutators = Vec::new();
@@ -106,7 +106,7 @@ impl ValidationAttrs {
             if !inner_mutators.is_empty() {
                 mutators.push(quote! {
                     schemars::_private::apply_inner_validation(#mut_ref_schema, |inner_schema| { #(#inner_mutators)* });
-                })
+                });
             }
         }
     }
@@ -155,24 +155,24 @@ impl ValidationAttrs {
         cx: &AttrCtxt,
     ) -> Result<(), CustomMeta> {
         if let Some(format) = Format::from_attr_str(meta_name) {
-            self.handle_format(meta, format, cx);
+            self.handle_format(&meta, format, cx);
             return Ok(());
         }
         match meta_name {
             "length" => match self.length {
                 Some(_) => cx.duplicate_error(&meta),
-                None => self.length = parse_length_or_range(meta, cx).ok(),
+                None => self.length = parse_length_or_range(&meta, cx).ok(),
             },
 
             "range" => match self.range {
                 Some(_) => cx.duplicate_error(&meta),
-                None => self.range = parse_length_or_range(meta, cx).ok(),
+                None => self.range = parse_length_or_range(&meta, cx).ok(),
             },
 
             "required" => {
                 if self.required {
                     cx.duplicate_error(&meta);
-                } else if require_path_only(meta, cx).is_ok() {
+                } else if require_path_only(&meta, cx).is_ok() {
                     self.required = true;
                 }
             }
@@ -182,7 +182,7 @@ impl ValidationAttrs {
                     (Some(_p), _, _) => cx.duplicate_error(&meta),
                     (_, Some(_r), _) => cx.mutual_exclusive_error(&meta, "regex"),
                     (_, _, Some(_c)) => cx.mutual_exclusive_error(&meta, "contains"),
-                    (None, None, None) => self.pattern = parse_pattern(meta, cx).ok(),
+                    (None, None, None) => self.pattern = parse_pattern(&meta, cx).ok(),
                 }
             }
             "regex" if cx.attr_type != "garde" => {
@@ -192,9 +192,9 @@ impl ValidationAttrs {
                     (_, _, Some(_c)) => cx.mutual_exclusive_error(&meta, "contains"),
                     (None, None, None) => {
                         if cx.attr_type == "validate" {
-                            self.regex = parse_validate_regex(meta, cx).ok()
+                            self.regex = parse_validate_regex(&meta, cx).ok();
                         } else {
-                            self.regex = parse_schemars_regex(meta, cx).ok()
+                            self.regex = parse_schemars_regex(&meta, cx).ok();
                         }
                     }
                 }
@@ -207,7 +207,7 @@ impl ValidationAttrs {
             },
 
             "inner" if cx.attr_type != "validate" => {
-                if let Ok(nested_meta) = parse_nested_meta(meta, cx) {
+                if let Ok(nested_meta) = parse_nested_meta(&meta, cx) {
                     let inner = self
                         .inner
                         .get_or_insert_with(|| Box::new(ValidationAttrs::default()));
@@ -222,10 +222,10 @@ impl ValidationAttrs {
         Ok(())
     }
 
-    fn handle_format(&mut self, meta: CustomMeta, format: Format, cx: &AttrCtxt) {
+    fn handle_format(&mut self, meta: &CustomMeta, format: Format, cx: &AttrCtxt) {
         match self.format {
-            Some(current) if current == format => cx.duplicate_error(&meta),
-            Some(current) => cx.mutual_exclusive_error(&meta, current.attr_str()),
+            Some(current) if current == format => cx.duplicate_error(meta),
+            Some(current) => cx.mutual_exclusive_error(meta, current.attr_str()),
             None => {
                 // Allow a MetaList in validator attr (e.g. with message/code items),
                 // but restrict it to path only in schemars attr.

@@ -61,7 +61,7 @@ pub fn get_rename_format_type_params<'a>(
                         format_args!(
                             "invalid name format string: expected generic param, found `{param}`"
                         ),
-                    )
+                    );
                 }
             }
             None => {

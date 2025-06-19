@@ -133,7 +133,7 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
         )),
     }) {
         return Err(non_unit_error);
-    };
+    }
 
     let enum_ident = &cont.ident;
     let variant_idents = variants.iter().map(|v| &v.ident);
@@ -678,7 +678,7 @@ fn expr_for_struct(
                     schema_expr.mutators.push(quote! {
                         #default.and_then(|d| schemars::_schemars_maybe_to_value!(d))
                             .map(|d| #SCHEMA.insert("default".to_owned(), d));
-                    })
+                    });
                 }
 
                 // embed `#type_def` outside of `#schema_expr`, because it's used as a type param
@@ -725,21 +725,18 @@ fn field_default_expr(field: &Field, container_has_default: bool) -> Option<Toke
         SerdeDefault::Path(path) => quote!(#path()),
     };
 
-    let default_expr = match field.serde_attrs.skip_serializing_if() {
-        Some(skip_if) => {
-            quote! {
-                {
-                    let default = #default_expr;
-                    if #skip_if(&default) {
-                        None
-                    } else {
-                        Some(default)
-                    }
+    let default_expr = if let Some(skip_if) = field.serde_attrs.skip_serializing_if() {
+        quote! {
+            {
+                let default = #default_expr;
+                if #skip_if(&default) {
+                    None
+                } else {
+                    Some(default)
                 }
             }
         }
-        None => quote!(Some(#default_expr)),
-    };
+    } else { quote!(Some(#default_expr)) };
 
     Some(if let Some(ser_with) = field.serde_attrs.serialize_with() {
         quote! {

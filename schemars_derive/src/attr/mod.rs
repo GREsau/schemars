@@ -119,7 +119,7 @@ impl CommonAttrs {
             }
 
             "extend" => {
-                for ex in parse_extensions(meta, cx).into_iter().flatten() {
+                for ex in parse_extensions(&meta, cx).into_iter().flatten() {
                     // This is O(n^2) but should be fine with the typically small number of
                     // extensions. If this does become a problem, it can be changed to use
                     // IndexMap, or a separate Map with cloned keys.
@@ -148,7 +148,7 @@ impl CommonAttrs {
                                     "Expected a `fn(&mut Schema)` or other value implementing `schemars::transform::Transform`, found `&str`.\nDid you mean `#[schemars(transform = {})]`?",
                                     lit_str.value()
                                 ),
-                            )
+                            );
                         }
                     } else {
                         self.transforms.push(expr);
@@ -272,7 +272,7 @@ impl FieldAttrs {
                 None => {
                     self.with = parse_name_value_lit_str(meta, cx)
                         .ok()
-                        .map(WithAttr::Function)
+                        .map(WithAttr::Function);
                 }
             },
 
@@ -338,7 +338,7 @@ impl ContainerAttrs {
             "inline" => {
                 if self.inline {
                     cx.duplicate_error(&meta);
-                } else if require_path_only(meta, cx).is_ok() {
+                } else if require_path_only(&meta, cx).is_ok() {
                     self.inline = true;
                 }
             }
@@ -354,12 +354,12 @@ impl ContainerAttrs {
                 None => {
                     self.with = parse_name_value_lit_str(meta, cx)
                         .ok()
-                        .map(WithAttr::Function)
+                        .map(WithAttr::Function);
                 }
             },
 
             _ => return Err(meta),
-        };
+        }
 
         Ok(())
     }
@@ -403,7 +403,7 @@ impl VariantAttrs {
                 None => {
                     self.with = parse_name_value_lit_str(meta, cx)
                         .ok()
-                        .map(WithAttr::Function)
+                        .map(WithAttr::Function);
                 }
             },
 
@@ -432,7 +432,7 @@ fn get_meta_items(attrs: &[Attribute], attr_type: &'static str, cx: &Ctxt) -> Ve
             Ok(list) => result.extend(list),
             Err(err) => {
                 if attr_type == "schemars" {
-                    cx.syn_error(err)
+                    cx.syn_error(err);
                 }
             }
         }
@@ -442,9 +442,10 @@ fn get_meta_items(attrs: &[Attribute], attr_type: &'static str, cx: &Ctxt) -> Ve
 }
 
 fn path_str(path: &Path) -> String {
-    path.get_ident()
-        .map(Ident::to_string)
-        .unwrap_or_else(|| path.into_token_stream().to_string().replace(' ', ""))
+    path.get_ident().map_or_else(
+        || path.into_token_stream().to_string().replace(' ', ""),
+        Ident::to_string,
+    )
 }
 
 pub struct AttrCtxt<'a> {
@@ -534,6 +535,5 @@ fn is_schemars_serde_keyword(meta: &CustomMeta) -> bool {
     let known_keywords = schemars_to_serde::SCHEMARS_KEYWORDS_PARSED_BY_SERDE;
     meta.path()
         .get_ident()
-        .map(|i| known_keywords.contains(&i.to_string().as_str()))
-        .unwrap_or(false)
+        .is_some_and(|i| known_keywords.contains(&i.to_string().as_str()))
 }

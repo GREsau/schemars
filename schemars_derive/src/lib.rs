@@ -1,6 +1,11 @@
 #![forbid(unsafe_code)]
-// TODO make clippy pedantic
-#![allow(clippy::result_large_err)]
+#![deny(unused_imports, clippy::cargo, clippy::pedantic)]
+#![allow(
+    clippy::result_large_err,
+    clippy::wildcard_imports,
+    clippy::from_iter_instead_of_collect,
+    clippy::too_many_lines
+)]
 
 #[macro_use]
 extern crate quote;

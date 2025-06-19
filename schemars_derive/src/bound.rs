@@ -103,6 +103,7 @@ struct FindTyParams<'ast> {
     relevant_type_params: BTreeSet<&'ast Ident>,
 }
 
+#[allow(clippy::match_same_arms)]
 impl FindTyParams<'_> {
     fn visit_field(&mut self, field: &Field) {
         match &field.attrs.with {
@@ -183,7 +184,7 @@ impl FindTyParams<'_> {
     }
 
     fn visit_path_segment(&mut self, segment: &syn::PathSegment) {
-        self.visit_path_arguments(&segment.arguments)
+        self.visit_path_arguments(&segment.arguments);
     }
 
     fn visit_path_arguments(&mut self, arguments: &syn::PathArguments) {
@@ -234,6 +235,7 @@ impl FindTyParams<'_> {
     //         mac: T!(),
     //         marker: PhantomData<T>,
     //     }
+    #[allow(clippy::unused_self)]
     fn visit_macro(&mut self, _mac: &syn::Macro) {}
 }
 
