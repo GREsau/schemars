@@ -4,6 +4,18 @@ You can add attributes to your types to customize Schemars's derived `JsonSchema
 
 [Serde](https://serde.rs/) allows setting `#[serde(...)]` attributes which change how types are serialized, and Schemars will generally respect these attributes to ensure that generated schemas will match how the type is serialized by serde_json. `#[serde(...)]` attributes can be overriden using `#[schemars(...)]` attributes, which behave identically (e.g. `#[schemars(rename_all = "camelCase")]`). You may find this useful if you want to change the generated schema without affecting Serde's behaviour, or if you're just not using Serde.
 
+You can also "unset" serde attributes by including them with a `!` prefix in a schemars attribute, which will make schemars ignore the corresponding serde attribute item:
+
+```rust
+#[derive(Deserialize, Serialize, JsonSchema)]
+#[serde(from = "OtherType")]
+// this makes schemars ignore the `from = "OtherType"` from the serde attribute:
+#[schemars(!from)]
+pub struct MyStruct {
+    // ...
+}
+```
+
 [Validator](https://github.com/Keats/validator) and [Garde](https://github.com/jprochazk/garde) allow setting `#[validate(...)]`/`#[garde(...)]` attributes to restrict valid values of particular fields, many of which will be used by Schemars to generate more accurate schemas. These can also be overridden by `#[schemars(...)]` attributes.
 
 <details open>
