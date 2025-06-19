@@ -2,7 +2,7 @@ use quote::ToTokens;
 use syn::{parse::Parse, Meta, MetaList, MetaNameValue, Path};
 
 // An extended copy of `syn::Meta` with an additional `Not` variant
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub enum CustomMeta {
     Path(Path),
     List(MetaList),
