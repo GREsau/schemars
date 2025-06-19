@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0-rc.2] - 2025-06-19
+
+### Added
+
+- Serde attributes that you want schemars to ignore can now be "unset" by including them in a schemars attribute with a ! prefix, e.g. `#[schemars(!from)]` (https://github.com/GREsau/schemars/issues/433 / https://github.com/GREsau/schemars/pull/434)
+
+### Removed
+
+- ⚠️ Deprecated items have been removed:
+  - `SchemaSettings::option_nullable` and `SchemaSettings::option_add_null_type` fields
+  - `gen` module
+
 ## [1.0.0-rc.1] - 2025-06-16
 
 ### Added
