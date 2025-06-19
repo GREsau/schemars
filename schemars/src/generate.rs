@@ -28,16 +28,6 @@ type CowStr = alloc::borrow::Cow<'static, str>;
 #[non_exhaustive]
 #[allow(clippy::struct_excessive_bools)]
 pub struct SchemaSettings {
-    /// This option is now ignored and will be removed before schemars 1.0 becomes stable.
-    ///
-    /// If you need the `nullable` keyword to be added to schemas for [`Option<T>`], you should use the [`AddNullable`] transform.
-    #[deprecated = "This option is now ignored. If you need the `nullable` keyword to be added to schemas for `Option<T>`, you should use the `AddNullable` transform."]
-    pub option_nullable: bool,
-    /// This option is now ignored and will be removed before schemars 1.0 becomes stable.
-    ///
-    /// The null type is now always added to schema for [`Option<T>`], but may be removed if using the [`AddNullable`] transform.
-    #[deprecated = "This option is now ignored."]
-    pub option_add_null_type: bool,
     /// A JSON pointer to the expected location of referenceable subschemas within the resulting
     /// root schema.
     ///
@@ -85,10 +75,7 @@ impl Default for SchemaSettings {
 impl SchemaSettings {
     /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links#draft-7).
     pub fn draft07() -> SchemaSettings {
-        #[allow(deprecated)]
         SchemaSettings {
-            option_nullable: false,
-            option_add_null_type: true,
             definitions_path: "/definitions".into(),
             meta_schema: Some(meta_schemas::DRAFT07.into()),
             transforms: vec![
@@ -104,10 +91,7 @@ impl SchemaSettings {
 
     /// Creates `SchemaSettings` that conform to [JSON Schema 2019-09](https://json-schema.org/specification-links#draft-2019-09-(formerly-known-as-draft-8)).
     pub fn draft2019_09() -> SchemaSettings {
-        #[allow(deprecated)]
         SchemaSettings {
-            option_nullable: false,
-            option_add_null_type: true,
             definitions_path: "/$defs".into(),
             meta_schema: Some(meta_schemas::DRAFT2019_09.into()),
             transforms: vec![Box::new(ReplacePrefixItems)],
@@ -119,10 +103,7 @@ impl SchemaSettings {
 
     /// Creates `SchemaSettings` that conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12).
     pub fn draft2020_12() -> SchemaSettings {
-        #[allow(deprecated)]
         SchemaSettings {
-            option_nullable: false,
-            option_add_null_type: true,
             definitions_path: "/$defs".into(),
             meta_schema: Some(meta_schemas::DRAFT2020_12.into()),
             transforms: Vec::new(),
@@ -134,10 +115,7 @@ impl SchemaSettings {
 
     /// Creates `SchemaSettings` that conform to [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.4.md#schema).
     pub fn openapi3() -> SchemaSettings {
-        #[allow(deprecated)]
         SchemaSettings {
-            option_nullable: true,
-            option_add_null_type: false,
             definitions_path: "/components/schemas".into(),
             meta_schema: Some(meta_schemas::OPENAPI3.into()),
             transforms: vec![
@@ -300,7 +278,7 @@ impl SchemaGenerator {
     /// let generator = SchemaGenerator::default();
     /// let settings = generator.settings();
     ///
-    /// assert_eq!(settings.option_add_null_type, true);
+    /// assert_eq!(settings.inline_subschemas, false);
     /// ```
     pub fn settings(&self) -> &SchemaSettings {
         &self.settings
@@ -655,22 +633,22 @@ fn json_pointer_mut<'a>(
 pub trait GenTransform: Transform + DynClone + Any + Send {
     #[deprecated = "Only to support pre-1.86 rustc"]
     #[doc(hidden)]
-    fn as_any(&self) -> &dyn Any;
+    fn _as_any(&self) -> &dyn Any;
 
     #[deprecated = "Only to support pre-1.86 rustc"]
     #[doc(hidden)]
-    fn as_any_mut(&mut self) -> &mut dyn Any;
+    fn _as_any_mut(&mut self) -> &mut dyn Any;
 
     #[deprecated = "Only to support pre-1.86 rustc"]
     #[doc(hidden)]
-    fn into_any(self: Box<Self>) -> Box<dyn Any>;
+    fn _into_any(self: Box<Self>) -> Box<dyn Any>;
 }
 
-#[allow(deprecated)]
+#[allow(deprecated, clippy::used_underscore_items)]
 impl dyn GenTransform {
     /// Returns `true` if the inner transform is of type `T`.
     pub fn is<T: Transform + Clone + Any + Send>(&self) -> bool {
-        self.as_any().is::<T>()
+        self._as_any().is::<T>()
     }
 
     /// Returns some reference to the inner transform if it is of type `T`, or
@@ -690,7 +668,7 @@ impl dyn GenTransform {
     /// assert_eq!(settings.transforms.len(), original_len - 1);
     /// ```
     pub fn downcast_ref<T: Transform + Clone + Any + Send>(&self) -> Option<&T> {
-        self.as_any().downcast_ref::<T>()
+        self._as_any().downcast_ref::<T>()
     }
 
     /// Returns some mutable reference to the inner transform if it is of type `T`, or
@@ -710,7 +688,7 @@ impl dyn GenTransform {
     /// }
     /// ```
     pub fn downcast_mut<T: Transform + Clone + Any + Send>(&mut self) -> Option<&mut T> {
-        self.as_any_mut().downcast_mut::<T>()
+        self._as_any_mut().downcast_mut::<T>()
     }
 
     /// Attempts to downcast the box to a concrete type.
@@ -722,7 +700,7 @@ impl dyn GenTransform {
         self: Box<Self>,
     ) -> Result<Box<T>, Box<Self>> {
         if self.is::<T>() {
-            Ok(self.into_any().downcast().unwrap())
+            Ok(self._into_any().downcast().unwrap())
         } else {
             Err(self)
         }
@@ -735,15 +713,15 @@ impl<T> GenTransform for T
 where
     T: Transform + Clone + Any + Send,
 {
-    fn as_any(&self) -> &dyn Any {
+    fn _as_any(&self) -> &dyn Any {
         self
     }
 
-    fn as_any_mut(&mut self) -> &mut dyn Any {
+    fn _as_any_mut(&mut self) -> &mut dyn Any {
         self
     }
 
-    fn into_any(self: Box<Self>) -> Box<dyn Any> {
+    fn _into_any(self: Box<Self>) -> Box<dyn Any> {
         self
     }
 }
