@@ -1,6 +1,7 @@
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
-use std::collections::HashSet;
+use std::collections::hash_map::Entry;
+use std::collections::{HashMap, HashSet};
 use syn::parse::Parser;
 use syn::{Attribute, Data, Field, Variant};
 
@@ -77,7 +78,9 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         attrs.drain(..).partition(|at| at.path().is_ident("serde"));
     *attrs = other_attrs;
 
-    let mut serde_meta = Vec::new();
+    let mut effective_serde_meta = Vec::new();
+    let mut unset_meta = HashMap::new();
+    let mut serde_meta_names = HashSet::new();
     let mut schemars_meta_names = HashSet::new();
 
     // Copy appropriate #[schemars(...)] attributes to #[serde(...)] attributes
@@ -86,12 +89,30 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
             continue;
         };
 
-        if SCHEMARS_KEYWORDS_PARSED_BY_SERDE.contains(&keyword.as_ref()) {
-            schemars_meta_names.insert(keyword);
-
-            if !matches!(meta, CustomMeta::Not(..)) {
-                serde_meta.push(meta);
+        if matches!(meta, CustomMeta::Not(..)) {
+            match unset_meta.entry(keyword) {
+                Entry::Occupied(o) => {
+                    ctxt.error_spanned_by(
+                        meta,
+                        format_args!("duplicate schemars attribute item `!{}`", o.key()),
+                    );
+                }
+                Entry::Vacant(v) => {
+                    v.insert(meta);
+                }
             }
+        } else if SCHEMARS_KEYWORDS_PARSED_BY_SERDE.contains(&keyword.as_ref()) {
+            schemars_meta_names.insert(keyword);
+            effective_serde_meta.push(meta);
+        }
+    }
+
+    for (keyword, meta) in &unset_meta {
+        if schemars_meta_names.contains(keyword) {
+            ctxt.error_spanned_by(
+                meta,
+                format_args!("schemars attribute cannot contain both `{keyword}` and `!{keyword}`"),
+            );
         }
     }
 
@@ -102,19 +123,36 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
 
     // Re-add #[serde(...)] attributes that weren't overridden by #[schemars(...)] attributes
     for meta in get_meta_items(&serde_attrs, "serde", ctxt) {
-        if let Some(i) = get_meta_ident(&meta) {
-            if !schemars_meta_names.contains(&i)
-                && SERDE_KEYWORDS.contains(&i.as_ref())
-                && i != "bound"
-            {
-                serde_meta.push(meta);
-            }
+        let Some(keyword) = get_meta_ident(&meta) else {
+            continue;
+        };
+
+        if !schemars_meta_names.contains(&keyword)
+            && !unset_meta.contains_key(&keyword)
+            && SERDE_KEYWORDS.contains(&keyword.as_ref())
+            && keyword != "bound"
+        {
+            effective_serde_meta.push(meta);
+        }
+
+        serde_meta_names.insert(keyword);
+    }
+
+    for (keyword, meta) in &unset_meta {
+        if !serde_meta_names.contains(keyword) {
+            ctxt.error_spanned_by(
+                meta,
+                format_args!(
+                    "useless `!{0}` - no serde attribute containing `{0}` is present",
+                    keyword
+                ),
+            );
         }
     }
 
-    if !serde_meta.is_empty() {
+    if !effective_serde_meta.is_empty() {
         let new_serde_attr = quote! {
-            #[serde(#(#serde_meta),*)]
+            #[serde(#(#effective_serde_meta),*)]
         };
 
         let parser = Attribute::parse_outer;
