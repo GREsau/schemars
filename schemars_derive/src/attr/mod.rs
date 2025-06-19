@@ -1,3 +1,4 @@
+mod custom_meta;
 mod doc;
 mod parse_meta;
 mod schemars_to_serde;
@@ -12,11 +13,12 @@ use quote::ToTokens;
 use serde_derive_internals::Ctxt;
 use syn::punctuated::Punctuated;
 use syn::spanned::Spanned;
-use syn::{Attribute, Expr, ExprLit, Ident, Lit, LitStr, Meta, Path, Type};
+use syn::{Attribute, Expr, ExprLit, Ident, Lit, LitStr, Path, Type};
 use validation::ValidationAttrs;
 
 use crate::idents::SCHEMA;
 
+pub use custom_meta::*;
 pub use schemars_to_serde::process_serde_attrs;
 
 #[derive(Default)]
@@ -78,7 +80,12 @@ impl CommonAttrs {
         cx.parse_meta(|m, n, c| self.process_meta(m, n, c));
     }
 
-    fn process_meta(&mut self, meta: Meta, meta_name: &str, cx: &AttrCtxt) -> Option<Meta> {
+    fn process_meta(
+        &mut self,
+        meta: CustomMeta,
+        meta_name: &str,
+        cx: &AttrCtxt,
+    ) -> Result<(), CustomMeta> {
         match meta_name {
             "title" => match self.title {
                 Some(_) => cx.duplicate_error(&meta),
@@ -149,10 +156,10 @@ impl CommonAttrs {
                 }
             }
 
-            _ => return Some(meta),
+            _ => return Err(meta),
         }
 
-        None
+        Ok(())
     }
 
     pub fn is_default(&self) -> bool {
@@ -247,7 +254,12 @@ impl FieldAttrs {
         cx.parse_meta(|m, n, c| self.process_meta(m, n, c));
     }
 
-    fn process_meta(&mut self, meta: Meta, meta_name: &str, cx: &AttrCtxt) -> Option<Meta> {
+    fn process_meta(
+        &mut self,
+        meta: CustomMeta,
+        meta_name: &str,
+        cx: &AttrCtxt,
+    ) -> Result<(), CustomMeta> {
         match meta_name {
             "with" => match self.with {
                 Some(WithAttr::Type(_)) => cx.duplicate_error(&meta),
@@ -264,10 +276,10 @@ impl FieldAttrs {
                 }
             },
 
-            _ => return Some(meta),
+            _ => return Err(meta),
         }
 
-        None
+        Ok(())
     }
 
     pub fn is_default(&self) -> bool {
@@ -306,7 +318,12 @@ impl ContainerAttrs {
         cx.parse_meta(|m, n, c| self.process_meta(m, n, c));
     }
 
-    fn process_meta(&mut self, meta: Meta, meta_name: &str, cx: &AttrCtxt) -> Option<Meta> {
+    fn process_meta(
+        &mut self,
+        meta: CustomMeta,
+        meta_name: &str,
+        cx: &AttrCtxt,
+    ) -> Result<(), CustomMeta> {
         match meta_name {
             "crate" => match self.crate_name {
                 Some(_) => cx.duplicate_error(&meta),
@@ -341,10 +358,10 @@ impl ContainerAttrs {
                 }
             },
 
-            _ => return Some(meta),
+            _ => return Err(meta),
         };
 
-        None
+        Ok(())
     }
 }
 
@@ -368,7 +385,12 @@ impl VariantAttrs {
         cx.parse_meta(|m, n, c| self.process_meta(m, n, c));
     }
 
-    fn process_meta(&mut self, meta: Meta, meta_name: &str, cx: &AttrCtxt) -> Option<Meta> {
+    fn process_meta(
+        &mut self,
+        meta: CustomMeta,
+        meta_name: &str,
+        cx: &AttrCtxt,
+    ) -> Result<(), CustomMeta> {
         match meta_name {
             "with" => match self.with {
                 Some(WithAttr::Type(_)) => cx.duplicate_error(&meta),
@@ -385,10 +407,10 @@ impl VariantAttrs {
                 }
             },
 
-            _ => return Some(meta),
+            _ => return Err(meta),
         }
 
-        None
+        Ok(())
     }
 
     pub fn is_default(&self) -> bool {
@@ -402,11 +424,11 @@ impl VariantAttrs {
     }
 }
 
-fn get_meta_items(attrs: &[Attribute], attr_type: &'static str, cx: &Ctxt) -> Vec<Meta> {
+fn get_meta_items(attrs: &[Attribute], attr_type: &'static str, cx: &Ctxt) -> Vec<CustomMeta> {
     let mut result = vec![];
 
     for attr in attrs.iter().filter(|a| a.path().is_ident(attr_type)) {
-        match attr.parse_args_with(Punctuated::<Meta, Token![,]>::parse_terminated) {
+        match attr.parse_args_with(Punctuated::<CustomMeta, Token![,]>::parse_terminated) {
             Ok(list) => result.extend(list),
             Err(err) => {
                 if attr_type == "schemars" {
@@ -428,7 +450,7 @@ fn path_str(path: &Path) -> String {
 pub struct AttrCtxt<'a> {
     inner: &'a Ctxt,
     attr_type: &'static str,
-    metas: Vec<Meta>,
+    metas: Vec<CustomMeta>,
 }
 
 impl<'a> AttrCtxt<'a> {
@@ -440,19 +462,20 @@ impl<'a> AttrCtxt<'a> {
         }
     }
 
-    pub fn new_nested_meta(&self, metas: Vec<Meta>) -> Self {
+    pub fn new_nested_meta(&self, metas: Vec<CustomMeta>) -> Self {
         Self { metas, ..*self }
     }
 
-    pub fn parse_meta(&mut self, mut handle: impl FnMut(Meta, &str, &Self) -> Option<Meta>) {
+    pub fn parse_meta(
+        &mut self,
+        mut handle: impl FnMut(CustomMeta, &str, &Self) -> Result<(), CustomMeta>,
+    ) {
         let metas = std::mem::take(&mut self.metas);
         self.metas = metas
             .into_iter()
-            .filter_map(|meta| {
-                meta.path()
-                    .get_ident()
-                    .map(Ident::to_string)
-                    .and_then(|name| handle(meta, &name, self))
+            .filter_map(|meta| match meta.path().get_ident().map(Ident::to_string) {
+                Some(ident) => handle(meta, &ident, self).err(),
+                _ => Some(meta),
             })
             .collect();
     }
@@ -465,7 +488,7 @@ impl<'a> AttrCtxt<'a> {
         self.inner.syn_error(err);
     }
 
-    pub fn mutual_exclusive_error(&self, meta: &Meta, other_attr: &str) {
+    pub fn mutual_exclusive_error(&self, meta: &CustomMeta, other_attr: &str) {
         if self.attr_type == "schemars" {
             self.error_spanned_by(
                 meta,
@@ -478,7 +501,7 @@ impl<'a> AttrCtxt<'a> {
         }
     }
 
-    pub fn duplicate_error(&self, meta: &Meta) {
+    pub fn duplicate_error(&self, meta: &CustomMeta) {
         if self.attr_type == "schemars" {
             self.error_spanned_by(
                 meta,
@@ -507,7 +530,7 @@ impl Drop for AttrCtxt<'_> {
     }
 }
 
-fn is_schemars_serde_keyword(meta: &Meta) -> bool {
+fn is_schemars_serde_keyword(meta: &CustomMeta) -> bool {
     let known_keywords = schemars_to_serde::SCHEMARS_KEYWORDS_PARSED_BY_SERDE;
     meta.path()
         .get_ident()

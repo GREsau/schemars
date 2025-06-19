@@ -1,4 +1,6 @@
 #![forbid(unsafe_code)]
+// TODO make clippy pedantic
+#![allow(clippy::result_large_err)]
 
 #[macro_use]
 extern crate quote;

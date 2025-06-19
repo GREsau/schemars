@@ -2,9 +2,9 @@ use quote::ToTokens;
 use serde_derive_internals::Ctxt;
 use std::collections::HashSet;
 use syn::parse::Parser;
-use syn::{Attribute, Data, Field, Meta, Variant};
+use syn::{Attribute, Data, Field, Variant};
 
-use super::get_meta_items;
+use super::{get_meta_items, CustomMeta};
 
 // List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes which we want
 // serde_derive_internals to parse for us.
@@ -129,7 +129,7 @@ fn to_tokens(attrs: &[Attribute]) -> impl ToTokens {
     tokens
 }
 
-fn get_meta_ident(meta: &Meta) -> Option<String> {
+fn get_meta_ident(meta: &CustomMeta) -> Option<String> {
     meta.path().get_ident().map(|i| i.to_string())
 }
 

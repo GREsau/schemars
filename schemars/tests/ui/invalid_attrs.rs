@@ -10,7 +10,8 @@ use schemars::JsonSchema;
     inline,
     inline,
     with = "String",
-    serialize_with = "String"
+    serialize_with = "String",
+    a::path
 )]
 pub struct Struct1 {
     #[serde(serialize_with = "u64")]
@@ -27,7 +28,8 @@ pub struct Struct1 {
     inline,
     inline,
     with = "String",
-    serialize_with = "String"
+    serialize_with = "String",
+    a::path
 )]
 pub struct Struct2 {
     #[schemars(serialize_with = "u64")]
