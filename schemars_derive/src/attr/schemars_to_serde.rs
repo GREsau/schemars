@@ -1,10 +1,11 @@
 use quote::ToTokens;
 use serde_derive_internals::Ctxt;
-use std::collections::HashSet;
+use std::collections::btree_map::Entry;
+use std::collections::{BTreeMap, BTreeSet};
 use syn::parse::Parser;
-use syn::{Attribute, Data, Field, Meta, Variant};
+use syn::{Attribute, Data, Field, Variant};
 
-use super::get_meta_items;
+use super::{get_meta_items, CustomMeta};
 
 // List of keywords that can appear in #[serde(...)]/#[schemars(...)] attributes which we want
 // serde_derive_internals to parse for us.
@@ -77,19 +78,43 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         attrs.drain(..).partition(|at| at.path().is_ident("serde"));
     *attrs = other_attrs;
 
+    let mut effective_serde_meta = Vec::new();
+    let mut unset_meta = BTreeMap::new();
+    let mut serde_meta_names = BTreeSet::new();
+    let mut schemars_meta_names = BTreeSet::new();
+
     // Copy appropriate #[schemars(...)] attributes to #[serde(...)] attributes
-    let (mut serde_meta, mut schemars_meta_names): (Vec<_>, HashSet<_>) =
-        get_meta_items(attrs, "schemars", ctxt)
-            .into_iter()
-            .filter_map(|meta| {
-                let keyword = get_meta_ident(&meta)?;
-                if SCHEMARS_KEYWORDS_PARSED_BY_SERDE.contains(&keyword.as_ref()) {
-                    Some((meta, keyword))
-                } else {
-                    None
+    for meta in get_meta_items(attrs, "schemars", ctxt) {
+        let Some(keyword) = get_meta_ident(&meta) else {
+            continue;
+        };
+
+        if matches!(meta, CustomMeta::Not(..)) {
+            match unset_meta.entry(keyword) {
+                Entry::Occupied(o) => {
+                    ctxt.error_spanned_by(
+                        meta,
+                        format_args!("duplicate schemars attribute item `!{}`", o.key()),
+                    );
                 }
-            })
-            .unzip();
+                Entry::Vacant(v) => {
+                    v.insert(meta);
+                }
+            }
+        } else if SCHEMARS_KEYWORDS_PARSED_BY_SERDE.contains(&keyword.as_ref()) {
+            schemars_meta_names.insert(keyword);
+            effective_serde_meta.push(meta);
+        }
+    }
+
+    for (keyword, meta) in &unset_meta {
+        if schemars_meta_names.contains(keyword) {
+            ctxt.error_spanned_by(
+                meta,
+                format_args!("schemars attribute cannot contain both `{keyword}` and `!{keyword}`"),
+            );
+        }
+    }
 
     if schemars_meta_names.contains("skip") {
         schemars_meta_names.insert("skip_serializing".to_string());
@@ -98,19 +123,36 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
 
     // Re-add #[serde(...)] attributes that weren't overridden by #[schemars(...)] attributes
     for meta in get_meta_items(&serde_attrs, "serde", ctxt) {
-        if let Some(i) = get_meta_ident(&meta) {
-            if !schemars_meta_names.contains(&i)
-                && SERDE_KEYWORDS.contains(&i.as_ref())
-                && i != "bound"
-            {
-                serde_meta.push(meta);
-            }
+        let Some(keyword) = get_meta_ident(&meta) else {
+            continue;
+        };
+
+        if !schemars_meta_names.contains(&keyword)
+            && !unset_meta.contains_key(&keyword)
+            && SERDE_KEYWORDS.contains(&keyword.as_ref())
+            && keyword != "bound"
+        {
+            effective_serde_meta.push(meta);
+        }
+
+        serde_meta_names.insert(keyword);
+    }
+
+    for (keyword, meta) in &unset_meta {
+        if !serde_meta_names.contains(keyword) {
+            ctxt.error_spanned_by(
+                meta,
+                format_args!(
+                    "useless `!{0}` - no serde attribute containing `{0}` is present",
+                    keyword
+                ),
+            );
         }
     }
 
-    if !serde_meta.is_empty() {
+    if !effective_serde_meta.is_empty() {
         let new_serde_attr = quote! {
-            #[serde(#(#serde_meta),*)]
+            #[serde(#(#effective_serde_meta),*)]
         };
 
         let parser = Attribute::parse_outer;
@@ -129,7 +171,7 @@ fn to_tokens(attrs: &[Attribute]) -> impl ToTokens {
     tokens
 }
 
-fn get_meta_ident(meta: &Meta) -> Option<String> {
+fn get_meta_ident(meta: &CustomMeta) -> Option<String> {
     meta.path().get_ident().map(|i| i.to_string())
 }
 
@@ -142,9 +184,9 @@ mod tests {
     #[test]
     fn test_process_serde_attrs() {
         let mut input: DeriveInput = parse_quote! {
-            #[serde(rename(serialize = "ser_name"), rename_all = "camelCase")]
+            #[serde(rename(serialize = "ser_name"), rename_all = "camelCase", from = "T")]
             #[serde(default, unknown_word)]
-            #[schemars(rename = "overriden", another_unknown_word)]
+            #[schemars(rename = "overriden", another_unknown_word, !from)]
             #[misc]
             struct MyStruct {
                 /// blah blah blah
@@ -159,7 +201,7 @@ mod tests {
             }
         };
         let expected: DeriveInput = parse_quote! {
-            #[schemars(rename = "overriden", another_unknown_word)]
+            #[schemars(rename = "overriden", another_unknown_word, !from)]
             #[misc]
             #[serde(rename = "overriden", rename_all = "camelCase", default)]
             struct MyStruct {

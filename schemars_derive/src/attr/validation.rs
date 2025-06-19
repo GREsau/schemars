@@ -1,5 +1,5 @@
 use proc_macro2::TokenStream;
-use syn::{Expr, Meta};
+use syn::Expr;
 
 use crate::idents::SCHEMA;
 
@@ -8,7 +8,7 @@ use super::{
         parse_contains, parse_length_or_range, parse_nested_meta, parse_pattern,
         parse_schemars_regex, parse_validate_regex, require_path_only, LengthOrRange,
     },
-    AttrCtxt,
+    AttrCtxt, CustomMeta,
 };
 
 #[derive(Clone, Copy, PartialEq)]
@@ -148,10 +148,15 @@ impl ValidationAttrs {
         cx.parse_meta(|m, n, c| self.process_meta(m, n, c));
     }
 
-    fn process_meta(&mut self, meta: Meta, meta_name: &str, cx: &AttrCtxt) -> Option<Meta> {
+    fn process_meta(
+        &mut self,
+        meta: CustomMeta,
+        meta_name: &str,
+        cx: &AttrCtxt,
+    ) -> Result<(), CustomMeta> {
         if let Some(format) = Format::from_attr_str(meta_name) {
             self.handle_format(meta, format, cx);
-            return None;
+            return Ok(());
         }
         match meta_name {
             "length" => match self.length {
@@ -211,13 +216,13 @@ impl ValidationAttrs {
                 }
             }
 
-            _ => return Some(meta),
+            _ => return Err(meta),
         }
 
-        None
+        Ok(())
     }
 
-    fn handle_format(&mut self, meta: Meta, format: Format, cx: &AttrCtxt) {
+    fn handle_format(&mut self, meta: CustomMeta, format: Format, cx: &AttrCtxt) {
         match self.format {
             Some(current) if current == format => cx.duplicate_error(&meta),
             Some(current) => cx.mutual_exclusive_error(&meta, current.attr_str()),

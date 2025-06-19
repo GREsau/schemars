@@ -2,48 +2,42 @@ use proc_macro2::{TokenStream, TokenTree};
 use syn::{
     parse::{Parse, ParseStream, Parser},
     punctuated::Punctuated,
-    Expr, ExprLit, Lit, LitStr, Meta, MetaList, MetaNameValue,
+    Expr, ExprLit, Lit, LitStr, MetaNameValue,
 };
 
-use super::{path_str, AttrCtxt};
+use super::{path_str, AttrCtxt, CustomMeta};
 
-pub fn require_path_only(meta: Meta, cx: &AttrCtxt) -> Result<(), ()> {
-    match meta {
-        Meta::Path(_) => Ok(()),
-        Meta::List(MetaList {
-            path, delimiter, ..
-        }) => {
-            let name = path_str(&path);
-            cx.syn_error(syn::Error::new(
-                delimiter.span().join(),
-                format_args!(
-                    "unexpected value of {} {} attribute item",
-                    cx.attr_type, name
-                ),
-            ));
+pub fn require_path_only(meta: CustomMeta, cx: &AttrCtxt) -> Result<(), ()> {
+    let error_args = || {
+        format!(
+            "unexpected value of {} {} attribute item",
+            cx.attr_type,
+            path_str(meta.path())
+        )
+    };
+
+    match &meta {
+        CustomMeta::Path(_) => Ok(()),
+        CustomMeta::List(meta) => {
+            cx.syn_error(syn::Error::new(meta.delimiter.span().join(), error_args()));
             Err(())
         }
-        Meta::NameValue(MetaNameValue {
-            path,
-            eq_token,
-            value,
-        }) => {
-            let name = path_str(&path);
-            cx.error_spanned_by(
-                quote!(#eq_token #value),
-                format_args!(
-                    "unexpected value of {} {} attribute item",
-                    cx.attr_type, name
-                ),
-            );
+        CustomMeta::NameValue(meta) => {
+            let eq_token = &meta.eq_token;
+            let value = &meta.value;
+            cx.error_spanned_by(quote!(#eq_token #value), error_args());
+            Err(())
+        }
+        CustomMeta::Not(..) => {
+            // Validation of "unset" attributes is currently done in schemars_to_serde
             Err(())
         }
     }
 }
 
-pub fn parse_name_value_expr(meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+pub fn parse_name_value_expr(meta: CustomMeta, cx: &AttrCtxt) -> Result<Expr, ()> {
     match meta {
-        Meta::NameValue(m) => Ok(m.value),
+        CustomMeta::NameValue(m) => Ok(m.value),
         _ => {
             let name = path_str(meta.path());
             cx.error_spanned_by(
@@ -58,30 +52,31 @@ pub fn parse_name_value_expr(meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
     }
 }
 
-pub fn require_name_value_lit_str(meta: Meta, cx: &AttrCtxt) -> Result<LitStr, ()> {
-    let Meta::NameValue(MetaNameValue {
-        value: Expr::Lit(ExprLit {
-            lit: Lit::Str(lit_str),
+pub fn require_name_value_lit_str(meta: CustomMeta, cx: &AttrCtxt) -> Result<LitStr, ()> {
+    match meta {
+        CustomMeta::NameValue(MetaNameValue {
+            value:
+                Expr::Lit(ExprLit {
+                    lit: Lit::Str(lit_str),
+                    ..
+                }),
             ..
-        }),
-        ..
-    }) = meta
-    else {
-        let name = path_str(meta.path());
-        cx.error_spanned_by(
-            meta,
-            format_args!(
-                "expected {} {} attribute item to have a string value: `{} = \"...\"`",
-                cx.attr_type, name, name
-            ),
-        );
-        return Err(());
-    };
-
-    Ok(lit_str)
+        }) => Ok(lit_str),
+        _ => {
+            let name = path_str(meta.path());
+            cx.error_spanned_by(
+                meta,
+                format_args!(
+                    "expected {} {} attribute item to have a string value: `{} = \"...\"`",
+                    cx.attr_type, name, name
+                ),
+            );
+            Err(())
+        }
+    }
 }
 
-pub fn parse_name_value_lit_str<T: Parse>(meta: Meta, cx: &AttrCtxt) -> Result<T, ()> {
+pub fn parse_name_value_lit_str<T: Parse>(meta: CustomMeta, cx: &AttrCtxt) -> Result<T, ()> {
     let lit_str = require_name_value_lit_str(meta, cx)?;
 
     parse_lit_str(lit_str, cx)
@@ -105,14 +100,14 @@ fn parse_lit_str<T: Parse>(lit_str: LitStr, cx: &AttrCtxt) -> Result<T, ()> {
 }
 
 pub fn parse_extensions(
-    meta: Meta,
+    meta: CustomMeta,
     cx: &AttrCtxt,
 ) -> Result<impl IntoIterator<Item = Extension>, ()> {
     let parser = Punctuated::<Extension, Token![,]>::parse_terminated;
     parse_meta_list_with(&meta, cx, parser)
 }
 
-pub fn parse_length_or_range(outer_meta: Meta, cx: &AttrCtxt) -> Result<LengthOrRange, ()> {
+pub fn parse_length_or_range(outer_meta: CustomMeta, cx: &AttrCtxt) -> Result<LengthOrRange, ()> {
     let outer_name = path_str(outer_meta.path());
     let mut result = LengthOrRange::default();
 
@@ -150,11 +145,11 @@ pub fn parse_length_or_range(outer_meta: Meta, cx: &AttrCtxt) -> Result<LengthOr
     Ok(result)
 }
 
-pub fn parse_pattern(meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+pub fn parse_pattern(meta: CustomMeta, cx: &AttrCtxt) -> Result<Expr, ()> {
     parse_meta_list_with(&meta, cx, Expr::parse)
 }
 
-pub fn parse_schemars_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+pub fn parse_schemars_regex(outer_meta: CustomMeta, cx: &AttrCtxt) -> Result<Expr, ()> {
     let mut pattern = None;
 
     for nested_meta in parse_nested_meta(outer_meta.clone(), cx)? {
@@ -183,7 +178,7 @@ pub fn parse_schemars_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()>
     })
 }
 
-pub fn parse_validate_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+pub fn parse_validate_regex(outer_meta: CustomMeta, cx: &AttrCtxt) -> Result<Expr, ()> {
     let mut path = None;
 
     for nested_meta in parse_nested_meta(outer_meta.clone(), cx)? {
@@ -209,9 +204,9 @@ pub fn parse_validate_regex(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()>
     })
 }
 
-pub fn parse_contains(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+pub fn parse_contains(outer_meta: CustomMeta, cx: &AttrCtxt) -> Result<Expr, ()> {
     enum ContainsFormat {
-        Metas(Punctuated<Meta, Token![,]>),
+        Metas(Punctuated<CustomMeta, Token![,]>),
         Expr(Expr),
     }
 
@@ -222,8 +217,8 @@ pub fn parse_contains(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
             // This heuristic may not generalise well-enough for attributes other than `contains`!
             // `foo = bar` => Metas (not Expr::Assign)
             // `foo, bar`  => Metas
-            // `foo`       => Expr (not Meta::Path)
-            // `foo(bar)`  => Expr (not Meta::List)
+            // `foo`       => Expr (not CustomMeta::Path)
+            // `foo(bar)`  => Expr (not CustomMeta::List)
             if input.peek2(Token![,]) || input.peek2(Token![=]) {
                 Punctuated::parse_terminated(input).map(Self::Metas)
             } else {
@@ -274,13 +269,20 @@ pub fn parse_contains(outer_meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
     })
 }
 
-pub fn parse_nested_meta(meta: Meta, cx: &AttrCtxt) -> Result<impl IntoIterator<Item = Meta>, ()> {
-    let parser = Punctuated::<Meta, Token![,]>::parse_terminated;
+pub fn parse_nested_meta(
+    meta: CustomMeta,
+    cx: &AttrCtxt,
+) -> Result<impl IntoIterator<Item = CustomMeta>, ()> {
+    let parser = Punctuated::<CustomMeta, Token![,]>::parse_terminated;
     parse_meta_list_with(&meta, cx, parser)
 }
 
-fn parse_meta_list_with<F: Parser>(meta: &Meta, cx: &AttrCtxt, parser: F) -> Result<F::Output, ()> {
-    let Meta::List(meta_list) = meta else {
+fn parse_meta_list_with<F: Parser>(
+    meta: &CustomMeta,
+    cx: &AttrCtxt,
+    parser: F,
+) -> Result<F::Output, ()> {
+    let CustomMeta::List(meta_list) = meta else {
         let name = path_str(meta.path());
         cx.error_spanned_by(
             meta,
@@ -298,7 +300,7 @@ fn parse_meta_list_with<F: Parser>(meta: &Meta, cx: &AttrCtxt, parser: F) -> Res
 }
 
 // Like `parse_name_value_expr`, but if the result is a string literal, then parse its contents.
-pub fn parse_name_value_expr_handle_lit_str(meta: Meta, cx: &AttrCtxt) -> Result<Expr, ()> {
+pub fn parse_name_value_expr_handle_lit_str(meta: CustomMeta, cx: &AttrCtxt) -> Result<Expr, ()> {
     let expr = parse_name_value_expr(meta, cx)?;
 
     if let Expr::Lit(ExprLit {
