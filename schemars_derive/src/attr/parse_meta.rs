@@ -2,33 +2,37 @@ use proc_macro2::{TokenStream, TokenTree};
 use syn::{
     parse::{Parse, ParseStream, Parser},
     punctuated::Punctuated,
-    spanned::Spanned,
     Expr, ExprLit, Lit, LitStr, MetaNameValue,
 };
 
 use super::{path_str, AttrCtxt, CustomMeta};
 
 pub fn require_path_only(meta: CustomMeta, cx: &AttrCtxt) -> Result<(), ()> {
-    let error_span = match &meta {
-        CustomMeta::Path(_) => return Ok(()),
-        CustomMeta::List(meta) => meta.delimiter.span().join(),
-        CustomMeta::NameValue(meta) => {
-            let eq_span = meta.eq_token.span();
-            eq_span.join(meta.value.span()).unwrap_or(eq_span)
-        }
-        CustomMeta::Not(..) => meta.span(),
+    let error_args = || {
+        format!(
+            "unexpected value of {} {} attribute item",
+            cx.attr_type,
+            path_str(meta.path())
+        )
     };
 
-    let name = path_str(meta.path());
-    cx.syn_error(syn::Error::new(
-        error_span,
-        format_args!(
-            "unexpected value of {} {} attribute item",
-            cx.attr_type, name
-        ),
-    ));
-
-    Err(())
+    match &meta {
+        CustomMeta::Path(_) => Ok(()),
+        CustomMeta::List(meta) => {
+            cx.syn_error(syn::Error::new(meta.delimiter.span().join(), error_args()));
+            Err(())
+        }
+        CustomMeta::NameValue(meta) => {
+            let eq_token = &meta.eq_token;
+            let value = &meta.value;
+            cx.error_spanned_by(quote!(#eq_token #value), error_args());
+            Err(())
+        }
+        CustomMeta::Not(..) => {
+            // Validation of "unset" attributes is currently done in schemars_to_serde
+            Err(())
+        }
+    }
 }
 
 pub fn parse_name_value_expr(meta: CustomMeta, cx: &AttrCtxt) -> Result<Expr, ()> {

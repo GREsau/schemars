@@ -38,7 +38,7 @@ error: unexpected value of schemars inline attribute item
   --> tests/ui/invalid_attrs.rs:27:12
    |
 27 |     inline = 1,
-   |            ^
+   |            ^^^
 
 error: duplicate schemars attribute item `inline`
   --> tests/ui/invalid_attrs.rs:29:5
