@@ -1,12 +1,13 @@
 use quote::ToTokens;
 use syn::{parse::Parse, Meta, MetaList, MetaNameValue, Path};
 
+// An extended copy of `syn::Meta` with an additional `Not` variant
 #[derive(Debug, Clone)]
 pub enum CustomMeta {
-    Not(Token![!], Path),
     Path(Path),
     List(MetaList),
     NameValue(MetaNameValue),
+    Not(Token![!], Path),
 }
 
 impl ToTokens for CustomMeta {

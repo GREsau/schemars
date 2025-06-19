@@ -77,19 +77,23 @@ fn process_attrs(ctxt: &Ctxt, attrs: &mut Vec<Attribute>) {
         attrs.drain(..).partition(|at| at.path().is_ident("serde"));
     *attrs = other_attrs;
 
+    let mut serde_meta = Vec::new();
+    let mut schemars_meta_names = HashSet::new();
+
     // Copy appropriate #[schemars(...)] attributes to #[serde(...)] attributes
-    let (mut serde_meta, mut schemars_meta_names): (Vec<_>, HashSet<_>) =
-        get_meta_items(attrs, "schemars", ctxt)
-            .into_iter()
-            .filter_map(|meta| {
-                let keyword = get_meta_ident(&meta)?;
-                if SCHEMARS_KEYWORDS_PARSED_BY_SERDE.contains(&keyword.as_ref()) {
-                    Some((meta, keyword))
-                } else {
-                    None
-                }
-            })
-            .unzip();
+    for meta in get_meta_items(attrs, "schemars", ctxt) {
+        let Some(keyword) = get_meta_ident(&meta) else {
+            continue;
+        };
+
+        if SCHEMARS_KEYWORDS_PARSED_BY_SERDE.contains(&keyword.as_ref()) {
+            schemars_meta_names.insert(keyword);
+
+            if !matches!(meta, CustomMeta::Not(..)) {
+                serde_meta.push(meta);
+            }
+        }
+    }
 
     if schemars_meta_names.contains("skip") {
         schemars_meta_names.insert("skip_serializing".to_string());
@@ -142,9 +146,9 @@ mod tests {
     #[test]
     fn test_process_serde_attrs() {
         let mut input: DeriveInput = parse_quote! {
-            #[serde(rename(serialize = "ser_name"), rename_all = "camelCase")]
+            #[serde(rename(serialize = "ser_name"), rename_all = "camelCase", from = "T")]
             #[serde(default, unknown_word)]
-            #[schemars(rename = "overriden", another_unknown_word)]
+            #[schemars(rename = "overriden", another_unknown_word, !from)]
             #[misc]
             struct MyStruct {
                 /// blah blah blah
@@ -159,7 +163,7 @@ mod tests {
             }
         };
         let expected: DeriveInput = parse_quote! {
-            #[schemars(rename = "overriden", another_unknown_word)]
+            #[schemars(rename = "overriden", another_unknown_word, !from)]
             #[misc]
             #[serde(rename = "overriden", rename_all = "camelCase", default)]
             struct MyStruct {
