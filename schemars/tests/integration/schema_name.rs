@@ -30,7 +30,7 @@ struct TypeParams<T, U, V, W> {
 }
 
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
-#[schemars(rename = "new-name-{W}-{T}-{T}")]
+#[schemars(rename = "new name~{W}/{T}/{T}!")]
 struct RenamedTypeParams<T, U, V, W> {
     t: T,
     u: U,
@@ -55,7 +55,7 @@ fn type_params() {
         .custom(|schema, _| {
             assert_eq!(
                 schema.get("title"),
-                Some(&"new-name-null-uint8-uint8".into())
+                Some(&"new name~null/uint8/uint8!".into())
             )
         });
 
@@ -63,6 +63,19 @@ fn type_params() {
         <RenamedTypeParams<u8, String, bool, ()>>::schema_id(),
         <RenamedTypeParams<(), u8, String, bool>>::schema_id()
     );
+
+    test!((
+        TypeParams<u8, String, bool, ()>,
+        RenamedTypeParams<u8, String, bool, ()>
+    ))
+    .assert_allows_ser_roundtrip_default()
+    .custom(|schema, _| {
+        assert_eq!(
+            schema.pointer("/prefixItems/1/$ref"),
+            Some(&("#/$defs/new%20name~0null~1uint8~1uint8!".into())),
+            "name should be correctly encoded for $ref value"
+        )
+    });
 }
 
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
