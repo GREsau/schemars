@@ -12,6 +12,7 @@ use crate::Schema;
 use crate::_alloc_prelude::*;
 use crate::{transform::*, JsonSchema};
 use alloc::collections::{BTreeMap, BTreeSet};
+use core::fmt::Write;
 use core::{any::Any, fmt::Debug};
 use dyn_clone::DynClone;
 use serde::Serialize;
@@ -327,7 +328,11 @@ impl SchemaGenerator {
                     name
                 });
 
-            let reference = format!("#{}/{}", self.definitions_path_stripped(), name);
+            let reference = format!(
+                "#{}/{}",
+                self.definitions_path_stripped(),
+                encode_ref_name(&name)
+            );
             if !self.definitions.contains_key(name.as_ref()) {
                 self.insert_new_subschema_for::<T>(name, &uid);
             }
@@ -569,6 +574,41 @@ impl SchemaGenerator {
 
     fn schema_uid<T: ?Sized + JsonSchema>(&self) -> SchemaUid {
         SchemaUid(T::schema_id(), self.settings.contract.clone())
+    }
+}
+
+fn encode_ref_name(name: &str) -> alloc::borrow::Cow<str> {
+    fn needs_encoding(byte: u8) -> bool {
+        match byte {
+            // `~` and `/` need encoding for JSON Pointer
+            // See https://datatracker.ietf.org/doc/html/rfc6901#section-3
+            b'~' | b'/' => true,
+            // These chars (and `~`) are valid in URL fragment
+            // See https://datatracker.ietf.org/doc/html/rfc3986/#section-3.5
+            b'!' | b'"' | b'$' | b'&'..=b';' | b'=' | b'?'..=b'Z' | b'_' | b'a'..=b'z' => false,
+            // Everything else needs percent-encoding
+            _ => true,
+        }
+    }
+
+    if name.bytes().any(needs_encoding) {
+        let mut buf = String::new();
+
+        for byte in name.bytes() {
+            if byte == b'~' {
+                buf.push_str("~0");
+            } else if byte == b'/' {
+                buf.push_str("~1");
+            } else if needs_encoding(byte) {
+                write!(buf, "%{byte:2x}").unwrap();
+            } else {
+                buf.push(byte as char);
+            }
+        }
+
+        buf.into()
+    } else {
+        name.into()
     }
 }
 
