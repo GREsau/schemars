@@ -16,6 +16,7 @@ use syn::spanned::Spanned;
 use syn::{Attribute, Expr, ExprLit, Ident, Lit, LitStr, Path, Type};
 use validation::ValidationAttrs;
 
+use crate::ast::Data;
 use crate::idents::SCHEMA;
 
 pub use custom_meta::*;
@@ -48,6 +49,7 @@ pub struct ContainerAttrs {
     // because it depends on the type's generic params.
     pub rename_format_string: Option<LitStr>,
     pub inline: bool,
+    pub ref_variants: bool,
     pub with: Option<WithAttr>,
 }
 
@@ -294,19 +296,19 @@ impl FieldAttrs {
 }
 
 impl ContainerAttrs {
-    pub fn new(attrs: &[Attribute], cx: &Ctxt) -> Self {
+    pub fn new(attrs: &[Attribute], data: &Data, cx: &Ctxt) -> Self {
         let mut result = Self::default();
-        result.populate(attrs, cx);
+        result.populate(attrs, data, cx);
         result
     }
 
-    fn populate(&mut self, attrs: &[Attribute], cx: &Ctxt) {
+    fn populate(&mut self, attrs: &[Attribute], data: &Data, cx: &Ctxt) {
         let schemars_cx = &mut AttrCtxt::new(cx, attrs, "schemars");
         let serde_cx = &mut AttrCtxt::new(cx, attrs, "serde");
 
         self.common.populate(attrs, schemars_cx, serde_cx);
-        self.process_attr(schemars_cx);
-        self.process_attr(serde_cx);
+        self.process_attr(data, schemars_cx);
+        self.process_attr(data, serde_cx);
 
         self.repr = attrs
             .iter()
@@ -314,14 +316,15 @@ impl ContainerAttrs {
             .and_then(|a| a.parse_args().ok());
     }
 
-    fn process_attr(&mut self, cx: &mut AttrCtxt) {
-        cx.parse_meta(|m, n, c| self.process_meta(m, n, c));
+    fn process_attr(&mut self, data: &Data, cx: &mut AttrCtxt) {
+        cx.parse_meta(|m, n, c| self.process_meta(m, n, data, c));
     }
 
     fn process_meta(
         &mut self,
         meta: CustomMeta,
         meta_name: &str,
+        data: &Data,
         cx: &AttrCtxt,
     ) -> Result<(), CustomMeta> {
         match meta_name {
@@ -357,6 +360,19 @@ impl ContainerAttrs {
                         .map(WithAttr::Function);
                 }
             },
+
+            "_unstable_ref_variants" if cx.attr_type == "schemars" => {
+                if !matches!(data, Data::Enum(_)) {
+                    cx.error_spanned_by(
+                        meta.path(),
+                        "`_unstable_ref_variants` can only be used on enums",
+                    );
+                } else if self.ref_variants {
+                    cx.duplicate_error(&meta);
+                } else if require_path_only(&meta, cx).is_ok() {
+                    self.ref_variants = true;
+                }
+            }
 
             _ => return Err(meta),
         }
