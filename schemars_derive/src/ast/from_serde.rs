@@ -20,7 +20,7 @@ impl<'a> FromSerde for Container<'a> {
 
     fn from_serde(errors: &Ctxt, serde: Self::SerdeType) -> Self {
         let data = Data::from_serde(errors, serde.data);
-        let attrs = ContainerAttrs::new(&serde.original.attrs, errors);
+        let attrs = ContainerAttrs::new(&serde.original.attrs, &data, errors);
         let rename_type_params = match &attrs.rename_format_string {
             Some(s) => crate::name::get_rename_format_type_params(errors, s, serde.generics),
             None => BTreeSet::new(),

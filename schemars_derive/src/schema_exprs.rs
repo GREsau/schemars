@@ -276,8 +276,9 @@ fn expr_for_external_tagged_enum<'a>(
     variants: impl Iterator<Item = &'a Variant<'a>>,
     deny_unknown_fields: bool,
 ) -> SchemaExpr {
-    let (unit_variants, complex_variants): (Vec<_>, Vec<_>) =
-        variants.partition(|v| v.is_unit() && v.attrs.is_default() && !v.serde_attrs.untagged());
+    let (unit_variants, complex_variants): (Vec<_>, Vec<_>) = variants.partition(|v| {
+        v.is_unit() && v.attrs.is_default() && !v.serde_attrs.untagged() && !cont.attrs.ref_variants
+    });
     let add_unit_names = unit_variants.iter().map(|v| {
         let name = v.name();
         v.with_contract_check(quote! {
@@ -335,7 +336,7 @@ fn expr_for_external_tagged_enum<'a>(
         (Some(variant), schema_expr)
     }));
 
-    variant_subschemas(true, schemas)
+    variant_subschemas(cont, true, schemas)
 }
 
 fn expr_for_internal_tagged_enum<'a>(
@@ -363,7 +364,7 @@ fn expr_for_internal_tagged_enum<'a>(
         })
         .collect();
 
-    variant_subschemas(true, variant_schemas)
+    variant_subschemas(cont, true, variant_schemas)
 }
 
 fn expr_for_untagged_enum<'a>(
@@ -382,7 +383,7 @@ fn expr_for_untagged_enum<'a>(
 
     // Untagged enums can easily have variants whose schemas overlap; rather
     // that checking the exclusivity of each subschema we simply us `any_of`.
-    variant_subschemas(false, schemas)
+    variant_subschemas(cont, false, schemas)
 }
 
 fn expr_for_adjacent_tagged_enum<'a>(
@@ -458,12 +459,13 @@ fn expr_for_adjacent_tagged_enum<'a>(
         })
         .collect();
 
-    variant_subschemas(true, schemas)
+    variant_subschemas(cont, true, schemas)
 }
 
 /// Callers must determine if all subschemas are mutually exclusive. The current behaviour is to
 /// assume that variants are mutually exclusive except for untagged enums.
 fn variant_subschemas(
+    cont: &Container,
     mut unique: bool,
     schemas: Vec<(Option<&Variant>, SchemaExpr)>,
 ) -> SchemaExpr {
@@ -475,11 +477,15 @@ fn variant_subschemas(
     }
 
     let keyword = if unique { "oneOf" } else { "anyOf" };
-    let add_schemas = schemas.into_iter().map(|(v, s)| {
+    let add_schemas = schemas.into_iter().map(|(variant, mut schema)| {
+        if cont.attrs.ref_variants {
+            schema = enum_ref_variants(cont, variant, schema);
+        }
+
         let add = quote! {
-            enum_values.push(#s.to_value());
+            enum_values.push(#schema.to_value());
         };
-        match v {
+        match variant {
             Some(v) => v.with_contract_check(add),
             None => add,
         }
@@ -497,6 +503,52 @@ fn variant_subschemas(
         schemars::Schema::from(map)
     })
     .into()
+}
+
+fn enum_ref_variants(cont: &Container, variant: Option<&Variant>, expr: SchemaExpr) -> SchemaExpr {
+    let Some(variant) = variant else {
+        return expr;
+    };
+
+    let cont_name = &cont.ident;
+    // FIXME can this use serialize name where appropriate?
+    let variant_name = variant.serde_attrs.name().deserialize_name();
+    let (impl_generics, ty_generics, where_clause) = cont.generics.split_for_impl();
+
+    let type_def = quote! {
+        struct _SchemarsRefVariant<T: ?::core::marker::Sized>(::core::marker::PhantomData<T>);
+
+        impl #impl_generics schemars::JsonSchema for _SchemarsRefVariant<#cont_name #ty_generics> #where_clause {
+            fn inline_schema() -> bool {
+                false
+            }
+
+            fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
+                schemars::_private::alloc::borrow::Cow::Borrowed(#variant_name)
+            }
+
+            fn schema_id() -> schemars::_private::alloc::borrow::Cow<'static, str> {
+                schemars::_private::alloc::borrow::Cow::Owned(
+                    schemars::_private::alloc::format!(
+                        "_SchemarsRefVariant/{}::{}",
+                        <#cont_name #ty_generics as schemars::JsonSchema>::schema_id(),
+                        #variant_name,
+                ))
+            }
+
+            fn json_schema(#GENERATOR: &mut schemars::SchemaGenerator) -> schemars::Schema {
+                #expr
+            }
+        }
+    };
+
+    let mut expr = SchemaExpr::from(
+        quote!(#GENERATOR.subschema_for::<_SchemarsRefVariant::<#cont_name #ty_generics>>()),
+    );
+
+    expr.definitions.push(type_def);
+
+    expr
 }
 
 // This function is also used for tagged variants, in which case the resulting SchemaExpr will be
@@ -736,7 +788,9 @@ fn field_default_expr(field: &Field, container_has_default: bool) -> Option<Toke
                 }
             }
         }
-    } else { quote!(Some(#default_expr)) };
+    } else {
+        quote!(Some(#default_expr))
+    };
 
     Some(if let Some(ser_with) = field.serde_attrs.serialize_with() {
         quote! {
