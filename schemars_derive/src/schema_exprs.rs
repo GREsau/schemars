@@ -696,8 +696,21 @@ fn expr_for_struct(
                     schemars::_private::flatten(&mut #SCHEMA, #schema_expr);
                 })
             } else {
+                let mut schema_expr = expr_for_field(cont, field, false);
+
+                if let Some(default) = field_default_expr(field, set_container_default.is_some()) {
+                    schema_expr.mutators.push(quote! {
+                        #default.and_then(|d| schemars::_schemars_maybe_to_value!(d))
+                            .map(|d| #SCHEMA.insert("default".to_owned(), d));
+                    });
+                }
+
                 let name = field.name();
                 let (ty, type_def) = type_for_field_schema(cont, field);
+
+                if type_def.is_some() {
+                    assert!(!schema_expr.definitions.is_empty());
+                }
 
                 let has_default = set_container_default.is_some() || !field.serde_attrs.default().is_none();
                 let has_skip_serialize_if = field.serde_attrs.skip_serializing_if().is_some();
@@ -715,32 +728,15 @@ fn expr_for_struct(
                     })
                 };
 
-                let mut schema_expr = SchemaExpr::from(if field.attrs.validation.required {
-                    quote_spanned! {ty.span()=>
-                        <#ty as schemars::JsonSchema>::_schemars_private_non_optional_json_schema(#GENERATOR)
-                    }
-                } else {
-                    quote_spanned! {ty.span()=>
-                        #GENERATOR.subschema_for::<#ty>()
-                    }
-                });
-
-                field.add_mutators(&mut schema_expr.mutators);
-                if let Some(default) = field_default_expr(field, set_container_default.is_some()) {
-                    schema_expr.mutators.push(quote! {
-                        #default.and_then(|d| schemars::_schemars_maybe_to_value!(d))
-                            .map(|d| #SCHEMA.insert("default".to_owned(), d));
-                    });
-                }
-
-                // embed `#type_def` outside of `#schema_expr`, because it's used as a type param
-                // in `#is_optional` (`#type_def` is the definition of `#ty`)
+                // Embed definitions outside of `#schema_expr`, because they may contain the
+                // definition of the `#ty` type which is used in `#is_optional``
+                let definitions = core::mem::take(&mut schema_expr.definitions);
                 field.with_contract_check(quote!({
-                    #type_def
+                    #(#definitions)*
                     schemars::_private::insert_object_property(&mut #SCHEMA, #name, #is_optional, #schema_expr);
                 }))
             }
-            })
+        })
         .collect();
 
     let set_additional_properties = if deny_unknown_fields {
