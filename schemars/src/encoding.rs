@@ -1,7 +1,6 @@
 use crate::_alloc_prelude::*;
 use alloc::borrow::Cow;
-use std::fmt::Write as _;
-use std::string::String;
+use core::fmt::Write as _;
 
 /// Encodes a string for insertion into a JSON Pointer in URI fragment representation.
 pub fn encode_ref_name(name: &str) -> Cow<str> {
