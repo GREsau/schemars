@@ -20,6 +20,7 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+mod encoding;
 mod json_schema_impls;
 mod schema;
 mod ser;

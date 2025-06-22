@@ -269,8 +269,12 @@ impl Schema {
     {
         self.0.as_object_mut().and_then(|o| o.get_mut(key))
     }
+
     /// If the `Schema`'s underlying JSON value is an object, looks up a value within the schema
     /// by a JSON Pointer.
+    ///
+    /// If the given pointer begins with a `#`, then the rest of the value is assumed to be in
+    /// "URI Fragment Identifier Representation", and will be percent-decoded accordingly.
     ///
     /// For more information on JSON Pointer, read [RFC6901](https://tools.ietf.org/html/rfc6901).
     ///
@@ -284,14 +288,23 @@ impl Schema {
     /// let schema = json_schema!({
     ///     "properties": {
     ///         "anything": true
+    ///     },
+    ///     "$defs": {
+    ///         "🚀": true
     ///     }
     /// });
     ///
     /// assert_eq!(schema.pointer("/properties/anything").unwrap(), &json!(true));
-    /// assert_eq!(schema.pointer("/$defs/example"), None);
+    /// assert_eq!(schema.pointer("#/$defs/%F0%9F%9A%80").unwrap(), &json!(true));
+    /// assert_eq!(schema.pointer("/does/not/exist"), None);
     /// ```
     pub fn pointer(&self, pointer: &str) -> Option<&Value> {
-        self.0.pointer(pointer)
+        if let Some(percent_encoded) = pointer.strip_prefix('#') {
+            let decoded = crate::encoding::percent_decode(percent_encoded)?;
+            self.0.pointer(&decoded)
+        } else {
+            self.0.pointer(pointer)
+        }
     }
 
     /// If the `Schema`'s underlying JSON value is an object, looks up a value by a JSON Pointer
