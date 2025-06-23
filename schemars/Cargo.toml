@@ -86,4 +86,4 @@ required-features = ["_ui_test"]
 
 [package.metadata.docs.rs]
 all-features = true
-rustdoc-args = ["--extend-css", "docs-rs-custom.css"]
+
