@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.0.0] - 2025-06-23
+
+This is a major release with many additions, fixes and changes since 0.8 (but not many since 0.9). While the basic usage (deriving `JsonSchema` and using `schema_for!()` or `SchemaGenerator`) is mostly unchanged, you may wish to consult the [migration guide](https://graham.cool/schemars/migrating/) which covers some of the most significant changes.
+
+Changes since 1.0.0-rc.2:
+
+### Added
+
+- `#[schemars(bound = ...)]` attributes are now used from fields as well as containers
+- The [`Schema::pointer(...)`](https://docs.rs/schemars/1.0.0/schemars/struct.Schema.html#method.pointer) method now works when given a JSON pointer in URI Fragment representation with a leading `#` character. In particular, this means that you can now lookup a schema from a `$ref` value using that method.
+
+### Fixed
+
+- Schema names that contain special characters are now correctly encoded when used inside a `$ref` value (https://github.com/GREsau/schemars/pull/436)
+- Optimise type param usage in `SchemaGenerator::subschema_for`, reducing LLVM line count and improving compile times (https://github.com/GREsau/schemars/pull/439)
+
 ## [1.0.0-rc.2] - 2025-06-19
 
 ### Added

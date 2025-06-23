@@ -1,17 +1,8 @@
 # Schemars
 
-> [!NOTE]
-> This branch is for the current v1 alpha version of Schemars which is still under development.
->
-> The current stable release (v0.9.0) is identical to 1.0.0-alpha.18, but was made available for those who are unable to unwilling to use a pre-release version.
->
-> For the previous stable release of Schemars (v0.8.x), see the [v0 branch](https://github.com/GREsau/schemars/tree/v0).
->
-> For information on migrating from 0.8 to 0.9/1.0, see [the migration guide](https://graham.cool/schemars/migrating/).
-
 [![CI Build](https://img.shields.io/github/actions/workflow/status/GREsau/schemars/ci.yml?branch=master&logo=GitHub)](https://github.com/GREsau/schemars/actions)
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
-[![API Docs](https://img.shields.io/docsrs/schemars/1.0.0--latest?label=API%20docs)](https://docs.rs/schemars/1.0.0--latest)
+[![API Docs](https://img.shields.io/docsrs/schemars/latest?label=API%20docs)](https://docs.rs/schemars/latest)
 [![Usage Docs](https://img.shields.io/badge/Usage%20docs-graham.cool%2Fschemars-blue)](https://graham.cool/schemars)
 [![MSRV 1.74+](https://img.shields.io/badge/msrv-1.74-blue)](https://blog.rust-lang.org/2023/11/16/Rust-1.74.0/)
 
@@ -19,7 +10,7 @@ Generate JSON Schema documents from Rust code
 
 ## Basic Usage
 
-_For more detailed information, see the full [API documentation on docs.rs](https://docs.rs/schemars/1.0.0--latest), and the [detailed usage documentation website](https://graham.cool/schemars)._
+_For more detailed information, see the full [API documentation on docs.rs](https://docs.rs/schemars/latest), and the [detailed usage documentation website](https://graham.cool/schemars)._
 
 If you don't really care about the specifics, the easiest way to generate a JSON schema for your types is to `#[derive(JsonSchema)]` and use the `schema_for!` macro. All fields of the type must also implement `JsonSchema` - Schemars implements this for many standard library types.
 
