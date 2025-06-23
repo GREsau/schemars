@@ -6,12 +6,16 @@
     "associated": {
       "type": "string"
     },
+    "associated2": {
+      "type": "string"
+    },
     "phantom": {
       "type": "null"
     }
   },
   "required": [
     "associated",
+    "associated2",
     "phantom"
   ]
 }

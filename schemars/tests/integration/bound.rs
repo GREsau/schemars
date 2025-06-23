@@ -12,16 +12,17 @@ impl Iterator for MyIterator {
     }
 }
 
-// The default trait bounds would require T to implement JsonSchema, which MyIterator does not.
-// Ideally we wouldn't need the `bound` attribute here at all - it should be possible to better
-// infer automatic trait bounds (tracked in https://github.com/GREsau/schemars/issues/168)
+// The default trait bounds would require T/U to implement JsonSchema, which MyIterator does not.
 #[derive(JsonSchema, Serialize, Deserialize, Default)]
 #[schemars(bound = "T::Item: JsonSchema")]
-pub struct MyContainer<T>
+pub struct MyContainer<T, U>
 where
     T: Iterator,
+    U: Iterator,
 {
     pub associated: T::Item,
+    #[schemars(bound = "U::Item: JsonSchema")]
+    pub associated2: U::Item,
     pub phantom: PhantomData<T>,
     #[serde(skip)]
     pub _skipped: T,
@@ -29,17 +30,27 @@ where
 
 #[test]
 fn manual_bound_set() {
-    test!(MyContainer<MyIterator>)
+    test!(MyContainer<MyIterator, MyIterator>)
         // TODO with better bounds, this assertion would work:
         // .assert_identical::<MyContainer<core::slice::Iter<&str>>>()
         .assert_snapshot()
         .assert_allows_ser_roundtrip_default()
         .assert_allows_ser_roundtrip([MyContainer {
             associated: "test".to_owned(),
+            associated2: "test".to_owned(),
             phantom: PhantomData,
             _skipped: MyIterator,
         }])
         .assert_matches_de_roundtrip(arbitrary_values());
+
+    assert_ne!(
+        <MyContainer<MyIterator, MyIterator>>::schema_id(),
+        <MyContainer<core::slice::Iter<i32>, MyIterator>>::schema_id()
+    );
+    assert_ne!(
+        <MyContainer<MyIterator, MyIterator>>::schema_id(),
+        <MyContainer<MyIterator, core::slice::Iter<i32>>>::schema_id()
+    );
 }
 
 // `T` doesn't need to impl `JsonSchema`, but `U` does
