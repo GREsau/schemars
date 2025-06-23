@@ -294,51 +294,80 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [non-inlined](JsonSchema::inline_schema) schemas, then
     /// this method will add them to the `SchemaGenerator`'s schema definitions.
     pub fn subschema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
-        let uid = self.schema_uid::<T>();
-        let return_ref = !T::inline_schema()
-            && (!self.settings.inline_subschemas || self.pending_schema_ids.contains(&uid));
+        struct FindRef {
+            schema: Schema,
+            name_to_be_inserted: Option<CowStr>,
+        }
 
-        if return_ref {
-            if self.root_schema_id_stack.last() == Some(&uid) {
-                return Schema::new_ref("#".to_owned());
+        /// Non-generic inner function to improve compile times.
+        fn find_ref(
+            this: &mut SchemaGenerator,
+            uid: &SchemaUid,
+            inline_schema: bool,
+            schema_name: fn() -> CowStr,
+        ) -> Option<FindRef> {
+            let return_ref = !inline_schema
+                && (!this.settings.inline_subschemas || this.pending_schema_ids.contains(uid));
+
+            if !return_ref {
+                return None;
             }
 
-            let name = self
-                .schema_id_to_name
-                .get(&uid)
-                .cloned()
-                .unwrap_or_else(|| {
-                    let base_name = T::schema_name();
-                    let mut name = CowStr::Borrowed("");
-
-                    if self.used_schema_names.contains(base_name.as_ref()) {
-                        for i in 2.. {
-                            name = format!("{base_name}{i}").into();
-                            if !self.used_schema_names.contains(&name) {
-                                break;
-                            }
-                        }
-                    } else {
-                        name = base_name;
-                    }
-
-                    self.used_schema_names.insert(name.clone());
-                    self.schema_id_to_name.insert(uid.clone(), name.clone());
-                    name
+            if this.root_schema_id_stack.last() == Some(uid) {
+                return Some(FindRef {
+                    schema: Schema::new_ref("#".to_owned()),
+                    name_to_be_inserted: None,
                 });
+            }
+
+            let name = this.schema_id_to_name.get(uid).cloned().unwrap_or_else(|| {
+                let base_name = schema_name();
+                let mut name = CowStr::Borrowed("");
+
+                if this.used_schema_names.contains(base_name.as_ref()) {
+                    for i in 2.. {
+                        name = format!("{base_name}{i}").into();
+                        if !this.used_schema_names.contains(&name) {
+                            break;
+                        }
+                    }
+                } else {
+                    name = base_name;
+                }
+
+                this.used_schema_names.insert(name.clone());
+                this.schema_id_to_name.insert(uid.clone(), name.clone());
+                name
+            });
 
             let reference = format!(
                 "#{}/{}",
-                self.definitions_path_stripped(),
+                this.definitions_path_stripped(),
                 crate::encoding::encode_ref_name(&name)
             );
-            if !self.definitions.contains_key(name.as_ref()) {
-                self.insert_new_subschema_for::<T>(name, &uid);
-            }
-            Schema::new_ref(reference)
-        } else {
-            self.json_schema_internal::<T>(&uid)
+
+            Some(FindRef {
+                schema: Schema::new_ref(reference),
+                name_to_be_inserted: (!this.definitions().contains_key(name.as_ref()))
+                    .then_some(name),
+            })
         }
+
+        let uid = self.schema_uid::<T>();
+
+        let Some(FindRef {
+            schema,
+            name_to_be_inserted,
+        }) = find_ref(self, &uid, T::inline_schema(), T::schema_name)
+        else {
+            return self.json_schema_internal::<T>(&uid);
+        };
+
+        if let Some(name) = name_to_be_inserted {
+            self.insert_new_subschema_for::<T>(name, &uid);
+        }
+
+        schema
     }
 
     fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: CowStr, uid: &SchemaUid) {
