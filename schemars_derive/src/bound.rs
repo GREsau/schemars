@@ -23,7 +23,10 @@ pub fn find_trait_bounds<'a>(orig_generics: &'a syn::Generics, cont: &mut Contai
     let mut visitor = FindTyParams {
         all_type_params,
         relevant_type_params: cont.rename_type_params.clone(),
+        type_params_for_bound: cont.rename_type_params.clone(),
     };
+
+    let mut field_explicit_bounds = Vec::new();
 
     if visitor.all_type_params.len() > visitor.relevant_type_params.len() {
         match &cont.data {
@@ -35,6 +38,7 @@ pub fn find_trait_bounds<'a>(orig_generics: &'a syn::Generics, cont: &mut Contai
                         .filter(|field| needs_jsonschema_bound(field, Some(variant)));
 
                     for field in relevant_fields {
+                        field_explicit_bounds.extend(field.serde_attrs.de_bound());
                         visitor.visit_field(field);
                     }
                 }
@@ -45,6 +49,7 @@ pub fn find_trait_bounds<'a>(orig_generics: &'a syn::Generics, cont: &mut Contai
                     .filter(|field| needs_jsonschema_bound(field, None));
 
                 for field in relevant_fields {
+                    field_explicit_bounds.extend(field.serde_attrs.de_bound());
                     visitor.visit_field(field);
                 }
             }
@@ -60,7 +65,7 @@ pub fn find_trait_bounds<'a>(orig_generics: &'a syn::Generics, cont: &mut Contai
     } else {
         where_clause
             .predicates
-            .extend(cont.relevant_type_params.iter().map(|ty| {
+            .extend(visitor.type_params_for_bound.into_iter().map(|ty| {
                 syn::WherePredicate::Type(syn::PredicateType {
                     lifetimes: None,
                     bounded_ty: syn::Type::Path(syn::TypePath {
@@ -83,6 +88,10 @@ pub fn find_trait_bounds<'a>(orig_generics: &'a syn::Generics, cont: &mut Contai
                 })
             }));
     }
+
+    where_clause
+        .predicates
+        .extend(field_explicit_bounds.into_iter().flatten().cloned());
 }
 
 fn needs_jsonschema_bound(field: &Field, variant: Option<&Variant>) -> bool {
@@ -91,6 +100,7 @@ fn needs_jsonschema_bound(field: &Field, variant: Option<&Variant>) -> bool {
             return false;
         }
     }
+
     if field.serde_attrs.skip_deserializing() && field.serde_attrs.skip_serializing() {
         return false;
     }
@@ -101,21 +111,22 @@ fn needs_jsonschema_bound(field: &Field, variant: Option<&Variant>) -> bool {
 struct FindTyParams<'ast> {
     all_type_params: BTreeSet<&'ast Ident>,
     relevant_type_params: BTreeSet<&'ast Ident>,
+    type_params_for_bound: BTreeSet<&'ast Ident>,
 }
 
 #[allow(clippy::match_same_arms)]
 impl FindTyParams<'_> {
     fn visit_field(&mut self, field: &Field) {
         match &field.attrs.with {
-            Some(WithAttr::Type(ty)) => self.visit_type(ty),
+            Some(WithAttr::Type(ty)) => self.visit_type(field, ty),
             Some(WithAttr::Function(_)) => {
                 // `schema_with` function type params may or may not implement `JsonSchema`
             }
-            None => self.visit_type(&field.original.ty),
+            None => self.visit_type(field, &field.original.ty),
         }
     }
 
-    fn visit_path(&mut self, path: &syn::Path) {
+    fn visit_path(&mut self, field: &Field, path: &syn::Path) {
         if let Some(seg) = path.segments.last() {
             if seg.ident == "PhantomData" {
                 // Hardcoded exception, because PhantomData<T> implements
@@ -129,51 +140,54 @@ impl FindTyParams<'_> {
                 let id = &first_segment.ident;
                 if let Some(id) = self.all_type_params.get(id) {
                     self.relevant_type_params.insert(id);
+                    if field.serde_attrs.de_bound().is_none() {
+                        self.type_params_for_bound.insert(id);
+                    }
                 }
             }
         }
 
         for segment in &path.segments {
-            self.visit_path_segment(segment);
+            self.visit_path_segment(field, segment);
         }
     }
 
-    fn visit_type(&mut self, ty: &syn::Type) {
+    fn visit_type(&mut self, field: &Field, ty: &syn::Type) {
         match ty {
-            syn::Type::Array(ty) => self.visit_type(&ty.elem),
+            syn::Type::Array(ty) => self.visit_type(field, &ty.elem),
             syn::Type::BareFn(ty) => {
                 for arg in &ty.inputs {
-                    self.visit_type(&arg.ty);
+                    self.visit_type(field, &arg.ty);
                 }
-                self.visit_return_type(&ty.output);
+                self.visit_return_type(field, &ty.output);
             }
-            syn::Type::Group(ty) => self.visit_type(&ty.elem),
+            syn::Type::Group(ty) => self.visit_type(field, &ty.elem),
             syn::Type::ImplTrait(ty) => {
                 for bound in &ty.bounds {
-                    self.visit_type_param_bound(bound);
+                    self.visit_type_param_bound(field, bound);
                 }
             }
-            syn::Type::Macro(ty) => self.visit_macro(&ty.mac),
-            syn::Type::Paren(ty) => self.visit_type(&ty.elem),
+            syn::Type::Macro(ty) => self.visit_macro(field, &ty.mac),
+            syn::Type::Paren(ty) => self.visit_type(field, &ty.elem),
             syn::Type::Path(ty) => {
                 if let Some(qself) = &ty.qself {
-                    self.visit_type(&qself.ty);
+                    self.visit_type(field, &qself.ty);
                 }
-                self.visit_path(&ty.path);
+                self.visit_path(field, &ty.path);
             }
-            syn::Type::Ptr(ty) => self.visit_type(&ty.elem),
+            syn::Type::Ptr(ty) => self.visit_type(field, &ty.elem),
             syn::Type::Reference(ty) => {
-                self.visit_type(&ty.elem);
+                self.visit_type(field, &ty.elem);
             }
-            syn::Type::Slice(ty) => self.visit_type(&ty.elem),
+            syn::Type::Slice(ty) => self.visit_type(field, &ty.elem),
             syn::Type::TraitObject(ty) => {
                 for bound in &ty.bounds {
-                    self.visit_type_param_bound(bound);
+                    self.visit_type_param_bound(field, bound);
                 }
             }
             syn::Type::Tuple(ty) => {
                 for elem in &ty.elems {
-                    self.visit_type(elem);
+                    self.visit_type(field, elem);
                 }
             }
 
@@ -183,18 +197,18 @@ impl FindTyParams<'_> {
         }
     }
 
-    fn visit_path_segment(&mut self, segment: &syn::PathSegment) {
-        self.visit_path_arguments(&segment.arguments);
+    fn visit_path_segment(&mut self, field: &Field, segment: &syn::PathSegment) {
+        self.visit_path_arguments(field, &segment.arguments);
     }
 
-    fn visit_path_arguments(&mut self, arguments: &syn::PathArguments) {
+    fn visit_path_arguments(&mut self, field: &Field, arguments: &syn::PathArguments) {
         match arguments {
             syn::PathArguments::None => {}
             syn::PathArguments::AngleBracketed(arguments) => {
                 for arg in &arguments.args {
                     match arg {
-                        syn::GenericArgument::Type(arg) => self.visit_type(arg),
-                        syn::GenericArgument::AssocType(arg) => self.visit_type(&arg.ty),
+                        syn::GenericArgument::Type(arg) => self.visit_type(field, arg),
+                        syn::GenericArgument::AssocType(arg) => self.visit_type(field, &arg.ty),
                         syn::GenericArgument::Lifetime(_)
                         | syn::GenericArgument::Const(_)
                         | syn::GenericArgument::AssocConst(_)
@@ -205,23 +219,23 @@ impl FindTyParams<'_> {
             }
             syn::PathArguments::Parenthesized(arguments) => {
                 for argument in &arguments.inputs {
-                    self.visit_type(argument);
+                    self.visit_type(field, argument);
                 }
-                self.visit_return_type(&arguments.output);
+                self.visit_return_type(field, &arguments.output);
             }
         }
     }
 
-    fn visit_return_type(&mut self, return_type: &syn::ReturnType) {
+    fn visit_return_type(&mut self, field: &Field, return_type: &syn::ReturnType) {
         match return_type {
             syn::ReturnType::Default => {}
-            syn::ReturnType::Type(_, output) => self.visit_type(output),
+            syn::ReturnType::Type(_, output) => self.visit_type(field, output),
         }
     }
 
-    fn visit_type_param_bound(&mut self, bound: &syn::TypeParamBound) {
+    fn visit_type_param_bound(&mut self, field: &Field, bound: &syn::TypeParamBound) {
         match bound {
-            syn::TypeParamBound::Trait(bound) => self.visit_path(&bound.path),
+            syn::TypeParamBound::Trait(bound) => self.visit_path(field, &bound.path),
             syn::TypeParamBound::Lifetime(_)
             | syn::TypeParamBound::PreciseCapture(_)
             | syn::TypeParamBound::Verbatim(_) => {}
@@ -236,7 +250,7 @@ impl FindTyParams<'_> {
     //         marker: PhantomData<T>,
     //     }
     #[allow(clippy::unused_self)]
-    fn visit_macro(&mut self, _mac: &syn::Macro) {}
+    fn visit_macro(&mut self, _field: &Field, _mac: &syn::Macro) {}
 }
 
 #[cfg(test)]
