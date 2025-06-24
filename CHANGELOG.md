@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.1] - 2025-06-24
+
+### Fixed
+
+- Deriving `JsonSchema` with `no_std` broken due to `std::borrow::ToOwned` trait not being in scope (https://github.com/GREsau/schemars/issues/441)
+
 ## [1.0.0] - 2025-06-23
 
 This is a major release with many additions, fixes and changes since 0.8 (but not many since 0.9). While the basic usage (deriving `JsonSchema` and using `schema_for!()` or `SchemaGenerator`) is mostly unchanged, you may wish to consult the [migration guide](https://graham.cool/schemars/migrating/) which covers some of the most significant changes.
