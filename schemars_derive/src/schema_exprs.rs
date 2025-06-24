@@ -587,7 +587,7 @@ fn expr_for_untagged_enum_variant(
             let title = variant.name();
             schema_expr.mutators.push(quote! {
                 if #GENERATOR.settings().untagged_enum_variant_titles {
-                    #SCHEMA.insert("title".to_owned(), #title.into());
+                    #SCHEMA.insert("title".into(), #title.into());
                 }
             });
         }
@@ -701,7 +701,7 @@ fn expr_for_struct(
                 if let Some(default) = field_default_expr(field, set_container_default.is_some()) {
                     schema_expr.mutators.push(quote! {
                         #default.and_then(|d| schemars::_schemars_maybe_to_value!(d))
-                            .map(|d| #SCHEMA.insert("default".to_owned(), d));
+                            .map(|d| #SCHEMA.insert("default".into(), d));
                     });
                 }
 

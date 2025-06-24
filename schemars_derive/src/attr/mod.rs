@@ -204,7 +204,7 @@ impl CommonAttrs {
 
         if self.deprecated {
             mutators.push(quote! {
-                #SCHEMA.insert("deprecated".to_owned(), true.into());
+                #SCHEMA.insert("deprecated".into(), true.into());
             });
         }
 
@@ -215,13 +215,13 @@ impl CommonAttrs {
                 }
             });
             mutators.push(quote! {
-                #SCHEMA.insert("examples".to_owned(), schemars::_private::serde_json::Value::Array([#(#examples),*].into_iter().flatten().collect()));
+                #SCHEMA.insert("examples".into(), schemars::_private::serde_json::Value::Array([#(#examples),*].into_iter().flatten().collect()));
             });
         }
 
         for (k, v) in &self.extensions {
             mutators.push(quote! {
-                #SCHEMA.insert(#k.to_owned(), schemars::_private::serde_json::json!(#v));
+                #SCHEMA.insert(#k.into(), schemars::_private::serde_json::json!(#v));
             });
         }
 

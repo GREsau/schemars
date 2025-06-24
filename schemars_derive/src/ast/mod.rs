@@ -113,12 +113,12 @@ impl Field<'_> {
 
         if self.serde_attrs.skip_deserializing() {
             mutators.push(quote! {
-                #SCHEMA.insert("readOnly".to_owned(), true.into());
+                #SCHEMA.insert("readOnly".into(), true.into());
             });
         }
         if self.serde_attrs.skip_serializing() {
             mutators.push(quote! {
-                #SCHEMA.insert("writeOnly".to_owned(), true.into());
+                #SCHEMA.insert("writeOnly".into(), true.into());
             });
         }
     }
