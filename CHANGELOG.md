@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.2] - 2025-06-26
+
+### Fixed
+
+- Fix schema properties being incorrectly reordered during serialization (https://github.com/GREsau/schemars/issues/444)
+
 ## [1.0.1] - 2025-06-24
 
 ### Fixed
