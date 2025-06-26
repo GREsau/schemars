@@ -81,7 +81,7 @@ impl Serialize for Schema {
     where
         S: serde::Serializer,
     {
-        ser::OrderedKeywordWrapper(&self.0).serialize(serializer)
+        ser::OrderedKeywordWrapper::from(&self.0).serialize(serializer)
     }
 }
 
@@ -482,27 +482,86 @@ mod ser {
     ];
     const ORDERED_KEYWORDS_END: [&str; 2] = ["$defs", "definitions"];
 
-    pub(super) struct OrderedKeywordWrapper<'a>(pub &'a Value);
+    // `no_reorder` is true when the value is expected to be an object that is NOT a schema,
+    // but the object's property values are expected to be schemas. In this case, we do not
+    // reorder the object's direct properties, but we do reorder nested (subschema) properties.
+    //
+    // When `no_reorder` is false, then the value is expected to be one of:
+    // - a JSON schema object
+    // - an array of JSON schemas
+    // - a JSON primitive value (null/string/number/bool)
+    //
+    // If any of these expectations are not met, then the value should still be serialized in a
+    // valid way, but the property ordering may be unclear.
+    pub(super) struct OrderedKeywordWrapper<'a> {
+        value: &'a Value,
+        no_reorder: bool,
+    }
+
+    impl<'a> From<&'a Value> for OrderedKeywordWrapper<'a> {
+        fn from(value: &'a Value) -> Self {
+            Self {
+                value,
+                no_reorder: false,
+            }
+        }
+    }
 
     impl Serialize for OrderedKeywordWrapper<'_> {
         fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
         where
             S: serde::Serializer,
         {
-            match self.0 {
+            fn serialize_schema_property<S>(
+                map: &mut S::SerializeMap,
+                key: &str,
+                value: &Value,
+            ) -> Result<(), S::Error>
+            where
+                S: serde::Serializer,
+            {
+                if matches!(key, "examples" | "default") || key.starts_with("x-") {
+                    // Value(s) of `examples`/`default` are plain values, not schemas.
+                    // Also don't reorder values of custom properties.
+                    map.serialize_entry(key, value)
+                } else {
+                    let no_reorder = matches!(
+                        key,
+                        "properties"
+                            | "patternProperties"
+                            | "dependentSchemas"
+                            | "$defs"
+                            | "definitions"
+                    );
+                    map.serialize_entry(key, &OrderedKeywordWrapper { value, no_reorder })
+                }
+            }
+
+            match self.value {
                 Value::Array(array) => {
                     let mut seq = serializer.serialize_seq(Some(array.len()))?;
                     for value in array {
-                        seq.serialize_element(&OrderedKeywordWrapper(value))?;
+                        seq.serialize_element(&OrderedKeywordWrapper::from(value))?;
                     }
                     seq.end()
+                }
+                Value::Object(object) if self.no_reorder => {
+                    let mut map = serializer.serialize_map(Some(object.len()))?;
+
+                    for (key, value) in object {
+                        // Don't use `serialize_schema_property` because `object` is NOT expected
+                        // to be a schema (but `value` is expected to be a schema)
+                        map.serialize_entry(key, &OrderedKeywordWrapper::from(value))?;
+                    }
+
+                    map.end()
                 }
                 Value::Object(object) => {
                     let mut map = serializer.serialize_map(Some(object.len()))?;
 
                     for key in ORDERED_KEYWORDS_START {
                         if let Some(value) = object.get(key) {
-                            map.serialize_entry(key, &OrderedKeywordWrapper(value))?;
+                            serialize_schema_property::<S>(&mut map, key, value)?;
                         }
                     }
 
@@ -510,19 +569,21 @@ mod ser {
                         if !ORDERED_KEYWORDS_START.contains(&key.as_str())
                             && !ORDERED_KEYWORDS_END.contains(&key.as_str())
                         {
-                            map.serialize_entry(key, &OrderedKeywordWrapper(value))?;
+                            serialize_schema_property::<S>(&mut map, key, value)?;
                         }
                     }
 
                     for key in ORDERED_KEYWORDS_END {
                         if let Some(value) = object.get(key) {
-                            map.serialize_entry(key, &OrderedKeywordWrapper(value))?;
+                            serialize_schema_property::<S>(&mut map, key, value)?;
                         }
                     }
 
                     map.end()
                 }
-                _ => self.0.serialize(serializer),
+                Value::Null | Value::Bool(_) | Value::Number(_) | Value::String(_) => {
+                    self.value.serialize(serializer)
+                }
             }
         }
     }
