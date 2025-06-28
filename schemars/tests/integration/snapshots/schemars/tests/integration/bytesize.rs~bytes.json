@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ByteSize",
+  "oneOf": [
+    {
+      "type": "integer",
+      "minimum": 0
+    },
+    {
+      "type": "string",
+      "pattern": "^(\\d+(\\.\\d+)?)\\s*((?i)(b)|([kmgtpe]((b)|(ib))?))?$"
+    }
+  ]
+}
