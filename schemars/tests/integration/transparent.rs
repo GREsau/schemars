@@ -18,6 +18,7 @@ fn transparent_struct() {
 #[serde(transparent)]
 /// A doc comment
 pub struct TransparentStructWithDoc {
+    /// Another doc comment (ignored)
     inner: String,
 }
 
