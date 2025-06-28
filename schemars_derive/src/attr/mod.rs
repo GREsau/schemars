@@ -183,13 +183,18 @@ impl CommonAttrs {
         let mut title = self.title.as_ref().map(ToTokens::to_token_stream);
         let mut description = self.description.as_ref().map(ToTokens::to_token_stream);
         if let Some(doc) = &self.doc {
-            if title.is_none() || description.is_none() {
-                mutators.push(quote!{
-                    const title_and_description: (&str, &str) = schemars::_private::get_title_and_description(#doc);
-                });
-                title.get_or_insert_with(|| quote!(title_and_description.0));
-                description.get_or_insert_with(|| quote!(title_and_description.1));
-            }
+            title.get_or_insert_with(|| {
+                quote!({
+                    const TITLE: &str = schemars::_private::get_title_and_description(#doc).0;
+                    TITLE
+                })
+            });
+            description.get_or_insert_with(|| {
+                quote!({
+                    const DESCRIPTION: &str = schemars::_private::get_title_and_description(#doc).1;
+                    DESCRIPTION
+                })
+            });
         }
         if let Some(title) = title {
             mutators.push(quote! {
