@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3] - 2025-06-28
+
+### Fixed
+
+- Fix compile error when a doc comment is set on both a `transparent` (or newtype) struct and its field (https://github.com/GREsau/schemars/issues/446)
+- Fix `json_schema!()` macro compatibility when used from pre-2021 rust editions (https://github.com/GREsau/schemars/pull/447)
+
 ## [1.0.2] - 2025-06-26
 
 ### Fixed
