@@ -1,7 +1,7 @@
 use crate::_alloc_prelude::*;
 use crate::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use alloc::borrow::Cow;
-use alloc::collections::BTreeMap;
+use alloc::collections::{BTreeMap, BTreeSet};
 use serde_json::{Map, Value};
 
 #[derive(Ord, PartialOrd, Eq, PartialEq, Copy, Clone)]
@@ -70,8 +70,8 @@ where
 
         let mut additional_properties = false;
         let mut support_integers = IntegerSupport::None;
-        let mut patterns = Vec::new();
-        let mut properties = Vec::new();
+        let mut patterns = BTreeSet::new();
+        let mut properties = BTreeSet::new();
         for option in options {
             let key_pattern = option.get("pattern").and_then(Value::as_str);
             let key_enum = option
@@ -82,10 +82,12 @@ where
             let key_minimum = option.get("minimum").and_then(Value::as_u64);
 
             match (key_pattern, key_enum, key_type) {
-                (Some(pattern), _, Some("string")) => patterns.push(pattern),
+                (Some(pattern), _, Some("string")) => {
+                    patterns.insert(pattern);
+                }
                 (None, Some(enum_values), Some("string")) => {
                     for value in enum_values {
-                        properties.push(value);
+                        properties.insert(value);
                     }
                 }
                 (_, _, Some("integer")) if key_minimum == Some(0) => {
@@ -112,10 +114,10 @@ where
         match support_integers {
             IntegerSupport::None => {}
             IntegerSupport::Unsigned => {
-                patterns.push(r"^\d+$");
+                patterns.insert(r"^\d+$");
             }
             IntegerSupport::Signed => {
-                patterns.push(r"^-?\d+$");
+                patterns.insert(r"^-?\d+$");
             }
         }
 
@@ -131,9 +133,11 @@ where
 
         if !properties.is_empty() {
             let mut properties_map = Map::new();
+
             for property in properties {
                 properties_map.insert(property.to_owned(), value_schema.clone().to_value());
             }
+
             map_schema.insert("properties".to_owned(), Value::Object(properties_map));
         }
 
