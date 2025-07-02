@@ -107,10 +107,13 @@ where
         }
 
         if additional_properties {
-            map_schema.insert("additionalProperties".to_owned(), value_schema.to_value());
-            return map_schema;
+            map_schema.insert(
+                "additionalProperties".to_owned(),
+                value_schema.clone().to_value(),
+            );
+        } else {
+            map_schema.insert("additionalProperties".to_owned(), Value::Bool(false));
         }
-        map_schema.insert("additionalProperties".to_owned(), Value::Bool(false));
 
         match support_integers {
             IntegerSupport::None => {}
