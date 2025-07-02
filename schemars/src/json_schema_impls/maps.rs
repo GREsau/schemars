@@ -88,9 +88,6 @@ where
                         properties.push(value);
                     }
                 }
-                (None, None, Some("string")) => {
-                    additional_properties = true;
-                }
                 (_, _, Some("integer")) if key_minimum == Some(0) => {
                     support_integers = support_integers.max(IntegerSupport::Unsigned);
                 }
@@ -98,10 +95,7 @@ where
                     support_integers = support_integers.max(IntegerSupport::Signed);
                 }
                 _ => {
-                    return json_schema!({
-                        "additionalProperties": value_schema,
-                        "type": "object",
-                    });
+                    additional_properties = true;
                 }
             }
         }
