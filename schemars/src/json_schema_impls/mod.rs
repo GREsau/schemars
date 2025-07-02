@@ -88,6 +88,9 @@ forward_impl!((<A: smallvec1::Array> crate::JsonSchema for smallvec1::SmallVec<A
 #[cfg(feature = "smol_str02")]
 forward_impl!(smol_str02::SmolStr => alloc::string::String);
 
+#[cfg(feature = "arcstr1")]
+forward_impl!(arcstr1::ArcStr => alloc::string::String);
+
 #[cfg(feature = "url2")]
 mod url2;
 
