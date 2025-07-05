@@ -52,7 +52,6 @@ mod std_time;
 mod tuple;
 mod wrapper;
 
-#[cfg(target_has_atomic)]
 mod atomic;
 
 #[cfg(feature = "std")]
