@@ -39,6 +39,11 @@
       ]
     },
     {
+      "title": "EmptyTuple",
+      "type": "array",
+      "maxItems": 0
+    },
+    {
       "title": "Tuple",
       "type": "array",
       "prefixItems": [

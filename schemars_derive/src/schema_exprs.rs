@@ -649,16 +649,22 @@ fn expr_for_tuple_struct(cont: &Container, fields: &[Field]) -> SchemaExpr {
         })
         .collect();
 
+    let max_len = fields.len();
+
+    // The length check must be done at runtime because it can vary based on the contract if any
+    // items have `skip_serializing` or `skip_deserializing` attributes.
     quote!({
-        let mut prefix_items = schemars::_private::alloc::vec::Vec::new();
+        let mut prefix_items = schemars::_private::alloc::vec::Vec::<schemars::_private::serde_json::Value>::with_capacity(#max_len);
         #(#fields)*
-        let len = schemars::_private::serde_json::Value::from(prefix_items.len());
+        let len = prefix_items.len();
 
         let mut map = schemars::_private::serde_json::Map::new();
         map.insert("type".into(), "array".into());
-        map.insert("prefixItems".into(), prefix_items.into());
-        map.insert("minItems".into(), len.clone());
-        map.insert("maxItems".into(), len);
+        if !prefix_items.is_empty() {
+            map.insert("prefixItems".into(), prefix_items.into());
+            map.insert("minItems".into(), len.into());
+        }
+        map.insert("maxItems".into(), len.into());
 
         schemars::Schema::from(map)
     })

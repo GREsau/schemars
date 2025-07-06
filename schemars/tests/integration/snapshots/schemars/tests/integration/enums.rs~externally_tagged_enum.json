@@ -76,6 +76,19 @@
     {
       "type": "object",
       "properties": {
+        "emptyTuple": {
+          "type": "array",
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "emptyTuple"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
         "tuple": {
           "type": "array",
           "prefixItems": [

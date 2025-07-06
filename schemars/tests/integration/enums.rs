@@ -23,6 +23,7 @@ enum External {
         foo: i32,
         bar: bool,
     },
+    EmptyTuple(),
     Tuple(i32, bool),
     UnitTwo,
     #[serde(with = "unit_variant_as_u64")]
@@ -51,6 +52,8 @@ impl External {
                 foo: 123,
                 bar: true,
             },
+            // Ignored due to https://github.com/serde-rs/json/issues/1084
+            // Self::EmptyTuple(),
             Self::Tuple(456, false),
             Self::UnitTwo,
             Self::UnitAsInt,
@@ -68,6 +71,7 @@ enum Internal {
     StructNewType(Struct),
     Struct { foo: i32, bar: bool },
     // Internally-tagged enums don't support tuple variants
+    //  EmptyTuple(),
     //  Tuple(i32, bool),
     UnitTwo,
     // Internally-tagged enum variants don't support non-object "payloads"
@@ -98,6 +102,7 @@ impl Internal {
                 foo: 123,
                 bar: true,
             },
+            // Self::EmptyTuple(),
             // Self::Tuple(456, false),
             Self::UnitTwo,
             // Self::UnitAsInt,
@@ -117,6 +122,7 @@ enum Adjacent {
         foo: i32,
         bar: bool,
     },
+    EmptyTuple(),
     Tuple(i32, bool),
     UnitTwo,
     #[serde(with = "unit_variant_as_u64")]
@@ -145,6 +151,7 @@ impl Adjacent {
                 foo: 123,
                 bar: true,
             },
+            Self::EmptyTuple(),
             Self::Tuple(456, false),
             Self::UnitTwo,
             Self::UnitAsInt,
@@ -164,6 +171,7 @@ enum Untagged {
         foo: i32,
         bar: bool,
     },
+    EmptyTuple(),
     Tuple(i32, bool),
     UnitTwo,
     #[serde(with = "unit_variant_as_u64")]
@@ -192,6 +200,7 @@ impl Untagged {
                 foo: 123,
                 bar: true,
             },
+            Self::EmptyTuple(),
             Self::Tuple(456, false),
             Self::UnitTwo,
             Self::UnitAsInt,
