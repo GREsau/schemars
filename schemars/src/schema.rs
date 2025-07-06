@@ -388,11 +388,9 @@ impl Schema {
         Err(E::invalid_type(unexpected, &"object or boolean"))
     }
 
-    #[allow(unsafe_code)]
     #[ref_cast_custom]
     fn ref_cast(value: &Value) -> &Self;
 
-    #[allow(unsafe_code)]
     #[ref_cast_custom]
     fn ref_cast_mut(value: &mut Value) -> &mut Self;
 }
