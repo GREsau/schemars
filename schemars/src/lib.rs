@@ -1,5 +1,5 @@
+#![forbid(unsafe_code)]
 #![deny(
-    unsafe_code,
     missing_docs,
     unused_imports,
     clippy::cargo,
