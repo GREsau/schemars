@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.4] - 2025-07-06
+
+### Fixed
+
+- Fix `JsonSchema` impl on [atomic](https://doc.rust-lang.org/std/sync/atomic/) types being ignored on non-nightly compilers due to a buggy `cfg` check (https://github.com/GREsau/schemars/issues/453)
+- Fix compatibility with minimal dependency versions, e.g. old(-ish) versions of `syn` (https://github.com/GREsau/schemars/issues/450)
+- Fix derive for empty tuple variants (https://github.com/GREsau/schemars/issues/455)
+
 ## [1.0.3] - 2025-06-28
 
 ### Fixed
