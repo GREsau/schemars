@@ -114,7 +114,7 @@ struct FindTyParams<'ast> {
     type_params_for_bound: BTreeSet<&'ast Ident>,
 }
 
-#[allow(clippy::match_same_arms)]
+#[allow(clippy::single_match)]
 impl FindTyParams<'_> {
     fn visit_field(&mut self, field: &Field) {
         match &field.attrs.with {
@@ -190,9 +190,6 @@ impl FindTyParams<'_> {
                     self.visit_type(field, elem);
                 }
             }
-
-            syn::Type::Infer(_) | syn::Type::Never(_) | syn::Type::Verbatim(_) => {}
-
             _ => {}
         }
     }
@@ -209,10 +206,6 @@ impl FindTyParams<'_> {
                     match arg {
                         syn::GenericArgument::Type(arg) => self.visit_type(field, arg),
                         syn::GenericArgument::AssocType(arg) => self.visit_type(field, &arg.ty),
-                        syn::GenericArgument::Lifetime(_)
-                        | syn::GenericArgument::Const(_)
-                        | syn::GenericArgument::AssocConst(_)
-                        | syn::GenericArgument::Constraint(_) => {}
                         _ => {}
                     }
                 }
@@ -236,9 +229,6 @@ impl FindTyParams<'_> {
     fn visit_type_param_bound(&mut self, field: &Field, bound: &syn::TypeParamBound) {
         match bound {
             syn::TypeParamBound::Trait(bound) => self.visit_path(field, &bound.path),
-            syn::TypeParamBound::Lifetime(_)
-            | syn::TypeParamBound::PreciseCapture(_)
-            | syn::TypeParamBound::Verbatim(_) => {}
             _ => {}
         }
     }
