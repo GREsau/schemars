@@ -47,6 +47,8 @@ mod skip;
 mod smallvec;
 #[cfg(feature = "smol_str02")]
 mod smol_str;
+#[cfg(feature = "arcstr1")]
+mod arcstr;
 mod std_types;
 mod structs;
 mod transform;
