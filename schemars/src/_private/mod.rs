@@ -54,7 +54,21 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
     let mut schema = T::_schemars_private_non_optional_json_schema(generator);
 
     if T::_schemars_private_is_option() && !required {
-        schema.remove("required");
+        let complex = match schema.try_as_object_mut() {
+            Ok(schema_obj) => contains_immediate_subschema(schema_obj),
+            Err(_) => false,
+        };
+        if complex {
+            schema = json_schema!({
+                "anyOf": [
+                    schema,
+                    //<()>::json_schema(generator)
+                    {}
+                ]
+            });
+        } else {
+            schema.remove("required");
+        }
     }
 
     // Always allow aditional/unevaluated properties, because the outer struct determines

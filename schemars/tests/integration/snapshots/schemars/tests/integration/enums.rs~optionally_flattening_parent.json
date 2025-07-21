@@ -1,0 +1,94 @@
+{
+  "$defs": {
+    "Struct": {
+      "properties": {
+        "bar": {
+          "type": "boolean"
+        },
+        "foo": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "foo",
+        "bar"
+      ],
+      "type": "object"
+    },
+    "UnitStruct": {
+      "type": "null"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "anyOf": [
+        {
+          "type": "null"
+        },
+        {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        {
+          "$ref": "#/$defs/UnitStruct"
+        },
+        {
+          "$ref": "#/$defs/Struct"
+        },
+        {
+          "properties": {
+            "bar": {
+              "type": "boolean"
+            },
+            "foo": {
+              "format": "int32",
+              "type": "integer"
+            }
+          },
+          "required": [
+            "foo",
+            "bar"
+          ],
+          "type": "object"
+        },
+        {
+          "maxItems": 0,
+          "type": "array"
+        },
+        {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "format": "int32",
+              "type": "integer"
+            },
+            {
+              "type": "boolean"
+            }
+          ],
+          "type": "array"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "pattern": "^\\d+ (true|false)$",
+          "type": "string"
+        }
+      ]
+    },
+    {}
+  ],
+  "title": "OptionallyFlatteningParent",
+  "type": "object"
+}

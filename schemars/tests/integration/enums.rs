@@ -209,6 +209,18 @@ impl Untagged {
     }
 }
 
+#[derive(JsonSchema, Deserialize, Serialize)]
+pub enum FlattenableEnum {
+    A { a: String },
+    B { b: String },
+}
+
+#[derive(JsonSchema, Deserialize, Serialize)]
+pub struct FlattenableOptionalParent {
+    #[serde(flatten)]
+    parent: Option<FlattenableEnum>,
+}
+
 mod unit_variant_as_u64 {
     pub(super) fn serialize<S>(ser: S) -> Result<S::Ok, S::Error>
     where
@@ -387,4 +399,23 @@ fn unit_variants_with_doc_comments() {
                 Some(&("A name I call myself".into())),
             );
         });
+}
+
+#[test]
+fn flatten_optional_enum() {
+    test!(FlattenableOptionalParent)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip([
+            FlattenableOptionalParent { parent: None },
+            FlattenableOptionalParent {
+                parent: Some(FlattenableEnum::A {
+                    a: "test1".to_string(),
+                }),
+            },
+            FlattenableOptionalParent {
+                parent: Some(FlattenableEnum::B {
+                    b: "test2".to_string(),
+                }),
+            },
+        ]);
 }

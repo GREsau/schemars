@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "oneOf": [
+        {
+          "properties": {
+            "A": {
+              "properties": {
+                "a": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "a"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "A"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "B": {
+              "properties": {
+                "b": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "b"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "B"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    {}
+  ],
+  "title": "FlattenableOptionalParent",
+  "type": "object"
+}
