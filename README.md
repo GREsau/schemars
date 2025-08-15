@@ -283,6 +283,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `smol_str02` - [smol_str](https://crates.io/crates/smol_str) (^0.2.1)
 - `url2` - [url](https://crates.io/crates/url) (^2.0)
 - `uuid1` - [uuid](https://crates.io/crates/uuid) (^1.0)
+- `time03` - [time](https://crates.io/crates/time) (^0.3)
 
 Bear in mind that each of these feature flags _may_ be removed in a future semver-minor change of Schemars, particularly if a newer semver-incompatible version of the external library has been released for a long time. This is unfortunately necessary to avoid supporting old/unmaintained libraries indefinitely.
 
