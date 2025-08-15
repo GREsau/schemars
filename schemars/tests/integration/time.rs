@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use time03::{Date, OffsetDateTime, PrimitiveDateTime, Time, UtcOffset};
+use time03::{Date, OffsetDateTime, PrimitiveDateTime, Time};
 
 #[derive(JsonSchema, Serialize, Deserialize)]
 struct TimeTypes {
