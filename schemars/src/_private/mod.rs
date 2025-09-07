@@ -55,6 +55,25 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
 
     if T::_schemars_private_is_option() && !required {
         schema.remove("required");
+
+        if let Some(any_of) = schema.get_mut("anyOf").and_then(Value::as_array_mut) {
+            let empty_object = Value::Object(Map::default());
+            if !any_of.contains(&empty_object) {
+                any_of.push(empty_object);
+            }
+        } else if let Some(Entry::Occupied(mut one_of_entry)) =
+            schema.as_object_mut().map(|o| o.entry("oneOf"))
+        {
+            if let Some(one_of) = one_of_entry.get_mut().as_array_mut() {
+                let empty_object = Value::Object(Map::default());
+                if !one_of.contains(&empty_object) {
+                    one_of.push(empty_object);
+                }
+
+                let any_of = one_of_entry.remove();
+                schema.insert("anyOf".into(), any_of);
+            }
+        }
     }
 
     // Always allow aditional/unevaluated properties, because the outer struct determines
