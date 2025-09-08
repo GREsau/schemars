@@ -209,6 +209,48 @@ impl Untagged {
     }
 }
 
+#[derive(JsonSchema, Deserialize, Serialize)]
+struct OptionallyFlatteningParent<T> {
+    #[serde(flatten)]
+    child: Option<T>,
+}
+
+impl OptionallyFlatteningParent<External> {
+    fn values() -> impl IntoIterator<Item = Self> {
+        External::values()
+            .into_iter()
+            .map(|child| Self { child: Some(child) })
+            .chain(std::iter::once(Self { child: None }))
+    }
+}
+
+impl OptionallyFlatteningParent<Internal> {
+    fn values() -> impl IntoIterator<Item = Self> {
+        Internal::values()
+            .into_iter()
+            .map(|child| Self { child: Some(child) })
+            .chain(std::iter::once(Self { child: None }))
+    }
+}
+
+impl OptionallyFlatteningParent<Adjacent> {
+    fn values() -> impl IntoIterator<Item = Self> {
+        Adjacent::values()
+            .into_iter()
+            .map(|child| Self { child: Some(child) })
+            .chain(std::iter::once(Self { child: None }))
+    }
+}
+
+impl OptionallyFlatteningParent<Untagged> {
+    fn values() -> impl IntoIterator<Item = Self> {
+        Untagged::values()
+            .into_iter()
+            .map(|child| Self { child: Some(child) })
+            .chain(std::iter::once(Self { child: None }))
+    }
+}
+
 mod unit_variant_as_u64 {
     pub(super) fn serialize<S>(ser: S) -> Result<S::Ok, S::Error>
     where
@@ -387,4 +429,27 @@ fn unit_variants_with_doc_comments() {
                 Some(&("A name I call myself".into())),
             );
         });
+}
+
+#[test]
+fn optionally_flattening_parent() {
+    test!(OptionallyFlatteningParent<External>)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip(OptionallyFlatteningParent::<External>::values())
+        .assert_matches_de_roundtrip(arbitrary_values());
+
+    test!(OptionallyFlatteningParent::<Internal>)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip(OptionallyFlatteningParent::<Internal>::values())
+        .assert_matches_de_roundtrip(arbitrary_values());
+
+    test!(OptionallyFlatteningParent::<Adjacent>)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip(OptionallyFlatteningParent::<Adjacent>::values())
+        .assert_matches_de_roundtrip(arbitrary_values());
+
+    test!(OptionallyFlatteningParent::<Untagged>)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip(OptionallyFlatteningParent::<Untagged>::values())
+        .assert_matches_de_roundtrip(arbitrary_values());
 }
