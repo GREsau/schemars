@@ -25,6 +25,7 @@ pub struct TestHelper<T> {
 
 impl<T> TestHelper<T> {
     /// Should be used via the `test!(SomeType)` macro
+    #[track_caller]
     pub fn new(name: String, settings: SchemaSettings) -> Self
     where
         T: JsonSchema,
@@ -44,6 +45,7 @@ impl<T> TestHelper<T> {
     }
 
     /// Should be used via the `test!(value: SomeType)` macro
+    #[track_caller]
     pub fn new_for_value(name: String, settings: SchemaSettings, value: T) -> Self
     where
         T: Serialize,
@@ -62,6 +64,7 @@ impl<T> TestHelper<T> {
         }
     }
 
+    #[track_caller]
     pub fn with_validator(&mut self, validator: fn(&T) -> bool) -> &mut Self {
         self.validator = validator;
         self
@@ -70,6 +73,7 @@ impl<T> TestHelper<T> {
     /// Checks the generated schema against the saved schema in the snapshots directory, for manual verification of changes.
     ///
     /// Run tests with the SNAPSHOTS env var set to "overwrite" to overwrite any changed snapshots.
+    #[track_caller]
     pub fn assert_snapshot(&self) -> &Self {
         let common_path = format!("tests/integration/snapshots/{}.json", self.name);
         let de_path = format!("tests/integration/snapshots/{}.de.json", self.name);
@@ -98,6 +102,7 @@ impl<T> TestHelper<T> {
     }
 
     /// Checks that the schema generated for this type is identical to that of another type.
+    #[track_caller]
     pub fn assert_identical<T2: JsonSchema>(&self) -> &Self
     where
         T: JsonSchema,
@@ -138,6 +143,7 @@ impl<T> TestHelper<T> {
         self
     }
 
+    #[track_caller]
     pub fn custom(&self, assertion: impl Fn(&Schema, Contract)) -> &Self {
         assertion(&self.de_schema, Contract::Deserialize);
         assertion(&self.ser_schema, Contract::Serialize);
@@ -145,19 +151,24 @@ impl<T> TestHelper<T> {
         self
     }
 
+    #[track_caller]
     fn de_schema_validate(&self, instance: &Value) -> bool {
+        let validator = build_validator(&self.de_schema);
         self.de_schema_validator
-            .get_or_init(|| build_validator(&self.de_schema))
+            .get_or_init(|| validator)
             .is_valid(instance)
     }
 
+    #[track_caller]
     fn ser_schema_validate(&self, instance: &Value) -> bool {
+        let validator = build_validator(&self.ser_schema);
         self.ser_schema_validator
-            .get_or_init(|| build_validator(&self.ser_schema))
+            .get_or_init(|| validator)
             .is_valid(instance)
     }
 }
 
+#[track_caller]
 fn build_validator(schema: &Schema) -> Validator {
     jsonschema::options()
         .should_validate_formats(true)
@@ -168,6 +179,7 @@ fn build_validator(schema: &Schema) -> Validator {
 impl<T: Serialize> TestHelper<T> {
     /// Checks that the "serialize" schema allows the given sample values when serialized to JSON.
     /// If `T implements `DeserializeOwned`, prefer using `assert_allows_ser_roundtrip()`
+    #[track_caller]
     pub fn assert_allows_ser_only(&self, samples: impl IntoIterator<Item = T>) -> &Self {
         for sample in samples {
             let json = serde_json::to_value(&sample).unwrap();
@@ -190,6 +202,7 @@ impl<T: Serialize> TestHelper<T> {
 impl<T: Serialize + DeserializeOwned> TestHelper<T> {
     /// Checks that the "serialize" schema allows the given sample values when serialized to JSON
     /// and, if the value can then be deserialized, that the "deserialize" schema also allows it.
+    #[track_caller]
     pub fn assert_allows_ser_roundtrip(&self, samples: impl IntoIterator<Item = T>) -> &Self {
         for sample in samples {
             let json = serde_json::to_value(&sample).unwrap();
@@ -230,6 +243,7 @@ impl<T: Serialize + DeserializeOwned> TestHelper<T> {
     ///
     /// This is intended for types that have different serialize/deserialize schemas, or when you
     /// want to test specific values that are valid for deserialization but not for serialization.
+    #[track_caller]
     pub fn assert_allows_de_roundtrip(
         &self,
         samples: impl IntoIterator<Item = impl Borrow<Value>>,
@@ -269,6 +283,7 @@ impl<T: Serialize + DeserializeOwned> TestHelper<T> {
     ///
     /// This is intended to be given a range of values (see `arbitrary_values`), allowing limited
     /// fuzzing.
+    #[track_caller]
     pub fn assert_matches_de_roundtrip(
         &self,
         samples: impl IntoIterator<Item = impl Borrow<Value>>,
@@ -315,6 +330,7 @@ impl<T: Serialize + DeserializeOwned> TestHelper<T> {
     /// While `assert_matches_de_roundtrip()` would also work in this case, `assert_rejects_de()`
     /// has the advantage that it also verifies that the test case itself is actually covering the
     /// failure case as intended.
+    #[track_caller]
     pub fn assert_rejects_de(&self, values: impl IntoIterator<Item = impl Borrow<Value>>) -> &Self {
         for value in values {
             let value = value.borrow();
@@ -360,6 +376,7 @@ impl<T: Serialize + DeserializeOwned> TestHelper<T> {
 
     /// Checks that both the "serialize" and "deserialize" schema allow the type's default value
     /// when serialized to JSON.
+    #[track_caller]
     pub fn assert_allows_ser_roundtrip_default(&self) -> &Self
     where
         T: Default,
@@ -368,6 +385,7 @@ impl<T: Serialize + DeserializeOwned> TestHelper<T> {
     }
 }
 
+#[track_caller]
 fn schema_for<T: JsonSchema>(base_settings: &SchemaSettings, contract: Contract) -> Schema {
     base_settings
         .clone()
@@ -376,6 +394,7 @@ fn schema_for<T: JsonSchema>(base_settings: &SchemaSettings, contract: Contract)
         .into_root_schema_for::<T>()
 }
 
+#[track_caller]
 fn schema_for_value(
     base_settings: &SchemaSettings,
     contract: Contract,

@@ -1,0 +1,161 @@
+{
+  "$defs": {
+    "Struct": {
+      "properties": {
+        "bar": {
+          "type": "boolean"
+        },
+        "foo": {
+          "format": "int32",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "foo",
+        "bar"
+      ],
+      "type": "object"
+    },
+    "UnitStruct": {
+      "type": "null"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "anyOf": [
+    {
+      "oneOf": [
+        {
+          "enum": [
+            "unitOne",
+            "unitTwo"
+          ],
+          "type": "string"
+        },
+        {
+          "properties": {
+            "stringMap": {
+              "additionalProperties": {
+                "type": "string"
+              },
+              "type": "object"
+            }
+          },
+          "required": [
+            "stringMap"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "unitStructNewType": {
+              "$ref": "#/$defs/UnitStruct"
+            }
+          },
+          "required": [
+            "unitStructNewType"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "structNewType": {
+              "$ref": "#/$defs/Struct"
+            }
+          },
+          "required": [
+            "structNewType"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "struct": {
+              "properties": {
+                "bar": {
+                  "type": "boolean"
+                },
+                "foo": {
+                  "format": "int32",
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "foo",
+                "bar"
+              ],
+              "type": "object"
+            }
+          },
+          "required": [
+            "struct"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "emptyTuple": {
+              "maxItems": 0,
+              "type": "array"
+            }
+          },
+          "required": [
+            "emptyTuple"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "tuple": {
+              "maxItems": 2,
+              "minItems": 2,
+              "prefixItems": [
+                {
+                  "format": "int32",
+                  "type": "integer"
+                },
+                {
+                  "type": "boolean"
+                }
+              ],
+              "type": "array"
+            }
+          },
+          "required": [
+            "tuple"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "unitAsInt": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "unitAsInt"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "tupleAsStr": {
+              "pattern": "^\\d+ (true|false)$",
+              "type": "string"
+            }
+          },
+          "required": [
+            "tupleAsStr"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    {
+      "type": "null"
+    }
+  ],
+  "title": "OptionallyFlatteningParent",
+  "type": "object"
+}
