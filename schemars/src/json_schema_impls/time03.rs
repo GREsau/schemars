@@ -16,7 +16,7 @@ macro_rules! formatted_string_impl {
             }
 
             fn schema_id() -> Cow<'static, str>  {
-                stringify!(chrono::$ty).into()
+                stringify!(time::$ty).into()
             }
 
             fn json_schema(_: &mut SchemaGenerator) -> Schema {
