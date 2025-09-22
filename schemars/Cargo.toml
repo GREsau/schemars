@@ -33,7 +33,7 @@ smallvec1 = { version = "1.0", default-features = false, optional = true, packag
 smol_str02 = { version = "0.2.1", default-features = false, optional = true, package = "smol_str" }
 url2 = { version = "2.0", default-features = false, optional = true, package = "url" }
 uuid1 = { version = "1.0", default-features = false, optional = true, package = "uuid" }
-regex = { version = "1", default-features = false, package = "regex", optional = true }
+regex = { version = "1", features = ["std"], package = "regex", optional = true }
 
 [dev-dependencies]
 pretty_assertions = "1.2.1"
