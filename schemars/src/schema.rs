@@ -310,6 +310,9 @@ impl Schema {
     /// If the `Schema`'s underlying JSON value is an object, looks up a value by a JSON Pointer
     /// and returns a mutable reference to that value.
     ///
+    /// If the given pointer begins with a `#`, then the rest of the value is assumed to be in
+    /// "URI Fragment Identifier Representation", and will be percent-decoded accordingly.
+    ///
     /// For more information on JSON Pointer, read [RFC6901](https://tools.ietf.org/html/rfc6901).
     ///
     /// This always returns `None` for bool schemas.
@@ -322,17 +325,23 @@ impl Schema {
     /// let mut schema = json_schema!({
     ///     "properties": {
     ///         "anything": true
+    ///     },
+    ///     "$defs": {
+    ///         "🚀": true
     ///     }
     /// });
     ///
-    /// let subschema_value = schema.pointer_mut("/properties/anything").unwrap();
-    /// let subschema: &mut Schema = subschema_value.try_into().unwrap();
-    /// subschema.ensure_object();
-    ///
-    /// assert_eq!(schema.pointer_mut("/properties/anything").unwrap(), &json!({}));
+    /// assert_eq!(schema.pointer_mut("/properties/anything").unwrap(), &json!(true));
+    /// assert_eq!(schema.pointer_mut("#/$defs/%F0%9F%9A%80").unwrap(), &json!(true));
+    /// assert_eq!(schema.pointer_mut("/does/not/exist"), None);
     /// ```
     pub fn pointer_mut(&mut self, pointer: &str) -> Option<&mut Value> {
-        self.0.pointer_mut(pointer)
+        if let Some(percent_encoded) = pointer.strip_prefix('#') {
+            let decoded = crate::encoding::percent_decode(percent_encoded)?;
+            self.0.pointer_mut(&decoded)
+        } else {
+            self.0.pointer_mut(pointer)
+        }
     }
 
     /// If the `Schema`'s underlying JSON value is an object, removes and returns its value for the
