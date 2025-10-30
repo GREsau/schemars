@@ -184,5 +184,5 @@ fn enums_optional() {
         .assert_snapshot()
         .assert_allows_ser_roundtrip(ContainerOptional::values())
         .assert_matches_de_roundtrip(arbitrary_values())
-        .assert_rejects_de([json_with_extra_field()]);
+        .assert_allows_de_roundtrip([json_with_extra_field()]);
 }
