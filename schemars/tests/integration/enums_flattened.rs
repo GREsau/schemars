@@ -26,6 +26,31 @@ macro_rules! fn_values {
     };
 }
 
+macro_rules! fn_values_optional {
+    () => {
+        fn values() -> impl IntoIterator<Item = Self> {
+            [
+                Self {
+                    f: 1.23,
+                    e1: Some(Enum1::B(true)),
+                    e2: Some(Enum2::F(4.56)),
+                    e3: Some(Enum3::S2("abc".into())),
+                    e4: Enum4::U2(789),
+                    e5: Enum5::B3(false),
+                },
+                Self {
+                    f: 9.87,
+                    e1: None,
+                    e2: Some(Enum2::U(654)),
+                    e3: None,
+                    e4: Enum4::F2(3.21),
+                    e5: Enum5::S3("ghi".into()),
+                },
+            ]
+        }
+    };
+}
+
 #[derive(JsonSchema, Deserialize, Serialize)]
 enum Enum1 {
     B(bool),
@@ -95,6 +120,25 @@ impl ContainerDenyUnknownFields {
     fn_values!();
 }
 
+#[derive(JsonSchema, Deserialize, Serialize)]
+struct ContainerOptional {
+    f: f32,
+    #[serde(flatten)]
+    e1: Option<Enum1>,
+    #[serde(flatten)]
+    e2: Option<Enum2>,
+    #[serde(flatten)]
+    e3: Option<Enum3>,
+    #[serde(flatten)]
+    e4: Enum4,
+    #[serde(flatten)]
+    e5: Enum5,
+}
+
+impl ContainerOptional {
+    fn_values_optional!();
+}
+
 fn json_with_extra_field() -> Value {
     json!({
       "f": 1.23,
@@ -130,6 +174,15 @@ fn enums_flattened_deny_unknown_fields_draft07() {
     test!(ContainerDenyUnknownFields, SchemaSettings::draft07())
         .assert_snapshot()
         .assert_allows_ser_roundtrip(ContainerDenyUnknownFields::values())
+        .assert_matches_de_roundtrip(arbitrary_values())
+        .assert_rejects_de([json_with_extra_field()]);
+}
+
+#[test]
+fn enums_optional() {
+    test!(ContainerOptional)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip(ContainerOptional::values())
         .assert_matches_de_roundtrip(arbitrary_values())
         .assert_rejects_de([json_with_extra_field()]);
 }

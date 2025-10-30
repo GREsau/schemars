@@ -171,7 +171,9 @@ fn to_tokens(attrs: &[Attribute]) -> impl ToTokens {
 }
 
 fn get_meta_ident(meta: &CustomMeta) -> Option<String> {
-    meta.path().get_ident().map(std::string::ToString::to_string)
+    meta.path()
+        .get_ident()
+        .map(std::string::ToString::to_string)
 }
 
 #[cfg(test)]

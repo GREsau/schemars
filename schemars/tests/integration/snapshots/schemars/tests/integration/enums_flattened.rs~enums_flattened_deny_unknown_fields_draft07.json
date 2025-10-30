@@ -131,29 +131,31 @@
           ]
         }
       ]
-    }
-  ],
-  "oneOf": [
-    {
-      "type": "object",
-      "properties": {
-        "B3": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "B3"
-      ]
     },
     {
-      "type": "object",
-      "properties": {
-        "S3": {
-          "type": "string"
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "B3": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "B3"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "S3": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "S3"
+          ]
         }
-      },
-      "required": [
-        "S3"
       ]
     }
   ],

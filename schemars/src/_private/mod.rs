@@ -269,8 +269,26 @@ pub fn apply_inner_validation(schema: &mut Schema, f: fn(&mut Schema) -> ()) {
     }
 }
 
-pub fn flatten(schema: &mut Schema, other: Schema) {
-    fn flatten_property(obj1: &mut Map<String, Value>, key: String, value2: Value) {
+pub fn flatten<T: ?Sized + JsonSchema>(schema: &mut Schema, other: Schema, required: bool) {
+    fn flatten_property(
+        obj1: &mut Map<String, Value>,
+        key: String,
+        value2: Value,
+        is_optional: bool,
+    ) {
+        if key == "oneOf" {
+            flatten_property(
+                obj1,
+                "allOf".to_owned(),
+                if is_optional {
+                    json!([ { "anyOf": [ { "oneOf": value2 }, {} ] } ])
+                } else {
+                    json!([ { "oneOf": value2 } ])
+                },
+                is_optional,
+            );
+            return;
+        }
         match obj1.entry(key) {
             Entry::Vacant(vacant) => {
                 vacant.insert(value2);
@@ -291,7 +309,7 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
                             }
                         }
                     }
-                    "oneOf" | "anyOf" => {
+                    "anyOf" => {
                         let (key, current) = occupied.remove_entry();
                         flatten_property(
                             obj1,
@@ -300,6 +318,7 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
                                 { &key: current },
                                 { key: value2 }
                             ]),
+                            is_optional,
                         );
                     }
                     _ => {
@@ -335,7 +354,12 @@ pub fn flatten(schema: &mut Schema, other: Schema) {
             normalise_additional_unevaluated_properties(&mut obj2, obj1);
 
             for (key, value2) in obj2 {
-                flatten_property(obj1, key, value2);
+                flatten_property(
+                    obj1,
+                    key,
+                    value2,
+                    T::_schemars_private_is_option() && !required,
+                );
             }
         }
     }

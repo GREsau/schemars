@@ -699,7 +699,7 @@ fn expr_for_struct(
                 schema_expr.definitions.extend(type_def);
 
                 field.with_contract_check(quote! {
-                    schemars::_private::flatten(&mut #SCHEMA, #schema_expr);
+                    schemars::_private::flatten::<#ty>(&mut #SCHEMA, #schema_expr, #required);
                 })
             } else {
                 let mut schema_expr = expr_for_field(cont, field, false);
