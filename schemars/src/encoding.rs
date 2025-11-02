@@ -3,7 +3,7 @@ use alloc::borrow::Cow;
 use core::fmt::Write as _;
 
 /// Encodes a string for insertion into a JSON Pointer in URI fragment representation.
-pub fn encode_ref_name(name: &str) -> Cow<str> {
+pub fn encode_ref_name(name: &str) -> Cow<'_, str> {
     fn needs_encoding(byte: u8) -> bool {
         match byte {
             // `~` and `/` need encoding for JSON Pointer
@@ -40,7 +40,7 @@ pub fn encode_ref_name(name: &str) -> Cow<str> {
 
 /// Percent-decodes the given string, returning `None` if it results in invalid UTF-8.
 /// A `%` that is not followed by two hex digits is treated as a literal `%`.
-pub fn percent_decode(s: &str) -> Option<Cow<str>> {
+pub fn percent_decode(s: &str) -> Option<Cow<'_, str>> {
     if s.contains('%') {
         let mut buf = Vec::<u8>::new();
 
