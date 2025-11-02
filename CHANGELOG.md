@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.5] - 2025-11-02
+
+### Fixed
+
+- Fix `schema.pointer_mut()` to resolve URI fragment identifiers like `#/$defs/foo`, matching current behaviour of `schema.pointer()` (https://github.com/GREsau/schemars/issues/478 / https://github.com/GREsau/schemars/pull/479)
+
 ## [1.0.4] - 2025-07-06
 
 ### Fixed
