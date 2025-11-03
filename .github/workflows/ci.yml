@@ -23,7 +23,7 @@ jobs:
             allow_failure: true
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Downgrade packages for MSRV
         if: matrix.rust == '1.74.0'
         run: |
@@ -57,3 +57,11 @@ jobs:
           sed -i 's/\[dev-dependencies]/[package.metadata.workaround-avoid-dev-deps]/g' ./schemars/Cargo.toml ./schemars_derive/Cargo.toml
           cargo +nightly generate-lockfile -Z direct-minimal-versions
           cargo check --all-features --verbose --example main
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@clippy
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo clippy --all-targets --all-features -- -D warnings
