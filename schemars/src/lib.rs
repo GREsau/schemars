@@ -7,12 +7,7 @@
     clippy::exhaustive_structs,
     clippy::exhaustive_enums
 )]
-#![allow(
-    clippy::must_use_candidate,
-    clippy::return_self_not_must_use,
-    clippy::wildcard_imports,
-    clippy::missing_errors_doc
-)]
+#![allow(clippy::wildcard_imports, clippy::missing_errors_doc)]
 #![doc = include_str!("../README.md")]
 #![no_std]
 
@@ -146,6 +141,7 @@ pub trait JsonSchema {
     /// infinite cycles when generating schemas.
     ///
     /// By default, this returns `false`.
+    #[must_use]
     fn inline_schema() -> bool {
         false
     }
@@ -154,6 +150,7 @@ pub trait JsonSchema {
     ///
     /// This is used as the title for root schemas, and the key within the root's `definitions`
     /// property for subschemas.
+    #[must_use]
     fn schema_name() -> Cow<'static, str>;
 
     /// Returns a string that uniquely identifies the schema produced by this type.
@@ -165,6 +162,7 @@ pub trait JsonSchema {
     ///
     /// The default implementation returns the same value as
     /// [`schema_name()`](JsonSchema::schema_name).
+    #[must_use]
     fn schema_id() -> Cow<'static, str> {
         Self::schema_name()
     }
@@ -185,6 +183,7 @@ pub trait JsonSchema {
 
     // TODO document and bring into public API?
     #[doc(hidden)]
+    #[must_use]
     fn _schemars_private_is_option() -> bool {
         false
     }

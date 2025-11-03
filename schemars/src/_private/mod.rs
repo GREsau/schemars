@@ -116,6 +116,7 @@ impl<T: Serialize> MaybeSerializeWrapper<T> {
 }
 
 /// Create a schema for a unit enum variant
+#[must_use] 
 pub fn new_unit_enum_variant(variant: &str) -> Schema {
     json_schema!({
         "type": "string",
@@ -143,6 +144,7 @@ macro_rules! _schemars_maybe_schema_id {
 pub struct MaybeJsonSchemaWrapper<T: ?Sized>(core::marker::PhantomData<T>);
 
 pub trait NoJsonSchema {
+    #[must_use] 
     fn maybe_schema_id() -> Cow<'static, str> {
         Cow::Borrowed(core::any::type_name::<Self>())
     }
@@ -151,6 +153,7 @@ pub trait NoJsonSchema {
 impl<T: ?Sized> NoJsonSchema for T {}
 
 impl<T: JsonSchema + ?Sized> MaybeJsonSchemaWrapper<T> {
+    #[must_use] 
     pub fn maybe_schema_id() -> Cow<'static, str> {
         T::schema_id()
     }
@@ -158,6 +161,7 @@ impl<T: JsonSchema + ?Sized> MaybeJsonSchemaWrapper<T> {
 
 /// Create a schema for an externally tagged enum variant
 #[allow(clippy::needless_pass_by_value)]
+#[must_use] 
 pub fn new_externally_tagged_enum_variant(variant: &str, sub_schema: Schema) -> Schema {
     // TODO: this can be optimised by inserting the `sub_schema` as a `Value` rather than
     // using the `json_schema!` macro which borrows and serializes the sub_schema

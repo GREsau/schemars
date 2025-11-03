@@ -1,3 +1,4 @@
+#[must_use]
 pub const fn get_title_and_description(doc: &str) -> (&str, &str) {
     let doc_bytes = trim_ascii(doc.as_bytes());
 
