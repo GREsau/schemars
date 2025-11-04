@@ -51,36 +51,46 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
     generator: &mut SchemaGenerator,
     required: bool,
 ) -> Schema {
-    let mut schema = T::_schemars_private_non_optional_json_schema(generator);
+    /// Non-generic inner function to reduce monomorphization overhead
+    fn inner(mut schema: Schema, is_optional: bool) -> Schema {
+        if is_optional {
+            schema.remove("required");
 
-    if T::_schemars_private_is_option() && !required {
-        schema.remove("required");
-
-        if let Some(any_of) = schema.get_mut("anyOf").and_then(Value::as_array_mut) {
-            let empty_object = Value::Object(Map::default());
-            if !any_of.contains(&empty_object) {
-                any_of.push(empty_object);
-            }
-        } else if let Some(Entry::Occupied(mut one_of_entry)) =
-            schema.as_object_mut().map(|o| o.entry("oneOf"))
-        {
-            if let Some(one_of) = one_of_entry.get_mut().as_array_mut() {
-                let empty_object = Value::Object(Map::default());
-                if !one_of.contains(&empty_object) {
-                    one_of.push(empty_object);
+            if let Some(one_of) = schema.remove("oneOf") {
+                if let Value::Array(any_of) = schema
+                    .ensure_object()
+                    .entry("anyOf")
+                    .or_insert(Value::Array(Vec::new()))
+                {
+                    any_of.push(json!({
+                        "oneOf": one_of
+                    }));
+                } else {
+                    // `anyOf` isn't an array, so this is an invalid schema.
+                    // It's unclear how to handle this, so just put the `oneOf` back where it was.
+                    schema.insert("oneOf".into(), one_of);
                 }
+            }
 
-                let any_of = one_of_entry.remove();
-                schema.insert("anyOf".into(), any_of);
+            if let Some(any_of) = schema.get_mut("anyOf").and_then(Value::as_array_mut) {
+                let empty_object = Value::Object(Map::default());
+                if !any_of.contains(&empty_object) {
+                    any_of.push(empty_object);
+                }
             }
         }
+
+        // Always allow aditional/unevaluated properties, because the outer struct determines
+        // whether it denies unknown fields.
+        AllowUnknownProperties::default().transform(&mut schema);
+
+        schema
     }
 
-    // Always allow aditional/unevaluated properties, because the outer struct determines
-    // whether it denies unknown fields.
-    AllowUnknownProperties::default().transform(&mut schema);
-
-    schema
+    inner(
+        T::_schemars_private_non_optional_json_schema(generator),
+        T::_schemars_private_is_option() && !required,
+    )
 }
 
 #[derive(Default)]

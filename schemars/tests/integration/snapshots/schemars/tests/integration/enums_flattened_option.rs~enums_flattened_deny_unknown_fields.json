@@ -16,55 +16,29 @@
     {
       "anyOf": [
         {
-          "type": "object",
-          "properties": {
-            "B": {
-              "type": "boolean"
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "B": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "B"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "S": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "S"
+              ]
             }
-          },
-          "required": [
-            "B"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "S": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "S"
-          ]
-        },
-        {}
-      ]
-    },
-    {
-      "anyOf": [
-        {
-          "type": "object",
-          "properties": {
-            "U": {
-              "type": "integer",
-              "format": "uint32",
-              "minimum": 0
-            }
-          },
-          "required": [
-            "U"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "F": {
-              "type": "number",
-              "format": "double"
-            }
-          },
-          "required": [
-            "F"
           ]
         },
         {}
@@ -73,25 +47,32 @@
     {
       "anyOf": [
         {
-          "type": "object",
-          "properties": {
-            "B2": {
-              "type": "boolean"
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "U": {
+                  "type": "integer",
+                  "format": "uint32",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "U"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "F": {
+                  "type": "number",
+                  "format": "double"
+                }
+              },
+              "required": [
+                "F"
+              ]
             }
-          },
-          "required": [
-            "B2"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "S2": {
-              "type": "string"
-            }
-          },
-          "required": [
-            "S2"
           ]
         },
         {}
@@ -100,28 +81,63 @@
     {
       "anyOf": [
         {
-          "type": "object",
-          "properties": {
-            "U2": {
-              "type": "integer",
-              "format": "uint32",
-              "minimum": 0
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "B2": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "B2"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "S2": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "S2"
+              ]
             }
-          },
-          "required": [
-            "U2"
           ]
         },
+        {}
+      ]
+    },
+    {
+      "anyOf": [
         {
-          "type": "object",
-          "properties": {
-            "F2": {
-              "type": "number",
-              "format": "double"
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "U2": {
+                  "type": "integer",
+                  "format": "uint32",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "U2"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "F2": {
+                  "type": "number",
+                  "format": "double"
+                }
+              },
+              "required": [
+                "F2"
+              ]
             }
-          },
-          "required": [
-            "F2"
           ]
         },
         {}
@@ -130,25 +146,29 @@
   ],
   "anyOf": [
     {
-      "type": "object",
-      "properties": {
-        "B3": {
-          "type": "boolean"
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "B3": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "B3"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "S3": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "S3"
+          ]
         }
-      },
-      "required": [
-        "B3"
-      ]
-    },
-    {
-      "type": "object",
-      "properties": {
-        "S3": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "S3"
       ]
     },
     {}
