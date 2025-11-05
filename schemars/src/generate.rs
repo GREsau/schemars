@@ -611,7 +611,7 @@ impl SchemaGenerator {
 
     /// Returns `self.settings.definitions_path` as a plain JSON pointer to the definitions object,
     /// i.e. without a leading '#' or trailing '/'
-    fn definitions_path_stripped(&self) -> &str {
+    pub(crate) fn definitions_path_stripped(&self) -> &str {
         let path = &self.settings.definitions_path;
         let path = path.strip_prefix('#').unwrap_or(path);
         path.strip_suffix('/').unwrap_or(path)
