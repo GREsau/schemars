@@ -53,14 +53,6 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
 ) -> Schema {
     /// Non-generic inner function to reduce monomorphization overhead
     fn inner(mut schema: Schema, is_optional: bool) -> Schema {
-        if is_optional {
-            schema.remove("required");
-        }
-
-        // Always allow aditional/unevaluated properties, because the outer struct determines
-        // whether it denies unknown fields.
-        AllowUnknownProperties::default().transform(&mut schema);
-
         // Special handling for externally-tagged enums with unit variants.
         // Unit variants are normally serialized as strings, but when flattened, are serialized
         // as objects like `{ "VariantName": null }`
@@ -88,6 +80,37 @@ pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
                 );
             }
         }
+
+        if is_optional {
+            schema.remove("required");
+
+            // Handle `Option<>` of externally/internally/adjacently-tagged enums
+            if let Some(one_of) = schema.remove("oneOf") {
+                // We can't just add `{}` to the existing `oneOf`, because its items must be
+                // mutually-exclusive, and `{}` matches everything.
+                flatten(
+                    &mut schema,
+                    json_schema!({
+                        "anyOf": [
+                            { "oneOf": one_of },
+                            {}
+                        ]
+                    }),
+                );
+            }
+
+            // Handle `Option<>` of untagged enums
+            if let Some(Value::Array(any_of)) = schema.get_mut("anyOf") {
+                let empty_object = Value::Object(Map::new());
+                if !any_of.contains(&empty_object) {
+                    any_of.push(empty_object);
+                }
+            }
+        }
+
+        // Always allow aditional/unevaluated properties, because the outer struct determines
+        // whether it denies unknown fields.
+        AllowUnknownProperties::default().transform(&mut schema);
 
         schema
     }

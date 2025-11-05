@@ -1,0 +1,199 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AdjacentContainer",
+  "type": "object",
+  "properties": {
+    "f": {
+      "type": "number",
+      "format": "float"
+    }
+  },
+  "required": [
+    "f"
+  ],
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "tag1": {
+                  "type": "string",
+                  "const": "Unit1"
+                }
+              },
+              "required": [
+                "tag1"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "tag1": {
+                  "type": "string",
+                  "const": "Unit2"
+                }
+              },
+              "required": [
+                "tag1"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "tag2": {
+                  "type": "string",
+                  "const": "Unit3"
+                }
+              },
+              "required": [
+                "tag2"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "tag2": {
+                  "type": "string",
+                  "const": "ValueNewType"
+                },
+                "content2": true
+              },
+              "required": [
+                "tag2",
+                "content2"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "tag3": {
+                  "type": "string",
+                  "const": "Int"
+                },
+                "content3": {
+                  "type": "integer",
+                  "format": "uint32",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "tag3",
+                "content3"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "tag3": {
+                  "type": "string",
+                  "const": "Tuple"
+                },
+                "content3": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "integer",
+                      "format": "uint8",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    {
+                      "type": "boolean"
+                    }
+                  ],
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "required": [
+                "tag3",
+                "content3"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "tag4": {
+                  "type": "string",
+                  "const": "StructNewType"
+                },
+                "content4": {
+                  "$ref": "#/$defs/EmptyStruct"
+                }
+              },
+              "required": [
+                "tag4",
+                "content4"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "tag4": {
+                  "type": "string",
+                  "const": "Struct"
+                },
+                "content4": {
+                  "type": "object",
+                  "properties": {
+                    "foo": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "bar": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "foo",
+                    "bar"
+                  ]
+                }
+              },
+              "required": [
+                "tag4",
+                "content4"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    }
+  ],
+  "$defs": {
+    "EmptyStruct": {
+      "type": "object"
+    }
+  }
+}
