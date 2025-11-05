@@ -33,6 +33,7 @@ smallvec1 = { version = "1.0", default-features = false, optional = true, packag
 smol_str02 = { version = "0.2.1", default-features = false, optional = true, package = "smol_str" }
 url2 = { version = "2.0", default-features = false, optional = true, package = "url" }
 uuid1 = { version = "1.0", default-features = false, optional = true, package = "uuid" }
+pnet_base035 = { version = "0.35", default-features = false, optional = true, package = "pnet_base"}
 
 [dev-dependencies]
 pretty_assertions = "1.2.1"
@@ -58,6 +59,7 @@ smallvec1 = { version = "1.0", default-features = false, features = ["serde"], p
 smol_str02 = { version = "0.2.1", default-features = false, features = ["serde"], package = "smol_str" }
 url2 = { version = "2.0", default-features = false, features = ["serde", "std"], package = "url" }
 uuid1 = { version = "1.0", default-features = false, features = ["serde"], package = "uuid" }
+pnet_base035 = { version = "0.35", default-features = false, features = ["serde"], package = "pnet_base"}
 
 [features]
 default = ["derive", "std"]
