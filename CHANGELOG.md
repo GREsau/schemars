@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.0] - 2025-11-05
+
+### Added
+
+- Public functions that have no side-effects are now marked with [`#[must_use]`](https://doc.rust-lang.org/reference/attributes/diagnostics.html#the-must_use-attribute) so that they report a lint warning when the returned value is unused, as this likely indicates a mistake.
+
+### Fixed
+
+- Improve accuracy of schemas for flattened enums, in particular: unit variants of externally-tagged enums, and enums wrapped in `Option<>`. (https://github.com/GREsau/schemars/issues/464 / https://github.com/GREsau/schemars/pull/483)
+
 ## [1.0.5] - 2025-11-02
 
 ### Fixed
