@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ExternalContainerDenyUnknownFields",
+  "type": "object",
+  "properties": {
+    "f": {
+      "type": "number",
+      "format": "float"
+    }
+  },
+  "required": [
+    "f"
+  ],
+  "unevaluatedProperties": false,
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "Unit1": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "Unit1"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "Unit2": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "Unit2"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "ValueNewType": true
+              },
+              "required": [
+                "ValueNewType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "Unit3": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "Unit3"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "Int": {
+                  "type": "integer",
+                  "format": "uint32",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "Int"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "Tuple": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "integer",
+                      "format": "uint8",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    {
+                      "type": "boolean"
+                    }
+                  ],
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "required": [
+                "Tuple"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "StructNewType": {
+                  "$ref": "#/$defs/EmptyStruct"
+                }
+              },
+              "required": [
+                "StructNewType"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "Struct": {
+                  "type": "object",
+                  "properties": {
+                    "foo": {
+                      "type": "integer",
+                      "format": "int32"
+                    },
+                    "bar": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "foo",
+                    "bar"
+                  ]
+                }
+              },
+              "required": [
+                "Struct"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    }
+  ],
+  "$defs": {
+    "EmptyStruct": {
+      "type": "object"
+    }
+  }
+}
