@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Container",
+  "title": "ExternalContainer",
   "type": "object",
   "properties": {
     "f": {
@@ -17,23 +17,23 @@
         {
           "type": "object",
           "properties": {
-            "B": {
-              "type": "boolean"
+            "Unit1": {
+              "type": "null"
             }
           },
           "required": [
-            "B"
+            "Unit1"
           ]
         },
         {
           "type": "object",
           "properties": {
-            "S": {
-              "type": "string"
+            "Unit2": {
+              "type": "null"
             }
           },
           "required": [
-            "S"
+            "Unit2"
           ]
         }
       ]
@@ -43,26 +43,62 @@
         {
           "type": "object",
           "properties": {
-            "U": {
+            "ValueNewType": true
+          },
+          "required": [
+            "ValueNewType"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "Unit3": {
+              "type": "null"
+            }
+          },
+          "required": [
+            "Unit3"
+          ]
+        }
+      ]
+    },
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "Int": {
               "type": "integer",
               "format": "uint32",
               "minimum": 0
             }
           },
           "required": [
-            "U"
+            "Int"
           ]
         },
         {
           "type": "object",
           "properties": {
-            "F": {
-              "type": "number",
-              "format": "double"
+            "Tuple": {
+              "type": "array",
+              "prefixItems": [
+                {
+                  "type": "integer",
+                  "format": "uint8",
+                  "minimum": 0,
+                  "maximum": 255
+                },
+                {
+                  "type": "boolean"
+                }
+              ],
+              "minItems": 2,
+              "maxItems": 2
             }
           },
           "required": [
-            "F"
+            "Tuple"
           ]
         }
       ]
@@ -72,79 +108,44 @@
         {
           "type": "object",
           "properties": {
-            "B2": {
-              "type": "boolean"
+            "StructNewType": {
+              "$ref": "#/$defs/EmptyStruct"
             }
           },
           "required": [
-            "B2"
+            "StructNewType"
           ]
         },
         {
           "type": "object",
           "properties": {
-            "S2": {
-              "type": "string"
+            "Struct": {
+              "type": "object",
+              "properties": {
+                "foo": {
+                  "type": "integer",
+                  "format": "int32"
+                },
+                "bar": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "foo",
+                "bar"
+              ]
             }
           },
           "required": [
-            "S2"
-          ]
-        }
-      ]
-    },
-    {
-      "oneOf": [
-        {
-          "type": "object",
-          "properties": {
-            "U2": {
-              "type": "integer",
-              "format": "uint32",
-              "minimum": 0
-            }
-          },
-          "required": [
-            "U2"
-          ]
-        },
-        {
-          "type": "object",
-          "properties": {
-            "F2": {
-              "type": "number",
-              "format": "double"
-            }
-          },
-          "required": [
-            "F2"
+            "Struct"
           ]
         }
       ]
     }
   ],
-  "oneOf": [
-    {
-      "type": "object",
-      "properties": {
-        "B3": {
-          "type": "boolean"
-        }
-      },
-      "required": [
-        "B3"
-      ]
-    },
-    {
-      "type": "object",
-      "properties": {
-        "S3": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "S3"
-      ]
+  "$defs": {
+    "EmptyStruct": {
+      "type": "object"
     }
-  ]
+  }
 }
