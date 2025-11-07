@@ -135,3 +135,17 @@ impl JsonSchema for char {
         })
     }
 }
+
+#[cfg(feature = "ordered-float")]
+impl<T: JsonSchema> JsonSchema for ordered_float::OrderedFloat<T> {
+    inline_schema!();
+
+    fn schema_name() -> Cow<'static, str> {
+        T::schema_name()
+    }
+
+    fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+        T::json_schema(gen)
+    }
+}
+
