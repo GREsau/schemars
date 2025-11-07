@@ -58,6 +58,8 @@ mod url;
 #[cfg(feature = "uuid1")]
 mod uuid;
 mod validator;
+#[cfg(feature = "ordered-float")]
+mod ordered_float;
 
 mod prelude {
     pub(crate) use crate::test;
