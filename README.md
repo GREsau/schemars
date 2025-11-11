@@ -281,6 +281,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `semver1` - [semver](https://crates.io/crates/semver) (^1.0.9)
 - `smallvec1` - [smallvec](https://crates.io/crates/smallvec) (^1.0)
 - `smol_str02` - [smol_str](https://crates.io/crates/smol_str) (^0.2.1)
+- `smol_str03` - [smol_str](https://crates.io/crates/smol_str) (^0.3)
 - `url2` - [url](https://crates.io/crates/url) (^2.0)
 - `uuid1` - [uuid](https://crates.io/crates/uuid) (^1.0)
 

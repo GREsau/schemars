@@ -23,7 +23,7 @@ All optional dependencies are now suffixed by their version:
 - `url` is now `url2`
 - `bytes` is now `bytes1`
 - `rust_decimal` is now `rust_decimal1`
-- `smol_str` is now `smol_str02`
+- `smol_str` is now `smol_str02` or `smol_str03`
 - `semver` is now `semver1`
 - `enumset`, `indexmap`, `uuid08`, `arrayvec05` and `bigdecimal03` have been removed
 - `indexmap2`, `arrayvec07` and `bigdecimal04` are unchanged

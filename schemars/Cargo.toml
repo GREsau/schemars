@@ -14,8 +14,8 @@ rust-version = "1.74"
 
 [dependencies]
 schemars_derive = { version = "=1.1.0", optional = true, path = "../schemars_derive" }
-serde = { version = "1.0.194", default-features = false, features = ["alloc"]}
-serde_json = { version =  "1.0.127", default-features = false, features = ["alloc"] }
+serde = { version = "1.0.194", default-features = false, features = ["alloc"] }
+serde_json = { version = "1.0.127", default-features = false, features = ["alloc"] }
 dyn-clone = "1.0.17"
 ref-cast = "1.0.22"
 
@@ -31,6 +31,7 @@ rust_decimal1 = { version = "1.13", default-features = false, optional = true, p
 semver1 = { version = "1.0.9", default-features = false, optional = true, package = "semver" }
 smallvec1 = { version = "1.0", default-features = false, optional = true, package = "smallvec" }
 smol_str02 = { version = "0.2.1", default-features = false, optional = true, package = "smol_str" }
+smol_str03 = { version = "0.3.2", default-features = false, optional = true, package = "smol_str" }
 url2 = { version = "2.0", default-features = false, optional = true, package = "url" }
 uuid1 = { version = "1.0", default-features = false, optional = true, package = "uuid" }
 
@@ -45,7 +46,7 @@ garde = { version = "0.22", features = ["derive", "email", "regex", "url"] }
 validator = { version = "0.20", features = ["derive"] }
 regex = { version = "1.10.6", default-features = false }
 
-arrayvec07 = { version = "0.7", default-features = false, features = ["serde"], package = "arrayvec"}
+arrayvec07 = { version = "0.7", default-features = false, features = ["serde"], package = "arrayvec" }
 bigdecimal04 = { version = "0.4", default-features = false, features = ["serde"], package = "bigdecimal" }
 bytes1 = { version = "1.0", default-features = false, features = ["serde"], package = "bytes" }
 chrono04 = { version = "0.4", default-features = false, features = ["serde"], package = "chrono" }
@@ -56,6 +57,7 @@ rust_decimal1 = { version = "1", default-features = false, features = ["serde"],
 semver1 = { version = "1.0.9", default-features = false, features = ["serde"], package = "semver" }
 smallvec1 = { version = "1.0", default-features = false, features = ["serde"], package = "smallvec" }
 smol_str02 = { version = "0.2.1", default-features = false, features = ["serde"], package = "smol_str" }
+smol_str03 = { version = "0.3.2", default-features = false, features = ["serde"], package = "smol_str" }
 url2 = { version = "2.0", default-features = false, features = ["serde", "std"], package = "url" }
 uuid1 = { version = "1.0", default-features = false, features = ["serde"], package = "uuid" }
 
@@ -72,7 +74,7 @@ derive = ["schemars_derive"]
 # Preserves order of properties inserted into a `Schema`.
 # When deriving `JsonSchema`, this ensures that the `properties` entires match
 # the order of the fields in the struct definition.
-preserve_order  = ["serde_json/preserve_order"]
+preserve_order = ["serde_json/preserve_order"]
 
 # Implements `JsonSchema` on `serde_json::value::RawValue`
 raw_value = ["serde_json/raw_value"]
@@ -86,4 +88,3 @@ required-features = ["_ui_test"]
 
 [package.metadata.docs.rs]
 all-features = true
-
