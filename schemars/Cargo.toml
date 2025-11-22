@@ -12,8 +12,11 @@ categories = ["encoding"]
 build = "build.rs"
 rust-version = "1.60"
 
+[lib]
+name = "schemars"
+
 [dependencies]
-schemars_derive = { package = "oxc_schemars_derive", version = "=0.8.23", optional = true, path = "../schemars_derive" }
+oxc_schemars_derive = { workspace = true, optional = true }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0.25"
 dyn-clone = "1.0"
@@ -45,7 +48,7 @@ trybuild = "1.0"
 [features]
 default = ["derive"]
 
-derive = ["schemars_derive"]
+derive = ["dep:oxc_schemars_derive"]
 
 # Use a different representation for the map type of Schemars.
 # This allows data to be read into a Value and written back to a JSON string

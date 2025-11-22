@@ -4,3 +4,7 @@ members = [
     "schemars_derive"
 ]
 resolver = "2"
+
+[workspace.dependencies]
+oxc-schemars = { version = "0.8.25", path = "schemars" }
+oxc_schemars_derive = { version = "0.8.23", path = "schemars_derive" }

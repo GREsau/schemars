@@ -11,6 +11,7 @@ keywords = ["rust", "json-schema", "serde"]
 rust-version = "1.60"
 
 [lib]
+name = "schemars_derive"
 proc-macro = true
 
 [dependencies]

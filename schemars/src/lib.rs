@@ -42,11 +42,9 @@ pub mod visit;
 
 pub use r#gen::SchemaGenerator;
 
-#[cfg(feature = "schemars_derive")]
-extern crate schemars_derive;
 use std::borrow::Cow;
 
-#[cfg(feature = "schemars_derive")]
+#[cfg(feature = "derive")]
 pub use schemars_derive::*;
 
 // Export serde_json so schemars_derive can use it
@@ -167,7 +165,9 @@ pub trait JsonSchema {
 
     // TODO document and bring into public API?
     #[doc(hidden)]
-    fn _schemars_private_non_optional_json_schema(generator: &mut r#gen::SchemaGenerator) -> Schema {
+    fn _schemars_private_non_optional_json_schema(
+        generator: &mut r#gen::SchemaGenerator,
+    ) -> Schema {
         Self::json_schema(generator)
     }
 
