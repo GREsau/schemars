@@ -1,0 +1,21 @@
+name: Release
+
+permissions: {}
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release-plz:
+    name: Release-plz
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+      id-token: write
+    steps:
+      - uses: oxc-project/release-plz@44b98e8dda1a7783d4ec2ef66e2f37a3e8c1c759 # v1.0.4
+        with:
+          PAT: ${{ secrets.OXC_BOT_PAT }}
