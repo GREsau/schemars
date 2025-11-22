@@ -2,7 +2,7 @@
 name = "oxc-schemars"
 description = "Generate JSON Schemas from Rust code"
 repository = "https://github.com/oxc-project/schemars"
-version = "0.8.25"
+version = "0.8.26"
 authors = ["Graham Esau <gesau@hotmail.co.uk>"]
 edition = "2021"
 license = "MIT"

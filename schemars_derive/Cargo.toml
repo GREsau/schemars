@@ -2,7 +2,7 @@
 name = "oxc_schemars_derive"
 description = "Macros for #[derive(JsonSchema)], for use with schemars"
 repository = "https://github.com/oxc-project/schemars"
-version = "0.8.23"
+version = "0.8.26"
 authors = ["Graham Esau <gesau@hotmail.co.uk>"]
 edition = "2021"
 license = "MIT"
