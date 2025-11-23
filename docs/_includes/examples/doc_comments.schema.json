@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "My Amazing Struct",
-  "description": "This struct shows off generating a schema with a custom title and description.",
+  "description": "This struct shows off generating a schema with\na custom title and description.",
   "type": "object",
   "required": [
     "my_bool",
@@ -48,7 +48,7 @@
           "additionalProperties": false
         },
         {
-          "description": "A struct-like enum variant which contains some floats",
+          "description": "A struct-like enum variant which contains\nsome floats",
           "type": "object",
           "required": [
             "StructVariant"
