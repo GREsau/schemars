@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "InternalContainer",
+  "type": "object",
+  "properties": {
+    "f": {
+      "type": "number",
+      "format": "float"
+    }
+  },
+  "required": [
+    "f"
+  ],
+  "allOf": [
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tag1": {
+              "type": "string",
+              "const": "Unit1"
+            }
+          },
+          "required": [
+            "tag1"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tag1": {
+              "type": "string",
+              "const": "Unit2"
+            }
+          },
+          "required": [
+            "tag1"
+          ]
+        }
+      ]
+    },
+    {
+      "oneOf": [
+        {
+          "type": "object",
+          "properties": {
+            "tag2": {
+              "type": "string",
+              "const": "Unit3"
+            }
+          },
+          "required": [
+            "tag2"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "tag2": {
+              "type": "string",
+              "const": "ValueNewType"
+            }
+          },
+          "required": [
+            "tag2"
+          ]
+        }
+      ]
+    }
+  ],
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "tag3": {
+          "type": "string",
+          "const": "StructNewType"
+        }
+      },
+      "$ref": "#/$defs/EmptyStruct",
+      "required": [
+        "tag3"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "foo": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "bar": {
+          "type": "boolean"
+        },
+        "tag3": {
+          "type": "string",
+          "const": "Struct"
+        }
+      },
+      "required": [
+        "tag3",
+        "foo",
+        "bar"
+      ]
+    }
+  ],
+  "$defs": {
+    "EmptyStruct": {
+      "type": "object"
+    }
+  }
+}

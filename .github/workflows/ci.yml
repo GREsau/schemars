@@ -23,7 +23,7 @@ jobs:
             allow_failure: true
       fail-fast: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Downgrade packages for MSRV
         if: matrix.rust == '1.74.0'
         run: |
@@ -45,3 +45,32 @@ jobs:
         run: cargo test --verbose --all-features --no-fail-fast
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars_derive
+      - name: Check with latest dependency versions
+        if: matrix.rust != '1.74.0'
+        run: |
+          cargo update
+          cargo check --all-features --verbose --example main
+      - name: Check with minimal dependency versions
+        run: |
+          # Ignore dev-dependencies because they're irrelevant for consumers of schemars
+          # Modified workaround from https://github.com/SpriteOvO/spdlog-rs/blob/09b1f25ad7654a5535eea1497bd70382fb0c16ae/.github/workflows/ci.yml#L110-L112
+          sed -i 's/\[dev-dependencies]/[package.metadata.workaround-avoid-dev-deps]/g' ./schemars/Cargo.toml ./schemars_derive/Cargo.toml
+          cargo +nightly generate-lockfile -Z direct-minimal-versions
+          cargo check --all-features --verbose --example main
+
+  clippy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@clippy
+      - run: cargo clippy --all-targets -- -D warnings
+      - run: cargo clippy --all-targets --all-features -- -D warnings
+
+  semver-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check semver
+        uses: obi1kenobi/cargo-semver-checks-action@v2
+        with:
+          release-type: minor

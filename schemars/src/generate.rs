@@ -74,6 +74,7 @@ impl Default for SchemaSettings {
 
 impl SchemaSettings {
     /// Creates `SchemaSettings` that conform to [JSON Schema Draft 7](https://json-schema.org/specification-links#draft-7).
+    #[must_use]
     pub fn draft07() -> SchemaSettings {
         SchemaSettings {
             definitions_path: "/definitions".into(),
@@ -90,6 +91,7 @@ impl SchemaSettings {
     }
 
     /// Creates `SchemaSettings` that conform to [JSON Schema 2019-09](https://json-schema.org/specification-links#draft-2019-09-(formerly-known-as-draft-8)).
+    #[must_use]
     pub fn draft2019_09() -> SchemaSettings {
         SchemaSettings {
             definitions_path: "/$defs".into(),
@@ -102,6 +104,7 @@ impl SchemaSettings {
     }
 
     /// Creates `SchemaSettings` that conform to [JSON Schema 2020-12](https://json-schema.org/specification-links#2020-12).
+    #[must_use]
     pub fn draft2020_12() -> SchemaSettings {
         SchemaSettings {
             definitions_path: "/$defs".into(),
@@ -114,6 +117,7 @@ impl SchemaSettings {
     }
 
     /// Creates `SchemaSettings` that conform to [OpenAPI 3.0](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.4.md#schema).
+    #[must_use]
     pub fn openapi3() -> SchemaSettings {
         SchemaSettings {
             definitions_path: "/components/schemas".into(),
@@ -147,6 +151,7 @@ impl SchemaSettings {
     /// });
     /// let generator = settings.into_generator();
     /// ```
+    #[must_use]
     pub fn with(mut self, configure_fn: impl FnOnce(&mut Self)) -> Self {
         configure_fn(&mut self);
         self
@@ -154,23 +159,27 @@ impl SchemaSettings {
 
     /// Appends the given transform to the list of [transforms](SchemaSettings::transforms) for
     /// these `SchemaSettings`.
+    #[must_use]
     pub fn with_transform(mut self, transform: impl Transform + Clone + 'static + Send) -> Self {
         self.transforms.push(Box::new(transform));
         self
     }
 
     /// Creates a new [`SchemaGenerator`] using these settings.
+    #[must_use]
     pub fn into_generator(self) -> SchemaGenerator {
         SchemaGenerator::new(self)
     }
 
     /// Updates the settings to generate schemas describing how types are **deserialized**.
+    #[must_use]
     pub fn for_deserialize(mut self) -> Self {
         self.contract = Contract::Deserialize;
         self
     }
 
     /// Updates the settings to generate schemas describing how types are **serialized**.
+    #[must_use]
     pub fn for_serialize(mut self) -> Self {
         self.contract = Contract::Serialize;
         self
@@ -192,11 +201,13 @@ pub enum Contract {
 
 impl Contract {
     /// Returns true if `self` is the `Deserialize` contract.
+    #[must_use]
     pub fn is_deserialize(&self) -> bool {
         self == &Contract::Deserialize
     }
 
     /// Returns true if `self` is the `Serialize` contract.
+    #[must_use]
     pub fn is_serialize(&self) -> bool {
         self == &Contract::Serialize
     }
@@ -258,6 +269,7 @@ impl From<SchemaSettings> for SchemaGenerator {
 
 impl SchemaGenerator {
     /// Creates a new `SchemaGenerator` using the given settings.
+    #[must_use]
     pub fn new(settings: SchemaSettings) -> SchemaGenerator {
         SchemaGenerator {
             settings,
@@ -280,6 +292,7 @@ impl SchemaGenerator {
     ///
     /// assert_eq!(settings.inline_subschemas, false);
     /// ```
+    #[must_use]
     pub fn settings(&self) -> &SchemaSettings {
         &self.settings
     }
@@ -388,6 +401,7 @@ impl SchemaGenerator {
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
     /// values are the schemas themselves.
+    #[must_use]
     pub fn definitions(&self) -> &JsonMap<String, Value> {
         &self.definitions
     }
@@ -397,6 +411,7 @@ impl SchemaGenerator {
     ///
     /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
     /// values are the schemas themselves.
+    #[must_use]
     pub fn definitions_mut(&mut self) -> &mut JsonMap<String, Value> {
         &mut self.definitions
     }
@@ -461,6 +476,7 @@ impl SchemaGenerator {
     /// If `T`'s schema depends on any [non-inlined](JsonSchema::inline_schema) schemas, then
     /// this method will include them in the returned `Schema` at the [definitions
     /// path](SchemaSettings::definitions_path) (by default `"$defs"`).
+    #[must_use]
     pub fn into_root_schema_for<T: ?Sized + JsonSchema>(mut self) -> Schema {
         let schema_uid = self.schema_uid::<T>();
         self.root_schema_id_stack.push(schema_uid.clone());
@@ -553,6 +569,7 @@ impl SchemaGenerator {
     /// `SchemaGenerator`.
     ///
     /// This specifies whether generated schemas describe serialize or *de*serialize behaviour.
+    #[must_use]
     pub fn contract(&self) -> &Contract {
         &self.settings.contract
     }
@@ -680,6 +697,7 @@ pub trait GenTransform: Transform + DynClone + Any + Send {
 #[allow(deprecated, clippy::used_underscore_items)]
 impl dyn GenTransform {
     /// Returns `true` if the inner transform is of type `T`.
+    #[must_use]
     pub fn is<T: Transform + Clone + Any + Send>(&self) -> bool {
         self._as_any().is::<T>()
     }
@@ -700,6 +718,7 @@ impl dyn GenTransform {
     ///
     /// assert_eq!(settings.transforms.len(), original_len - 1);
     /// ```
+    #[must_use]
     pub fn downcast_ref<T: Transform + Clone + Any + Send>(&self) -> Option<&T> {
         self._as_any().downcast_ref::<T>()
     }
@@ -720,6 +739,7 @@ impl dyn GenTransform {
     ///     }
     /// }
     /// ```
+    #[must_use]
     pub fn downcast_mut<T: Transform + Clone + Any + Send>(&mut self) -> Option<&mut T> {
         self._as_any_mut().downcast_mut::<T>()
     }

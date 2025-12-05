@@ -1,4 +1,4 @@
-# Deriving JsonSchema
+# Deriving `JsonSchema`
 
 The most important trait in Schemars is `JsonSchema`, and the most important function of that trait is `json_schema(...)` which returns a JSON schema describing the type. Implementing this manually on many types would be slow and error-prone, so Schemars includes a derive macro which can implement that trait for you. Any derived implementation of `JsonSchema` should create a schema that describes the JSON representation of the type if it were to be serialized by serde_json.
 

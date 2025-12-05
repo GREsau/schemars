@@ -1,5 +1,29 @@
 # Changelog
 
+## [1.1.0] - 2025-11-05
+
+### Added
+
+- Public functions that have no side-effects are now marked with [`#[must_use]`](https://doc.rust-lang.org/reference/attributes/diagnostics.html#the-must_use-attribute) so that they report a lint warning when the returned value is unused, as this likely indicates a mistake.
+
+### Fixed
+
+- Improve accuracy of schemas for flattened enums, in particular: unit variants of externally-tagged enums, and enums wrapped in `Option<>`. (https://github.com/GREsau/schemars/issues/464 / https://github.com/GREsau/schemars/pull/483)
+
+## [1.0.5] - 2025-11-02
+
+### Fixed
+
+- Fix `schema.pointer_mut()` to resolve URI fragment identifiers like `#/$defs/foo`, matching current behaviour of `schema.pointer()` (https://github.com/GREsau/schemars/issues/478 / https://github.com/GREsau/schemars/pull/479)
+
+## [1.0.4] - 2025-07-06
+
+### Fixed
+
+- Fix `JsonSchema` impl on [atomic](https://doc.rust-lang.org/std/sync/atomic/) types being ignored on non-nightly compilers due to a buggy `cfg` check (https://github.com/GREsau/schemars/issues/453)
+- Fix compatibility with minimal dependency versions, e.g. old(-ish) versions of `syn` (https://github.com/GREsau/schemars/issues/450)
+- Fix derive for empty tuple variants (https://github.com/GREsau/schemars/issues/455)
+
 ## [1.0.3] - 2025-06-28
 
 ### Fixed

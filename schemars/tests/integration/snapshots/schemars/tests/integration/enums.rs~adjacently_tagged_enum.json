@@ -99,6 +99,23 @@
       "properties": {
         "tag": {
           "type": "string",
+          "const": "EmptyTuple"
+        },
+        "content": {
+          "type": "array",
+          "maxItems": 0
+        }
+      },
+      "required": [
+        "tag",
+        "content"
+      ]
+    },
+    {
+      "type": "object",
+      "properties": {
+        "tag": {
+          "type": "string",
           "const": "Tuple"
         },
         "content": {

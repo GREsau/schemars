@@ -5,7 +5,7 @@ nav_order: 3
 summary: "Deriving JsonSchema on types that use #[schemars] attributes to customise serialization behaviour."
 ---
 
-# Using Serde Attributes
+# Using Schemars Attributes
 
 `#[serde(...)]` attributes can be overriden (or replaced) with `#[schemars(...)]` attributes, which behave identically. You may find this useful if you want to change the generated schema without affecting Serde's behaviour, or if you're just not using Serde.
 

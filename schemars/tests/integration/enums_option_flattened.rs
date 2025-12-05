@@ -32,13 +32,13 @@ enum External4 {
 struct ExternalContainer {
     f: f32,
     #[serde(flatten)]
-    e1: External1,
+    e1: Option<External1>,
     #[serde(flatten)]
-    e2: External2,
+    e2: Option<External2>,
     #[serde(flatten)]
-    e3: External3,
+    e3: Option<External3>,
     #[serde(flatten)]
-    e4: External4,
+    e4: Option<External4>,
 }
 
 impl ExternalContainer {
@@ -46,17 +46,24 @@ impl ExternalContainer {
         [
             Self {
                 f: 1.23,
-                e1: External1::Unit1,
-                e2: External2::Unit3,
-                e3: External3::Int(123),
-                e4: External4::StructNewType(EmptyStruct {}),
+                e1: Some(External1::Unit1),
+                e2: Some(External2::Unit3),
+                e3: Some(External3::Int(123)),
+                e4: Some(External4::StructNewType(EmptyStruct {})),
             },
             Self {
                 f: 9.87,
-                e1: External1::Unit2,
-                e2: External2::ValueNewType(json!({"key": "value"})),
-                e3: External3::Tuple(0, true),
-                e4: External4::Struct { foo: 1, bar: true },
+                e1: Some(External1::Unit2),
+                e2: Some(External2::ValueNewType(json!({"key": "value"}))),
+                e3: Some(External3::Tuple(0, true)),
+                e4: Some(External4::Struct { foo: 1, bar: true }),
+            },
+            Self {
+                f: 9.87,
+                e1: None,
+                e2: None,
+                e3: None,
+                e4: None,
             },
         ]
     }
@@ -67,13 +74,13 @@ impl ExternalContainer {
 struct ExternalContainerDenyUnknownFields {
     f: f32,
     #[serde(flatten)]
-    e1: External1,
+    e1: Option<External1>,
     #[serde(flatten)]
-    e2: External2,
+    e2: Option<External2>,
     #[serde(flatten)]
-    e3: External3,
+    e3: Option<External3>,
     #[serde(flatten)]
-    e4: External4,
+    e4: Option<External4>,
 }
 
 impl ExternalContainerDenyUnknownFields {
@@ -81,17 +88,24 @@ impl ExternalContainerDenyUnknownFields {
         [
             Self {
                 f: 1.23,
-                e1: External1::Unit1,
-                e2: External2::Unit3,
-                e3: External3::Int(123),
-                e4: External4::StructNewType(EmptyStruct {}),
+                e1: Some(External1::Unit1),
+                e2: Some(External2::Unit3),
+                e3: Some(External3::Int(123)),
+                e4: Some(External4::StructNewType(EmptyStruct {})),
             },
             Self {
                 f: 9.87,
-                e1: External1::Unit2,
-                e2: External2::ValueNewType(json!({"key": "value"})),
-                e3: External3::Tuple(0, true),
-                e4: External4::Struct { foo: 1, bar: true },
+                e1: Some(External1::Unit2),
+                e2: Some(External2::ValueNewType(json!({"key": "value"}))),
+                e3: Some(External3::Tuple(0, true)),
+                e4: Some(External4::Struct { foo: 1, bar: true }),
+            },
+            Self {
+                f: 9.87,
+                e1: None,
+                e2: None,
+                e3: None,
+                e4: None,
             },
         ]
     }
@@ -163,11 +177,11 @@ enum Internal3 {
 struct InternalContainer {
     f: f32,
     #[serde(flatten)]
-    e1: Internal1,
+    e1: Option<Internal1>,
     #[serde(flatten)]
-    e2: Internal2,
+    e2: Option<Internal2>,
     #[serde(flatten)]
-    e3: Internal3,
+    e3: Option<Internal3>,
 }
 
 impl InternalContainer {
@@ -175,15 +189,21 @@ impl InternalContainer {
         [
             Self {
                 f: 1.23,
-                e1: Internal1::Unit1,
-                e2: Internal2::Unit3,
-                e3: Internal3::StructNewType(EmptyStruct {}),
+                e1: Some(Internal1::Unit1),
+                e2: Some(Internal2::Unit3),
+                e3: Some(Internal3::StructNewType(EmptyStruct {})),
             },
             Self {
                 f: 9.87,
-                e1: Internal1::Unit2,
-                e2: Internal2::ValueNewType(json!({"key": "value"})),
-                e3: Internal3::Struct { foo: 1, bar: true },
+                e1: Some(Internal1::Unit2),
+                e2: Some(Internal2::ValueNewType(json!({"key": "value"}))),
+                e3: Some(Internal3::Struct { foo: 1, bar: true }),
+            },
+            Self {
+                f: 9.87,
+                e1: None,
+                e2: None,
+                e3: None,
             },
         ]
     }
@@ -229,13 +249,13 @@ enum Adjacent4 {
 struct AdjacentContainer {
     f: f32,
     #[serde(flatten)]
-    e1: Adjacent1,
+    e1: Option<Adjacent1>,
     #[serde(flatten)]
-    e2: Adjacent2,
+    e2: Option<Adjacent2>,
     #[serde(flatten)]
-    e3: Adjacent3,
+    e3: Option<Adjacent3>,
     #[serde(flatten)]
-    e4: Adjacent4,
+    e4: Option<Adjacent4>,
 }
 
 impl AdjacentContainer {
@@ -243,17 +263,24 @@ impl AdjacentContainer {
         [
             Self {
                 f: 1.23,
-                e1: Adjacent1::Unit1,
-                e2: Adjacent2::Unit3,
-                e3: Adjacent3::Int(123),
-                e4: Adjacent4::StructNewType(EmptyStruct {}),
+                e1: Some(Adjacent1::Unit1),
+                e2: Some(Adjacent2::Unit3),
+                e3: Some(Adjacent3::Int(123)),
+                e4: Some(Adjacent4::StructNewType(EmptyStruct {})),
             },
             Self {
                 f: 9.87,
-                e1: Adjacent1::Unit2,
-                e2: Adjacent2::ValueNewType(json!({"key": "value"})),
-                e3: Adjacent3::Tuple(0, true),
-                e4: Adjacent4::Struct { foo: 1, bar: true },
+                e1: Some(Adjacent1::Unit2),
+                e2: Some(Adjacent2::ValueNewType(json!({"key": "value"}))),
+                e3: Some(Adjacent3::Tuple(0, true)),
+                e4: Some(Adjacent4::Struct { foo: 1, bar: true }),
+            },
+            Self {
+                f: 9.87,
+                e1: None,
+                e2: None,
+                e3: None,
+                e4: None,
             },
         ]
     }
@@ -279,7 +306,7 @@ enum Untagged {
 struct UntaggedContainer {
     f: f32,
     #[serde(flatten)]
-    e1: Untagged,
+    e1: Option<Untagged>,
 }
 
 impl UntaggedContainer {
@@ -287,16 +314,17 @@ impl UntaggedContainer {
         [
             Self {
                 f: 1.23,
-                e1: Untagged::Struct1 { foo: 1 },
+                e1: Some(Untagged::Struct1 { foo: 1 }),
             },
             Self {
                 f: 9.87,
-                e1: Untagged::Struct2 { bar: true },
+                e1: Some(Untagged::Struct2 { bar: true }),
             },
             Self {
                 f: 42.0,
-                e1: Untagged::ValueNewType(json!({"key": "value"})),
+                e1: Some(Untagged::ValueNewType(json!({"key": "value"}))),
             },
+            Self { f: 42.0, e1: None },
         ]
     }
 }
@@ -313,13 +341,13 @@ fn untagged_enums_flattened() {
 struct MixedContainer {
     f: f32,
     #[serde(flatten)]
-    e1: External1,
+    e1: Option<External1>,
     #[serde(flatten)]
-    i2: Internal2,
+    i2: Option<Internal2>,
     #[serde(flatten)]
-    a3: Adjacent3,
+    a3: Option<Adjacent3>,
     #[serde(flatten)]
-    u: Untagged,
+    u: Option<Untagged>,
 }
 
 impl MixedContainer {
@@ -327,17 +355,24 @@ impl MixedContainer {
         [
             Self {
                 f: 1.23,
-                e1: External1::Unit1,
-                i2: Internal2::Unit3,
-                a3: Adjacent3::Int(123),
-                u: Untagged::Struct1 { foo: 1 },
+                e1: Some(External1::Unit1),
+                i2: Some(Internal2::Unit3),
+                a3: Some(Adjacent3::Int(123)),
+                u: Some(Untagged::Struct1 { foo: 1 }),
             },
             Self {
                 f: 9.87,
-                e1: External1::Unit2,
-                i2: Internal2::ValueNewType(json!({"key": "value"})),
-                a3: Adjacent3::Tuple(0, true),
-                u: Untagged::ValueNewType(json!({"key": "value"})),
+                e1: Some(External1::Unit2),
+                i2: Some(Internal2::ValueNewType(json!({"key": "value"}))),
+                a3: Some(Adjacent3::Tuple(0, true)),
+                u: Some(Untagged::ValueNewType(json!({"key": "value"}))),
+            },
+            Self {
+                f: 9.87,
+                e1: None,
+                i2: None,
+                a3: None,
+                u: None,
             },
         ]
     }

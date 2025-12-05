@@ -1,0 +1,165 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MixedContainer",
+  "type": "object",
+  "properties": {
+    "f": {
+      "type": "number",
+      "format": "float"
+    }
+  },
+  "required": [
+    "f"
+  ],
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "Unit1": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "Unit1"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "Unit2": {
+                  "type": "null"
+                }
+              },
+              "required": [
+                "Unit2"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "tag2": {
+                  "type": "string",
+                  "const": "Unit3"
+                }
+              },
+              "required": [
+                "tag2"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "tag2": {
+                  "type": "string",
+                  "const": "ValueNewType"
+                }
+              },
+              "required": [
+                "tag2"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "tag3": {
+                  "type": "string",
+                  "const": "Int"
+                },
+                "content3": {
+                  "type": "integer",
+                  "format": "uint32",
+                  "minimum": 0
+                }
+              },
+              "required": [
+                "tag3",
+                "content3"
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "tag3": {
+                  "type": "string",
+                  "const": "Tuple"
+                },
+                "content3": {
+                  "type": "array",
+                  "prefixItems": [
+                    {
+                      "type": "integer",
+                      "format": "uint8",
+                      "minimum": 0,
+                      "maximum": 255
+                    },
+                    {
+                      "type": "boolean"
+                    }
+                  ],
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              },
+              "required": [
+                "tag3",
+                "content3"
+              ]
+            }
+          ]
+        },
+        {}
+      ]
+    },
+    {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "foo": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "required": [
+            "foo"
+          ]
+        },
+        {
+          "type": "object",
+          "properties": {
+            "bar": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "bar"
+          ]
+        },
+        true,
+        {}
+      ]
+    }
+  ]
+}

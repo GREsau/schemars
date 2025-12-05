@@ -81,7 +81,7 @@ impl<'a> Container<'a> {
 }
 
 impl Variant<'_> {
-    pub fn name(&self) -> Name {
+    pub fn name(&self) -> Name<'_> {
         Name(self.serde_attrs.name())
     }
 
@@ -103,7 +103,7 @@ impl Variant<'_> {
 }
 
 impl Field<'_> {
-    pub fn name(&self) -> Name {
+    pub fn name(&self) -> Name<'_> {
         Name(self.serde_attrs.name())
     }
 

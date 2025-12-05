@@ -46,22 +46,103 @@ pub fn json_schema_for_internally_tagged_enum_newtype_variant<T: ?Sized + JsonSc
     generator.subschema_for::<T>()
 }
 
-// Helper for generating schemas for flattened `Option` fields.
+// Helper for generating schemas for flattened enums and `Option` fields.
 pub fn json_schema_for_flatten<T: ?Sized + JsonSchema>(
     generator: &mut SchemaGenerator,
     required: bool,
 ) -> Schema {
-    let mut schema = T::_schemars_private_non_optional_json_schema(generator);
+    /// Non-generic inner function to reduce monomorphization overhead
+    fn inner(mut schema: Schema, is_optional: bool) -> Schema {
+        // Special handling for externally-tagged enums with unit variants.
+        // Unit variants are normally serialized as strings, but when flattened, are serialized
+        // as objects like `{ "VariantName": null }`
+        if let Some(unit_variants) = remove_unit_variants(&mut schema) {
+            if let Value::Array(one_of) = schema
+                .ensure_object()
+                .entry("oneOf")
+                .or_insert(Value::Array(Vec::new()))
+            {
+                one_of.extend(
+                    unit_variants
+                        .iter()
+                        .filter_map(Value::as_str)
+                        .map(|variant| {
+                            json!({
+                                "type": "object",
+                                "properties": {
+                                    variant: {
+                                        "type": "null"
+                                    }
+                                },
+                                "required": [variant],
+                            })
+                        }),
+                );
+            }
+        }
 
-    if T::_schemars_private_is_option() && !required {
-        schema.remove("required");
+        if is_optional {
+            schema.remove("required");
+
+            // Handle `Option<>` of externally/internally/adjacently-tagged enums
+            if let Some(one_of) = schema.remove("oneOf") {
+                // We can't just add `{}` to the existing `oneOf`, because its items must be
+                // mutually-exclusive, and `{}` matches everything.
+                flatten(
+                    &mut schema,
+                    json_schema!({
+                        "anyOf": [
+                            { "oneOf": one_of },
+                            {}
+                        ]
+                    }),
+                );
+            }
+
+            // Handle `Option<>` of untagged enums
+            if let Some(Value::Array(any_of)) = schema.get_mut("anyOf") {
+                let empty_object = Value::Object(Map::new());
+                if !any_of.contains(&empty_object) {
+                    any_of.push(empty_object);
+                }
+            }
+        }
+
+        // Always allow aditional/unevaluated properties, because the outer struct determines
+        // whether it denies unknown fields.
+        AllowUnknownProperties::default().transform(&mut schema);
+
+        schema
     }
 
-    // Always allow aditional/unevaluated properties, because the outer struct determines
-    // whether it denies unknown fields.
-    AllowUnknownProperties::default().transform(&mut schema);
+    fn remove_unit_variants(schema: &mut Schema) -> Option<Vec<Value>> {
+        // For enums that only have unit variants, all variants are in `enum`
+        if schema.get("type").and_then(Value::as_str) == Some("string") {
+            // Remove both `"enum": [...]`...
+            if let Some(Value::Array(a)) = schema.remove("enum") {
+                // ...and `"type": "string"`, since the variants are not serialized as strings
+                schema.remove("type");
+                return Some(a);
+            }
+        }
 
-    schema
+        // For enums that have unit and other variants, unit variants are in the first `oneOf` item
+        let one_of = schema.get_mut("oneOf")?.as_array_mut()?;
+        let first = <&mut Schema>::try_from(one_of.get_mut(0)?).ok()?;
+        if first.get("type").and_then(Value::as_str) == Some("string") {
+            if let Some(Value::Array(a)) = first.remove("enum") {
+                one_of.remove(0);
+                return Some(a);
+            }
+        }
+
+        None
+    }
+
+    inner(
+        T::_schemars_private_non_optional_json_schema(generator),
+        T::_schemars_private_is_option() && !required,
+    )
 }
 
 #[derive(Default)]
@@ -116,6 +197,7 @@ impl<T: Serialize> MaybeSerializeWrapper<T> {
 }
 
 /// Create a schema for a unit enum variant
+#[must_use]
 pub fn new_unit_enum_variant(variant: &str) -> Schema {
     json_schema!({
         "type": "string",
@@ -143,6 +225,7 @@ macro_rules! _schemars_maybe_schema_id {
 pub struct MaybeJsonSchemaWrapper<T: ?Sized>(core::marker::PhantomData<T>);
 
 pub trait NoJsonSchema {
+    #[must_use]
     fn maybe_schema_id() -> Cow<'static, str> {
         Cow::Borrowed(core::any::type_name::<Self>())
     }
@@ -151,6 +234,7 @@ pub trait NoJsonSchema {
 impl<T: ?Sized> NoJsonSchema for T {}
 
 impl<T: JsonSchema + ?Sized> MaybeJsonSchemaWrapper<T> {
+    #[must_use]
     pub fn maybe_schema_id() -> Cow<'static, str> {
         T::schema_id()
     }
@@ -158,6 +242,7 @@ impl<T: JsonSchema + ?Sized> MaybeJsonSchemaWrapper<T> {
 
 /// Create a schema for an externally tagged enum variant
 #[allow(clippy::needless_pass_by_value)]
+#[must_use]
 pub fn new_externally_tagged_enum_variant(variant: &str, sub_schema: Schema) -> Schema {
     // TODO: this can be optimised by inserting the `sub_schema` as a `Value` rather than
     // using the `json_schema!` macro which borrows and serializes the sub_schema

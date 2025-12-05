@@ -35,6 +35,10 @@
     },
     {
       "type": "array",
+      "maxItems": 0
+    },
+    {
+      "type": "array",
       "prefixItems": [
         {
           "type": "integer",

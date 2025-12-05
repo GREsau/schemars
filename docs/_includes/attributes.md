@@ -215,7 +215,7 @@ Serde docs: [container](https://serde.rs/container-attrs.html#transparent)
 
 </h3>
 
-Where-clause for the JsonSchema impl. This replaces any trait bounds inferred by schemars. Schemars does **not** use trait bounds from `#[serde(bound)]` attributes.
+Where-clause for the `JsonSchema` impl. This replaces any trait bounds inferred by schemars. Schemars does **not** use trait bounds from `#[serde(bound)]` attributes.
 
 Serde docs: [container](https://serde.rs/container-attrs.html#bound)
 

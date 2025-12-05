@@ -126,6 +126,7 @@ impl Schema {
     ///
     /// The given reference string should be a URI reference. This will usually be a JSON Pointer
     /// in [URI Fragment representation](https://tools.ietf.org/html/rfc6901#section-6).
+    #[must_use]
     pub fn new_ref(reference: String) -> Self {
         let mut map = Map::new();
         map.insert("$ref".to_owned(), Value::String(reference));
@@ -133,23 +134,27 @@ impl Schema {
     }
 
     /// Borrows the `Schema`'s underlying JSON value.
+    #[must_use]
     pub fn as_value(&self) -> &Value {
         &self.0
     }
 
     /// If the `Schema`'s underlying JSON value is a bool, returns the bool value.
+    #[must_use]
     pub fn as_bool(&self) -> Option<bool> {
         self.0.as_bool()
     }
 
     /// If the `Schema`'s underlying JSON value is an object, borrows the object as a `Map` of
     /// properties.
+    #[must_use]
     pub fn as_object(&self) -> Option<&Map<String, Value>> {
         self.0.as_object()
     }
 
     /// If the `Schema`'s underlying JSON value is an object, mutably borrows the object as a `Map`
     /// of properties.
+    #[must_use]
     pub fn as_object_mut(&mut self) -> Option<&mut Map<String, Value>> {
         self.0.as_object_mut()
     }
@@ -171,6 +176,7 @@ impl Schema {
     }
 
     /// Returns the `Schema`'s underlying JSON value.
+    #[must_use]
     pub fn to_value(self) -> Value {
         self.0
     }
@@ -238,6 +244,7 @@ impl Schema {
     /// let bool_schema = json_schema!(true);
     /// assert_eq!(bool_schema.get("type"), None);
     /// ```
+    #[must_use]
     pub fn get<Q>(&self, key: &Q) -> Option<&Value>
     where
         String: core::borrow::Borrow<Q>,
@@ -262,6 +269,7 @@ impl Schema {
     /// }
     /// assert_eq!(obj_schema, json_schema!({ "properties": { "anything": true } }));
     /// ```
+    #[must_use]
     pub fn get_mut<Q>(&mut self, key: &Q) -> Option<&mut Value>
     where
         String: core::borrow::Borrow<Q>,
@@ -298,6 +306,7 @@ impl Schema {
     /// assert_eq!(schema.pointer("#/$defs/%F0%9F%9A%80").unwrap(), &json!(true));
     /// assert_eq!(schema.pointer("/does/not/exist"), None);
     /// ```
+    #[must_use]
     pub fn pointer(&self, pointer: &str) -> Option<&Value> {
         if let Some(percent_encoded) = pointer.strip_prefix('#') {
             let decoded = crate::encoding::percent_decode(percent_encoded)?;
@@ -309,6 +318,9 @@ impl Schema {
 
     /// If the `Schema`'s underlying JSON value is an object, looks up a value by a JSON Pointer
     /// and returns a mutable reference to that value.
+    ///
+    /// If the given pointer begins with a `#`, then the rest of the value is assumed to be in
+    /// "URI Fragment Identifier Representation", and will be percent-decoded accordingly.
     ///
     /// For more information on JSON Pointer, read [RFC6901](https://tools.ietf.org/html/rfc6901).
     ///
@@ -322,17 +334,24 @@ impl Schema {
     /// let mut schema = json_schema!({
     ///     "properties": {
     ///         "anything": true
+    ///     },
+    ///     "$defs": {
+    ///         "🚀": true
     ///     }
     /// });
     ///
-    /// let subschema_value = schema.pointer_mut("/properties/anything").unwrap();
-    /// let subschema: &mut Schema = subschema_value.try_into().unwrap();
-    /// subschema.ensure_object();
-    ///
-    /// assert_eq!(schema.pointer_mut("/properties/anything").unwrap(), &json!({}));
+    /// assert_eq!(schema.pointer_mut("/properties/anything").unwrap(), &json!(true));
+    /// assert_eq!(schema.pointer_mut("#/$defs/%F0%9F%9A%80").unwrap(), &json!(true));
+    /// assert_eq!(schema.pointer_mut("/does/not/exist"), None);
     /// ```
+    #[must_use]
     pub fn pointer_mut(&mut self, pointer: &str) -> Option<&mut Value> {
-        self.0.pointer_mut(pointer)
+        if let Some(percent_encoded) = pointer.strip_prefix('#') {
+            let decoded = crate::encoding::percent_decode(percent_encoded)?;
+            self.0.pointer_mut(&decoded)
+        } else {
+            self.0.pointer_mut(pointer)
+        }
     }
 
     /// If the `Schema`'s underlying JSON value is an object, removes and returns its value for the
@@ -388,11 +407,9 @@ impl Schema {
         Err(E::invalid_type(unexpected, &"object or boolean"))
     }
 
-    #[allow(unsafe_code)]
     #[ref_cast_custom]
     fn ref_cast(value: &Value) -> &Self;
 
-    #[allow(unsafe_code)]
     #[ref_cast_custom]
     fn ref_cast_mut(value: &mut Value) -> &mut Self;
 }
