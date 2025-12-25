@@ -11,36 +11,61 @@
     },
     "i_map": {
       "type": "object",
+      "additionalProperties": false,
       "patternProperties": {
         "^-?\\d+$": {
           "type": "boolean"
         }
-      },
-      "additionalProperties": false
+      }
     },
     "u_map": {
       "type": "object",
+      "additionalProperties": false,
       "patternProperties": {
         "^\\d+$": {
           "type": "boolean"
         }
-      },
-      "additionalProperties": false
+      }
     },
     "pattern_map": {
       "type": "object",
+      "additionalProperties": false,
       "patternProperties": {
         "^[0-9a-f]*$": {
           "type": "boolean"
         }
+      }
+    },
+    "enum_map": {
+      "type": "object",
+      "properties": {
+        "Unit1": {
+          "type": "boolean"
+        },
+        "Unit2": {
+          "type": "boolean"
+        }
       },
-      "additionalProperties": false
+      "additionalProperties": false,
+      "patternProperties": {
+        "^-?\\d+$": {
+          "type": "boolean"
+        }
+      }
     }
   },
   "required": [
     "s_map",
     "i_map",
     "u_map",
-    "pattern_map"
-  ]
+    "pattern_map",
+    "enum_map"
+  ],
+  "$defs": {
+    "IndirectU32": {
+      "type": "integer",
+      "format": "uint32",
+      "minimum": 0
+    }
+  }
 }
