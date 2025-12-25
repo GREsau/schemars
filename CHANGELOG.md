@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.0] - 2025-12-25 🎄
+
+### Added
+
+- Add smol_str03 feature (https://github.com/GREsau/schemars/pull/486)
+
+### Changed
+
+- Schemas generated for `HashMap`/`BTreeMap` with enum keys are now more specific (https://github.com/GREsau/schemars/pull/452)
+
 ## [1.1.0] - 2025-11-05
 
 ### Added
