@@ -18,6 +18,17 @@ enum Enum {
     UntaggedIndirectU32(IndirectU32),
 }
 
+/// An enum with documentation comments on its variants.
+#[derive(JsonSchema, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord, Hash)]
+enum SimpleEnumWithDocComments {
+    /// Variant A
+    A,
+    /// Variant B
+    B,
+    /// Variant C
+    C,
+}
+
 #[derive(JsonSchema, Deserialize, Serialize, Default)]
 struct Maps {
     s_map: HashMap<String, bool>,
@@ -25,6 +36,7 @@ struct Maps {
     u_map: HashMap<u64, bool>,
     pattern_map: BTreeMap<HexNumber, bool>,
     enum_map: HashMap<Enum, bool>,
+    enum_map_docs: HashMap<SimpleEnumWithDocComments, bool>,
 }
 
 #[test]
@@ -37,6 +49,7 @@ fn maps() {
             u_map: HashMap::from_iter([(123, true)]),
             pattern_map: BTreeMap::from_iter([(HexNumber("b4df00d".to_owned()), true)]),
             enum_map: HashMap::from_iter([(Enum::Unit1, true)]),
+            enum_map_docs: HashMap::from_iter([(SimpleEnumWithDocComments::A, true)]),
         }])
         .assert_allows_ser_only(
             // serde allow serializing untagged non-string newtype variants, but not deserializing them.
