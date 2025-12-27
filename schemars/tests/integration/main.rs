@@ -69,6 +69,9 @@ mod prelude {
 
 mod test_helper;
 
+#[cfg(feature = "time03")]
+mod time;
+
 #[macro_export]
 macro_rules! test_name {
     () => {{
