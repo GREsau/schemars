@@ -34,6 +34,7 @@ smol_str02 = { version = "0.2.1", default-features = false, optional = true, pac
 smol_str03 = { version = "0.3.2", default-features = false, optional = true, package = "smol_str" }
 url2 = { version = "2.0", default-features = false, optional = true, package = "url" }
 uuid1 = { version = "1.0", default-features = false, optional = true, package = "uuid" }
+rocket05 = { version = "0.5", default-features = false, optional = true, package = "rocket" }
 
 [dev-dependencies]
 pretty_assertions = "1.2.1"
