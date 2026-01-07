@@ -37,7 +37,7 @@ fn chrono() {
         // .assert_allows_ser_roundtrip([NaiveDateTime::MIN, NaiveDateTime::MAX])
         .assert_matches_de_roundtrip(arbitrary_values_except(
             Value::is_string,
-            "Custom format 'partial-date-time', so arbitrary strings technically allowed by schema",
+            "Custom format 'date-time-local', so arbitrary strings technically allowed by schema",
         ));
 
     test!(NaiveTime)

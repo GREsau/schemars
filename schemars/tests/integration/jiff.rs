@@ -36,7 +36,7 @@ fn jiff() {
         .assert_allows_ser_roundtrip_default()
         .assert_matches_de_roundtrip(arbitrary_values_except(
             Value::is_string,
-            "Custom format 'partial-date-time', so arbitrary strings technically allowed by schema",
+            "Custom format 'date-time-local', so arbitrary strings technically allowed by schema",
         ));
 
     test!(Time)
