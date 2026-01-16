@@ -957,6 +957,7 @@ dependencies = [
  "arrayvec",
  "num-traits",
  "serde",
+ "serde_json",
 ]
 
 [[package]]

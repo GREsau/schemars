@@ -79,6 +79,11 @@ preserve_order = ["serde_json/preserve_order"]
 # Implements `JsonSchema` on `serde_json::value::RawValue`
 raw_value = ["serde_json/raw_value"]
 
+# rust_decimal1 serde features
+rust_decimal1_serde-float = ["rust_decimal1", "rust_decimal1/serde-float"]
+rust_decimal1_serde-str = ["rust_decimal1", "rust_decimal1/serde-str"]
+rust_decimal1_serde-arbitrary-precision = ["rust_decimal1", "rust_decimal1/serde-arbitrary-precision"]
+
 # For internal/CI use only
 _ui_test = []
 
