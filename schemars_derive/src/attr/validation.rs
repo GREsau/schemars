@@ -1,7 +1,7 @@
 use proc_macro2::TokenStream;
 use syn::Expr;
 
-use crate::idents::SCHEMA;
+use crate::{idents::SCHEMA, schema_exprs::SchemaExpr};
 
 use super::{
     parse_meta::{
@@ -66,8 +66,8 @@ pub struct ValidationAttrs {
 }
 
 impl ValidationAttrs {
-    pub fn add_mutators(&self, mutators: &mut Vec<TokenStream>) {
-        self.add_mutators2(mutators, &quote!(&mut #SCHEMA));
+    pub fn add_mutators(&self, expr: &mut SchemaExpr) {
+        self.add_mutators2(&mut expr.mutators, &quote!(&mut #SCHEMA));
     }
 
     fn add_mutators2(&self, mutators: &mut Vec<TokenStream>, mut_ref_schema: &TokenStream) {

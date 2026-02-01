@@ -7,11 +7,13 @@ use syn::spanned::Spanned;
 
 pub struct SchemaExpr {
     /// Definitions for types or functions that may be used within the creator or mutators
-    definitions: Vec<TokenStream>,
+    pub definitions: Vec<TokenStream>,
     /// An expression that produces a `Schema`
-    creator: TokenStream,
+    pub creator: TokenStream,
     /// Statements (including terminating semicolon) that mutate a var `schema` of type `Schema`
-    mutators: Vec<TokenStream>,
+    pub mutators: Vec<TokenStream>,
+    /// Same as `mutators`, but always applied last
+    pub post_mutators: Vec<TokenStream>,
 }
 
 impl From<TokenStream> for SchemaExpr {
@@ -20,6 +22,7 @@ impl From<TokenStream> for SchemaExpr {
             definitions: Vec::new(),
             creator,
             mutators: Vec::new(),
+            post_mutators: Vec::new(),
         }
     }
 }
@@ -30,14 +33,16 @@ impl ToTokens for SchemaExpr {
             definitions,
             creator,
             mutators,
+            post_mutators,
         } = self;
 
-        tokens.extend(if mutators.is_empty() {
+        tokens.extend(if mutators.is_empty() && post_mutators.is_empty() {
             quote!({
                 #(#definitions)*
                 #creator
             })
         } else {
+            let mutators = mutators.iter().chain(post_mutators.iter());
             quote!({
                 #(#definitions)*
                 let mut #SCHEMA = #creator;
@@ -105,7 +110,7 @@ pub fn expr_for_container(cont: &Container) -> SchemaExpr {
         }
     };
 
-    cont.add_mutators(&mut schema_expr.mutators);
+    cont.add_mutators(&mut schema_expr);
 
     schema_expr
 }
@@ -152,7 +157,7 @@ pub fn expr_for_repr(cont: &Container) -> Result<SchemaExpr, syn::Error> {
         schemars::Schema::from(map)
     }));
 
-    cont.add_mutators(&mut schema_expr.mutators);
+    cont.add_mutators(&mut schema_expr);
 
     Ok(schema_expr)
 }
@@ -193,7 +198,7 @@ fn expr_for_field(
     let mut schema_expr = SchemaExpr::from(schema_expr);
 
     schema_expr.definitions.extend(type_def);
-    field.add_mutators(&mut schema_expr.mutators);
+    field.add_mutators(&mut schema_expr);
 
     schema_expr
 }
@@ -331,7 +336,7 @@ fn expr_for_external_tagged_enum<'a>(
                 }
             });
 
-        variant.add_mutators(&mut schema_expr.mutators);
+        variant.add_mutators(&mut schema_expr);
 
         (Some(variant), schema_expr)
     }));
@@ -358,7 +363,7 @@ fn expr_for_internal_tagged_enum<'a>(
                 schemars::_private::apply_internal_enum_variant_tag(&mut #SCHEMA, #tag_name, #name, #deny_unknown_fields);
             ));
 
-            variant.add_mutators(&mut schema_expr.mutators);
+            variant.add_mutators(&mut schema_expr);
 
             (Some(variant), schema_expr)
         })
@@ -453,7 +458,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
                 #set_additional_properties
             })));
 
-            variant.add_mutators(&mut outer_schema.mutators);
+            variant.add_mutators(&mut outer_schema);
 
             (Some(variant), outer_schema)
         })
@@ -592,7 +597,7 @@ fn expr_for_untagged_enum_variant(
             });
         }
 
-        variant.add_mutators(&mut schema_expr.mutators);
+        variant.add_mutators(&mut schema_expr);
     }
 
     schema_expr
@@ -760,6 +765,7 @@ fn expr_for_struct(
             #set_additional_properties
         })),
         mutators: properties,
+        post_mutators: Vec::new(),
     }
 }
 

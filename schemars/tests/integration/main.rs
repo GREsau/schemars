@@ -2,6 +2,7 @@
 
 #[cfg(feature = "arrayvec07")]
 mod arrayvec;
+mod attr_order;
 mod bound;
 #[cfg(feature = "bytes1")]
 mod bytes;
