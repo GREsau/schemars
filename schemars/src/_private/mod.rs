@@ -480,11 +480,9 @@ pub(crate) fn allow_null(generator: &mut SchemaGenerator, schema: &mut Schema) {
                             array.push(null);
                         }
                     }
-                    Value::String(string) => {
-                        if string != "null" {
-                            let current_type = core::mem::take(string).into();
-                            *instance_type = Value::Array(vec![current_type, "null".into()]);
-                        }
+                    Value::String(string) if string != "null" => {
+                        let current_type = core::mem::take(string).into();
+                        *instance_type = Value::Array(vec![current_type, "null".into()]);
                     }
                     _ => {}
                 }
