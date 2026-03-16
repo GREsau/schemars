@@ -59,6 +59,7 @@ mod url;
 #[cfg(feature = "uuid1")]
 mod uuid;
 mod validator;
+mod issue_510;
 
 mod prelude {
     pub(crate) use crate::test;

@@ -237,8 +237,8 @@ pub struct SchemaGenerator {
     pending_schema_ids: BTreeSet<SchemaUid>,
     schema_id_to_name: BTreeMap<SchemaUid, CowStr>,
     used_schema_names: BTreeSet<CowStr>,
-    // It's unlikely that `root_schema_id_stack` will ever contain more than one item, but it is
-    // possible, e.g. if a `json_schema()` implementation calls `generator.root_schema_for<...>()`
+    /* It's unlikely that `root_schema_id_stack` will ever contain more than one item, but it is
+    possible, e.g. if a `json_schema()` implementation calls `generator.root_schema_for<...>()`. */
     root_schema_id_stack: Vec<SchemaUid>,
 }
 
