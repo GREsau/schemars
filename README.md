@@ -276,6 +276,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `chrono04` - [chrono](https://crates.io/crates/chrono) (^0.4)
 - `either1` - [either](https://crates.io/crates/either) (^1.3)
 - `indexmap2` - [indexmap](https://crates.io/crates/indexmap) (^2.0)
+- `ordermap` - [indexmap](https://crates.io/crates/ordermap) (^1.1)
 - `jiff02` - [jiff](https://crates.io/crates/jiff) (^0.2)
 - `rust_decimal1` - [rust_decimal](https://crates.io/crates/rust_decimal) (^1.0)
 - `semver1` - [semver](https://crates.io/crates/semver) (^1.0.9)

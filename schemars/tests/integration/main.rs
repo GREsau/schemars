@@ -37,6 +37,8 @@ mod inline_subschemas;
 mod jiff;
 mod macros;
 mod map;
+#[cfg(feature = "ordermap")]
+mod ordermap;
 mod remote_derive;
 mod same_name;
 mod schema_name;
