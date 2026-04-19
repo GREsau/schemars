@@ -34,6 +34,10 @@ TABLE OF CONTENTS
    - [`skip_deserializing`](#skip_deserializing)
    - [`flatten`](#flatten)
    - [`with`](#with)
+   - [`from` / `try_from`](#from)
+   - [`into`](#into)
+   - [`deny_unknown_fields`](#deny_unknown_fields)
+   - [`transparent`](#transparent)
    - [`bound`](#bound)
 1. [Supported Validator/Garde Attributes](#supported-validatorgarde-attributes)
    - [`email` / `url` / `ip` / `ipv4` / `ipv6`](#formats)
@@ -187,7 +191,7 @@ Serde docs: [into](https://serde.rs/container-attrs.html#into)
 
 </h3>
 
-Set on a container to generate its [**serialize** schema](https://graham.cool/schemars/generating/#serialize-vs-deserialize-contract) as the given type instead of its actual type. Schemars treats the `from`/`try_from` attributes identically.
+Set on a container to generate its [**serialize** schema](https://graham.cool/schemars/generating/#serialize-vs-deserialize-contract) as the given type instead of its actual type.
 
 <h3 id="deny_unknown_fields">
 
