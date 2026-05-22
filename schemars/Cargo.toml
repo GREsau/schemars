@@ -26,6 +26,7 @@ bytes1 = { version = "1.0", default-features = false, optional = true, package =
 chrono04 = { version = "0.4.39", default-features = false, optional = true, package = "chrono" }
 either1 = { version = "1.3", default-features = false, optional = true, package = "either" }
 indexmap2 = { version = "2.2.3", default-features = false, optional = true, package = "indexmap" }
+ordermap = { version = "1.1.0", default-features = false, optional = true, package = "ordermap" }
 jiff02 = { version = "0.2", default-features = false, optional = true, package = "jiff" }
 rust_decimal1 = { version = "1.13", default-features = false, optional = true, package = "rust_decimal" }
 semver1 = { version = "1.0.9", default-features = false, optional = true, package = "semver" }
@@ -52,6 +53,7 @@ bytes1 = { version = "1.0", default-features = false, features = ["serde"], pack
 chrono04 = { version = "0.4", default-features = false, features = ["serde"], package = "chrono" }
 either1 = { version = "1.3", default-features = false, features = ["serde"], package = "either" }
 indexmap2 = { version = "2.0", default-features = false, features = ["serde"], package = "indexmap" }
+ordermap = { version = "1.1", default-features = false, features = ["std", "serde"], package = "ordermap" }
 jiff02 = { version = "0.2", features = ["serde"], package = "jiff" }
 rust_decimal1 = { version = "1", default-features = false, features = ["serde"], package = "rust_decimal" }
 semver1 = { version = "1.0.9", default-features = false, features = ["serde"], package = "semver" }
@@ -78,6 +80,9 @@ preserve_order = ["serde_json/preserve_order"]
 
 # Implements `JsonSchema` on `serde_json::value::RawValue`
 raw_value = ["serde_json/raw_value"]
+
+# ordermap backs onto indexmap2
+ordermap = ["dep:ordermap", "indexmap2"]
 
 # For internal/CI use only
 _ui_test = []
