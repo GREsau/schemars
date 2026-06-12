@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "tag": {
+          "enum": [
+            "Unit",
+            "unit_alias"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "tag": {
+          "enum": [
+            "Struct",
+            "struct_alias"
+          ],
+          "type": "string"
+        },
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "tag",
+        "value"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "InternalEnumWithAliases"
+}

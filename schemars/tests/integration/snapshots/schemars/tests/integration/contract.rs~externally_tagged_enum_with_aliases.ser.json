@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "enum": [
+        "Unit"
+      ],
+      "type": "string"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "Struct": {
+          "properties": {
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "Struct"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ExternalEnumWithAliases"
+}

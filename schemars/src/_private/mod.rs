@@ -256,11 +256,11 @@ pub fn new_externally_tagged_enum_variant(variant: &str, sub_schema: Schema) -> 
     })
 }
 
-/// Update a schema for an internally tagged enum variant
+/// Update a schema for an internally tagged enum variant, using the given schema for the tag value.
 pub fn apply_internal_enum_variant_tag(
     schema: &mut Schema,
     tag_name: &str,
-    variant: &str,
+    tag_schema: Schema,
     deny_unknown_fields: bool,
 ) {
     let obj = schema.ensure_object();
@@ -273,13 +273,7 @@ pub fn apply_internal_enum_variant_tag(
         .or_insert(Value::Object(Map::new()))
         .as_object_mut()
     {
-        properties.insert(
-            tag_name.to_string(),
-            json!({
-                "type": "string",
-                "const": variant
-            }),
-        );
+        properties.insert(tag_name.to_string(), tag_schema.into());
     }
 
     if let Some(required) = obj
@@ -317,6 +311,48 @@ pub fn insert_object_property(
             .as_array_mut()
         {
             req.push(key.into());
+        }
+    }
+}
+
+pub fn insert_object_property_with_aliases(
+    schema: &mut Schema,
+    keys: &[&str],
+    is_optional: bool,
+    sub_schema: Schema,
+) {
+    let obj = schema.ensure_object();
+    if let Some(properties) = obj
+        .entry("properties")
+        .or_insert(Value::Object(Map::new()))
+        .as_object_mut()
+    {
+        for key in keys {
+            properties.insert((*key).to_owned(), sub_schema.clone().into());
+        }
+    }
+
+    // Serde accepts any one of the field's deserialize names, but rejects duplicates
+    // such as both the canonical name and an alias.
+    if let Some(all_of) = obj
+        .entry("allOf")
+        .or_insert(Value::Array(Vec::new()))
+        .as_array_mut()
+    {
+        if !is_optional {
+            all_of.push(json!({
+                "anyOf": keys.iter().map(|key| json!({ "required": [key] })).collect::<Vec<_>>()
+            }));
+        }
+
+        for (i, key) in keys.iter().enumerate() {
+            for other_key in &keys[i + 1..] {
+                all_of.push(json!({
+                    "not": {
+                        "required": [key, other_key]
+                    }
+                }));
+            }
         }
     }
 }

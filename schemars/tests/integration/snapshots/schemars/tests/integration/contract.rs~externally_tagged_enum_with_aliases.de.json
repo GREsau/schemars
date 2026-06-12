@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "enum": [
+        "Unit",
+        "unit_alias"
+      ],
+      "type": "string"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "Struct": {
+          "properties": {
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "Struct"
+      ],
+      "type": "object"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "struct_alias": {
+          "properties": {
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "struct_alias"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ExternalEnumWithAliases"
+}
