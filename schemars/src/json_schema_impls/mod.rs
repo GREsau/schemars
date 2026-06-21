@@ -75,6 +75,9 @@ mod either1;
 #[cfg(feature = "indexmap2")]
 mod indexmap2;
 
+#[cfg(feature = "ordered_hash_map06")]
+mod ordered_hash_map06;
+
 #[cfg(feature = "jiff02")]
 mod jiff02;
 

@@ -32,6 +32,8 @@ mod from_value;
 mod garde;
 #[cfg(feature = "indexmap2")]
 mod indexmap;
+#[cfg(feature = "ordered_hash_map06")]
+mod ordered_hash_map;
 mod inline_subschemas;
 #[cfg(feature = "jiff02")]
 mod jiff;
