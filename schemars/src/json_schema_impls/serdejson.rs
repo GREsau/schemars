@@ -1,9 +1,13 @@
 use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
-use crate::{json_schema, JsonSchema, Schema};
+#[cfg(not(feature = "serde_json_arbitrary_precision"))]
+use crate::json_schema;
+use crate::{JsonSchema, Schema};
 use alloc::borrow::Cow;
 use alloc::collections::BTreeMap;
-use serde_json::{Map, Number, Value};
+#[cfg(not(feature = "serde_json_arbitrary_precision"))]
+use serde_json::Number;
+use serde_json::{Map, Value};
 
 impl JsonSchema for Value {
     inline_schema!();
@@ -19,6 +23,7 @@ impl JsonSchema for Value {
 
 forward_impl!(Map<String, Value> => BTreeMap<String, Value>);
 
+#[cfg(not(feature = "serde_json_arbitrary_precision"))]
 impl JsonSchema for Number {
     inline_schema!();
 

@@ -27,6 +27,12 @@ pub(crate) struct SerializeMap<'a> {
     title: &'static str,
 }
 
+#[cfg(feature = "serde_json_arbitrary_precision")]
+pub(crate) enum SerializeStructEnum<'a> {
+    Map(SerializeMap<'a>),
+    Number(Option<String>),
+}
+
 macro_rules! forward_to_subschema_for {
     ($fn:ident, $ty:ty) => {
         fn $fn(self, _value: $ty) -> Result<Self::Ok, Self::Error> {
@@ -54,7 +60,10 @@ impl<'a> serde::Serializer for Serializer<'a> {
     type SerializeTupleStruct = SerializeTuple<'a>;
     type SerializeTupleVariant = Self;
     type SerializeMap = SerializeMap<'a>;
+    #[cfg(not(feature = "serde_json_arbitrary_precision"))]
     type SerializeStruct = SerializeMap<'a>;
+    #[cfg(feature = "serde_json_arbitrary_precision")]
+    type SerializeStruct = SerializeStructEnum<'a>;
     type SerializeStructVariant = Self;
 
     return_instance_type!(serialize_i8, i8, "integer");
@@ -156,6 +165,13 @@ impl<'a> serde::Serializer for Serializer<'a> {
     where
         T: serde::Serialize + ?Sized,
     {
+        // When serde_json's arbitrary_precision feature is enabled, Number serializes
+        // as a newtype struct with this special name. We should treat it as a number.
+        #[cfg(feature = "serde_json_arbitrary_precision")]
+        if name == "$serde_json::private::Number" {
+            return Ok(json_schema!({ "type": "number" }));
+        }
+
         let include_title = self.include_title;
         let mut schema = value.serialize(self)?;
 
@@ -226,6 +242,7 @@ impl<'a> serde::Serializer for Serializer<'a> {
         })
     }
 
+    #[cfg(not(feature = "serde_json_arbitrary_precision"))]
     fn serialize_struct(
         self,
         name: &'static str,
@@ -238,6 +255,27 @@ impl<'a> serde::Serializer for Serializer<'a> {
             current_key: None,
             title,
         })
+    }
+
+    #[cfg(feature = "serde_json_arbitrary_precision")]
+    fn serialize_struct(
+        self,
+        name: &'static str,
+        _len: usize,
+    ) -> Result<Self::SerializeStruct, Self::Error> {
+        // When serde_json's arbitrary_precision feature is enabled, Number serializes
+        // as a struct with this special name. We should treat it as a number.
+        if name == "$serde_json::private::Number" {
+            return Ok(SerializeStructEnum::Number(None));
+        }
+
+        let title = if self.include_title { name } else { "" };
+        Ok(SerializeStructEnum::Map(SerializeMap {
+            generator: self.generator,
+            properties: Map::new(),
+            current_key: None,
+            title,
+        }))
     }
 
     fn serialize_struct_variant(
@@ -424,6 +462,50 @@ impl serde::ser::SerializeMap for SerializeMap<'_> {
         }
 
         Ok(schema)
+    }
+}
+
+#[cfg(feature = "serde_json_arbitrary_precision")]
+impl<'a> serde::ser::SerializeStruct for SerializeStructEnum<'a> {
+    type Ok = Schema;
+    type Error = Error;
+
+    fn serialize_field<T>(&mut self, key: &'static str, value: &T) -> Result<(), Self::Error>
+    where
+        T: serde::Serialize + ?Sized,
+    {
+        match self {
+            SerializeStructEnum::Map(m) => m.serialize_field(key, value),
+            SerializeStructEnum::Number(ref mut s) => {
+                // Capture the string value to determine if it's an integer or float
+                if key == "$serde_json::private::Number" {
+                    if let Ok(v) = serde_json::to_value(value) {
+                        if let Some(string) = v.as_str() {
+                            *s = Some(string.to_string());
+                        }
+                    }
+                }
+                Ok(())
+            }
+        }
+    }
+
+    fn end(self) -> Result<Self::Ok, Self::Error> {
+        match self {
+            SerializeStructEnum::Map(m) => m.end(),
+            SerializeStructEnum::Number(s) => {
+                // Check if the number string represents an integer or float
+                let is_integer = s.as_ref().map_or(false, |s| {
+                    !s.contains('.') && !s.contains('e') && !s.contains('E')
+                });
+
+                if is_integer {
+                    Ok(json_schema!({ "type": "integer" }))
+                } else {
+                    Ok(json_schema!({ "type": "number" }))
+                }
+            }
+        }
     }
 }
 
