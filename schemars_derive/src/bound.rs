@@ -67,8 +67,10 @@ pub fn find_trait_bounds<'a>(orig_generics: &'a syn::Generics, cont: &mut Contai
             .predicates
             .extend(visitor.type_params_for_bound.into_iter().map(|ty| {
                 syn::WherePredicate::Type(syn::PredicateType {
+                    attrs: Vec::new(),
                     lifetimes: None,
                     bounded_ty: syn::Type::Path(syn::TypePath {
+                        attrs: Vec::new(),
                         qself: None,
                         path: syn::Path {
                             leading_colon: None,
@@ -81,8 +83,9 @@ pub fn find_trait_bounds<'a>(orig_generics: &'a syn::Generics, cont: &mut Contai
                     colon_token: <Token![:]>::default(),
                     bounds: Punctuated::from_iter([syn::TypeParamBound::Trait(syn::TraitBound {
                         paren_token: None,
-                        modifier: syn::TraitBoundModifier::None,
                         lifetimes: None,
+                        modifiers: syn::TraitBoundModifiers::default(),
+                        maybe: None,
                         path: parse_quote!(schemars::JsonSchema),
                     })]),
                 })
@@ -155,7 +158,7 @@ impl FindTyParams<'_> {
     fn visit_type(&mut self, field: &Field, ty: &syn::Type) {
         match ty {
             syn::Type::Array(ty) => self.visit_type(field, &ty.elem),
-            syn::Type::BareFn(ty) => {
+            syn::Type::FnPtr(ty) => {
                 for arg in &ty.inputs {
                     self.visit_type(field, &arg.ty);
                 }
@@ -212,7 +215,7 @@ impl FindTyParams<'_> {
             }
             syn::PathArguments::Parenthesized(arguments) => {
                 for argument in &arguments.inputs {
-                    self.visit_type(field, argument);
+                    self.visit_type(field, &argument.ty);
                 }
                 self.visit_return_type(field, &arguments.output);
             }
