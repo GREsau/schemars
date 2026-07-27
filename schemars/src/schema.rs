@@ -386,6 +386,7 @@ impl Schema {
 
     fn validate<E: serde::de::Error>(value: &Value) -> Result<(), E> {
         use serde::de::Unexpected;
+        let arbitrary_precision;
         let unexpected = match value {
             Value::Bool(_) | Value::Object(_) => return Ok(()),
             Value::Null => Unexpected::Unit,
@@ -397,7 +398,8 @@ impl Schema {
                 } else if let Some(f) = n.as_f64() {
                     Unexpected::Float(f)
                 } else {
-                    unreachable!()
+                    arbitrary_precision = n.to_string();
+                    Unexpected::Other(&arbitrary_precision)
                 }
             }
             Value::String(s) => Unexpected::Str(s),
