@@ -25,11 +25,11 @@
     },
     "naive_date_time": {
       "type": "string",
-      "format": "partial-date-time"
+      "format": "date-time-local"
     },
     "naive_time": {
       "type": "string",
-      "format": "partial-time"
+      "format": "time-local"
     },
     "time_delta": {
       "type": "array",
