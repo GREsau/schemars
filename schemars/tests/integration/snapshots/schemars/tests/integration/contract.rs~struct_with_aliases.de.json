@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "anyOf": [
+        {
+          "required": [
+            "alias"
+          ]
+        },
+        {
+          "required": [
+            "other_alias"
+          ]
+        },
+        {
+          "required": [
+            "value"
+          ]
+        }
+      ]
+    },
+    {
+      "not": {
+        "required": [
+          "alias",
+          "other_alias"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "alias",
+          "value"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "other_alias",
+          "value"
+        ]
+      }
+    },
+    {
+      "not": {
+        "required": [
+          "optional",
+          "optional_alias"
+        ]
+      }
+    }
+  ],
+  "properties": {
+    "alias": {
+      "type": "boolean"
+    },
+    "optional": {
+      "format": "uint8",
+      "maximum": 255,
+      "minimum": 0,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "optional_alias": {
+      "format": "uint8",
+      "maximum": 255,
+      "minimum": 0,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "other_alias": {
+      "type": "boolean"
+    },
+    "value": {
+      "type": "boolean"
+    }
+  },
+  "title": "StructWithAliases",
+  "type": "object"
+}

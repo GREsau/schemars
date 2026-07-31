@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "tag": {
+          "const": "Unit",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "content": {
+          "properties": {
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "type": "object"
+        },
+        "tag": {
+          "const": "Struct",
+          "type": "string"
+        }
+      },
+      "required": [
+        "tag",
+        "content"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "AdjacentEnumWithAliases"
+}

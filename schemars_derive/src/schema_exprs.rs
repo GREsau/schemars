@@ -286,8 +286,22 @@ fn expr_for_external_tagged_enum<'a>(
     });
     let add_unit_names = unit_variants.iter().map(|v| {
         let name = v.name();
+        let de_name = v.serde_attrs.name().deserialize_name();
+        let aliases = v
+            .serde_attrs
+            .aliases()
+            .iter()
+            .filter(|alias| alias.as_str() != de_name);
+        let add_alias_names = aliases.map(|alias| {
+            quote! {
+                enum_values.push((#alias).into());
+            }
+        });
         v.with_contract_check(quote! {
             enum_values.push((#name).into());
+            if #GENERATOR.contract().is_deserialize() {
+                #(#add_alias_names)*
+            }
         })
     });
     let unit_schema = SchemaExpr::from(quote!({
@@ -310,38 +324,61 @@ fn expr_for_external_tagged_enum<'a>(
 
     let mut schemas = Vec::new();
     if !unit_variants.is_empty() {
-        schemas.push((None, unit_schema));
+        schemas.push((None, None, false, unit_schema));
     }
 
-    schemas.extend(complex_variants.into_iter().map(|variant| {
+    let complex_variant_schemas = complex_variants.into_iter().flat_map(|variant| {
         if variant.serde_attrs.untagged() {
-            return (
+            return vec![(
                 Some(variant),
+                None,
+                true,
                 expr_for_untagged_enum_variant(cont, variant, deny_unknown_fields, true),
-            );
+            )];
         }
 
         let name = variant.name();
 
-        let mut schema_expr =
-            SchemaExpr::from(if variant.is_unit() && variant.attrs.with.is_none() {
-                quote! {
-                    schemars::_private::new_unit_enum_variant(#name)
-                }
-            } else {
-                let sub_schema =
-                    expr_for_untagged_enum_variant(cont, variant, deny_unknown_fields, false);
-                quote! {
-                    schemars::_private::new_externally_tagged_enum_variant(#name, #sub_schema)
-                }
-            });
+        let mut schemas = vec![(
+            Some(variant),
+            None,
+            true,
+            expr_for_external_tagged_enum_variant(
+                cont,
+                variant,
+                deny_unknown_fields,
+                quote!(#name),
+            ),
+        )];
 
-        variant.add_mutators(&mut schema_expr);
+        let de_name = variant.serde_attrs.name().deserialize_name();
+        schemas.extend(
+            variant
+                .serde_attrs
+                .aliases()
+                .iter()
+                .filter(|alias| alias.as_str() != de_name)
+                .map(|alias| {
+                    (
+                        Some(variant),
+                        Some(quote!(#GENERATOR.contract().is_deserialize())),
+                        false,
+                        expr_for_external_tagged_enum_variant(
+                            cont,
+                            variant,
+                            deny_unknown_fields,
+                            quote!(#alias),
+                        ),
+                    )
+                }),
+        );
 
-        (Some(variant), schema_expr)
-    }));
+        schemas
+    });
 
-    variant_subschemas(cont, true, schemas)
+    schemas.extend(complex_variant_schemas);
+
+    variant_subschemas_with_conditions(cont, true, schemas)
 }
 
 fn expr_for_internal_tagged_enum<'a>(
@@ -358,9 +395,9 @@ fn expr_for_internal_tagged_enum<'a>(
 
             let mut schema_expr = expr_for_internal_tagged_enum_variant(cont, variant, deny_unknown_fields);
 
-            let name = variant.name();
+            let tag_schema = variant_tag_schema(variant);
             schema_expr.mutators.push(quote!(
-                schemars::_private::apply_internal_enum_variant_tag(&mut #SCHEMA, #tag_name, #name, #deny_unknown_fields);
+                schemars::_private::apply_internal_enum_variant_tag(&mut #SCHEMA, #tag_name, #tag_schema, #deny_unknown_fields);
             ));
 
             variant.add_mutators(&mut schema_expr);
@@ -427,13 +464,7 @@ fn expr_for_adjacent_tagged_enum<'a>(
                 })
                 .unwrap_or_default();
 
-            let name = variant.name();
-            let tag_schema = quote! {
-                schemars::json_schema!({
-                    "type": "string",
-                    "const": #name,
-                })
-            };
+            let tag_schema = variant_tag_schema(variant);
 
             let set_additional_properties = if deny_unknown_fields {
                 quote! {
@@ -471,30 +502,58 @@ fn expr_for_adjacent_tagged_enum<'a>(
 /// assume that variants are mutually exclusive except for untagged enums.
 fn variant_subschemas(
     cont: &Container,
-    mut unique: bool,
+    unique: bool,
     schemas: Vec<(Option<&Variant>, SchemaExpr)>,
+) -> SchemaExpr {
+    variant_subschemas_with_conditions(
+        cont,
+        unique,
+        schemas
+            .into_iter()
+            .map(|(variant, schema)| (variant, None, true, schema))
+            .collect(),
+    )
+}
+
+/// Callers must determine if all subschemas are mutually exclusive. The current behaviour is to
+/// assume that variants are mutually exclusive except for untagged enums.
+fn variant_subschemas_with_conditions(
+    cont: &Container,
+    mut unique: bool,
+    schemas: Vec<(Option<&Variant>, Option<TokenStream>, bool, SchemaExpr)>,
 ) -> SchemaExpr {
     if schemas
         .iter()
-        .any(|(v, _)| v.is_some_and(|v| v.serde_attrs.untagged()))
+        .any(|(v, _, _, _)| v.is_some_and(|v| v.serde_attrs.untagged()))
     {
         unique = false;
     }
 
     let keyword = if unique { "oneOf" } else { "anyOf" };
-    let add_schemas = schemas.into_iter().map(|(variant, mut schema)| {
-        if cont.attrs.ref_variants {
-            schema = enum_ref_variants(cont, variant, schema);
-        }
+    let add_schemas = schemas
+        .into_iter()
+        .map(|(variant, condition, allow_ref, mut schema)| {
+            // Alias-only schemas pass `allow_ref = false` so they do not create duplicate
+            // ref-variant definitions.
+            if allow_ref && cont.attrs.ref_variants {
+                schema = enum_ref_variants(cont, variant, schema);
+            }
 
-        let add = quote! {
-            enum_values.push(#schema.to_value());
-        };
-        match variant {
-            Some(v) => v.with_contract_check(add),
-            None => add,
-        }
-    });
+            let mut add = quote! {
+                enum_values.push(#schema.to_value());
+            };
+            if let Some(condition) = condition {
+                add = quote! {
+                    if #condition {
+                        #add
+                    }
+                };
+            }
+            match variant {
+                Some(v) => v.with_contract_check(add),
+                None => add,
+            }
+        });
     quote!({
         let mut map = schemars::_private::serde_json::Map::new();
         map.insert(
@@ -508,6 +567,57 @@ fn variant_subschemas(
         schemars::Schema::from(map)
     })
     .into()
+}
+
+fn expr_for_external_tagged_enum_variant(
+    cont: &Container,
+    variant: &Variant,
+    deny_unknown_fields: bool,
+    name: TokenStream,
+) -> SchemaExpr {
+    let mut schema_expr = SchemaExpr::from(if variant.is_unit() && variant.attrs.with.is_none() {
+        quote! {
+            schemars::_private::new_unit_enum_variant(#name)
+        }
+    } else {
+        let sub_schema = expr_for_untagged_enum_variant(cont, variant, deny_unknown_fields, false);
+        quote! {
+            schemars::_private::new_externally_tagged_enum_variant(#name, #sub_schema)
+        }
+    });
+
+    variant.add_mutators(&mut schema_expr);
+
+    schema_expr
+}
+
+fn variant_tag_schema(variant: &Variant) -> TokenStream {
+    let name = variant.name();
+    let aliases = variant.serde_attrs.aliases();
+
+    if aliases.len() > 1 {
+        let aliases = aliases.iter();
+        quote! {
+            if #GENERATOR.contract().is_deserialize() {
+                schemars::json_schema!({
+                    "type": "string",
+                    "enum": [#(#aliases),*],
+                })
+            } else {
+                schemars::json_schema!({
+                    "type": "string",
+                    "const": #name,
+                })
+            }
+        }
+    } else {
+        quote! {
+            schemars::json_schema!({
+                "type": "string",
+                "const": #name,
+            })
+        }
+    }
 }
 
 fn enum_ref_variants(cont: &Container, variant: Option<&Variant>, expr: SchemaExpr) -> SchemaExpr {
@@ -742,9 +852,25 @@ fn expr_for_struct(
                 // Embed definitions outside of `#schema_expr`, because they may contain the
                 // definition of the `#ty` type which is used in `#is_optional``
                 let definitions = core::mem::take(&mut schema_expr.definitions);
+                let aliases = field.serde_attrs.aliases();
+                let insert_property = if aliases.len() > 1 {
+                    let aliases = aliases.iter();
+                    quote! {
+                        if #GENERATOR.contract().is_deserialize() {
+                            schemars::_private::insert_object_property_with_aliases(&mut #SCHEMA, &[#(#aliases),*], #is_optional, #schema_expr);
+                        } else {
+                            schemars::_private::insert_object_property(&mut #SCHEMA, #name, #is_optional, #schema_expr);
+                        }
+                    }
+                } else {
+                    quote! {
+                        schemars::_private::insert_object_property(&mut #SCHEMA, #name, #is_optional, #schema_expr);
+                    }
+                };
+
                 field.with_contract_check(quote!({
                     #(#definitions)*
-                    schemars::_private::insert_object_property(&mut #SCHEMA, #name, #is_optional, #schema_expr);
+                    #insert_property
                 }))
             }
         })

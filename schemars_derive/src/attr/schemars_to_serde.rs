@@ -11,6 +11,7 @@ use super::{get_meta_items, CustomMeta};
 // serde_derive_internals to parse for us.
 pub(crate) static SERDE_KEYWORDS: &[&str] = &[
     "rename",
+    "alias",
     "rename_all",
     "rename_all_fields",
     "deny_unknown_fields",
@@ -189,7 +190,7 @@ mod tests {
             #[misc]
             struct MyStruct {
                 /// blah blah blah
-                #[serde(skip_serializing_if = "some_fn", bound = "removed")]
+                #[serde(alias = "field1_alias", skip_serializing_if = "some_fn", bound = "removed")]
                 field1: i32,
                 #[serde(serialize_with = "se", deserialize_with = "de")]
                 #[schemars(with = "with", bound = "bound")]
@@ -205,7 +206,7 @@ mod tests {
             #[serde(rename = "overriden", rename_all = "camelCase", default)]
             struct MyStruct {
                 #[doc = r" blah blah blah"]
-                #[serde(skip_serializing_if = "some_fn")]
+                #[serde(alias = "field1_alias", skip_serializing_if = "some_fn")]
                 field1: i32,
                 #[schemars(with = "with", bound = "bound")]
                 #[serde(bound = "bound", serialize_with = "se")]

@@ -261,6 +261,30 @@ fn externally_tagged_enum() {
         .assert_matches_de_roundtrip(arbitrary_values());
 }
 
+#[allow(dead_code)]
+#[derive(JsonSchema, Serialize, Deserialize)]
+#[schemars(_unstable_ref_variants)]
+enum ExternalWithAliases {
+    #[serde(alias = "unit_alias")]
+    Unit,
+    #[serde(alias = "struct_alias")]
+    Struct { value: bool },
+}
+
+#[test]
+fn externally_tagged_enum_with_aliases() {
+    test!(ExternalWithAliases)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip([
+            ExternalWithAliases::Unit,
+            ExternalWithAliases::Struct { value: true },
+        ])
+        .assert_allows_de_roundtrip([
+            json!("unit_alias"),
+            json!({ "struct_alias": { "value": true } }),
+        ]);
+}
+
 #[test]
 fn internally_tagged_enum() {
     test!(Internal)

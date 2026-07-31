@@ -60,6 +60,37 @@ fn struct_allow_unknown_fields() {
 }
 
 #[derive(JsonSchema, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
+struct StructWithAliases {
+    #[serde(alias = "alias", alias = "other_alias")]
+    value: bool,
+    #[serde(alias = "optional_alias")]
+    optional: Option<u8>,
+}
+
+#[test]
+fn struct_with_aliases() {
+    test!(StructWithAliases)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip([StructWithAliases {
+            value: true,
+            optional: Some(1),
+        }])
+        .assert_allows_de_roundtrip([
+            json!({ "value": true }),
+            json!({ "alias": true }),
+            json!({ "other_alias": true, "optional_alias": 1 }),
+        ])
+        .assert_rejects_de([
+            json!({}),
+            json!({ "value": true, "alias": true }),
+            json!({ "alias": true, "other_alias": true }),
+            json!({ "value": true, "optional": 1, "optional_alias": 2 }),
+            json!({ "alias": true, "unknown": true }),
+        ]);
+}
+
+#[derive(JsonSchema, Deserialize, Serialize)]
 struct TupleStruct(
     String,
     #[allow(dead_code)]
@@ -125,6 +156,33 @@ fn externally_tagged_enum() {
 
 #[allow(dead_code)]
 #[derive(JsonSchema, Deserialize, Serialize)]
+enum ExternalEnumWithAliases {
+    #[serde(alias = "unit_alias")]
+    Unit,
+    #[serde(alias = "struct_alias")]
+    Struct { value: bool },
+}
+
+#[test]
+fn externally_tagged_enum_with_aliases() {
+    test!(ExternalEnumWithAliases)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip([
+            ExternalEnumWithAliases::Unit,
+            ExternalEnumWithAliases::Struct { value: true },
+        ])
+        .assert_allows_de_roundtrip([
+            json!("unit_alias"),
+            json!({ "struct_alias": { "value": true } }),
+        ])
+        .assert_rejects_de([
+            json!({ "Struct": { "value": true }, "struct_alias": { "value": true } }),
+            json!("unknown_alias"),
+        ]);
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema, Deserialize, Serialize)]
 #[serde(
     tag = "tag",
     rename_all(serialize = "SCREAMING-KEBAB-CASE"),
@@ -167,6 +225,31 @@ fn internally_tagged_enum() {
             json!({ "tag": "ser_renamed_unit" }),
         ])
         .assert_matches_de_roundtrip(arbitrary_values());
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema, Deserialize, Serialize)]
+#[serde(tag = "tag")]
+enum InternalEnumWithAliases {
+    #[serde(alias = "unit_alias")]
+    Unit,
+    #[serde(alias = "struct_alias")]
+    Struct { value: bool },
+}
+
+#[test]
+fn internally_tagged_enum_with_aliases() {
+    test!(InternalEnumWithAliases)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip([
+            InternalEnumWithAliases::Unit,
+            InternalEnumWithAliases::Struct { value: true },
+        ])
+        .assert_allows_de_roundtrip([
+            json!({ "tag": "unit_alias" }),
+            json!({ "tag": "struct_alias", "value": true }),
+        ])
+        .assert_rejects_de([json!({ "tag": "unknown_alias" })]);
 }
 
 #[allow(dead_code)]
@@ -214,6 +297,31 @@ fn adjacently_tagged_enum() {
             json!({ "tag": "ser_renamed_unit" }),
         ])
         .assert_matches_de_roundtrip(arbitrary_values());
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema, Deserialize, Serialize)]
+#[serde(tag = "tag", content = "content")]
+enum AdjacentEnumWithAliases {
+    #[serde(alias = "unit_alias")]
+    Unit,
+    #[serde(alias = "struct_alias")]
+    Struct { value: bool },
+}
+
+#[test]
+fn adjacently_tagged_enum_with_aliases() {
+    test!(AdjacentEnumWithAliases)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip([
+            AdjacentEnumWithAliases::Unit,
+            AdjacentEnumWithAliases::Struct { value: true },
+        ])
+        .assert_allows_de_roundtrip([
+            json!({ "tag": "unit_alias" }),
+            json!({ "tag": "struct_alias", "content": { "value": true } }),
+        ])
+        .assert_rejects_de([json!({ "tag": "unknown_alias" })]);
 }
 
 #[allow(dead_code)]

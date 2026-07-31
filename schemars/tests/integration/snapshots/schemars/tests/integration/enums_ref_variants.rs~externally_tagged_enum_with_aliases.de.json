@@ -1,0 +1,62 @@
+{
+  "$defs": {
+    "Struct": {
+      "additionalProperties": false,
+      "properties": {
+        "Struct": {
+          "properties": {
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "Struct"
+      ],
+      "type": "object"
+    },
+    "Unit": {
+      "const": "Unit",
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "$ref": "#/$defs/Unit"
+    },
+    {
+      "const": "unit_alias",
+      "type": "string"
+    },
+    {
+      "$ref": "#/$defs/Struct"
+    },
+    {
+      "additionalProperties": false,
+      "properties": {
+        "struct_alias": {
+          "properties": {
+            "value": {
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "value"
+          ],
+          "type": "object"
+        }
+      },
+      "required": [
+        "struct_alias"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ExternalWithAliases"
+}

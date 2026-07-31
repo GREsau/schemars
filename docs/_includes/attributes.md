@@ -25,6 +25,7 @@ TABLE OF CONTENTS
 
 1. [Supported Serde Attributes](#supported-serde-attributes)
    - [`rename`](#rename)
+   - [`alias`](#alias)
    - [`rename_all`](#rename_all)
    - [`rename_all_fields`](#rename_all_fields)
    - [`tag` / `content` / `untagged`](#tag)
@@ -75,6 +76,16 @@ Set on a struct, enum, field or variant to use the given name in the generated s
 If set on a struct or enum with generic type parameters, then the given name may contain them enclosed in curly braces (e.g. `{T}`) and they will be replaced with the concrete type names when the schema is generated.
 
 Serde docs: [container](https://serde.rs/container-attrs.html#rename) / [variant](https://serde.rs/variant-attrs.html#rename) / [field](https://serde.rs/field-attrs.html#rename)
+
+<h3 id="alias">
+
+`#[serde(alias = "name")]` / `#[schemars(alias = "name")]`
+
+</h3>
+
+Set on a field or variant to allow deserializing from the given name in addition to the name used for serialization.
+
+Serde docs: [variant](https://serde.rs/variant-attrs.html#alias) / [field](https://serde.rs/field-attrs.html#alias)
 
 <h3 id="rename_all">
 
