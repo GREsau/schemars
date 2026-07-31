@@ -279,6 +279,7 @@ Schemars can implement `JsonSchema` on types from several popular crates, enable
 - `jiff02` - [jiff](https://crates.io/crates/jiff) (^0.2)
 - `rust_decimal1` - [rust_decimal](https://crates.io/crates/rust_decimal) (^1.0)
 - `semver1` - [semver](https://crates.io/crates/semver) (^1.0.9)
+- `heapless0` - [heapless](https://crates.io/crates/heapless) (^0.9)
 - `smallvec1` - [smallvec](https://crates.io/crates/smallvec) (^1.0)
 - `smol_str02` - [smol_str](https://crates.io/crates/smol_str) (^0.2.1)
 - `smol_str03` - [smol_str](https://crates.io/crates/smol_str) (^0.3)

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": {
+    "format": "uint",
+    "minimum": 0,
+    "type": "integer"
+  },
+  "maxProperties": 8,
+  "title": "Map_up_to_size_8_from_string_to_uint",
+  "type": "object"
+}

@@ -30,6 +30,7 @@ jiff02 = { version = "0.2", default-features = false, optional = true, package =
 rust_decimal1 = { version = "1.13", default-features = false, optional = true, package = "rust_decimal" }
 semver1 = { version = "1.0.9", default-features = false, optional = true, package = "semver" }
 smallvec1 = { version = "1.0", default-features = false, optional = true, package = "smallvec" }
+heapless0 = { version = "0.9", default-features = false, optional = true, package = "heapless" }
 smol_str02 = { version = "0.2.1", default-features = false, optional = true, package = "smol_str" }
 smol_str03 = { version = "0.3.2", default-features = false, optional = true, package = "smol_str" }
 url2 = { version = "2.0", default-features = false, optional = true, package = "url" }
@@ -56,6 +57,7 @@ jiff02 = { version = "0.2", features = ["serde"], package = "jiff" }
 rust_decimal1 = { version = "1", default-features = false, features = ["serde"], package = "rust_decimal" }
 semver1 = { version = "1.0.9", default-features = false, features = ["serde"], package = "semver" }
 smallvec1 = { version = "1.0", default-features = false, features = ["serde"], package = "smallvec" }
+heapless0 = { version = "0.9", default-features = false, features = ["serde"], package = "heapless" }
 smol_str02 = { version = "0.2.1", default-features = false, features = ["serde"], package = "smol_str" }
 smol_str03 = { version = "0.3.2", default-features = false, features = ["serde"], package = "smol_str" }
 url2 = { version = "2.0", default-features = false, features = ["serde", "std"], package = "url" }

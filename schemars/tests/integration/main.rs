@@ -45,6 +45,8 @@ mod schema_with;
 mod semver;
 mod settings;
 mod skip;
+#[cfg(feature = "heapless0")]
+mod heapless0;
 #[cfg(feature = "smallvec1")]
 mod smallvec;
 #[cfg(any(feature = "smol_str02", feature = "smol_str03"))]
