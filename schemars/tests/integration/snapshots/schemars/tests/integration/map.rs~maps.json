@@ -34,6 +34,10 @@
         "^[0-9a-f]*$": {
           "type": "boolean"
         }
+      },
+      "propertyNames": {
+        "type": "string",
+        "pattern": "^[0-9a-f]*$"
       }
     },
     "enum_map": {
@@ -52,6 +56,32 @@
           "type": "boolean"
         }
       }
+    },
+    "enum_map_docs": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "propertyNames": {
+        "description": "An enum with documentation comments on its variants.",
+        "oneOf": [
+          {
+            "description": "Variant A",
+            "type": "string",
+            "const": "A"
+          },
+          {
+            "description": "Variant B",
+            "type": "string",
+            "const": "B"
+          },
+          {
+            "description": "Variant C",
+            "type": "string",
+            "const": "C"
+          }
+        ]
+      }
     }
   },
   "required": [
@@ -59,7 +89,8 @@
     "i_map",
     "u_map",
     "pattern_map",
-    "enum_map"
+    "enum_map",
+    "enum_map_docs"
   ],
   "$defs": {
     "IndirectU32": {

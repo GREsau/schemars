@@ -44,6 +44,7 @@ where
 
         let Some(mut options) = key_schema
             .get("anyOf")
+            .or_else(|| key_schema.get("oneOf"))
             .and_then(Value::as_array)
             .and_then(|a| a.iter().map(Value::as_object).collect::<Option<Vec<_>>>())
             .or_else(|| Some(vec![key_schema.as_object()?]))
@@ -72,6 +73,9 @@ where
         let mut support_integers = IntegerSupport::None;
         let mut patterns = BTreeSet::new();
         let mut properties = BTreeSet::new();
+        let mut has_non_string_keys =
+            matches!(key_schema.get("type").and_then(Value::as_str), Some(t) if t != "string");
+
         for option in options {
             let key_pattern = option.get("pattern").and_then(Value::as_str);
             let key_enum = option
@@ -80,6 +84,8 @@ where
                 .and_then(|a| a.iter().map(Value::as_str).collect::<Option<Vec<_>>>());
             let key_type = option.get("type").and_then(Value::as_str);
             let key_minimum = option.get("minimum").and_then(Value::as_u64);
+
+            has_non_string_keys |= matches!(key_type, Some(t) if t != "string");
 
             match (key_pattern, key_enum, key_type) {
                 (Some(pattern), _, Some("string")) => {
@@ -129,6 +135,12 @@ where
             }
 
             map_schema.insert("patternProperties".to_owned(), Value::Object(patterns_map));
+        }
+
+        // Non-string key types can lead to validation issues, avoid adding propertyNames in that case.
+        // If the key type is just string, don't add superfluous propertyNames.
+        if !has_non_string_keys && K::schema_id() != <str>::schema_id() {
+            map_schema.insert("propertyNames".to_owned(), key_schema.clone().to_value());
         }
 
         if !properties.is_empty() {
