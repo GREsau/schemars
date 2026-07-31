@@ -35,3 +35,13 @@ macro_rules! decimal_impl {
 decimal_impl!(rust_decimal1::Decimal);
 #[cfg(feature = "bigdecimal04")]
 decimal_impl!(bigdecimal04::BigDecimal);
+#[cfg(feature = "fastnum07")]
+mod fastnum_07 {
+    use super::*;
+    decimal_impl!(fastnum07::decimal::UnsignedDecimal<2>);
+    decimal_impl!(fastnum07::decimal::UnsignedDecimal<4>);
+    decimal_impl!(fastnum07::decimal::UnsignedDecimal<8>);
+    decimal_impl!(fastnum07::decimal::Decimal<2>);
+    decimal_impl!(fastnum07::decimal::Decimal<4>);
+    decimal_impl!(fastnum07::decimal::Decimal<8>);
+}
