@@ -4,9 +4,10 @@ use crate::attr::{ContainerAttrs, FieldAttrs, VariantAttrs};
 use crate::idents::{GENERATOR, SCHEMA};
 use crate::schema_exprs::SchemaExpr;
 use from_serde::FromSerde;
-use proc_macro2::TokenStream;
+use proc_macro2::{Ident, Span, TokenStream};
 use serde_derive_internals::ast as serde_ast;
 use serde_derive_internals::{Ctxt, Derive};
+use std::borrow::Cow;
 use std::collections::BTreeSet;
 
 pub struct Container<'a> {
@@ -48,9 +49,14 @@ pub struct Field<'a> {
 impl<'a> Container<'a> {
     pub fn from_ast(item: &'a syn::DeriveInput) -> syn::Result<Container<'a>> {
         let ctxt = Ctxt::new();
-        let result = serde_ast::Container::from_ast(&ctxt, item, Derive::Deserialize)
-            .ok_or(())
-            .map(|serde| Self::from_serde(&ctxt, serde));
+        let result = serde_ast::Container::from_ast(
+            &ctxt,
+            item,
+            Derive::Deserialize,
+            &Ident::new("__dummy", Span::call_site()),
+        )
+        .ok_or(())
+        .map(|serde| Self::from_serde(&ctxt, serde));
 
         ctxt.check()
             .map(|()| result.expect("from_ast set no errors on Ctxt, so should have returned Ok"))
@@ -70,14 +76,14 @@ impl<'a> Container<'a> {
         self.attrs.common.add_mutators(expr);
     }
 
-    pub fn name(&'a self) -> std::borrow::Cow<'a, str> {
+    pub fn name(&'a self) -> Cow<'a, str> {
         if self.attrs.rename_format_string.is_none() {
             if let Some(remote_name) = self.serde_attrs.remote().and_then(|r| r.segments.last()) {
-                return remote_name.ident.to_string().into();
+                return Cow::Owned(remote_name.ident.to_string());
             }
         }
 
-        self.serde_attrs.name().deserialize_name().into()
+        Cow::Borrowed(&self.serde_attrs.name().deserialize_name().value)
     }
 }
 
@@ -133,7 +139,7 @@ impl Field<'_> {
     }
 }
 
-pub struct Name<'a>(&'a serde_derive_internals::attr::Name);
+pub struct Name<'a>(&'a serde_derive_internals::name::MultiName);
 
 impl quote::ToTokens for Name<'_> {
     fn to_tokens(&self, tokens: &mut TokenStream) {

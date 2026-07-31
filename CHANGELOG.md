@@ -1,5 +1,9 @@
 # Changelog
 
+## [1.2.2] - 2026-07-27
+
+- Update to syn 3 in schemars_derive
+
 ## [1.2.1] - 2026-02-01
 
 ### Fixed

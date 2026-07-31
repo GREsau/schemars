@@ -3,7 +3,7 @@ name = "schemars_derive"
 description = "Macros for #[derive(JsonSchema)], for use with schemars"
 homepage = "https://graham.cool/schemars/"
 repository = "https://github.com/GREsau/schemars"
-version = "1.2.1"
+version = "1.2.2"
 authors = ["Graham Esau <gesau@hotmail.co.uk>"]
 edition = "2021"
 license = "MIT"
@@ -16,11 +16,11 @@ rust-version = "1.79"
 proc-macro = true
 
 [dependencies]
-proc-macro2 = "1.0.83"
+proc-macro2 = "1.0.91"
 quote = "1.0.35"
-syn = "2.0.81"
-serde_derive_internals = "0.29.1"
+syn = "3"
+serde_derive_internals = "0.30.0"
 
 [dev-dependencies]
-syn = { version = "2.0", features = ["extra-traits"] }
+syn = { version = "3", features = ["extra-traits"] }
 pretty_assertions = "1.2.1"
