@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Add monostate1 feature (https://github.com/GREsau/schemars/pull/508)
+
 ## [1.2.2] - 2026-07-27
 
 - Update to syn 3 in schemars_derive
