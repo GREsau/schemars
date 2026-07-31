@@ -10,12 +10,12 @@ jobs:
     strategy:
       matrix:
         rust:
-          - 1.74.0
+          - 1.79.0
           - stable
           - beta
           - nightly
         include:
-          - rust: 1.74.0
+          - rust: 1.79.0
             allow_failure: false
           - rust: stable
             allow_failure: false
@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - name: Downgrade packages for MSRV
-        if: matrix.rust == '1.74.0'
+        if: matrix.rust == '1.79.0'
         run: |
           cargo add --dev garde --git https://github.com/jprochazk/garde.git --rev be00ddddf8de14530ee890ccfdbaf0b13fb32852
           cargo add --dev validator@0.19
@@ -40,15 +40,17 @@ jobs:
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars
       - name: Run tests
+        if: matrix.rust != '1.79.0'
         run: cargo test --verbose --all-features --no-fail-fast
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars
       - name: Run derive tests
+        if: matrix.rust != '1.79.0'
         run: cargo test --verbose --all-features --no-fail-fast
         continue-on-error: ${{ matrix.allow_failure }}
         working-directory: ./schemars_derive
       - name: Check with latest dependency versions
-        if: matrix.rust != '1.74.0'
+        if: matrix.rust != '1.79.0'
         run: |
           cargo update
           cargo check --all-features --verbose --example main

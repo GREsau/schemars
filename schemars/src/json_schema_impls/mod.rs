@@ -78,6 +78,9 @@ mod indexmap2;
 #[cfg(feature = "jiff02")]
 mod jiff02;
 
+#[cfg(feature = "monostate1")]
+mod monostate1;
+
 #[cfg(feature = "semver1")]
 mod semver1;
 
