@@ -53,7 +53,37 @@ struct MyStruct2 {
 #[derive(Default, JsonSchema)]
 struct NotSerialize;
 
+#[allow(dead_code)]
+#[derive(Default, JsonSchema)]
+struct SkipSerializingFields {
+    #[serde(default, skip_serializing)]
+    skipped_default: i32,
+    #[serde(skip_serializing)]
+    skipped_no_default: bool,
+}
+
+#[allow(dead_code)]
+#[derive(Default, JsonSchema)]
+#[serde(default)]
+struct ContainerDefaultSkipSerializingFields {
+    #[serde(skip_serializing)]
+    skipped: i32,
+    not_skipped: bool,
+}
+
 #[test]
 fn schema_default_values() -> TestResult {
     test_default_generated_schema::<MyStruct>("default")
+}
+
+#[test]
+fn schema_default_skip_serializing_fields() -> TestResult {
+    test_default_generated_schema::<SkipSerializingFields>("default_skip_serializing_fields")
+}
+
+#[test]
+fn schema_container_default_skip_serializing_fields() -> TestResult {
+    test_default_generated_schema::<ContainerDefaultSkipSerializingFields>(
+        "default_container_skip_serializing_fields",
+    )
 }
