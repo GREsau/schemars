@@ -450,7 +450,8 @@ fn expr_for_struct(
 
             let (ty, type_def) = type_for_field_schema(field);
 
-            let has_default = default.is_some();
+            let has_default =
+                set_container_default.is_some() || !field.serde_attrs.default().is_none();
             let required = field.validation_attrs.required();
 
             let metadata = SchemaMetadata {

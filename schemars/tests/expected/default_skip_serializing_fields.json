@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SkipSerializingFields",
+  "type": "object",
+  "required": [
+    "skipped_no_default"
+  ],
+  "properties": {
+    "skipped_default": {
+      "writeOnly": true,
+      "type": "integer",
+      "format": "int32"
+    },
+    "skipped_no_default": {
+      "writeOnly": true,
+      "type": "boolean"
+    }
+  }
+}
