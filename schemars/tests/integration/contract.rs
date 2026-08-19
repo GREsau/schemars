@@ -216,6 +216,52 @@ fn adjacently_tagged_enum() {
         .assert_matches_de_roundtrip(arbitrary_values());
 }
 
+fn false_schema(_: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    schemars::json_schema!(false)
+}
+
+#[allow(dead_code)]
+#[derive(JsonSchema, Deserialize, Serialize, Default)]
+struct WriteOnlyFalseSchema {
+    #[serde(default, skip_serializing)]
+    #[schemars(schema_with = "false_schema")]
+    unsatisfiable: bool,
+    #[serde(default, skip_serializing)]
+    write_only: bool,
+}
+
+#[test]
+fn write_only_false_schema() {
+    // A `skip_serializing` field whose schema is `false` should remain the literal `false`
+    // schema, with no vacuous `writeOnly` annotation, while a satisfiable `skip_serializing`
+    // field is still annotated with `writeOnly`.
+    test!(WriteOnlyFalseSchema)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip_default()
+        .assert_allows_de_roundtrip([json!({}), json!({ "write_only": true })])
+        .assert_matches_de_roundtrip(arbitrary_values_except(
+            Value::is_array,
+            "structs with `#derive(Deserialize)` can technically be deserialized from sequences, but that's not intended to be used via JSON, so schemars ignores it",
+        ));
+}
+
+#[derive(JsonSchema, Deserialize, Serialize, Default)]
+struct ReadOnlyFalseSchema {
+    #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
+    #[schemars(schema_with = "false_schema")]
+    unsatisfiable: Option<bool>,
+    #[serde(skip_deserializing)]
+    read_only: bool,
+}
+
+#[test]
+fn read_only_false_schema() {
+    // The same applies to `readOnly` on `skip_deserializing` fields. The
+    // `skip_serializing_if` attribute keeps the implied `default` value out of
+    // the schema, so the `false` schema survives with no annotations at all.
+    test!(ReadOnlyFalseSchema).assert_snapshot();
+}
+
 #[allow(dead_code)]
 #[derive(JsonSchema, Deserialize, Serialize)]
 #[serde(

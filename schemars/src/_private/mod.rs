@@ -332,6 +332,15 @@ pub fn insert_metadata_property_if_nonempty(
     }
 }
 
+pub fn insert_read_write_only(schema: &mut Schema, key: &str) {
+    // `readOnly`/`writeOnly` describe which direction a value may flow, which is vacuous on
+    // the `false` schema since it allows no value in any direction. Skipping the insertion
+    // also avoids needlessly converting the schema into its object form (`{"not": {}}`).
+    if schema.as_bool() != Some(false) {
+        schema.insert(key.to_owned(), true.into());
+    }
+}
+
 pub fn insert_validation_property(
     schema: &mut Schema,
     required_type: &str,
