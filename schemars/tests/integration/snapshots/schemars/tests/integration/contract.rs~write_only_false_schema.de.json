@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "unsatisfiable": false,
+    "write_only": {
+      "type": "boolean",
+      "writeOnly": true
+    }
+  },
+  "title": "WriteOnlyFalseSchema",
+  "type": "object"
+}
