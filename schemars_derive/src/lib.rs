@@ -3,7 +3,6 @@
 #![allow(
     clippy::result_large_err,
     clippy::wildcard_imports,
-    clippy::from_iter_instead_of_collect,
     clippy::too_many_lines
 )]
 
