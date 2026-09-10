@@ -31,6 +31,8 @@ jobs:
         run: |
           cargo add --dev garde --git https://github.com/jprochazk/garde.git --rev be00ddddf8de14530ee890ccfdbaf0b13fb32852
           cargo add --dev validator@0.19
+          # serde_valid pulls unicode-segmentation; 1.13+ requires rustc 1.85+
+          cargo update -p unicode-segmentation --precise 1.12.0
         working-directory: ./schemars
       - uses: dtolnay/rust-toolchain@master
         with:

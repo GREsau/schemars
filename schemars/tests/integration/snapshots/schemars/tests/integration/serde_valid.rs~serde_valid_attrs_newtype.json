@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "format": "uint8",
+  "maximum": 10,
+  "minimum": 0,
+  "title": "SerdeValidAttrNewType",
+  "type": "integer"
+}

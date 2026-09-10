@@ -16,7 +16,7 @@ pub struct MyStruct {
 }
 ```
 
-[Validator](https://github.com/Keats/validator) and [Garde](https://github.com/jprochazk/garde) allow setting `#[validate(...)]`/`#[garde(...)]` attributes to restrict valid values of particular fields, many of which will be used by Schemars to generate more accurate schemas. These can also be overridden by `#[schemars(...)]` attributes.
+[Validator](https://github.com/Keats/validator), [Garde](https://github.com/jprochazk/garde), and [serde_valid](https://github.com/yassun7010/serde_valid) allow setting `#[validate(...)]`/`#[garde(...)]` attributes to restrict valid values of particular fields, many of which will be used by Schemars to generate more accurate schemas. These can also be overridden by `#[schemars(...)]` attributes.
 
 <details open>
 <summary style="font-weight: bold">
@@ -39,13 +39,18 @@ TABLE OF CONTENTS
    - [`deny_unknown_fields`](#deny_unknown_fields)
    - [`transparent`](#transparent)
    - [`bound`](#bound)
-1. [Supported Validator/Garde Attributes](#supported-validatorgarde-attributes)
+1. [Supported Validator/Garde/serde_valid Attributes](#supported-validatorgardeserde_valid-attributes)
    - [`email` / `url` / `ip` / `ipv4` / `ipv6`](#formats)
    - [`length`](#length)
    - [`range`](#range)
    - [`regex` / `pattern`](#regex)
    - [`contains`](#contains)
    - [`required`](#required)
+   - [`minimum` / `maximum` / `exclusive_minimum` / `exclusive_maximum` / `multiple_of`](#serde_valid_numeric)
+   - [`min_length` / `max_length`](#serde_valid_length)
+   - [`min_items` / `max_items` / `unique_items`](#serde_valid_items)
+   - [`min_properties` / `max_properties`](#serde_valid_properties)
+   - [`enum`](#serde_valid_enum)
    - [`inner`](#inner)
 1. [Other Attributes](#other-attributes)
    - [`schema_with`](#schema_with)
@@ -225,7 +230,7 @@ Serde docs: [container](https://serde.rs/container-attrs.html#bound)
 
 </div>
 
-## Supported Validator/Garde Attributes
+## Supported Validator/Garde/serde_valid Attributes
 
 <div class="indented">
 
@@ -268,13 +273,16 @@ Validator docs: [range](https://github.com/Keats/validator#range)
 
 `#[validate(regex(path = *static_regex)]`<br />
 `#[schemars(regex(pattern = r"^\d+$"))]` / `#[schemars(regex(pattern = *static_regex))]`<br />
-`#[garde(pattern(r"^\d+$")]` / `#[schemars(pattern(r"^\d+$")]`/ `#[schemars(pattern(*static_regex)]`
+`#[garde(pattern(r"^\d+$")]` / `#[schemars(pattern(r"^\d+$")]`/ `#[schemars(pattern(*static_regex)]`<br />
+`#[validate(pattern = r"^\d+$")]` / `#[schemars(pattern = r"^\d+$")]`
 
 </h3>
 
 Sets the `pattern` property for string schemas. The `static_regex` will typically refer to a [`Regex`](https://docs.rs/regex/*/regex/struct.Regex.html) instance, but Schemars allows it to be any value with a `to_string()` method.
 
 `regex(pattern = ...)` is a Schemars extension, and not currently supported by the Validator crate. When using this form (or the Garde-style `pattern` attribute), you may want to use a `r"raw string literal"` so that `\\` characters in the regex pattern are not interpreted as escape sequences in the string. Using the `path = ...` form is not allowed in a `#[schemars(...)]` attribute.
+
+The `pattern = ...` form is used by [serde_valid](https://docs.rs/serde_valid/latest/serde_valid/).
 
 Validator docs: [regex](https://github.com/Keats/validator#regex)
 
@@ -299,6 +307,68 @@ When set on an `Option<T>` field, this will create a schemas as though the field
 
 Validator docs: [required](https://github.com/Keats/validator#required)
 
+<h3 id="serde_valid_numeric">
+
+`#[validate(minimum = 0)]` / `#[schemars(minimum = 0)]`<br />
+`#[validate(maximum = 10)]` / `#[schemars(maximum = 10)]`<br />
+`#[validate(exclusive_minimum = 0)]` / `#[schemars(exclusive_minimum = 0)]`<br />
+`#[validate(exclusive_maximum = 10)]` / `#[schemars(exclusive_maximum = 10)]`<br />
+`#[validate(multiple_of = 5)]` / `#[schemars(multiple_of = 5)]`
+
+</h3>
+
+Sets the corresponding numeric JSON Schema keywords. When set on an array or map field, these are applied to each item/value (matching [serde_valid](https://docs.rs/serde_valid/latest/serde_valid/) behaviour).
+
+Unlike Validator/Garde-style attributes, [serde_valid](https://docs.rs/serde_valid/latest/serde_valid/) accepts **one validator per `#[validate(...)]` attribute** (e.g. separate `minimum` and `maximum` attributes, not `#[validate(minimum = 0, maximum = 10)]`). An optional second item may be a custom message (`message` / `message_fn`); these are ignored when generating schemas.
+
+serde_valid docs: [Validations](https://docs.rs/serde_valid/latest/serde_valid/#validations)
+
+<h3 id="serde_valid_length">
+
+`#[validate(min_length = 1)]` / `#[schemars(min_length = 1)]`<br />
+`#[validate(max_length = 10)]` / `#[schemars(max_length = 10)]`
+
+</h3>
+
+Sets the `minLength`/`maxLength` properties for string schemas. When set on an array or map field, these are applied to each item/value. As with other `serde_valid` attributes, use one validator per `#[validate(...)]`.
+
+serde_valid docs: [Validations](https://docs.rs/serde_valid/latest/serde_valid/#validations)
+
+<h3 id="serde_valid_items">
+
+`#[validate(min_items = 1)]` / `#[schemars(min_items = 1)]`<br />
+`#[validate(max_items = 10)]` / `#[schemars(max_items = 10)]`<br />
+`#[validate(unique_items)]` / `#[schemars(unique_items)]`
+
+</h3>
+
+Sets the `minItems`/`maxItems`/`uniqueItems` properties for array schemas. Optional `serde_valid` message forms such as `#[validate(min_items = 1, message = "...")]` / `message_fn = ...` are accepted and ignored for schema generation.
+
+serde_valid docs: [Validations](https://docs.rs/serde_valid/latest/serde_valid/#validations)
+
+<h3 id="serde_valid_properties">
+
+`#[validate(min_properties = 1)]` / `#[schemars(min_properties = 1)]`<br />
+`#[validate(max_properties = 10)]` / `#[schemars(max_properties = 10)]`
+
+</h3>
+
+Sets the `minProperties`/`maxProperties` properties for object schemas.
+
+serde_valid docs: [Validations](https://docs.rs/serde_valid/latest/serde_valid/#validations)
+
+<h3 id="serde_valid_enum">
+
+`#[validate(r#enum = [1, 2, 3])]` / `#[schemars(r#enum = [1, 2, 3])]`
+
+</h3>
+
+Sets the `enum` property. When set on an array or map field, these are applied to each item/value.
+
+`#[validate(custom = ...)]` (field or container) is accepted by Schemars but does not affect the generated schema.
+
+serde_valid docs: [Validations](https://docs.rs/serde_valid/latest/serde_valid/#validations)
+
 </div>
 
 <h3 id="inner">
@@ -307,7 +377,7 @@ Validator docs: [required](https://github.com/Keats/validator#required)
 
 </h3>
 
-Sets properties specified by [validation attributes](#supported-validatorgarde-attributes) on items of an array schema. For example:
+Sets properties specified by [validation attributes](#supported-validatorgardeserde_valid-attributes) on items of an array schema. For example:
 
 ```rust
 struct Struct {

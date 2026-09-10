@@ -3,7 +3,6 @@
 #![allow(
     clippy::result_large_err,
     clippy::wildcard_imports,
-    clippy::from_iter_instead_of_collect,
     clippy::too_many_lines
 )]
 
@@ -95,7 +94,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
     }
 
     let name = cont.name();
-    let const_params = BTreeSet::from_iter(cont.generics.const_params().map(|c| &c.ident));
+    let const_params: BTreeSet<_> = cont.generics.const_params().map(|c| &c.ident).collect();
 
     // We can't just check if `cont.rename_type_params` is empty, because even if it is, there may
     // be const params in the rename format string

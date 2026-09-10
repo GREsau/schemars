@@ -38,12 +38,13 @@ uuid1 = { version = "1.0", default-features = false, optional = true, package = 
 [dev-dependencies]
 pretty_assertions = "1.2.1"
 trybuild = "1.0"
-serde = { version = "1.0", features = ["derive"] }
+serde = { version = "1.0", features = ["derive", "rc"] }
 jsonschema = { version = "0.30", default-features = false }
 snapbox = { version = "0.6.17", features = ["json"] }
 serde_repr = "0.1.19"
 garde = { version = "0.23", features = ["derive", "email", "regex", "url"] }
 validator = { version = "0.21", features = ["derive"] }
+serde_valid = { version = "3.1.2", default-features = false }
 regex = { version = "1.10.6", default-features = false }
 
 arrayvec07 = { version = "0.7", default-features = false, features = ["serde"], package = "arrayvec" }

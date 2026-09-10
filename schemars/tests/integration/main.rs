@@ -43,6 +43,7 @@ mod schema_name;
 mod schema_with;
 #[cfg(feature = "semver1")]
 mod semver;
+mod serde_valid;
 mod settings;
 mod skip;
 #[cfg(feature = "smallvec1")]

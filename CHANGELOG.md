@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+
+- Support for [serde_valid](https://github.com/yassun7010/serde_valid) `#[validate(...)]` attributes (and equivalent `#[schemars(...)]` forms), including `minimum`/`maximum`/`exclusive_minimum`/`exclusive_maximum`/`multiple_of`, `min_length`/`max_length`, `min_items`/`max_items`/`unique_items`, `min_properties`/`max_properties`, `pattern = ...`, and `r#enum = [...]` (https://github.com/GREsau/schemars/issues/362)
+
 ## [1.2.2] - 2026-07-27
 
 - Update to syn 3 in schemars_derive

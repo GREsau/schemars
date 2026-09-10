@@ -1,0 +1,131 @@
+{
+  "$defs": {
+    "SerdeValidNested": {
+      "properties": {
+        "x": {
+          "format": "int32",
+          "maximum": 100,
+          "minimum": -100,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "x"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "custom_int": {
+      "format": "int32",
+      "type": "integer"
+    },
+    "enum_int": {
+      "enum": [
+        1,
+        2,
+        3
+      ],
+      "format": "int32",
+      "type": "integer"
+    },
+    "enum_str": {
+      "enum": [
+        "a",
+        "b"
+      ],
+      "type": "string"
+    },
+    "exclusive_min_max": {
+      "exclusiveMaximum": 10.0,
+      "exclusiveMinimum": 0.0,
+      "format": "float",
+      "type": "number"
+    },
+    "item_lengths": {
+      "items": {
+        "minLength": 2,
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "items": {
+      "items": {
+        "format": "int32",
+        "type": "integer"
+      },
+      "maxItems": 3,
+      "minItems": 1,
+      "type": "array",
+      "uniqueItems": true
+    },
+    "messaged_items": {
+      "items": {
+        "format": "int32",
+        "type": "integer"
+      },
+      "maxItems": 5,
+      "minItems": 1,
+      "type": "array"
+    },
+    "min_max": {
+      "format": "float",
+      "maximum": 100.0,
+      "minimum": 1.0,
+      "type": "number"
+    },
+    "multiple": {
+      "format": "float",
+      "multipleOf": 2.5,
+      "type": "number"
+    },
+    "nested": {
+      "$ref": "#/$defs/SerdeValidNested"
+    },
+    "nested_numbers": {
+      "items": {
+        "format": "int32",
+        "maximum": 10,
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "array"
+    },
+    "non_empty_str": {
+      "maxLength": 10,
+      "minLength": 1,
+      "type": "string"
+    },
+    "props": {
+      "additionalProperties": {
+        "type": "boolean"
+      },
+      "maxProperties": 3,
+      "minProperties": 1,
+      "type": "object"
+    },
+    "regex_str": {
+      "pattern": "^[Hh]ello",
+      "type": "string"
+    }
+  },
+  "required": [
+    "min_max",
+    "exclusive_min_max",
+    "multiple",
+    "regex_str",
+    "non_empty_str",
+    "items",
+    "item_lengths",
+    "nested_numbers",
+    "enum_int",
+    "enum_str",
+    "props",
+    "messaged_items",
+    "custom_int",
+    "nested"
+  ],
+  "title": "SerdeValidAttrStruct",
+  "type": "object"
+}

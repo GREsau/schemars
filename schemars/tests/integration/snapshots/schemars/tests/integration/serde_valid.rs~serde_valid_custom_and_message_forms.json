@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Custom validation forms that must compile and be ignored for schema output.",
+  "properties": {
+    "bounded": {
+      "format": "int32",
+      "maximum": 10,
+      "minimum": 0,
+      "type": "integer"
+    },
+    "named": {
+      "pattern": "^\\w+$",
+      "type": "string"
+    },
+    "value": {
+      "format": "int32",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "value",
+    "bounded",
+    "named"
+  ],
+  "title": "SerdeValidCustomForms",
+  "type": "object"
+}

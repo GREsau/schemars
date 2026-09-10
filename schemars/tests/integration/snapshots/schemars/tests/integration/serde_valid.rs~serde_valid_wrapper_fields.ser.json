@@ -1,0 +1,114 @@
+{
+  "$defs": {
+    "SerdeValidWrapperInner": {
+      "properties": {
+        "n": {
+          "format": "int32",
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "n"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Wrapper / pointer compositions supported by serde_valid composited validation.",
+  "properties": {
+    "arc": {
+      "format": "int32",
+      "maximum": 10,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "box_optional": {
+      "format": "int32",
+      "maximum": 10,
+      "minimum": 1,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "boxed": {
+      "format": "int32",
+      "maximum": 10,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "boxed_vec": {
+      "items": {
+        "format": "int32",
+        "type": "integer"
+      },
+      "maxItems": 3,
+      "minItems": 1,
+      "type": "array"
+    },
+    "nested_box": {
+      "$ref": "#/$defs/SerdeValidWrapperInner"
+    },
+    "nested_optional_box": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/SerdeValidWrapperInner"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "nested_rc": {
+      "$ref": "#/$defs/SerdeValidWrapperInner"
+    },
+    "optional": {
+      "format": "int32",
+      "maximum": 10,
+      "minimum": 1,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "optional_box": {
+      "format": "int32",
+      "maximum": 10,
+      "minimum": 1,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "rc": {
+      "format": "int32",
+      "maximum": 10,
+      "minimum": 1,
+      "type": "integer"
+    },
+    "rc_strings": {
+      "items": {
+        "minLength": 2,
+        "type": "string"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "boxed",
+    "rc",
+    "arc",
+    "optional",
+    "optional_box",
+    "box_optional",
+    "boxed_vec",
+    "rc_strings",
+    "nested_box",
+    "nested_rc",
+    "nested_optional_box"
+  ],
+  "title": "SerdeValidWrapperFields",
+  "type": "object"
+}

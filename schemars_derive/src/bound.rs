@@ -295,8 +295,11 @@ mod tests {
             ))
         );
 
-        let relevant_type_params =
-            Vec::from_iter(cont.relevant_type_params.into_iter().map(Ident::to_string));
+        let relevant_type_params = cont
+            .relevant_type_params
+            .into_iter()
+            .map(Ident::to_string)
+            .collect::<Vec<_>>();
         assert_eq!(relevant_type_params, vec!["T", "U", "V", "W", "X", "Y"]);
     }
 }

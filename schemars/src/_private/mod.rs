@@ -343,6 +343,41 @@ pub fn insert_validation_property(
     }
 }
 
+/// Like [`insert_validation_property`], but if the schema is an array/map then the property is
+/// applied to each item/value schema instead. This matches `serde_valid`'s behaviour of applying
+/// value-level validations to each element of a collection.
+pub fn insert_validation_property_or_items(
+    schema: &mut Schema,
+    required_type: &str,
+    key: &str,
+    value: impl Into<Value>,
+) {
+    let value = value.into();
+    if schema.has_type(required_type) || (required_type == "number" && schema.has_type("integer")) {
+        schema.insert(key.to_owned(), value);
+        return;
+    }
+
+    for_each_item_or_property_schema(schema, |inner_schema| {
+        insert_validation_property(inner_schema, required_type, key, value.clone());
+    });
+}
+
+/// Inserts an `enum` validation property. For array/map schemas, applies to each item/value
+/// (matching `serde_valid`), otherwise applies to the schema itself.
+pub fn insert_enum_validation(schema: &mut Schema, values: Value) {
+    let mut applied_inner = false;
+
+    for_each_item_or_property_schema(schema, |inner_schema| {
+        inner_schema.insert("enum".to_owned(), values.clone());
+        applied_inner = true;
+    });
+
+    if !applied_inner {
+        schema.insert("enum".to_owned(), values);
+    }
+}
+
 pub fn must_contain(schema: &mut Schema, substring: &str) {
     let escaped = regex_syntax::escape(substring);
     insert_validation_property(schema, "string", "pattern", escaped);
@@ -351,6 +386,20 @@ pub fn must_contain(schema: &mut Schema, substring: &str) {
 pub fn apply_inner_validation(schema: &mut Schema, f: fn(&mut Schema) -> ()) {
     if let Some(inner_schema) = schema.get_mut("items").and_then(|i| i.try_into().ok()) {
         f(inner_schema);
+    }
+}
+
+fn for_each_item_or_property_schema(schema: &mut Schema, mut f: impl FnMut(&mut Schema)) {
+    if let Some(inner_schema) = schema.get_mut("items").and_then(|i| i.try_into().ok()) {
+        f(inner_schema);
+    }
+    // Only apply to object schemas — skip bools like `additionalProperties: false`.
+    if let Some(ap) = schema.get_mut("additionalProperties") {
+        if ap.is_object() {
+            if let Ok(inner_schema) = <&mut Schema>::try_from(&mut *ap) {
+                f(inner_schema);
+            }
+        }
     }
 }
 

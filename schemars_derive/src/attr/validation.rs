@@ -5,7 +5,8 @@ use crate::{idents::SCHEMA, schema_exprs::SchemaExpr};
 
 use super::{
     parse_meta::{
-        parse_contains, parse_length_or_range, parse_nested_meta, parse_pattern,
+        parse_contains, parse_length_or_range, parse_name_value_expr,
+        parse_name_value_expr_handle_lit_str, parse_nested_meta, parse_pattern,
         parse_schemars_regex, parse_validate_regex, require_path_only, LengthOrRange,
     },
     AttrCtxt, CustomMeta,
@@ -55,6 +56,7 @@ impl Format {
 
 #[derive(Default)]
 pub struct ValidationAttrs {
+    // validator/garde style keywords
     pub length: Option<LengthOrRange>,
     pub range: Option<LengthOrRange>,
     pub pattern: Option<Expr>,
@@ -63,6 +65,20 @@ pub struct ValidationAttrs {
     pub required: bool,
     pub format: Option<Format>,
     pub inner: Option<Box<ValidationAttrs>>,
+    // serde_valid style keywords
+    pub minimum: Option<Expr>,
+    pub maximum: Option<Expr>,
+    pub exclusive_minimum: Option<Expr>,
+    pub exclusive_maximum: Option<Expr>,
+    pub multiple_of: Option<Expr>,
+    pub min_length: Option<Expr>,
+    pub max_length: Option<Expr>,
+    pub min_items: Option<Expr>,
+    pub max_items: Option<Expr>,
+    pub unique_items: bool,
+    pub min_properties: Option<Expr>,
+    pub max_properties: Option<Expr>,
+    pub enumeration: Option<Expr>,
 }
 
 impl ValidationAttrs {
@@ -80,9 +96,18 @@ impl ValidationAttrs {
             Self::add_length_or_range(range, mutators, "number", "imum", mut_ref_schema);
         }
 
-        if let Some(regex) = self.regex.as_ref().or(self.pattern.as_ref()) {
+        // `regex` (validator/schemars) only applies to string schemas.
+        if let Some(regex) = &self.regex {
             mutators.push(quote! {
                 schemars::_private::insert_validation_property(#mut_ref_schema, "string", "pattern", (#regex).to_string());
+            });
+        }
+
+        // `pattern` includes serde_valid `pattern = ...`, which applies to each collection item.
+        // On plain string schemas this behaves the same as `insert_validation_property`.
+        if let Some(pattern) = &self.pattern {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property_or_items(#mut_ref_schema, "string", "pattern", (#pattern).to_string());
             });
         }
 
@@ -96,6 +121,84 @@ impl ValidationAttrs {
             let f = format.schema_str();
             mutators.push(quote! {
                     (#mut_ref_schema).insert("format".into(), #f.into());
+            });
+        }
+
+        if let Some(minimum) = &self.minimum {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property_or_items(#mut_ref_schema, "number", "minimum", #minimum);
+            });
+        }
+
+        if let Some(maximum) = &self.maximum {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property_or_items(#mut_ref_schema, "number", "maximum", #maximum);
+            });
+        }
+
+        if let Some(exclusive_minimum) = &self.exclusive_minimum {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property_or_items(#mut_ref_schema, "number", "exclusiveMinimum", #exclusive_minimum);
+            });
+        }
+
+        if let Some(exclusive_maximum) = &self.exclusive_maximum {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property_or_items(#mut_ref_schema, "number", "exclusiveMaximum", #exclusive_maximum);
+            });
+        }
+
+        if let Some(multiple_of) = &self.multiple_of {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property_or_items(#mut_ref_schema, "number", "multipleOf", #multiple_of);
+            });
+        }
+
+        if let Some(min_length) = &self.min_length {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property_or_items(#mut_ref_schema, "string", "minLength", #min_length);
+            });
+        }
+
+        if let Some(max_length) = &self.max_length {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property_or_items(#mut_ref_schema, "string", "maxLength", #max_length);
+            });
+        }
+
+        if let Some(min_items) = &self.min_items {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property(#mut_ref_schema, "array", "minItems", #min_items);
+            });
+        }
+
+        if let Some(max_items) = &self.max_items {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property(#mut_ref_schema, "array", "maxItems", #max_items);
+            });
+        }
+
+        if let Some(min_properties) = &self.min_properties {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property(#mut_ref_schema, "object", "minProperties", #min_properties);
+            });
+        }
+
+        if let Some(max_properties) = &self.max_properties {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property(#mut_ref_schema, "object", "maxProperties", #max_properties);
+            });
+        }
+
+        if self.unique_items {
+            mutators.push(quote! {
+                schemars::_private::insert_validation_property(#mut_ref_schema, "array", "uniqueItems", true);
+            });
+        }
+
+        if let Some(enumeration) = &self.enumeration {
+            mutators.push(quote! {
+                schemars::_private::insert_enum_validation(#mut_ref_schema, schemars::_private::serde_json::json!(#enumeration));
             });
         }
 
@@ -177,14 +280,23 @@ impl ValidationAttrs {
                 }
             }
 
-            "pattern" if cx.attr_type != "validate" => {
-                match (&self.pattern, &self.regex, &self.contains) {
-                    (Some(_p), _, _) => cx.duplicate_error(&meta),
-                    (_, Some(_r), _) => cx.mutual_exclusive_error(&meta, "regex"),
-                    (_, _, Some(_c)) => cx.mutual_exclusive_error(&meta, "contains"),
-                    (None, None, None) => self.pattern = parse_pattern(&meta, cx).ok(),
-                }
-            }
+            "pattern" => match (&self.pattern, &self.regex, &self.contains) {
+                (Some(_p), _, _) => cx.duplicate_error(&meta),
+                (_, Some(_r), _) => cx.mutual_exclusive_error(&meta, "regex"),
+                (_, _, Some(_c)) => cx.mutual_exclusive_error(&meta, "contains"),
+                (None, None, None) => match &meta {
+                    // serde_valid-style: `#[validate(pattern = "...")]`
+                    // schemars also allows the NameValue form
+                    CustomMeta::NameValue(_) if cx.attr_type != "garde" => {
+                        self.pattern = parse_name_value_expr(meta, cx).ok();
+                    }
+                    // garde/schemars-style: `pattern(...)`
+                    CustomMeta::List(_) if cx.attr_type != "validate" => {
+                        self.pattern = parse_pattern(&meta, cx).ok();
+                    }
+                    _ => return Err(meta),
+                },
+            },
             "regex" if cx.attr_type != "garde" => {
                 match (&self.pattern, &self.regex, &self.contains) {
                     (Some(_p), _, _) => cx.mutual_exclusive_error(&meta, "pattern"),
@@ -215,6 +327,73 @@ impl ValidationAttrs {
                     inner.process_attr(&mut inner_cx);
                 }
             }
+
+            // serde_valid / JSON Schema keywords (also allowed on `schemars(...)`)
+            "minimum" => match self.minimum {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.minimum = parse_name_value_expr_handle_lit_str(meta, cx).ok(),
+            },
+            "maximum" => match self.maximum {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.maximum = parse_name_value_expr_handle_lit_str(meta, cx).ok(),
+            },
+            "exclusive_minimum" => match self.exclusive_minimum {
+                Some(_) => cx.duplicate_error(&meta),
+                None => {
+                    self.exclusive_minimum = parse_name_value_expr_handle_lit_str(meta, cx).ok();
+                }
+            },
+            "exclusive_maximum" => match self.exclusive_maximum {
+                Some(_) => cx.duplicate_error(&meta),
+                None => {
+                    self.exclusive_maximum = parse_name_value_expr_handle_lit_str(meta, cx).ok();
+                }
+            },
+            "multiple_of" => match self.multiple_of {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.multiple_of = parse_name_value_expr_handle_lit_str(meta, cx).ok(),
+            },
+            "min_length" => match self.min_length {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.min_length = parse_name_value_expr_handle_lit_str(meta, cx).ok(),
+            },
+            "max_length" => match self.max_length {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.max_length = parse_name_value_expr_handle_lit_str(meta, cx).ok(),
+            },
+            "min_items" => match self.min_items {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.min_items = parse_name_value_expr_handle_lit_str(meta, cx).ok(),
+            },
+            "max_items" => match self.max_items {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.max_items = parse_name_value_expr_handle_lit_str(meta, cx).ok(),
+            },
+            "min_properties" => match self.min_properties {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.min_properties = parse_name_value_expr_handle_lit_str(meta, cx).ok(),
+            },
+            "max_properties" => match self.max_properties {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.max_properties = parse_name_value_expr_handle_lit_str(meta, cx).ok(),
+            },
+            "enum" | "r#enum" => match self.enumeration {
+                Some(_) => cx.duplicate_error(&meta),
+                None => self.enumeration = parse_name_value_expr(meta, cx).ok(),
+            },
+            "unique_items" => {
+                if self.unique_items {
+                    cx.duplicate_error(&meta);
+                } else if require_path_only(&meta, cx).is_ok() {
+                    self.unique_items = true;
+                }
+            }
+
+            // serde_valid-only items that do not affect the generated schema.
+            // Recognised so that forms like `#[validate(minimum = 1, message = "...")]`
+            // and `#[validate(custom = ...)]` are accepted without error.
+            "message" | "message_fn" | "message_l10n" | "fluent" | "i18n" | "custom"
+                if cx.attr_type == "validate" => {}
 
             _ => return Err(meta),
         }
@@ -248,6 +427,19 @@ impl ValidationAttrs {
                 regex: None,
                 required: false,
                 inner: None,
+                minimum: None,
+                maximum: None,
+                exclusive_minimum: None,
+                exclusive_maximum: None,
+                multiple_of: None,
+                min_length: None,
+                max_length: None,
+                min_items: None,
+                max_items: None,
+                unique_items: false,
+                min_properties: None,
+                max_properties: None,
+                enumeration: None,
             }
         )
     }

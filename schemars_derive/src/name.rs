@@ -22,13 +22,14 @@ pub fn get_rename_format_type_params<'a>(
         str_value = str_value.replace("}}", "");
     }
 
-    let all_const_params =
-        BTreeSet::from_iter(generics.const_params().map(|c| c.ident.to_string()));
-    let all_type_params = BTreeMap::from_iter(
-        generics
-            .type_params()
-            .map(|c| (c.ident.to_string(), &c.ident)),
-    );
+    let all_const_params: BTreeSet<_> = generics
+        .const_params()
+        .map(|c| c.ident.to_string())
+        .collect();
+    let all_type_params: BTreeMap<_, _> = generics
+        .type_params()
+        .map(|c| (c.ident.to_string(), &c.ident))
+        .collect();
 
     let mut segments = str_value.split('{');
 
