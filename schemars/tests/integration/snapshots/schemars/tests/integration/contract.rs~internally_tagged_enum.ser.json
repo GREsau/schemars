@@ -17,12 +17,12 @@
     {
       "type": "object",
       "properties": {
-        "S": {
-          "type": "string"
-        },
         "tag": {
           "type": "string",
           "const": "READ-ONLY-STRUCT"
+        },
+        "S": {
+          "type": "string"
         }
       },
       "required": [
@@ -45,12 +45,12 @@
     {
       "type": "object",
       "properties": {
-        "B": {
-          "type": "boolean"
-        },
         "tag": {
           "type": "string",
           "const": "ser_renamed_struct"
+        },
+        "B": {
+          "type": "boolean"
         }
       },
       "required": [

@@ -276,6 +276,19 @@ fn internally_tagged_enum() {
         .assert_matches_de_roundtrip(arbitrary_values());
 }
 
+#[cfg_attr(not(feature = "preserve_order"), ignore)]
+#[test]
+fn internally_tagged_enum_tag_is_first_property() {
+    // serde serializes the tag before the variant's fields, and `required` lists it first.
+    test!(Internal).custom(|schema, _| {
+        let variants = schema.as_value()["oneOf"].as_array().unwrap();
+        for variant in variants {
+            let first = variant["properties"].as_object().unwrap().keys().next();
+            assert_eq!(first.map(String::as_str), Some("tag"), "{variant}");
+        }
+    });
+}
+
 #[test]
 fn adjacently_tagged_enum() {
     test!(Adjacent)

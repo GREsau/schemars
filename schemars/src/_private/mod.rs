@@ -273,6 +273,8 @@ pub fn apply_internal_enum_variant_tag(
         .or_insert(Value::Object(Map::new()))
         .as_object_mut()
     {
+        // The tag goes first, as in `required` and in serde's serialized output.
+        let fields = core::mem::take(properties);
         properties.insert(
             tag_name.to_string(),
             json!({
@@ -280,6 +282,7 @@ pub fn apply_internal_enum_variant_tag(
                 "const": variant
             }),
         );
+        properties.extend(fields.into_iter().filter(|(key, _)| key != tag_name));
     }
 
     if let Some(required) = obj

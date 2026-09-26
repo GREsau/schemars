@@ -17,16 +17,16 @@
     {
       "type": "object",
       "properties": {
+        "tag": {
+          "type": "string",
+          "const": "TaggedStruct"
+        },
         "baz": {
           "type": "integer",
           "format": "int32"
         },
         "foobar": {
           "type": "boolean"
-        },
-        "tag": {
-          "type": "string",
-          "const": "TaggedStruct"
         }
       },
       "required": [

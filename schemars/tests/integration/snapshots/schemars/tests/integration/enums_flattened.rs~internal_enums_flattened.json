@@ -86,16 +86,16 @@
     {
       "type": "object",
       "properties": {
+        "tag3": {
+          "type": "string",
+          "const": "Struct"
+        },
         "foo": {
           "type": "integer",
           "format": "int32"
         },
         "bar": {
           "type": "boolean"
-        },
-        "tag3": {
-          "type": "string",
-          "const": "Struct"
         }
       },
       "required": [

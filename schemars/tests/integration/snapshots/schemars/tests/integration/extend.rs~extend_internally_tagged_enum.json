@@ -31,16 +31,16 @@
     {
       "type": "object",
       "properties": {
+        "t": {
+          "type": "string",
+          "const": "Struct"
+        },
         "i": {
           "type": "integer",
           "format": "int32"
         },
         "b": {
           "type": "boolean"
-        },
-        "t": {
-          "type": "string",
-          "const": "Struct"
         }
       },
       "required": [
