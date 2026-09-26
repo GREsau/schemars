@@ -17,13 +17,13 @@
     {
       "type": "object",
       "properties": {
-        "i": {
-          "type": "integer",
-          "format": "int"
-        },
         "tag": {
           "type": "string",
           "const": "WriteOnlyStruct"
+        },
+        "i": {
+          "type": "integer",
+          "format": "int"
         }
       },
       "required": [
@@ -46,12 +46,12 @@
     {
       "type": "object",
       "properties": {
-        "b": {
-          "type": "boolean"
-        },
         "tag": {
           "type": "string",
           "const": "de_renamed_struct"
+        },
+        "b": {
+          "type": "boolean"
         }
       },
       "required": [

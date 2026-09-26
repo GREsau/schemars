@@ -93,16 +93,16 @@
     "Struct2": {
       "type": "object",
       "properties": {
+        "tag": {
+          "type": "string",
+          "const": "Struct"
+        },
         "foo": {
           "type": "integer",
           "format": "int32"
         },
         "bar": {
           "type": "boolean"
-        },
-        "tag": {
-          "type": "string",
-          "const": "Struct"
         }
       },
       "required": [
