@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.3] - 2026-10-12
+
+### Fixed
+
+- schema creation panics with arbitrary precision JSON numbers (https://github.com/GREsau/schemars/pull/527)
+- Resolve `unused_qualifications` lint violation in generated code (https://github.com/GREsau/schemars/issues/539 / https://github.com/GREsau/schemars/pull/541)
+
+### Changed
+
+- Put the tag of internally-tagged enums first in the schema's `properties` array (https://github.com/GREsau/schemars/issues/537 / https://github.com/GREsau/schemars/pull/538)
+
 ## [1.2.2] - 2026-07-27
 
 - Update to syn 3 in schemars_derive
