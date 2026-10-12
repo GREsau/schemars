@@ -1,5 +1,5 @@
 #![forbid(unsafe_code)]
-#![deny(unused_imports, clippy::cargo, clippy::pedantic)]
+#![deny(unused_imports, unused_qualifications, clippy::cargo, clippy::pedantic)]
 #![allow(
     clippy::result_large_err,
     clippy::wildcard_imports,
@@ -64,6 +64,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
                 #crate_alias
 
                 #[automatically_derived]
+                #[allow(unused_qualifications)]
                 impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
                     fn inline_schema() -> bool {
                         <#ty as schemars::JsonSchema>::inline_schema()
@@ -155,7 +156,7 @@ fn derive_json_schema(mut input: syn::DeriveInput, repr: bool) -> syn::Result<To
             #crate_alias
 
             #[automatically_derived]
-            #[allow(unused_braces)]
+            #[allow(unused_braces, unused_qualifications)]
             impl #impl_generics schemars::JsonSchema for #type_name #ty_generics #where_clause {
                 fn schema_name() -> schemars::_private::alloc::borrow::Cow<'static, str> {
                     #schema_name
