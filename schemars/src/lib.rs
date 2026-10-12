@@ -2,6 +2,7 @@
 #![deny(
     missing_docs,
     unused_imports,
+    unused_qualifications,
     clippy::cargo,
     clippy::pedantic,
     clippy::exhaustive_structs,

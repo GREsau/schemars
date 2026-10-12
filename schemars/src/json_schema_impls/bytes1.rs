@@ -13,7 +13,7 @@ impl JsonSchema for bytes1::Bytes {
         "bytes::Bytes".into()
     }
 
-    fn json_schema(generator: &mut crate::SchemaGenerator) -> crate::Schema {
+    fn json_schema(generator: &mut crate::SchemaGenerator) -> Schema {
         let ty = match generator.contract() {
             Contract::Deserialize => Value::Array(vec!["array".into(), "string".into()]),
             Contract::Serialize => "array".into(),

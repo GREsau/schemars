@@ -8,6 +8,7 @@ macro_rules! inline_schema {
 
 macro_rules! forward_impl {
     (($($impl:tt)+) => $target:ty) => {
+        #[allow(unused_qualifications)]
         impl $($impl)+ {
             fn inline_schema() -> bool {
                 <$target as $crate::JsonSchema>::inline_schema()
