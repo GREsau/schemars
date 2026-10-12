@@ -120,12 +120,12 @@ impl Field<'_> {
 
         if self.serde_attrs.skip_deserializing() {
             expr.mutators.push(quote! {
-                #SCHEMA.insert("readOnly".into(), true.into());
+                schemars::_private::insert_read_write_only(&mut #SCHEMA, "readOnly");
             });
         }
         if self.serde_attrs.skip_serializing() {
             expr.mutators.push(quote! {
-                #SCHEMA.insert("writeOnly".into(), true.into());
+                schemars::_private::insert_read_write_only(&mut #SCHEMA, "writeOnly");
             });
         }
     }
