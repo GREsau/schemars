@@ -13,6 +13,7 @@ mod crate_alias;
 #[cfg(any(feature = "rust_decimal1", feature = "bigdecimal04"))]
 mod decimal;
 mod default;
+mod definitions;
 mod deprecated;
 mod docs;
 #[cfg(feature = "either1")]

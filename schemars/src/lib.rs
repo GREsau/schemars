@@ -149,8 +149,11 @@ pub trait JsonSchema {
 
     /// The name of the generated JSON Schema.
     ///
-    /// This is used as the title for root schemas, and the key within the root's `definitions`
-    /// property for subschemas.
+    /// This is used as the title for root schemas, and as the key within the root's `definitions`
+    /// property for subschemas. If that key is already in use (e.g. by another type with the same
+    /// schema name but a different [`schema_id()`](JsonSchema::schema_id)), then a numeric suffix
+    /// is appended to the key, e.g. `MyType2`. To get the actual key used for a type, call
+    /// [`SchemaGenerator::definition_name_for()`].
     #[must_use]
     fn schema_name() -> Cow<'static, str>;
 

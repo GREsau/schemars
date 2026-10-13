@@ -254,8 +254,8 @@ impl Clone for SchemaGenerator {
             settings: self.settings.clone(),
             definitions: self.definitions.clone(),
             pending_schema_ids: BTreeSet::new(),
-            schema_id_to_name: BTreeMap::new(),
-            used_schema_names: BTreeSet::new(),
+            schema_id_to_name: self.schema_id_to_name.clone(),
+            used_schema_names: self.used_schema_names.clone(),
             root_schema_id_stack: Vec::new(),
         }
     }
@@ -319,10 +319,7 @@ impl SchemaGenerator {
             inline_schema: bool,
             schema_name: fn() -> CowStr,
         ) -> Option<FindRef> {
-            let return_ref = !inline_schema
-                && (!this.settings.inline_subschemas || this.pending_schema_ids.contains(uid));
-
-            if !return_ref {
+            if !this.should_return_ref(uid, inline_schema) {
                 return None;
             }
 
@@ -333,25 +330,7 @@ impl SchemaGenerator {
                 });
             }
 
-            let name = this.schema_id_to_name.get(uid).cloned().unwrap_or_else(|| {
-                let base_name = schema_name();
-                let mut name = CowStr::Borrowed("");
-
-                if this.used_schema_names.contains(base_name.as_ref()) {
-                    for i in 2.. {
-                        name = format!("{base_name}{i}").into();
-                        if !this.used_schema_names.contains(&name) {
-                            break;
-                        }
-                    }
-                } else {
-                    name = base_name;
-                }
-
-                this.used_schema_names.insert(name.clone());
-                this.schema_id_to_name.insert(uid.clone(), name.clone());
-                name
-            });
+            let name = this.definition_name_for_uid(uid, schema_name);
 
             let reference = format!(
                 "#{}/{}",
@@ -383,6 +362,113 @@ impl SchemaGenerator {
         schema
     }
 
+    /// Returns the name of the definition that [`subschema_for::<T>()`](Self::subschema_for)
+    /// references, i.e. the key used for `T`'s schema in [`definitions()`](Self::definitions).
+    ///
+    /// This is usually the same as [`T::schema_name()`](JsonSchema::schema_name), but it may have a
+    /// numeric suffix (e.g. `MyType2`) if that name was already in use, either by another type with
+    /// the same schema name, or by a definition added via [`definitions_mut()`](Self::definitions_mut).
+    ///
+    /// If `T` has not been given a definition name yet, this reserves one for it, so later calls to
+    /// `definition_name_for::<T>()` and `subschema_for::<T>()` will use the same name. This does
+    /// not add `T`'s schema to the definitions.
+    ///
+    /// Returns `None` if `subschema_for::<T>()` would not reference a definition, e.g. because `T`
+    /// is [inlined](JsonSchema::inline_schema).
+    ///
+    /// # Example
+    /// ```
+    /// use schemars::{json_schema, SchemaGenerator};
+    ///
+    /// mod a {
+    ///     #[derive(schemars::JsonSchema)]
+    ///     pub struct Config {
+    ///         pub foo: i32,
+    ///     }
+    /// }
+    ///
+    /// mod b {
+    ///     #[derive(schemars::JsonSchema)]
+    ///     pub struct Config {
+    ///         pub bar: bool,
+    ///     }
+    /// }
+    ///
+    /// let mut generator = SchemaGenerator::default();
+    /// generator.subschema_for::<a::Config>();
+    /// generator.subschema_for::<b::Config>();
+    ///
+    /// assert_eq!(generator.definition_name_for::<a::Config>().as_deref(), Some("Config"));
+    /// assert_eq!(generator.definition_name_for::<b::Config>().as_deref(), Some("Config2"));
+    /// assert_eq!(generator.definition_name_for::<i32>(), None);
+    ///
+    /// // Replace the schema for `b::Config`
+    /// let name = generator.definition_name_for::<b::Config>().unwrap();
+    /// let new_schema = json_schema!({ "type": "string" });
+    /// generator.definitions_mut().insert(name.into_owned(), new_schema.clone().to_value());
+    ///
+    /// assert_eq!(
+    ///     generator.subschema_for::<b::Config>(),
+    ///     json_schema!({ "$ref": "#/$defs/Config2" })
+    /// );
+    /// assert_eq!(generator.definitions()["Config2"], new_schema.to_value());
+    /// ```
+    pub fn definition_name_for<T: ?Sized + JsonSchema>(&mut self) -> Option<CowStr> {
+        /// Non-generic inner function to improve compile times.
+        fn inner(
+            this: &mut SchemaGenerator,
+            uid: &SchemaUid,
+            inline_schema: bool,
+            schema_name: fn() -> CowStr,
+        ) -> Option<CowStr> {
+            if !this.should_return_ref(uid, inline_schema)
+                || this.root_schema_id_stack.last() == Some(uid)
+            {
+                return None;
+            }
+
+            Some(this.definition_name_for_uid(uid, schema_name))
+        }
+
+        let uid = self.schema_uid::<T>();
+        inner(self, &uid, T::inline_schema(), T::schema_name)
+    }
+
+    fn should_return_ref(&self, uid: &SchemaUid, inline_schema: bool) -> bool {
+        !inline_schema
+            && (!self.settings.inline_subschemas || self.pending_schema_ids.contains(uid))
+    }
+
+    fn definition_name_for_uid(&mut self, uid: &SchemaUid, schema_name: fn() -> CowStr) -> CowStr {
+        if let Some(name) = self.schema_id_to_name.get(uid) {
+            return name.clone();
+        }
+
+        // Avoid names that are already used by other types, or by definitions that were inserted
+        // manually via `definitions_mut()`
+        let is_name_taken = |name: &str| {
+            self.used_schema_names.contains(name) || self.definitions.contains_key(name)
+        };
+
+        let base_name = schema_name();
+        let mut name = CowStr::Borrowed("");
+
+        if is_name_taken(&base_name) {
+            for i in 2.. {
+                name = format!("{base_name}{i}").into();
+                if !is_name_taken(&name) {
+                    break;
+                }
+            }
+        } else {
+            name = base_name;
+        }
+
+        self.used_schema_names.insert(name.clone());
+        self.schema_id_to_name.insert(uid.clone(), name.clone());
+        name
+    }
+
     fn insert_new_subschema_for<T: ?Sized + JsonSchema>(&mut self, name: CowStr, uid: &SchemaUid) {
         // TODO: If we've already added a schema for T with the "opposite" contract, then check
         // whether the new schema is identical. If so, re-use the original for both contracts.
@@ -399,8 +485,11 @@ impl SchemaGenerator {
     /// Borrows the collection of all [non-inlined](JsonSchema::inline_schema) schemas that
     /// have been generated.
     ///
-    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
-    /// values are the schemas themselves.
+    /// The keys of the returned `Map` are the definition names, and the values are the schemas
+    /// themselves. A definition name is usually the same as the type's
+    /// [schema name](JsonSchema::schema_name), but may have a numeric suffix if multiple types
+    /// have the same schema name - use [`definition_name_for()`](Self::definition_name_for) to get
+    /// the definition name for a particular type.
     #[must_use]
     pub fn definitions(&self) -> &JsonMap<String, Value> {
         &self.definitions
@@ -409,8 +498,15 @@ impl SchemaGenerator {
     /// Mutably borrows the collection of all [non-inlined](JsonSchema::inline_schema)
     /// schemas that have been generated.
     ///
-    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
-    /// values are the schemas themselves.
+    /// The keys of the returned `Map` are the definition names, and the values are the schemas
+    /// themselves. A definition name is usually the same as the type's
+    /// [schema name](JsonSchema::schema_name), but may have a numeric suffix if multiple types
+    /// have the same schema name - use [`definition_name_for()`](Self::definition_name_for) to get
+    /// the definition name for a particular type.
+    ///
+    /// If you insert a definition under a name that is not already in use, that name will not be
+    /// given to any type that is generated later. To replace the schema for a particular type,
+    /// insert it under the name returned by [`definition_name_for()`](Self::definition_name_for).
     #[must_use]
     pub fn definitions_mut(&mut self) -> &mut JsonMap<String, Value> {
         &mut self.definitions
@@ -419,8 +515,11 @@ impl SchemaGenerator {
     /// Returns the collection of all [non-inlined](JsonSchema::inline_schema) schemas that
     /// have been generated, leaving an empty `Map` in its place.
     ///
-    /// The keys of the returned `Map` are the [schema names](JsonSchema::schema_name), and the
-    /// values are the schemas themselves.
+    /// The keys of the returned `Map` are the definition names, and the values are the schemas
+    /// themselves. A definition name is usually the same as the type's
+    /// [schema name](JsonSchema::schema_name), but may have a numeric suffix if multiple types
+    /// have the same schema name - use [`definition_name_for()`](Self::definition_name_for) to get
+    /// the definition name for a particular type.
     ///
     /// To apply this generator's [transforms](SchemaSettings::transforms) to each of the returned
     /// schemas, set `apply_transforms` to `true`.
