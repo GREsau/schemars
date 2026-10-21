@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "items": {
+    "format": "uint",
+    "minimum": 0,
+    "type": "integer"
+  },
+  "maxItems": 10,
+  "title": "Array_up_to_size_10_of_uint",
+  "type": "array"
+}
