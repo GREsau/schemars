@@ -34,5 +34,5 @@ formatted_string_impl!(Span, "duration");
 formatted_string_impl!(Timestamp, "date-time");
 formatted_string_impl!(Zoned, "zoned-date-time");
 formatted_string_impl!(Date, "date");
-formatted_string_impl!(Time, "partial-time");
-formatted_string_impl!(DateTime, "partial-date-time");
+formatted_string_impl!(Time, "time-local");
+formatted_string_impl!(DateTime, "date-time-local");
