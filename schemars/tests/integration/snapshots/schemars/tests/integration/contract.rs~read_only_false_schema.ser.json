@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "read_only": {
+      "default": false,
+      "readOnly": true,
+      "type": "boolean"
+    },
+    "unsatisfiable": false
+  },
+  "required": [
+    "read_only"
+  ],
+  "title": "ReadOnlyFalseSchema",
+  "type": "object"
+}
