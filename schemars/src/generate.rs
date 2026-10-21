@@ -600,6 +600,10 @@ impl SchemaGenerator {
             return;
         };
 
+        for (key, value) in &mut definitions {
+            self.apply_transforms(value.try_into().unwrap());
+        }
+
         target.append(&mut definitions);
     }
 
