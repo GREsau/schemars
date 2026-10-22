@@ -644,12 +644,38 @@ fn expr_for_newtype_struct(cont: &Container, field: &Field) -> SchemaExpr {
 }
 
 fn expr_for_tuple_struct(cont: &Container, fields: &[Field]) -> SchemaExpr {
+    let container_has_default = !cont.serde_attrs.default().is_none();
+
     let fields: Vec<_> = fields
         .iter()
         .map(|f| {
             let field_expr = expr_for_field(cont, f, false);
+
+            // When deserializing, serde fills in trailing elements missing from the sequence
+            // using their default values (if they have any), so those elements are optional.
+            // When serializing, elements with `skip_serializing_if` may be omitted.
+            let has_default = container_has_default || !f.serde_attrs.default().is_none();
+            let has_skip_serializing_if = f.serde_attrs.skip_serializing_if().is_some();
+            let update_min_len = match (has_default, has_skip_serializing_if) {
+                (false, false) => quote! {
+                    min_len += 1;
+                },
+                (true, false) => quote! {
+                    if #GENERATOR.contract().is_serialize() {
+                        min_len += 1;
+                    }
+                },
+                (false, true) => quote! {
+                    if #GENERATOR.contract().is_deserialize() {
+                        min_len += 1;
+                    }
+                },
+                (true, true) => quote! {},
+            };
+
             f.with_contract_check(quote! {
                 prefix_items.push((#field_expr).to_value());
+                #update_min_len
             })
         })
         .collect();
@@ -660,6 +686,7 @@ fn expr_for_tuple_struct(cont: &Container, fields: &[Field]) -> SchemaExpr {
     // items have `skip_serializing` or `skip_deserializing` attributes.
     quote!({
         let mut prefix_items = schemars::_private::alloc::vec::Vec::<schemars::_private::serde_json::Value>::with_capacity(#max_len);
+        let mut min_len = 0usize;
         #(#fields)*
         let len = prefix_items.len();
 
@@ -667,7 +694,9 @@ fn expr_for_tuple_struct(cont: &Container, fields: &[Field]) -> SchemaExpr {
         map.insert("type".into(), "array".into());
         if !prefix_items.is_empty() {
             map.insert("prefixItems".into(), prefix_items.into());
-            map.insert("minItems".into(), len.into());
+            if min_len > 0 {
+                map.insert("minItems".into(), min_len.into());
+            }
         }
         map.insert("maxItems".into(), len.into());
 

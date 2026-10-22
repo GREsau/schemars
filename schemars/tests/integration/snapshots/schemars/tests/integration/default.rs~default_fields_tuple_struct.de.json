@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "maxItems": 3,
+  "minItems": 1,
+  "prefixItems": [
+    {
+      "type": "string"
+    },
+    {
+      "format": "uint32",
+      "minimum": 0,
+      "type": "integer"
+    },
+    {
+      "type": "boolean"
+    }
+  ],
+  "title": "TupleStructFieldDefault",
+  "type": "array"
+}

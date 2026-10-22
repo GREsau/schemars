@@ -93,3 +93,64 @@ fn default_fields() {
             "structs with `#derive(Deserialize)` can technically be deserialized from sequences, but that's not intended to be used via JSON, so schemars ignores it",
         ));
 }
+
+#[derive(JsonSchema, Deserialize, Serialize, Default)]
+struct TupleStructFieldDefault(String, #[serde(default)] u32, #[serde(default)] bool);
+
+#[test]
+fn default_fields_tuple_struct() {
+    test!(TupleStructFieldDefault)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip_default()
+        .assert_allows_de_roundtrip([json!(["abc"]), json!(["abc", 1]), json!(["abc", 1, true])])
+        .assert_rejects_de([json!([])])
+        .assert_matches_de_roundtrip(arbitrary_values());
+}
+
+#[derive(JsonSchema, Deserialize, Serialize, Default)]
+#[serde(default)]
+struct TupleStructContainerDefault(String, u32);
+
+#[test]
+fn default_container_tuple_struct() {
+    test!(TupleStructContainerDefault)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip_default()
+        .assert_allows_de_roundtrip([json!([]), json!(["abc"]), json!(["abc", 1])])
+        .assert_matches_de_roundtrip(arbitrary_values());
+}
+
+#[derive(JsonSchema, Deserialize, Serialize, Default)]
+struct TupleStructSkipDeserializingDefault(
+    String,
+    #[serde(skip_deserializing)] bool,
+    #[serde(default)] u32,
+);
+
+#[test]
+fn default_skip_deserializing_tuple_struct() {
+    test!(TupleStructSkipDeserializingDefault)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip_default()
+        .assert_allows_de_roundtrip([json!(["abc"]), json!(["abc", 1])])
+        .assert_matches_de_roundtrip(arbitrary_values());
+}
+
+#[derive(JsonSchema, Deserialize, Serialize, Default)]
+struct TupleStructSkipSerializingIf(String, #[serde(skip_serializing_if = "is_zero")] u32);
+
+fn is_zero(value: &u32) -> bool {
+    *value == 0
+}
+
+#[test]
+fn skip_serializing_if_tuple_struct() {
+    test!(TupleStructSkipSerializingIf)
+        .assert_snapshot()
+        .assert_allows_ser_roundtrip([
+            TupleStructSkipSerializingIf::default(),
+            TupleStructSkipSerializingIf("abc".to_owned(), 1),
+        ])
+        .assert_allows_de_roundtrip([json!(["abc", 0]), json!(["abc", 1])])
+        .assert_rejects_de([json!(["abc"])]);
+}
