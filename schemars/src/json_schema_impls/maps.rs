@@ -35,7 +35,7 @@ where
     }
 
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {
-        let key_schema = K::json_schema(generator);
+        let key_schema = generator.inline_schema_for::<K>();
         let value_schema = generator.subschema_for::<V>();
 
         let mut map_schema = json_schema!({

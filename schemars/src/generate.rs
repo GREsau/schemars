@@ -574,6 +574,17 @@ impl SchemaGenerator {
         &self.settings.contract
     }
 
+    /// Generates `T`'s schema inline (even if `T` is not normally inlined), unless `T`'s schema is
+    /// already being generated further up the stack, in which case this returns a `$ref` to it
+    /// (via [`Self::subschema_for`]) to avoid infinite recursion.
+    pub(crate) fn inline_schema_for<T: ?Sized + JsonSchema>(&mut self) -> Schema {
+        let uid = self.schema_uid::<T>();
+        if self.pending_schema_ids.contains(&uid) {
+            return self.subschema_for::<T>();
+        }
+        self.json_schema_internal::<T>(&uid)
+    }
+
     fn json_schema_internal<T: ?Sized + JsonSchema>(&mut self, uid: &SchemaUid) -> Schema {
         let did_add = self.pending_schema_ids.insert(uid.clone());
 

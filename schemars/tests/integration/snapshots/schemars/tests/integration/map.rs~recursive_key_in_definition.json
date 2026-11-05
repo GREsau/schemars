@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ContainsRecursiveKey",
+  "type": "object",
+  "properties": {
+    "map": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0
+      }
+    }
+  },
+  "required": [
+    "map"
+  ],
+  "$defs": {
+    "RecursiveKey": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0
+      }
+    }
+  }
+}
