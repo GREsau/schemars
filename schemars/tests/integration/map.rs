@@ -58,3 +58,21 @@ fn maps() {
         )
         .assert_matches_de_roundtrip(arbitrary_values());
 }
+
+#[derive(JsonSchema, Deserialize, Serialize, PartialEq, Eq, PartialOrd, Ord)]
+struct RecursiveKey(BTreeMap<RecursiveKey, u32>);
+
+#[derive(JsonSchema, Deserialize, Serialize)]
+struct ContainsRecursiveKey {
+    map: BTreeMap<RecursiveKey, u32>,
+}
+
+#[test]
+fn recursive_key() {
+    test!(RecursiveKey).assert_snapshot();
+}
+
+#[test]
+fn recursive_key_in_definition() {
+    test!(ContainsRecursiveKey).assert_snapshot();
+}
