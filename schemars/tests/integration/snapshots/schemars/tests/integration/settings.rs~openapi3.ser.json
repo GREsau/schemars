@@ -1,19 +1,38 @@
 {
   "$schema": "https://spec.openapis.org/oas/3.0/schema/2024-10-18#/definitions/Schema",
-  "title": "OuterStruct",
-  "type": "object",
+  "components": {
+    "schemas": {
+      "InnerEnum": {
+        "oneOf": [
+          {
+            "enum": [
+              "UndocumentedUnit1",
+              "UndocumentedUnit2"
+            ],
+            "type": "string"
+          },
+          {
+            "description": "This is a documented unit variant",
+            "enum": [
+              "DocumentedUnit"
+            ],
+            "type": "string"
+          },
+          {
+            "additionalProperties": false,
+            "properties": {
+              "ValueNewType": {}
+            },
+            "required": [
+              "ValueNewType"
+            ],
+            "type": "object"
+          }
+        ]
+      }
+    }
+  },
   "properties": {
-    "maybe_int": {
-      "type": "integer",
-      "format": "int32",
-      "nullable": true,
-      "example": 8
-    },
-    "values": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "value": {},
     "inner": {
       "$ref": "#/components/schemas/InnerEnum"
     },
@@ -23,32 +42,47 @@
           "$ref": "#/components/schemas/InnerEnum"
         },
         {
-          "nullable": true,
           "enum": [
             null
-          ]
+          ],
+          "nullable": true
         }
       ]
     },
+    "maybe_int": {
+      "example": 8,
+      "format": "int32",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "nullable": true,
+      "type": "integer"
+    },
     "tuples": {
-      "type": "array",
       "items": {
-        "type": "array",
-        "maxItems": 2,
-        "minItems": 2,
         "items": [
           {
-            "type": "integer",
             "format": "uint8",
+            "maximum": 255,
             "minimum": 0,
-            "maximum": 255
+            "type": "integer"
           },
           {
-            "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "maximum": 9223372036854775807,
+            "minimum": -9223372036854775808,
+            "type": "integer"
           }
-        ]
-      }
+        ],
+        "maxItems": 2,
+        "minItems": 2,
+        "type": "array"
+      },
+      "type": "array"
+    },
+    "value": {},
+    "values": {
+      "additionalProperties": true,
+      "type": "object"
     }
   },
   "required": [
@@ -59,36 +93,6 @@
     "maybe_inner",
     "tuples"
   ],
-  "components": {
-    "schemas": {
-      "InnerEnum": {
-        "oneOf": [
-          {
-            "type": "string",
-            "enum": [
-              "UndocumentedUnit1",
-              "UndocumentedUnit2"
-            ]
-          },
-          {
-            "description": "This is a documented unit variant",
-            "type": "string",
-            "enum": [
-              "DocumentedUnit"
-            ]
-          },
-          {
-            "type": "object",
-            "properties": {
-              "ValueNewType": {}
-            },
-            "required": [
-              "ValueNewType"
-            ],
-            "additionalProperties": false
-          }
-        ]
-      }
-    }
-  }
+  "title": "OuterStruct",
+  "type": "object"
 }

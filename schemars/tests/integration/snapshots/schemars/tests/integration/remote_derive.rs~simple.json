@@ -1,7 +1,28 @@
 {
+  "$defs": {
+    "Duration": {
+      "properties": {
+        "nanos": {
+          "format": "int32",
+          "maximum": 2147483647,
+          "minimum": -2147483648,
+          "type": "integer"
+        },
+        "secs": {
+          "format": "int64",
+          "maximum": 9223372036854775807,
+          "minimum": -9223372036854775808,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "secs",
+        "nanos"
+      ],
+      "type": "object"
+    }
+  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Process",
-  "type": "object",
   "properties": {
     "wall_time": {
       "$ref": "#/$defs/Duration"
@@ -10,23 +31,6 @@
   "required": [
     "wall_time"
   ],
-  "$defs": {
-    "Duration": {
-      "type": "object",
-      "properties": {
-        "secs": {
-          "type": "integer",
-          "format": "int64"
-        },
-        "nanos": {
-          "type": "integer",
-          "format": "int32"
-        }
-      },
-      "required": [
-        "secs",
-        "nanos"
-      ]
-    }
-  }
+  "title": "Process",
+  "type": "object"
 }
