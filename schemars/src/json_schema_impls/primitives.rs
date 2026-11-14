@@ -1,5 +1,5 @@
-use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
+use crate::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
 
@@ -65,8 +65,8 @@ simple_impl!(f32 => "number", "float");
 simple_impl!(f64 => "number", "double");
 ranged_impl!(i8 => "integer", "int8");
 ranged_impl!(i16 => "integer", "int16");
-simple_impl!(i32 => "integer", "int32");
-simple_impl!(i64 => "integer", "int64");
+ranged_impl!(i32 => "integer", "int32");
+ranged_impl!(i64 => "integer", "int64");
 simple_impl!(i128 => "integer", "int128");
 simple_impl!(isize => "integer", "int");
 simple_impl!(() => "null");

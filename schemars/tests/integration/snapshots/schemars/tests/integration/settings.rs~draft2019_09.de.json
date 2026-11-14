@@ -1,24 +1,34 @@
 {
-  "$schema": "https://json-schema.org/draft/2019-09/schema",
-  "title": "OuterStruct",
-  "type": "object",
-  "properties": {
-    "maybe_int": {
-      "type": [
-        "integer",
-        "null"
-      ],
-      "format": "int32",
-      "examples": [
-        8,
-        null
+  "$defs": {
+    "InnerEnum": {
+      "oneOf": [
+        {
+          "enum": [
+            "UndocumentedUnit1",
+            "UndocumentedUnit2"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "DocumentedUnit",
+          "description": "This is a documented unit variant",
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "ValueNewType": true
+          },
+          "required": [
+            "ValueNewType"
+          ],
+          "type": "object"
+        }
       ]
-    },
-    "values": {
-      "type": "object",
-      "additionalProperties": true
-    },
-    "value": true,
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "properties": {
     "inner": {
       "$ref": "#/$defs/InnerEnum"
     },
@@ -32,25 +42,45 @@
         }
       ]
     },
+    "maybe_int": {
+      "examples": [
+        8,
+        null
+      ],
+      "format": "int32",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
     "tuples": {
-      "type": "array",
       "items": {
-        "type": "array",
-        "maxItems": 2,
-        "minItems": 2,
         "items": [
           {
-            "type": "integer",
             "format": "uint8",
+            "maximum": 255,
             "minimum": 0,
-            "maximum": 255
+            "type": "integer"
           },
           {
-            "type": "integer",
-            "format": "int64"
+            "format": "int64",
+            "maximum": 9223372036854775807,
+            "minimum": -9223372036854775808,
+            "type": "integer"
           }
-        ]
-      }
+        ],
+        "maxItems": 2,
+        "minItems": 2,
+        "type": "array"
+      },
+      "type": "array"
+    },
+    "value": true,
+    "values": {
+      "additionalProperties": true,
+      "type": "object"
     }
   },
   "required": [
@@ -59,32 +89,6 @@
     "inner",
     "tuples"
   ],
-  "$defs": {
-    "InnerEnum": {
-      "oneOf": [
-        {
-          "type": "string",
-          "enum": [
-            "UndocumentedUnit1",
-            "UndocumentedUnit2"
-          ]
-        },
-        {
-          "description": "This is a documented unit variant",
-          "type": "string",
-          "const": "DocumentedUnit"
-        },
-        {
-          "type": "object",
-          "properties": {
-            "ValueNewType": true
-          },
-          "required": [
-            "ValueNewType"
-          ],
-          "additionalProperties": false
-        }
-      ]
-    }
-  }
+  "title": "OuterStruct",
+  "type": "object"
 }

@@ -82,7 +82,9 @@
       "properties": {
         "foo": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "maximum": 2147483647,
+          "minimum": -2147483648
         },
         "bar": {
           "type": "boolean"
@@ -101,7 +103,9 @@
           "properties": {
             "foo": {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "maximum": 2147483647,
+              "minimum": -2147483648
             },
             "bar": {
               "type": "boolean"
@@ -126,7 +130,9 @@
           "prefixItems": [
             {
               "type": "integer",
-              "format": "int32"
+              "format": "int32",
+              "maximum": 2147483647,
+              "minimum": -2147483648
             },
             {
               "type": "boolean"

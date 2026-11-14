@@ -1,18 +1,19 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "Untagged",
-  "description": "The enum...",
   "anyOf": [
     {
       "description": "The variant?",
-      "type": "object",
       "properties": {
         "i": {
           "description": "The field! (At least 1)",
-          "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "maximum": 2147483647,
+          "type": "integer"
         }
-      }
+      },
+      "type": "object"
     }
-  ]
+  ],
+  "description": "The enum...",
+  "title": "Untagged"
 }

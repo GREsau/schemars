@@ -104,11 +104,7 @@ fn needs_jsonschema_bound(field: &Field, variant: Option<&Variant>) -> bool {
         }
     }
 
-    if field.serde_attrs.skip_deserializing() && field.serde_attrs.skip_serializing() {
-        return false;
-    }
-
-    true
+    !(field.serde_attrs.skip_deserializing() && field.serde_attrs.skip_serializing())
 }
 
 struct FindTyParams<'ast> {

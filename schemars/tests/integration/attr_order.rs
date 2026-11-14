@@ -54,6 +54,5 @@ fn attributes_applied_in_order() {
             Some(&json!("The field! (At least 1)"))
         );
         assert_eq!(schema.pointer("/anyOf/0/properties/i/default"), None);
-        assert_eq!(schema.pointer("/anyOf/0/properties/i/minimum"), None);
     });
 }

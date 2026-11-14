@@ -7,9 +7,9 @@ There are two main types in this module:
 * [`SchemaGenerator`], which manages the generation of a schema document.
 */
 
+use crate::_alloc_prelude::*;
 use crate::consts::meta_schemas;
 use crate::Schema;
-use crate::_alloc_prelude::*;
 use crate::{transform::*, JsonSchema};
 use alloc::collections::{BTreeMap, BTreeSet};
 use core::{any::Any, fmt::Debug};
