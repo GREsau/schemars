@@ -3,7 +3,7 @@ use std::ffi::{CStr, CString, OsStr, OsString};
 use std::marker::PhantomData;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6};
 use std::num::{NonZeroI64, NonZeroU64};
-use std::ops::{Bound, Range, RangeInclusive};
+use std::ops::{Bound, Range, RangeFrom, RangeInclusive, RangeTo};
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 
@@ -179,6 +179,14 @@ fn ranges() {
 
     test!(RangeInclusive<i32>)
         .assert_allows_ser_roundtrip([0..=0, 123..=456])
+        .assert_matches_de_roundtrip(arbitrary_values());
+
+    test!(RangeFrom<i32>)
+        .assert_allows_ser_roundtrip([0.., 123..])
+        .assert_matches_de_roundtrip(arbitrary_values());
+
+    test!(RangeTo<i32>)
+        .assert_allows_ser_roundtrip([..0, ..123])
         .assert_matches_de_roundtrip(arbitrary_values());
 }
 

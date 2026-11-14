@@ -1,9 +1,9 @@
-use crate::SchemaGenerator;
 use crate::_alloc_prelude::*;
 use crate::_private::allow_null;
+use crate::SchemaGenerator;
 use crate::{json_schema, JsonSchema, Schema};
 use alloc::borrow::Cow;
-use core::ops::{Bound, Range, RangeInclusive};
+use core::ops::{Bound, Range, RangeFrom, RangeInclusive, RangeTo};
 
 impl<T: JsonSchema> JsonSchema for Option<T> {
     inline_schema!();
@@ -111,12 +111,84 @@ impl<T: JsonSchema> JsonSchema for Range<T> {
     fn json_schema(generator: &mut SchemaGenerator) -> Schema {
         let subschema = generator.subschema_for::<T>();
         json_schema!({
-            "type": "object",
-            "properties": {
-                "start": subschema,
-                "end": subschema
-            },
-            "required": ["start", "end"]
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "start": subschema,
+                        "end": subschema
+                    },
+                    "required": ["start", "end"]
+                },
+                {
+                    "type": "array",
+                    "items": subschema,
+                    "minItems": 2,
+                    "maxItems": 2
+                }
+            ]
+        })
+    }
+}
+
+impl<T: JsonSchema> JsonSchema for RangeFrom<T> {
+    fn schema_name() -> Cow<'static, str> {
+        format!("RangeFrom_of_{}", T::schema_name()).into()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        format!("RangeFrom<{}>", T::schema_id()).into()
+    }
+
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+        let subschema = generator.subschema_for::<T>();
+        json_schema!({
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "start": subschema
+                    },
+                    "required": ["start"]
+                },
+                {
+                    "type": "array",
+                    "items": subschema,
+                    "minItems": 1,
+                    "maxItems": 1
+                }
+            ]
+        })
+    }
+}
+
+impl<T: JsonSchema> JsonSchema for RangeTo<T> {
+    fn schema_name() -> Cow<'static, str> {
+        format!("RangeTo_of_{}", T::schema_name()).into()
+    }
+
+    fn schema_id() -> Cow<'static, str> {
+        format!("RangeTo<{}>", T::schema_id()).into()
+    }
+
+    fn json_schema(generator: &mut SchemaGenerator) -> Schema {
+        let subschema = generator.subschema_for::<T>();
+        json_schema!({
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "end": subschema
+                    },
+                    "required": ["end"]
+                },
+                {
+                    "type": "array",
+                    "items": subschema,
+                    "minItems": 1,
+                    "maxItems": 1
+                }
+            ]
         })
     }
 }
