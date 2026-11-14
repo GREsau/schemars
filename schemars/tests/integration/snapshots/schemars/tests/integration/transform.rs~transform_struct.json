@@ -7,6 +7,8 @@
     "int": {
       "type": "integer",
       "format": "int32",
+      "maximum": 2147483647,
+      "minimum": -2147483648,
       "x-propertyCount": 0,
       "x-upperType": "INTEGER"
     }

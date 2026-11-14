@@ -1,5 +1,5 @@
-use crate::JsonSchema;
 use crate::_alloc_prelude::*;
+use crate::JsonSchema;
 
 macro_rules! wrapper_impl {
     ($($desc:tt)+) => {
