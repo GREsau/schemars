@@ -33,7 +33,7 @@ mod garde;
 #[cfg(feature = "indexmap2")]
 mod indexmap;
 mod inline_subschemas;
-#[cfg(feature = "jiff02")]
+#[cfg(any(feature = "jiff02", feature = "jiff1"))]
 mod jiff;
 mod macros;
 mod map;
