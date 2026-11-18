@@ -10,7 +10,7 @@ license = "MIT"
 readme = "README.md"
 keywords = ["rust", "json-schema", "serde"]
 categories = ["encoding", "no-std"]
-rust-version = "1.74"
+rust-version = "1.85"
 
 [dependencies]
 schemars_derive = { version = "=1.2.3", optional = true, path = "../schemars_derive" }

@@ -4,7 +4,7 @@
 [![Crates.io](https://img.shields.io/crates/v/schemars)](https://crates.io/crates/schemars)
 [![API Docs](https://img.shields.io/docsrs/schemars/latest?label=API%20docs)](https://docs.rs/schemars/latest)
 [![Usage Docs](https://img.shields.io/badge/Usage%20docs-graham.cool%2Fschemars-blue)](https://graham.cool/schemars)
-[![MSRV 1.74+](https://img.shields.io/badge/msrv-1.74-blue)](https://blog.rust-lang.org/2023/11/16/Rust-1.74.0/)
+[![MSRV 1.85+](https://img.shields.io/badge/msrv-1.85-blue)](https://blog.rust-lang.org/2025/02/20/Rust-1.85.0/)
 
 Generate JSON Schema documents from Rust code
 
