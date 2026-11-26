@@ -118,6 +118,8 @@ Serde docs: [`tag`](https://serde.rs/container-attrs.html#tag) / [`tag`+`content
 
 Set on a struct or field to give fields a default value, which excludes them from the schema's `required` properties. The default will also be set on the field's schema's `default` property, unless it is skipped by a [`skip_serializing_if`](https://serde.rs/field-attrs.html#skip_serializing_if) attribute on the field. Any [`serialize_with`](https://serde.rs/field-attrs.html#serialize_with) or [`with`](https://serde.rs/field-attrs.html#with) attribute set on the field will be used to serialize the default value.
 
+Schemars serializes the default using Serde. For example, applying `#[schemars(rename_all = "camelCase")]` to an enum changes the variant names in its schema, so a variant named `HelloWorld` appears as `"helloWorld"`. Serde still serializes that variant as `"HelloWorld"`, which is what Schemars writes as the field's default. Use `#[serde(rename_all = "camelCase")]` on the enum to apply the same names to the schema and the serialized defaults.
+
 Serde docs: [container](https://serde.rs/container-attrs.html#default) / [field](https://serde.rs/field-attrs.html#default)
 
 <h3 id="skip">
